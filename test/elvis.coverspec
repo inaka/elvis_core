@@ -2,7 +2,7 @@
 {
  incl_mods,
  [
-  elvis,
+  elvis_core,
   elvis_result,
   elvis_utils,
   elvis_file,

@@ -1,4 +1,4 @@
--module(elvis).
+-module(elvis_core).
 
 %% Public API
 

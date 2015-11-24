@@ -534,7 +534,7 @@ verify_no_nested_try_catch(_Config) ->
 -spec results_are_ordered_by_line(config()) -> any().
 results_are_ordered_by_line(_Config) ->
     ElvisConfig = elvis_config:default(),
-    {fail, Results} = elvis:rock(ElvisConfig),
+    {fail, Results} = elvis_core:rock(ElvisConfig),
     true = lists:all(fun(X) -> X end, is_item_line_sort(Results)).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

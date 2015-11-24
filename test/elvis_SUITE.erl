@@ -63,13 +63,13 @@ end_per_suite(Config) ->
 -spec rock_with_empty_map_config(config()) -> any().
 rock_with_empty_map_config(_Config) ->
     ok = try
-             elvis:rock(#{}),
+             elvis_core:rock(#{}),
              fail
          catch
              throw:{invalid_config, _} -> ok
          end,
     ok = try
-             elvis:rock([]),
+             elvis_core:rock([]),
              fail
          catch
              throw:{invalid_config, _} -> ok
@@ -78,7 +78,7 @@ rock_with_empty_map_config(_Config) ->
 -spec rock_with_empty_list_config(config()) -> any().
 rock_with_empty_list_config(_Config) ->
     ok = try
-             elvis:rock([#{}, #{}]),
+             elvis_core:rock([#{}, #{}]),
              fail
          catch
              throw:{invalid_config, _} -> ok
@@ -88,7 +88,7 @@ rock_with_empty_list_config(_Config) ->
 rock_with_incomplete_config(_Config) ->
     ElvisConfig = #{src_dirs => ["src"]},
     ok = try
-             elvis:rock(ElvisConfig),
+             elvis_core:rock(ElvisConfig),
              fail
          catch
              throw:{invalid_config, _} -> ok
@@ -102,7 +102,7 @@ rock_with_list_config(_Config) ->
                      filter => "Makefile",
                      rules => []}],
     ok = try
-             elvis:rock(ElvisConfig),
+             elvis_core:rock(ElvisConfig),
              ok
          catch
              throw:{invalid_config, _} -> fail
@@ -110,7 +110,7 @@ rock_with_list_config(_Config) ->
 
 -spec rock_with_file_config(config()) -> ok.
 rock_with_file_config(_Config) ->
-    Fun = fun() -> elvis:rock() end,
+    Fun = fun() -> elvis_core:rock() end,
     Expected = "# \\.\\./\\.\\./test/examples/.*\\.erl.*FAIL",
     check_some_line_output(Fun, Expected, fun matches_regex/2),
     ok.
@@ -120,7 +120,7 @@ rock_with_old_config(_Config) ->
     ConfigPath = "../../config/old/elvis.config",
     ElvisConfig = elvis_config:load_file(ConfigPath),
     ok = try
-             elvis:rock(ElvisConfig),
+             elvis_core:rock(ElvisConfig),
              ok
          catch
              throw:{invalid_config, _} -> fail
@@ -129,7 +129,7 @@ rock_with_old_config(_Config) ->
     ConfigPath1 = "../../config/old/elvis-test.config",
     ElvisConfig1 = elvis_config:load_file(ConfigPath1),
     ok = try
-             elvis:rock(ElvisConfig1),
+             elvis_core:rock(ElvisConfig1),
              ok
          catch
              throw:{invalid_config, _} -> fail
@@ -138,7 +138,7 @@ rock_with_old_config(_Config) ->
     ConfigPath2 = "../../config/old/elvis-test-rule-config-list.config",
     ElvisConfig2 = elvis_config:load_file(ConfigPath2),
     ok = try
-             elvis:rock(ElvisConfig2),
+             elvis_core:rock(ElvisConfig2),
              ok
          catch
              throw:{invalid_config, _} -> fail
@@ -146,16 +146,16 @@ rock_with_old_config(_Config) ->
 
 -spec rock_this(config()) -> ok.
 rock_this(_Config) ->
-    ok = elvis:rock_this(elvis),
+    ok = elvis_core:rock_this(elvis_core),
 
     ok = try
-             elvis:rock_this("bla.erl")
+             elvis_core:rock_this("bla.erl")
          catch
              _:{enoent, "bla.erl"} -> ok
          end,
 
     Path = "../../test/examples/fail_god_modules.erl",
-    {fail, _} = elvis:rock_this(Path),
+    {fail, _} = elvis_core:rock_this(Path),
 
     ok.
 
@@ -163,7 +163,7 @@ rock_this(_Config) ->
 rock_without_colors(_Config) ->
     ConfigPath = "../../config/test.config",
     ElvisConfig = elvis_config:load_file(ConfigPath),
-    Fun = fun() -> elvis:rock(ElvisConfig) end,
+    Fun = fun() -> elvis_core:rock(ElvisConfig) end,
     Expected = "\\e.*?m",
     ok = try check_some_line_output(Fun, Expected, fun matches_regex/2) of
              Result -> ct:fail("Unexpected result ~p", [Result])
@@ -224,29 +224,8 @@ check_some_line_output(Fun, Expected, FilterFun) ->
     ListFun = fun(Line) -> FilterFun(Line, Expected) end,
     [_ | _] = lists:filter(ListFun, Lines).
 
-check_first_line_output(Fun, Expected, FilterFun) ->
-    ct:capture_start(),
-    Fun(),
-    ct:capture_stop(),
-    Lines = case ct:capture_get([]) of
-                [] -> [];
-                [Head | _] -> [Head]
-            end,
-    ListFun = fun(Line) -> FilterFun(Line, Expected) end,
-    [_ | _] = lists:filter(ListFun, Lines).
-
-starts_with(Result, Expected) ->
-    case string:str(Result, Expected) of
-        1 -> true;
-        _ -> {Expected, Expected} == {Result, Expected}
-    end.
-
 matches_regex(Result, Regex) ->
     case re:run(Result, Regex) of
         {match, _} -> true;
         nomatch -> false
     end.
-
-check_empty_output(Fun) ->
-    Fun(),
-    [] = ct:capture_get([]).
