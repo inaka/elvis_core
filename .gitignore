@@ -1,10 +1,13 @@
 .eunit
+.rebar
 deps
+ebin
 *.o
 *.beam
 *.plt
 erl_crash.dump
-ebin
-rel/example_project
-.concrete/DEV_MODE
-.rebar
+log*/
+.erlang.mk.packages.*
+_build
+# Ignore elvis escript
+elvis

@@ -1,0 +1,14 @@
+%% Specific modules to include in cover.
+{
+ incl_mods,
+ [
+  elvis_core,
+  elvis_result,
+  elvis_utils,
+  elvis_file,
+  elvis_style,
+  elvis_project,
+  elvis_config,
+  elvis_code
+ ]
+}.
