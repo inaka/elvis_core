@@ -19,6 +19,7 @@
          %% Utill & Config
          throw_configuration/1,
          find_file_and_check_src/1,
+         find_file_with_ignore/1,
          invalid_file/1,
          to_string/1
         ]).
@@ -196,6 +197,17 @@ find_file_and_check_src(_Config) ->
 
     {<<"-module(small).\n">>, _} = elvis_file:src(File),
     {error, enoent} = elvis_file:src(#{path => "doesnt_exist.erl"}).
+
+
+-spec find_file_with_ignore(config()) -> any().
+find_file_with_ignore(_Config) ->
+    Dirs = ["../../test/examples"],
+    Filter = "find_test*.erl",
+    Ignore = elvis_config:ignore(#{ignore => [find_test1]}),
+    Files = [_, _] = elvis_file:find_files(Dirs, Filter),
+    [_, _] = elvis_file:filter_files(Files, Dirs, Filter, []),
+    [#{path := "../../test/examples/find_test2.erl"}] =
+        elvis_file:filter_files(Files, Dirs, Filter, Ignore).
 
 -spec invalid_file(config()) -> any().
 invalid_file(_Config) ->

@@ -8,6 +8,7 @@
          normalize/1,
          %% Geters
          dirs/1,
+         ignore/1,
          filter/1,
          files/1,
          rules/1,
@@ -104,6 +105,14 @@ dirs(_RuleGroup = #{dirs := Dirs}) ->
 dirs(#{}) ->
     [].
 
+-spec ignore(config()) -> [string()].
+ignore(Config) when is_list(Config) ->
+    lists:flatmap(fun ignore/1, Config);
+ignore(_RuleGroup = #{ignore := Ignore}) ->
+    lists:map(fun ignore_to_regexp/1, Ignore);
+ignore(#{}) ->
+    [].
+
 -spec filter(config()) -> [string()].
 filter(_RuleGroup = #{filter := Filter}) ->
     Filter;
@@ -161,3 +170,15 @@ apply_to_files(Fun, Config) when is_list(Config) ->
 apply_to_files(Fun, RuleGroup = #{files := Files}) ->
     NewFiles = lists:map(Fun, Files),
     RuleGroup#{files => NewFiles}.
+
+%% @doc Ensures the ignore is a regexp, this is used
+%%      to allow using 'module name' atoms in the ignore
+%%      list by taking advantage of the fact that erlang
+%%      enforces the module and the file name to be the
+%%      same.
+%% @end
+-spec ignore_to_regexp(string() | atom()) -> string().
+ignore_to_regexp(R) when is_list(R) ->
+    R;
+ignore_to_regexp(A) when is_atom(A) ->
+    "/" ++ atom_to_list(A) ++ "\\.erl$".
