@@ -142,7 +142,8 @@ resolve_files(Config, Files) when is_list(Config) ->
 resolve_files(RuleGroup, Files) ->
     Filter = filter(RuleGroup),
     Dirs = dirs(RuleGroup),
-    FilteredFiles = elvis_file:filter_files(Files, Dirs, Filter),
+    Ignore = ignore(RuleGroup),
+    FilteredFiles = elvis_file:filter_files(Files, Dirs, Filter, Ignore),
     RuleGroup#{files => FilteredFiles}.
 
 %% @doc Takes a configuration and finds all files according to its 'dirs'
