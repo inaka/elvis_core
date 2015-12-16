@@ -1,5 +1,5 @@
 {
-  application, elvis,
+  application, elvis_core,
   [
    {description, "Erlang Style Reviewer, inspired on HoundCI"},
    {vsn, "0.2.6-alpha1"},

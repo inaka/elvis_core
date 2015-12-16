@@ -11,3 +11,4 @@ log*/
 _build
 # Ignore elvis escript
 elvis
+rebar
