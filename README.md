@@ -39,10 +39,9 @@ elvis_core:rock().
 %%= ok
 ```
 
-This will try to load the configuration for `elvis_core` specified in the
-elvis [application configuration][config], for this to be available, the
-application needs to be started. If no configuration is found `invalid_config`
-will be thrown.
+This will try to load the configuration for `elvis_core` specified in an
+`elvis.config` located in the current directory. If no configuration is
+found `invalid_config` will be thrown.
 
 To start the application in the shell enter the following command:
 
@@ -156,9 +155,7 @@ A reference of all rules implemented in Elvis can be found in this wiki page:
 
 ## References
 
-Inspired on [HoundCI][houndci]
+Inspired by [HoundCI][houndci]
 
   [houndci]: https://houndci.com/
-  [erlang]: http://www.erlang.org/download_release/24
-  [make]: http://www.gnu.org/software/make/
   [config]: http://www.erlang.org/doc/man/config.html
