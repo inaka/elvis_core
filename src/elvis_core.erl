@@ -65,7 +65,9 @@ rock_this(Path, Config) ->
     FilterFun = fun(Cfg) ->
                         Filter = elvis_config:filter(Cfg),
                         Dirs = elvis_config:dirs(Cfg),
-                        [] =/= elvis_file:filter_files([File], Dirs, Filter)
+                        IgnoreList = elvis_config:ignore(Cfg),
+                        [] =/= elvis_file:filter_files([File], Dirs, Filter,
+                                                       IgnoreList)
                 end,
     FilteredConfig = lists:filter(FilterFun, NewConfig),
 
