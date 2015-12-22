@@ -1,12 +1,12 @@
 {
-  application, elvis_core,
+  application, elvis,
   [
    {description, "Erlang Style Reviewer, inspired on HoundCI"},
    {vsn, "0.2.6-alpha1"},
    {applications, [kernel, stdlib, lager, aleppo, zipper]},
    {modules,
     [
-     elvis,
+     elvis_core,
      elvis_config,
      elvis_result,
      elvis_utils,

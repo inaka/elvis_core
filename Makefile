@@ -1,4 +1,4 @@
-PROJECT = elvis_core
+PROJECT = elvis
 
 DEPS = lager zipper katana
 
@@ -21,9 +21,7 @@ ERLC_OPTS += +warn_export_vars +warn_exported_vars +warn_missing_spec +warn_unty
 
 TEST_ERLC_OPTS += +'{parse_transform, lager_transform}'
 CT_OPTS = -cover test/elvis.coverspec -erl_args -config config/test.config
-
-shell: app
-	erl -pa ebin -pa deps/*/ebin -name ${PROJECT}@`hostname` -s sync -s elvis_core -s lager -config config/elvis.config
+SHELL_OPTS = -name ${PROJECT}@`hostname` -s sync -s elvis_core -s lager -config config/elvis.config
 
 test-shell: build-ct-suites app
 	erl -pa ebin -pa deps/*/ebin -name ${PROJECT}-test@`hostname` -pa test -s sync -s elvis_core -s lager -config config/test.config
