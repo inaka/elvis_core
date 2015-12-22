@@ -1,10 +1,11 @@
 [![Stories in Ready](https://badge.waffle.io/inaka/elvis.png?label=ready&title=Ready)](https://waffle.io/inaka/elvis)
 
-![](http://www.reactiongifs.com/wp-content/uploads/2013/01/elvis-dance.gif)
+# elvis-core
 
-# elvis
+Erlang style reviewer core library.
 
-Erlang Style Reviewer Core Library
+This library includes the mechanism to apply rules to your code and their
+implementation.
 
 ## Contact Us
 For **questions** or **general comments** regarding the use of this library,
@@ -15,6 +16,12 @@ If you find any **bugs** or have a **problem** while using this library, please
 (or a pull request :)).
 
 And you can check all of our open-source projects at [inaka.github.io](http://inaka.github.io).
+
+## Contributing & Reporting Bugs
+
+If you find a bug or want to contribute to this project please create an issue through
+the [elvis](https://github.com/inaka/elvis) repository. This is where all elvis related
+work is coordinated.
 
 ## Usage
 
