@@ -34,4 +34,3 @@ camelCase(Should, Fail) ->
 
 user@location(Should, Fail) ->
     [Should, Fail].
-
