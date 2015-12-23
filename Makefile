@@ -2,9 +2,9 @@ PROJECT = elvis
 
 DEPS = lager zipper katana
 
-dep_lager = git https://github.com/basho/lager.git 3.0.2
-dep_zipper = git https://github.com/inaka/zipper 0.1.2
-dep_katana =  git https://github.com/inaka/erlang-katana 0.2.13
+dep_lager  = git https://github.com/basho/lager.git     3.0.2
+dep_zipper = git https://github.com/inaka/zipper        0.1.3
+dep_katana = git https://github.com/inaka/erlang-katana 0.2.15
 
 TEST_DEPS = meck
 

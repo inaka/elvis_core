@@ -12,3 +12,5 @@ _build
 # Ignore elvis escript
 elvis
 rebar
+.erlang.mk/
+elvis.d
