@@ -81,7 +81,7 @@ validate(RuleGroup) ->
             end;
         false -> ok
     end,
-    case maps:is_key(rules, RuleGroup) of
+    case maps:is_key(rules, RuleGroup) or maps:is_key(rule_group, RuleGroup) of
         false -> throw({invalid_config, {missing_rules, RuleGroup}});
         true -> ok
     end.
@@ -126,8 +126,12 @@ files(#{}) ->
     undefined.
 
 -spec rules(config()) -> [string()] | undefined.
-rules(_RuleGroup = #{rules := Rules}) ->
-    Rules;
+rules(_RuleGroup = #{rules := UserRules, rule_group := RuleGroup}) ->
+    DefaultRules = elvis_rule_groups:rules(RuleGroup),
+    merge_rules(UserRules, DefaultRules);
+rules(_RuleGroup = #{rules := Rules}) -> Rules;
+rules(_RuleGroup = #{rule_group := RuleGroup}) ->
+    elvis_rule_groups:rules(RuleGroup);
 rules(#{}) ->
     undefined.
 
@@ -183,3 +187,40 @@ ignore_to_regexp(R) when is_list(R) ->
     R;
 ignore_to_regexp(A) when is_atom(A) ->
     "/" ++ atom_to_list(A) ++ "\\.erl$".
+
+%% @doc Merge user rules (override) with elvis default rules.
+-spec merge_rules(UserRules::list(), DefaultRules::list()) -> list().
+merge_rules(UserRules, DefaultRules) ->
+    UnduplicatedRules =
+        % Drops repeated rules
+        lists:dropwhile(
+            % If any default rule is in UserRules it means the user
+            % wants to override the rule.
+            fun({FileName, RuleName, _}) ->
+                is_rule_override(FileName, RuleName, UserRules);
+               ({FileName, RuleName}) ->
+                is_rule_override(FileName, RuleName, UserRules)
+            end,
+            DefaultRules
+        ),
+    OverrideRules =
+        % Remove the rules that the user wants to "disable" and after that,
+        % remains just the rules the user wants to override.
+        lists:dropwhile(
+            fun({_FileName, _RuleName, disable}) -> true; (_) -> false end,
+            UserRules
+        ),
+    UnduplicatedRules ++ OverrideRules.
+
+-spec is_rule_override(FileName::atom(), RuleName::atom(), UserRules::list()) ->
+    boolean().
+is_rule_override(FileName, RuleName, UserRules) ->
+    lists:any(
+        fun(UserRule) ->
+            case UserRule of
+                {FileName, RuleName, _} -> true;
+                _ -> false
+            end
+        end,
+        UserRules
+    ).

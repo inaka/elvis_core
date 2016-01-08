@@ -10,6 +10,11 @@ TEST_DEPS = meck
 
 dep_meck = git https://github.com/eproxus/meck 0.8.3
 
+SHELL_DEPS = sync goldrush
+
+dep_sync = git https://github.com/rustyio/sync.git 9c78e7b
+dep_goldrush = git https://github.com/DeadZen/goldrush.git 0.1.8
+
 include erlang.mk
 
 ERLC_OPTS += +'{parse_transform, lager_transform}'
@@ -24,7 +29,7 @@ CT_OPTS = -cover test/elvis.coverspec -erl_args -config config/test.config
 SHELL_OPTS = -name ${PROJECT}@`hostname` -s sync -s elvis_core -s lager -config config/elvis.config
 
 test-shell: build-ct-suites app
-	erl -pa ebin -pa deps/*/ebin -name ${PROJECT}-test@`hostname` -pa test -s sync -s elvis_core -s lager -config config/test.config
+	erl -pa ebin -pa deps/*/ebin -name ${PROJECT}-test@`hostname` -pa test -s lager -s sync -s elvis_core -config config/test.config
 
 quicktests: ERLC_OPTS = $(TEST_ERLC_OPTS)
 quicktests: clean app build-ct-suites
