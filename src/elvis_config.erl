@@ -81,7 +81,7 @@ validate(RuleGroup) ->
             end;
         false -> ok
     end,
-    case maps:is_key(rules, RuleGroup) or maps:is_key(rule_group, RuleGroup) of
+    case maps:is_key(rules, RuleGroup) orelse maps:is_key(rule_group, RuleGroup) of
         false -> throw({invalid_config, {missing_rules, RuleGroup}});
         true -> ok
     end.
@@ -193,21 +193,24 @@ ignore_to_regexp(A) when is_atom(A) ->
 merge_rules(UserRules, DefaultRules) ->
     UnduplicatedRules =
         % Drops repeated rules
-        lists:dropwhile(
+        lists:filter(
             % If any default rule is in UserRules it means the user
             % wants to override the rule.
-            fun({FileName, RuleName, _}) ->
-                is_rule_override(FileName, RuleName, UserRules);
-               ({FileName, RuleName}) ->
-                is_rule_override(FileName, RuleName, UserRules)
+            fun({FileName, RuleName}) ->
+                true /= is_rule_override(FileName, RuleName, UserRules);
+               ({FileName, RuleName, _}) ->
+                true /= is_rule_override(FileName, RuleName, UserRules);
+               (_) -> false
             end,
             DefaultRules
         ),
     OverrideRules =
         % Remove the rules that the user wants to "disable" and after that,
         % remains just the rules the user wants to override.
-        lists:dropwhile(
-            fun({_FileName, _RuleName, disable}) -> true; (_) -> false end,
+        lists:filter(
+            fun({_FileName, _RuleName, OverrideOptions}) ->
+                disable /= OverrideOptions;
+               (_) -> false end,
             UserRules
         ),
     UnduplicatedRules ++ OverrideRules.
