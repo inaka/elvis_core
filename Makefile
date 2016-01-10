@@ -2,7 +2,7 @@ PROJECT = elvis
 
 DEPS = lager zipper katana
 
-dep_lager  = hex 3.0.2
+dep_lager  = git https://github.com/basho/lager.git 3.0.2
 dep_zipper = hex 0.1.4
 dep_katana = hex 0.2.18
 
@@ -13,7 +13,6 @@ dep_meck = git https://github.com/eproxus/meck 0.8.3
 SHELL_DEPS = sync goldrush
 
 dep_sync = git https://github.com/rustyio/sync.git 9c78e7b
-dep_goldrush = git https://github.com/DeadZen/goldrush.git 0.1.8
 
 include erlang.mk
 
