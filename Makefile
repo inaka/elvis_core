@@ -10,7 +10,7 @@ TEST_DEPS = meck
 
 dep_meck = git https://github.com/eproxus/meck 0.8.3
 
-SHELL_DEPS = sync goldrush
+SHELL_DEPS = sync
 
 dep_sync = git https://github.com/rustyio/sync.git 9c78e7b
 
