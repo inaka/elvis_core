@@ -81,7 +81,7 @@ validate(RuleGroup) ->
             end;
         false -> ok
     end,
-    case maps:is_key(rules, RuleGroup) orelse maps:is_key(rule_group, RuleGroup) of
+    case maps:is_key(rules, RuleGroup) orelse maps:is_key(ruleset, RuleGroup) of
         false -> throw({invalid_config, {missing_rules, RuleGroup}});
         true -> ok
     end.
@@ -126,12 +126,12 @@ files(#{}) ->
     undefined.
 
 -spec rules(config()) -> [string()] | undefined.
-rules(_RuleGroup = #{rules := UserRules, rule_group := RuleGroup}) ->
-    DefaultRules = elvis_rule_groups:rules(RuleGroup),
+rules(_RuleSet = #{rules := UserRules, ruleset := RuleSet}) ->
+    DefaultRules = elvis_rulesets:rules(RuleSet),
     merge_rules(UserRules, DefaultRules);
-rules(_RuleGroup = #{rules := Rules}) -> Rules;
-rules(_RuleGroup = #{rule_group := RuleGroup}) ->
-    elvis_rule_groups:rules(RuleGroup);
+rules(_RuleSet = #{rules := Rules}) -> Rules;
+rules(_RuleSet = #{ruleset := RuleSet}) ->
+    elvis_rulesets:rules(RuleSet);
 rules(#{}) ->
     undefined.
 
@@ -197,9 +197,9 @@ merge_rules(UserRules, DefaultRules) ->
             % If any default rule is in UserRules it means the user
             % wants to override the rule.
             fun({FileName, RuleName}) ->
-                true /= is_rule_override(FileName, RuleName, UserRules);
+                not is_rule_override(FileName, RuleName, UserRules);
                ({FileName, RuleName, _}) ->
-                true /= is_rule_override(FileName, RuleName, UserRules);
+                not is_rule_override(FileName, RuleName, UserRules);
                (_) -> false
             end,
             DefaultRules

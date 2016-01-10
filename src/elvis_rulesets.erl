@@ -1,4 +1,4 @@
--module(elvis_rule_groups).
+-module(elvis_rulesets).
 
 -export([rules/1]).
 
