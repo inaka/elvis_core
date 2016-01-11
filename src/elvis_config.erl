@@ -126,11 +126,11 @@ files(#{}) ->
     undefined.
 
 -spec rules(config()) -> [string()] | undefined.
-rules(_RuleSet = #{rules := UserRules, ruleset := RuleSet}) ->
+rules(#{rules := UserRules, ruleset := RuleSet}) ->
     DefaultRules = elvis_rulesets:rules(RuleSet),
     merge_rules(UserRules, DefaultRules);
-rules(_RuleSet = #{rules := Rules}) -> Rules;
-rules(_RuleSet = #{ruleset := RuleSet}) ->
+rules(#{rules := Rules}) -> Rules;
+rules(#{ruleset := RuleSet}) ->
     elvis_rulesets:rules(RuleSet);
 rules(#{}) ->
     undefined.
