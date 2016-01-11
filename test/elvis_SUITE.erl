@@ -16,6 +16,7 @@
          rock_with_old_config/1,
          rock_this/1,
          rock_without_colors/1,
+         rock_with_rule_groups/1,
          %% Utill & Config
          throw_configuration/1,
          find_file_and_check_src/1,
@@ -171,6 +172,41 @@ rock_without_colors(_Config) ->
          catch
              _:{badmatch, []} -> ok
          end.
+
+-spec rock_with_rule_groups(Config::config()) -> ok.
+rock_with_rule_groups(_Config) ->
+    % elvis_config will load default elvis_core rules for every
+    % rule_group in the config.
+    RulesGroupConfig =
+        [#{dirs => ["src"], filter => "*.erl", ruleset => erl_files},
+         #{dirs => ["."], filter => "Makefile", ruleset => makefiles},
+         #{dirs => ["."], filter => "rebar.config", ruleset => rebar_config},
+         #{dirs => ["."], filter => "elvis.config", ruleset => elvis_config}],
+    ok = try
+             elvis_core:rock(RulesGroupConfig),
+             ok
+         catch
+             throw:{invalid_config, _} -> fail
+         end,
+    % Override default elvis_core rules.
+    OverrideConfig =
+        [#{dirs => ["src"],
+           filter => "*.erl",
+           ruleset => erl_files,
+           rules => [{elvis_style, line_length, #{limit => 90}}, % I like 90 chars per line.
+                     {elvis_style, no_tabs, disable}]}, % I like tabs so disable this rule.
+         #{dirs => ["."],
+           filter => "Makefile",
+           ruleset => makefiles,
+           rules => [{elvis_project, no_deps_master_erlang_mk, disable}]}, % I like stable dependencies
+         #{dirs => ["."], filter => "rebar.config", ruleset => rebar_config},
+         #{dirs => ["."], filter => "elvis.config", ruleset => elvis_config}],
+    ok = try
+           elvis_core:rock(OverrideConfig),
+           ok
+       catch
+           throw:{invalid_config, _} -> fail
+       end.
 
 %%%%%%%%%%%%%%%
 %%% Utils
