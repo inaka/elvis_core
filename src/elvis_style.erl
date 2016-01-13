@@ -236,7 +236,14 @@ operator_spaces(Config, Target, RuleConfig) ->
     Rules = maps:get(rules, RuleConfig, []),
     {Src, _} = elvis_file:src(Target),
     {Root, _} = elvis_file:parse_tree(Config, Target),
-    elvis_utils:check_lines(Src, fun check_operator_spaces/3, {Root, Rules}).
+    #{attrs := #{tokens := Tokens}} = Root,
+    Lines = binary:split(Src, <<"\n">>, [global]),
+    lists:flatmap(
+        fun(Rule) ->
+            check_operator_spaces(Lines, Tokens, Rule)
+        end,
+        Rules
+    ).
 
 -type nesting_level_config() :: #{level => integer()}.
 
@@ -825,54 +832,52 @@ has_remote_call_parent(Zipper) ->
     end.
 
 %% Operator Spaces
-
--spec check_operator_spaces(binary(), integer(), [{right|left, string()}]) ->
+-spec check_operator_spaces(Lines::[binary()],
+                            Tokens::[map()],
+                            Rule::{right | left, string()}) ->
     no_result | {ok, elvis_result:item_result()}.
-check_operator_spaces(Line, Num, {Root, Rules}) ->
-    AllResults =
-        [check_operator_spaces_rule(Line, Num, Rule, Root) || Rule <- Rules],
-    case [Result || {ok, Result} <- AllResults] of
-        [] -> no_result;
-        [Result|_] -> {ok, Result}
-    end.
-check_operator_spaces_rule(Line, Num, {Position, Operator}, Root) ->
-    Escaped = [[$[, Char, $]] || Char <- Operator],
-    {Subject, Regex, Label} =
-        case Position of
-            right ->
-                {<<Line/binary, " ">>, Escaped ++ "[^ ]", "after"};
-            left ->
-                {<<" ", Line/binary>>, "[^ ]" ++ Escaped, "before"}
-        end,
-    case re:run(Subject, Regex) of
-        nomatch ->
-            no_result;
-        {match, [{Col, _} | _]} ->
-            Type = case elvis_code:find_by_location(Root, {Num, Col + 1}) of
-                       not_found -> undefined;
-                       {ok, Node} -> ktn_code:type(Node)
-                   end,
-            TokenType = case elvis_code:find_token(Root, {Num, Col}) of
-                            not_found -> undefined;
-                            {ok, Token} -> ktn_code:type(Token)
-                        end,
-            case {Type, TokenType} of
-                {atom, _}           -> [];
-                {binary_element, _} -> [];
-                {string, _}         -> [];
-                {char, _}           -> [];
-                {comment, _}        -> [];
-                {_, string}         -> [];
-                _ ->
+check_operator_spaces(Lines, Tokens, {Position, Operator}) ->
+    Nodes = lists:filter(
+        fun(Node) -> ktn_code:attr(text, Node) =:= Operator end,
+        Tokens
+    ),
+    SpaceChar = $ , % Note the space after the dollar sign.
+    lists:flatmap(
+        fun(#{attrs := #{location := Location}}) ->
+            case character_at_location(Position, Lines, Operator, Location) of
+                SpaceChar -> [];
+                _         ->
                     Msg = ?OPERATOR_SPACE_MSG,
-                    Info = [Label, Operator, Num],
-                    Result = elvis_result:new(item, Msg, Info, Num),
-                    {ok, Result}
+                    {Line, _Col} = Location,
+                    Info = [Position, Operator, Line],
+                    Result = elvis_result:new(item, Msg, Info, Line),
+                    [Result]
             end
+        end,
+        Nodes
+    ).
+
+-spec character_at_location(Position::atom(),
+                            Lines::[binary()],
+                            Operator::string(),
+                            Location::{integer(), integer()}) -> string().
+character_at_location(Position, Lines, Operator, {Line, Col}) ->
+    OperatorLineStr = binary_to_list(lists:nth(Line, Lines)),
+    ColToCheck = case Position of
+        left  -> Col - 1;
+        right -> Col + length(Operator)
+    end,
+    % If ColToCheck is greater than the length of OperatorLineStr variable, it
+    % means the end of line was reached so return " " to make the check pass,
+    % otherwise return the character at the given column.
+    % NOTE: text below only applies when the given Position is equal to `right`.
+    SpaceChar = $ , % Note the space after the dollar sign.
+    case {Position, (ColToCheck > length(OperatorLineStr))} of
+        {right, true}  -> SpaceChar;
+        _ -> lists:nth(ColToCheck, OperatorLineStr)
     end.
 
 %% Nesting Level
-
 -spec check_nesting_level(ktn_code:tree_node(), [integer()]) ->
     [elvis_result:item_result()].
 check_nesting_level(ParentNode, [MaxLevel]) ->

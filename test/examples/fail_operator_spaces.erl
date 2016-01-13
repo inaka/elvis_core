@@ -1,6 +1,12 @@
 -module(fail_operator_spaces).
 
--export([function1/2,function2/2, function3/2, function4/2, function5/0, tag_filters/2]).
+-export([function1/2,
+         function2/2,
+         function3/2,
+         function4/2,
+         function5/0,
+         function6/0,
+         tag_filters/2]).
 
 %% No space before and after coma,on a comment.
 
@@ -24,6 +30,11 @@ function4(Should, <<_:10/binary, ",", _/binary>>) ->
 function5() ->
     User = #{name => <<"Juan">>, email => <<"juan@inaka.com">>},
     <<"juan@inaka.com">> = maps:get(email,User).
+
+function6() ->
+    _MissingLeftSpace = 2+ 3,
+    _MissingRightSpace = 2 +3,
+    _Successfull = 2 + 3.
 
 tag_filters(DocName, #{conn := Conn} = State) ->
   TableName = atom_to_list(DocName),
