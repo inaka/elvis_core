@@ -102,28 +102,21 @@ in the root directory:
    elvis,
    [
     {config,
-     [#{dirs => ["src", "test"],
+     [#{dirs => ["src"],
         filter => "*.erl",
-        rules => [{elvis_style, line_length, #{limit => 80}},
-                  {elvis_style, no_tabs},
-                  {elvis_style, no_trailing_whitespace},
-                  {elvis_style, macro_names},
-                  {elvis_style, macro_module_names},
-                  {elvis_style, operator_spaces, #{rules => [{right, ","},
-                                                             {right, "++"},
-                                                             {left, "++"}]}
-                  }
-                 ]
+        ruleset => erl_files
        },
       #{dirs => ["."],
         filter => "Makefile",
-        rules => [{elvis_project, no_deps_master_erlang_mk, #{ignore => []}},
-                  {elvis_project, protocol_for_deps_erlang_mk, #{ignore => []}}]
+        ruleset => makefiles
        },
       #{dirs => ["."],
         filter => "rebar.config",
-        rules => [{elvis_project, no_deps_master_rebar, #{ignore => []}},
-                  {elvis_project, protocol_for_deps_rebar, #{ignore => []}}]
+        ruleset => rebar_config
+       },
+      #{dirs => ["."],
+        filter => "elvis.config",
+        ruleset => elvis_config
        }
      ]
     },
@@ -138,10 +131,29 @@ in the root directory:
 ```
 
 The `dirs` key is a list that indicates where `elvis` should look for the
-files that match `filter`, which will be run through each of the rules
-specified by the `rules` entry, which is a list of items with the following
-structure `{Module, Function, RuleConfig}` or `{Module, Function}` if the rule
-takes no configuration values.
+files that match `filter`, which will be run through each of the default rules
+in the specified `ruleset`, which is an *atom*. If you want to override the
+[default rules](https://github.com/inaka/elvis_core/blob/master/src/elvis_rulesets.erl)
+for a given ruleset you need to specify them in a `rules` key which is a
+list of items with the following structure `{Module, Function, RuleConfig}` or
+`{Module, Function}` if the rule takes no configuration values. You can also
+`disable` certain rules if you want to just by specifying the rule in the `rules`
+key and passing `disable` as its third parameter.
+
+Let's say you like your files to have a maximum of 90 characters per line and
+also you like to use tabs instead of spaces, so you need to override `erl_files`
+`ruleset` default `rules` as follows:
+
+```erlang
+...
+#{dirs => ["src"],
+  filter => "*.erl",
+  rules => [{elvis_style, line_length, #{limit => 90}}, %% change default line_length limit from 80 to 90
+            {elvis_style, no_tabs, disable}], %% disable no_tabs rule
+  ruleset => erl_files
+},
+...
+```
 
 The implementation of a rule is just a function that takes 3 arguments: `elvis`'s
 `config` entry from its [configuration](#configuration); the file to be
@@ -149,8 +161,7 @@ analyzed; and a configuration map specified for the rule. This means you can
 define rules of your own as long as the functions that implement them respect
 this arity.
 
-There's currently no default configuration for `elvis`, but in the meantime
-you can take the one in `config/elvis.config` as a starting point.
+You can find the default `elvis` configuration file at `config/elvis.config`.
 
 The GitHub configuration parameters `github_user` and `github_password` are
 required only when `elvis` is used as a [webhook](#webhook).
