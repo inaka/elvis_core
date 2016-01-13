@@ -236,7 +236,7 @@ operator_spaces(Config, Target, RuleConfig) ->
     Rules = maps:get(rules, RuleConfig, []),
     {Src, _} = elvis_file:src(Target),
     {Root, _} = elvis_file:parse_tree(Config, Target),
-    #{attrs := #{tokens := Tokens}} = Root,
+    Tokens = ktn_code:attr(tokens, Root),
     Lines = binary:split(Src, <<"\n">>, [global]),
     lists:flatmap(
         fun(Rule) ->
@@ -841,9 +841,10 @@ check_operator_spaces(Lines, Tokens, {Position, Operator}) ->
         fun(Node) -> ktn_code:attr(text, Node) =:= Operator end,
         Tokens
     ),
-    SpaceChar = $ , % Note the space after the dollar sign.
+    SpaceChar = $\s,
     lists:flatmap(
-        fun(#{attrs := #{location := Location}}) ->
+        fun(Node) ->
+            Location = ktn_code:attr(location, Node),
             case character_at_location(Position, Lines, Operator, Location) of
                 SpaceChar -> [];
                 _         ->
@@ -871,7 +872,7 @@ character_at_location(Position, Lines, Operator, {Line, Col}) ->
     % means the end of line was reached so return " " to make the check pass,
     % otherwise return the character at the given column.
     % NOTE: text below only applies when the given Position is equal to `right`.
-    SpaceChar = $ , % Note the space after the dollar sign.
+    SpaceChar = $\s,
     case {Position, (ColToCheck > length(OperatorLineStr))} of
         {right, true}  -> SpaceChar;
         _ -> lists:nth(ColToCheck, OperatorLineStr)
