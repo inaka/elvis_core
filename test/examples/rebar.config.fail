@@ -25,6 +25,7 @@
   {getopt, "0.*", {git, "git@github.com:jcomellas/getopt.git", {branch, "master"}}},
   {meck, "0.*", {git, "https://github.com/eproxus/meck.git", "0.8.2"}},
   {jiffy, "0.*", {git, "https://github.com/davisp/jiffy.git", "0.11.3"}},
+  {jiffy, "0.*", {git, "git@github.com:davisp/jiffy.git"}},
   {ibrowse, "4.*", {git, "https://github.com/cmullaparthi/ibrowse.git", "v4.1.1"}},
   {aleppo, "0.*", {git, "https://github.com/inaka/aleppo.git", "master"}},
 
@@ -32,6 +33,7 @@
   {getopt, {git, "git@github.com:jcomellas/getopt.git", {branch, "master"}}},
   {meck, {git, "https://github.com/eproxus/meck.git", "0.8.2"}},
   {jiffy, {git, "https://github.com/davisp/jiffy.git", "0.11.3"}},
+  {jiffy, {git, "git@github.com:davisp/jiffy.git"}},
   {ibrowse, {git, "https://github.com/cmullaparthi/ibrowse.git", "v4.1.1"}},
   {aleppo, {git, "https://github.com/inaka/aleppo.git", "master"}}
  ]
