@@ -6,6 +6,7 @@
          function4/2,
          function5/0,
          function6/0,
+         function7/0,
          tag_filters/2]).
 
 %% No space before and after coma,on a comment.
@@ -35,6 +36,13 @@ function6() ->
     _MissingLeftSpace = 2+ 3,
     _MissingRightSpace = 2 +3,
     _Successfull = 2 + 3.
+
+function7() ->
+    % commas within strings must be ignored
+    Name = "anyone",
+    re:run(Name, "^.{1,20}$", [unicode]),
+    RegExp = "^.{1,20}$",
+    re:run(Name, RegExp, [unicode]).
 
 tag_filters(DocName, #{conn := Conn} = State) ->
   TableName = atom_to_list(DocName),
