@@ -377,8 +377,6 @@ verify_no_spec_with_records(_Config) ->
 
     PathFail = "fail_no_spec_with_records.erl",
     {ok, FileFail} = elvis_test_utils:find_file(SrcDirs, PathFail),
-    io:format(user, "FileFail: ~p~n", [FileFail]),
-    io:format(user, "pwd: ~p~n", [os:cmd("pwd")]),
     [_, _, _] = elvis_style:no_spec_with_records(ElvisConfig, FileFail, #{}),
 
     PathPass = "pass_no_spec_with_records.erl",
