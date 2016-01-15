@@ -1,9 +1,26 @@
 # Change Log
 
-## [0.2.6-alpha2](https://github.com/inaka/elvis_core/tree/0.2.6-alpha2)
+## [0.2.6](https://github.com/inaka/elvis_core/tree/0.2.6) (2016-01-15)
+[Full Changelog](https://github.com/inaka/elvis_core/compare/0.2.6-alpha2...0.2.6)
 
 **Merged pull requests:**
 
+- \[\#325\] old configuration format rule [\#25](https://github.com/inaka/elvis_core/pull/25) ([Euen](https://github.com/Euen))
+- Euen.280.update for rebar3 [\#24](https://github.com/inaka/elvis_core/pull/24) ([Euen](https://github.com/Euen))
+- \[Closes inaka/elvis\#326\] Remove calls to io:format [\#23](https://github.com/inaka/elvis_core/pull/23) ([jfacorro](https://github.com/jfacorro))
+- \[Fix \#296\] Add test to check issue \#296 is already fixed [\#22](https://github.com/inaka/elvis_core/pull/22) ([harenson](https://github.com/harenson))
+- \[Fix \#323\] Add documentation for default configuration feature [\#21](https://github.com/inaka/elvis_core/pull/21) ([harenson](https://github.com/harenson))
+- \[Fix \#319\] Fix operator\_spaces rule check [\#20](https://github.com/inaka/elvis_core/pull/20) ([harenson](https://github.com/harenson))
+- Handle erlang.mk dep\_depname\_commit format [\#19](https://github.com/inaka/elvis_core/pull/19) ([jonasrichard](https://github.com/jonasrichard))
+- \[Fix \#166\] Extend default configuration [\#18](https://github.com/inaka/elvis_core/pull/18) ([harenson](https://github.com/harenson))
+- Version Bump to 0.2.6-alpha3 [\#17](https://github.com/inaka/elvis_core/pull/17) ([davecaos](https://github.com/davecaos))
+- \[\#300\] Updated for Hexer Hex.pm app [\#16](https://github.com/inaka/elvis_core/pull/16) ([davecaos](https://github.com/davecaos))
+
+## [0.2.6-alpha2](https://github.com/inaka/elvis_core/tree/0.2.6-alpha2) (2015-12-23)
+**Merged pull requests:**
+
+- \[Closes inaka/elvis\#317\] Update deps to avoid compiler warnings [\#15](https://github.com/inaka/elvis_core/pull/15) ([jfacorro](https://github.com/jfacorro))
+- \[Closes inaka/elvis\#315\] Create release [\#14](https://github.com/inaka/elvis_core/pull/14) ([jfacorro](https://github.com/jfacorro))
 - \[Closes inaka/elvis\#313\] Rename application [\#13](https://github.com/inaka/elvis_core/pull/13) ([jfacorro](https://github.com/jfacorro))
 - \[Closes inaka/elvis\#312\] Update readme [\#12](https://github.com/inaka/elvis_core/pull/12) ([jfacorro](https://github.com/jfacorro))
 - \[Closes \#10\] Update readme [\#11](https://github.com/inaka/elvis_core/pull/11) ([jfacorro](https://github.com/jfacorro))
