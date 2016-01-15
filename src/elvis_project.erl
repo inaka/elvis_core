@@ -266,4 +266,5 @@ exists_old_rule(#{rules := Rules}) ->
                  (_) ->
                      false
              end,
-    lists:filter(Filter, Rules) /= [].
+    lists:filter(Filter, Rules) /= [];
+exists_old_rule(_) -> false.
