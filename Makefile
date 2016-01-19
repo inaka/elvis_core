@@ -17,7 +17,7 @@ dep_sync = git https://github.com/rustyio/sync.git 9c78e7b
 include erlang.mk
 
 # Avoid erlang.mk download katana's elvis_core dependency
-IGNORE_DEPS := elvis_core
+IGNORE_DEPS += elvis_core
 
 ERLC_OPTS += +'{parse_transform, lager_transform}'
 ERLC_OPTS += +warn_unused_vars +warn_export_all +warn_shadow_vars +warn_unused_import +warn_unused_function
