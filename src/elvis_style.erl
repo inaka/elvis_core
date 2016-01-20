@@ -253,8 +253,17 @@ operator_spaces(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 nesting_level(Config, Target, RuleConfig) ->
     Level = maps:get(level, RuleConfig, 3),
+    IgnoreModules = maps:get(ignore, RuleConfig, []),
+
     {Root, _} = elvis_file:parse_tree(Config, Target),
-    elvis_utils:check_nodes(Root, fun check_nesting_level/2, [Level]).
+    ModuleName = elvis_code:module_name(Root),
+
+    case lists:member(ModuleName, IgnoreModules) of
+        false ->
+            elvis_utils:check_nodes(Root, fun check_nesting_level/2, [Level]);
+        true->
+            []
+    end.
 
 -type god_modules_config() :: #{limit => integer()}.
 
@@ -436,12 +445,17 @@ no_spec_with_records(Config, Target, _RuleConfig) ->
     [elvis_result:item()].
 dont_repeat_yourself(Config, Target, RuleConfig) ->
     MinComplexity = maps:get(min_complexity, RuleConfig, 5),
+    IgnoreModules = maps:get(ignore, RuleConfig, []),
 
     {Root, _} = elvis_file:parse_tree(Config, Target),
+    ModuleName = elvis_code:module_name(Root),
 
-    case find_repeated_nodes(Root, MinComplexity) of
+    Ignored = lists:member(ModuleName, IgnoreModules),
+
+    case Ignored orelse find_repeated_nodes(Root, MinComplexity) of
+        true when Ignored -> [];
         [] -> [];
-        Nodes ->
+        [_|_] = Nodes ->
             LocationCat =
                 fun
                     ({Line, Col}, "") ->
