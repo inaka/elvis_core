@@ -1,10 +1,22 @@
 # Change Log
 
-## [0.2.6](https://github.com/inaka/elvis_core/tree/0.2.6) (2016-01-15)
+## [0.2.7](https://github.com/inaka/elvis_core/tree/0.2.7) (2016-01-22)
+
+[Full Changelog](https://github.com/inaka/elvis_core/compare/0.2.6...0.2.7)
+
+**Merged pull requests:**
+
+- \[Closes \#335\] Update katana to 0.2.22 [\#31](https://github.com/inaka/elvis_core/pull/31) ([jfacorro](https://github.com/jfacorro))
+
+## [0.2.6](https://github.com/inaka/elvis_core/tree/0.2.6) (2016-01-21)
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.2.6-alpha2...0.2.6)
 
 **Merged pull requests:**
 
+- \[inaka/elvis\#334\] Update katana [\#30](https://github.com/inaka/elvis_core/pull/30) ([jfacorro](https://github.com/jfacorro))
+- update IGNORE\_DEPS in makefile [\#28](https://github.com/inaka/elvis_core/pull/28) ([Euen](https://github.com/Euen))
+- \[Fix inaka/elvis\#332\] update katana version [\#27](https://github.com/inaka/elvis_core/pull/27) ([Euen](https://github.com/Euen))
+- \[Fix inaka/elvis\#327\] update release 0.2.6 [\#26](https://github.com/inaka/elvis_core/pull/26) ([Euen](https://github.com/Euen))
 - \[\#325\] old configuration format rule [\#25](https://github.com/inaka/elvis_core/pull/25) ([Euen](https://github.com/Euen))
 - Euen.280.update for rebar3 [\#24](https://github.com/inaka/elvis_core/pull/24) ([Euen](https://github.com/Euen))
 - \[Closes inaka/elvis\#326\] Remove calls to io:format [\#23](https://github.com/inaka/elvis_core/pull/23) ([jfacorro](https://github.com/jfacorro))
