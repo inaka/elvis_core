@@ -4,7 +4,7 @@ DEPS = lager zipper katana
 
 dep_lager  = git https://github.com/basho/lager.git 3.0.2
 dep_zipper = hex 0.1.4
-dep_katana = hex 0.2.21
+dep_katana = hex 0.2.22
 
 TEST_DEPS = meck
 
