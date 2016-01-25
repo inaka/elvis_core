@@ -14,6 +14,7 @@
          rock_with_list_config/1,
          rock_with_file_config/1,
          rock_with_old_config/1,
+         rock_with_rebar_default_config/1,
          rock_this/1,
          rock_without_colors/1,
          rock_with_rule_groups/1,
@@ -145,6 +146,17 @@ rock_with_old_config(_Config) ->
          catch
              throw:{invalid_config, _} -> fail
          end.
+
+-spec rock_with_rebar_default_config(config()) -> ok.
+rock_with_rebar_default_config(_Config) ->
+    {ok, _} = file:copy("../../config/rebar.config", "rebar.config"),
+    try
+        {fail, Results} = elvis_core:rock(),
+        [#{name := line_length}] = [ Rule || #{rules := [Rule] } <- Results]
+    after
+        file:delete("rebar.config")
+    end,
+    ok.
 
 -spec rock_this(config()) -> ok.
 rock_this(_Config) ->
