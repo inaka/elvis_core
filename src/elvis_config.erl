@@ -25,6 +25,7 @@
 -type config() :: [map()].
 
 -define(DEFAULT_CONFIG_PATH, "./elvis.config").
+-define(DEFAULT_REBAR_CONFIG_PATH, "./rebar.config").
 -define(DEFAULT_FILTER, "*.erl").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -37,8 +38,15 @@ default() ->
         {ok, [Config]} ->
             load(Config);
         {error, enoent} ->
-            Config = application:get_env(elvis, config, []),
-            ensure_config_list(Config);
+            case file:consult(?DEFAULT_REBAR_CONFIG_PATH) of
+                {ok, Config} ->
+                    load(Config);
+                {error, enoent} ->
+                    Config = application:get_env(elvis, config, []),
+                    ensure_config_list(Config);
+                {error, Reason} ->
+                    throw(Reason)
+            end;
         {error, Reason} ->
             throw(Reason)
     end.
