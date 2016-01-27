@@ -251,7 +251,10 @@ verify_nesting_level(_Config) ->
      #{line_num := 76},
      #{line_num := 118},
      #{line_num := 164}
-    ] = elvis_style:nesting_level(ElvisConfig, File, #{limit => 3}).
+    ] = elvis_style:nesting_level(ElvisConfig, File, #{limit => 3}),
+    [] = elvis_style:nesting_level( ElvisConfig
+                                  , File
+                                  , #{ignore => [fail_nesting_level]}).
 
 -spec verify_god_modules(config()) -> any().
 verify_god_modules(_Config) ->
@@ -396,6 +399,9 @@ verify_dont_repeat_yourself(_Config) ->
 
     RuleConfig9 = #{min_complexity => 9},
     [_] = elvis_style:dont_repeat_yourself(ElvisConfig, FileFail, RuleConfig9),
+
+    IgnoreRule = #{ignore => [fail_dont_repeat_yourself]},
+    [] = elvis_style:dont_repeat_yourself(ElvisConfig, FileFail, IgnoreRule),
 
     PathPass = "pass_dont_repeat_yourself.erl",
     {ok, FilePass} = elvis_test_utils:find_file(SrcDirs, PathPass),
