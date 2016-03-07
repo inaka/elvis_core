@@ -1,11 +1,19 @@
 # Change Log
 
-## [0.2.7](https://github.com/inaka/elvis_core/tree/0.2.7) (2016-01-22)
+## [0.2.8](https://github.com/inaka/elvis_core/tree/0.2.8) (2016-03-07)
+[Full Changelog](https://github.com/inaka/elvis_core/compare/0.2.7...0.2.8)
 
+**Merged pull requests:**
+
+- \[\#29\] More ignore [\#34](https://github.com/inaka/elvis_core/pull/34) ([Euen](https://github.com/Euen))
+- \[Fix \#41\] rebar3 support [\#33](https://github.com/inaka/elvis_core/pull/33) ([Euen](https://github.com/Euen))
+
+## [0.2.7](https://github.com/inaka/elvis_core/tree/0.2.7) (2016-01-22)
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.2.6...0.2.7)
 
 **Merged pull requests:**
 
+- \[inaka/elvis\#335\] Version bump to 0.2.7 [\#32](https://github.com/inaka/elvis_core/pull/32) ([jfacorro](https://github.com/jfacorro))
 - \[Closes \#335\] Update katana to 0.2.22 [\#31](https://github.com/inaka/elvis_core/pull/31) ([jfacorro](https://github.com/jfacorro))
 
 ## [0.2.6](https://github.com/inaka/elvis_core/tree/0.2.6) (2016-01-21)
