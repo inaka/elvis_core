@@ -3,7 +3,7 @@
   [
    {description, "Core library for the Erlang style reviewer"},
    {vsn, "0.2.8"},
-   {applications, [kernel, stdlib, lager, aleppo, zipper]},
+   {applications, [kernel, stdlib, lager, zipper]},
    {modules,
     [
      elvis_core,
