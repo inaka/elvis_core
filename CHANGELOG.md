@@ -1,10 +1,18 @@
 # Change Log
 
+## [0.2.8-2](https://github.com/inaka/elvis_core/tree/0.2.8-2) (2016-03-07)
+[Full Changelog](https://github.com/inaka/elvis_core/compare/0.2.8...0.2.8-2)
+
+**Merged pull requests:**
+
+- \[Fix \#347\] Remove unused application [\#37](https://github.com/inaka/elvis_core/pull/37) ([harenson](https://github.com/harenson))
+
 ## [0.2.8](https://github.com/inaka/elvis_core/tree/0.2.8) (2016-03-07)
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.2.7...0.2.8)
 
 **Merged pull requests:**
 
+- \[Fix \#345\] Bump version to 0.2.8 [\#36](https://github.com/inaka/elvis_core/pull/36) ([harenson](https://github.com/harenson))
 - \[\#29\] More ignore [\#34](https://github.com/inaka/elvis_core/pull/34) ([Euen](https://github.com/Euen))
 - \[Fix \#41\] rebar3 support [\#33](https://github.com/inaka/elvis_core/pull/33) ([Euen](https://github.com/Euen))
 
