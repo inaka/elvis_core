@@ -166,6 +166,11 @@ resolve_files(Config) when is_list(Config) ->
     lists:map(fun resolve_files/1, Config);
 resolve_files(RuleGroup = #{files := _Files}) ->
     RuleGroup;
+resolve_files(RuleGroup = #{dirs := Dirs, filter := Filter, ignore := Ignore}) ->
+    IgnoreRegExp = lists:map(fun ignore_to_regexp/1, Ignore),
+    Files = elvis_file:find_files(Dirs, Filter, local),
+    FilteredFiles = elvis_file:filter_files(Files, Dirs, Filter, IgnoreRegExp),
+    RuleGroup#{files => FilteredFiles};
 resolve_files(RuleGroup = #{dirs := Dirs, filter := Filter}) ->
     Files = elvis_file:find_files(Dirs, Filter, local),
     RuleGroup#{files => Files};
