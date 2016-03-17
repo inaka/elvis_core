@@ -1,19 +1,21 @@
 PROJECT = elvis
 
 DEPS = lager zipper katana katana_code
-
-dep_lager       = git https://github.com/basho/lager.git 3.0.2
-dep_zipper      = hex 0.1.4
-dep_katana      = git https://github.com/inaka/erlang-katana.git 0.2.23
-dep_katana_code = git https://github.com/inaka/katana-code.git 0.0.1
-
-TEST_DEPS = meck
-
-dep_meck = git https://github.com/eproxus/meck 0.8.3
-
+TEST_DEPS = katana_test mixer meck
 SHELL_DEPS = sync
+BUILD_DEPS = inaka_mk hexer_mk
+DEP_PLUGINS = inaka_mk hexer_mk
 
-dep_sync = git https://github.com/rustyio/sync.git 9c78e7b
+dep_lager       = hex 3.0.2
+dep_zipper      = hex 0.2.0
+dep_katana      = git https://github.com/inaka/erlang-katana.git 0.2.23
+dep_katana_code = git https://github.com/inaka/katana-code.git   0.0.1
+dep_katana_test = git https://github.com/inaka/katana-test.git   0.0.3
+dep_mixer       = git https://github.com/inaka/mixer.git         0.1.5
+dep_meck        = git https://github.com/eproxus/meck            0.8.4
+dep_sync        = git https://github.com/rustyio/sync.git        11df81d
+dep_inaka_mk    = git https://github.com/inaka/inaka.mk.git      1.0.0
+dep_hexer_mk    = git https://github.com/inaka/hexer.mk.git      1.1.0
 
 include erlang.mk
 
@@ -33,12 +35,3 @@ SHELL_OPTS = -name ${PROJECT}@`hostname` -s lager -s sync -s elvis_core -config 
 
 test-shell: build-ct-suites app
 	erl -pa ebin -pa deps/*/ebin -name ${PROJECT}-test@`hostname` -pa test -s lager -s sync -s elvis_core -config config/test.config
-
-quicktests: ERLC_OPTS = $(TEST_ERLC_OPTS)
-quicktests: clean app build-ct-suites
-	@if [ -d "test" ] ; \
-	then \
-		mkdir -p logs/ ; \
-		$(CT_RUN) -suite $(addsuffix _SUITE,$(CT_SUITES)) $(CT_OPTS) ; \
-	fi
-	$(gen_verbose) rm -f test/*.beam
