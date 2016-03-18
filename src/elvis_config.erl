@@ -166,12 +166,10 @@ resolve_files(Config) when is_list(Config) ->
     lists:map(fun resolve_files/1, Config);
 resolve_files(RuleGroup = #{files := _Files}) ->
     RuleGroup;
-resolve_files(RuleGroup = #{dirs := Dirs, filter := Filter}) ->
-    Files = elvis_file:find_files(Dirs, Filter, local),
-    RuleGroup#{files => Files};
 resolve_files(RuleGroup = #{dirs := Dirs}) ->
-    Files = elvis_file:find_files(Dirs, ?DEFAULT_FILTER),
-    RuleGroup#{files => Files}.
+    Filter = filter(RuleGroup),
+    Files = elvis_file:find_files(Dirs, Filter),
+    resolve_files(RuleGroup, Files).
 
 %% @doc Takes a function and configuration and applies the function to all
 %%      file in the configuration.
