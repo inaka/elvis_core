@@ -7,7 +7,6 @@
          load_file_data/2,
 
          find_files/2,
-         find_files/3,
          filter_files/4
         ]).
 
@@ -67,16 +66,8 @@ load_file_data(Config, File0 = #{path := _Path}) ->
 %% that match the pattern Name.
 -spec find_files([string()], string()) -> [file()].
 find_files(Dirs, Pattern) ->
-    find_files(Dirs, Pattern, recursive).
-
--spec find_files([string()], string(), recursive | local) -> [file()].
-find_files(Dirs, Pattern, Option) ->
-    MiddlePath = case Option of
-                     recursive -> "/**/";
-                     local -> "/"
-                 end,
     Fun = fun(Dir) ->
-              filelib:wildcard(Dir ++ MiddlePath ++ Pattern)
+              filelib:wildcard(filename:join(Dir, Pattern))
           end,
     [#{path => Path} || Path <- lists:flatmap(Fun, Dirs)].
 

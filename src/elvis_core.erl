@@ -57,7 +57,7 @@ rock_this(Path, Config) ->
     NewConfig = elvis_config:normalize(Config),
     Dirname = filename:dirname(Path),
     Filename = filename:basename(Path),
-    File = case elvis_file:find_files([Dirname], Filename, local) of
+    File = case elvis_file:find_files([Dirname], Filename) of
                [] -> throw({enoent, Path});
                [File0] -> File0
            end,
