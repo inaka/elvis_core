@@ -175,11 +175,9 @@ print_node(Node = #{type := Type}, CurrentLevel) ->
     Indentation = lists:duplicate(CurrentLevel * 4, $ ),
     Content = ktn_code:content(Node),
 
-    lager:info(
-      "~s - [~p] ~p~n",
-      [Indentation, CurrentLevel, Type]
-     ),
-    lists:map(fun(Child) -> print_node(Child, CurrentLevel + 1) end, Content),
+    ok = lager:info("~s - [~p] ~p~n", [Indentation, CurrentLevel, Type]),
+    _ = lists:map(fun(Child) -> print_node(Child, CurrentLevel + 1) end,
+                     Content),
     ok.
 
 %% @doc Takes the root node and returns the module's name.
@@ -201,7 +199,7 @@ exported_functions(#{type := root, content := Content}) ->
 
 %% @doc Takes the root node of a parse_tree and returns the name
 %%      of each function, whether exported or not.
--spec function_names(ktn_code:tree_node()) -> [{atom(), integer()}].
+-spec function_names(ktn_code:tree_node()) -> [atom()].
 function_names(#{type := root, content := Content}) ->
     Fun = make_extractor_fun(function_names),
     lists:flatmap(Fun, Content).

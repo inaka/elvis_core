@@ -52,7 +52,7 @@
 
 %% New
 
--spec new(item | rule | file, any(), any()) ->
+-spec new(item | rule | file | error, any(), any()) ->
     item() | rule() | file().
 new(item, Msg, Info) ->
     new(item, Msg, Info, 0);

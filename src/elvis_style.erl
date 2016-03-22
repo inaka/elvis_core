@@ -200,9 +200,9 @@ no_spaces(_Config, Target, _RuleConfig) ->
     {Src, _} = elvis_file:src(Target),
     elvis_utils:check_lines(Src, fun check_no_spaces/3, []).
 
--spec no_trailing_whitespace(elvis_config:config(),
-                             elvis_file:file(),
-                             map()) ->
+-spec no_trailing_whitespace(Config::elvis_config:config(),
+                             Target::elvis_file:file(),
+                             RuleConfig::[map()]) ->
     [elvis_result:item()].
 no_trailing_whitespace(_Config, Target, RuleConfig) ->
     {Src, _} = elvis_file:src(Target),
@@ -797,12 +797,12 @@ check_macro_module_names(Line, Num, [Root]) ->
             {ok, Results}
     end.
 
--spec apply_macro_module_names(binary(),
-                               integer(),
-                               string(),
-                               string(),
-                               term()) ->
-    [elvis_result:item_result()].
+-spec apply_macro_module_names(Line::binary(),
+                               Num::integer(),
+                               Regex::{re_pattern, _, _, _, _},
+                               Msg::string(),
+                               Root::term()) ->
+    [elvis_result:item()].
 apply_macro_module_names(Line, Num, Regex, Msg, Root) ->
     case re:run(Line, Regex, [{capture, all_but_first, index}]) of
         nomatch ->
@@ -849,7 +849,7 @@ has_remote_call_parent(Zipper) ->
 -spec check_operator_spaces(Lines::[binary()],
                             Tokens::[map()],
                             Rule::{right | left, string()}) ->
-    no_result | {ok, elvis_result:item_result()}.
+    [elvis_result:item()].
 check_operator_spaces(Lines, Tokens, {Position, Operator}) ->
     Nodes = lists:filter(
         fun(Node) -> ktn_code:attr(text, Node) =:= Operator end,
@@ -875,7 +875,7 @@ check_operator_spaces(Lines, Tokens, {Position, Operator}) ->
 -spec character_at_location(Position::atom(),
                             Lines::[binary()],
                             Operator::string(),
-                            Location::{integer(), integer()}) -> string().
+                            Location::{integer(), integer()}) -> char().
 character_at_location(Position, Lines, Operator, {Line, Col}) ->
     OperatorLineStr = binary_to_list(lists:nth(Line, Lines)),
     ColToCheck = case Position of

@@ -105,7 +105,7 @@ normalize(Config = #{src_dirs := Dirs}) ->
 normalize(Config) ->
     Config.
 
--spec dirs(config()) -> [string()].
+-spec dirs(Config::config() | map()) -> [string()].
 dirs(Config) when is_list(Config) ->
     lists:flatmap(fun dirs/1, Config);
 dirs(_RuleGroup = #{dirs := Dirs}) ->
@@ -113,7 +113,7 @@ dirs(_RuleGroup = #{dirs := Dirs}) ->
 dirs(#{}) ->
     [].
 
--spec ignore(config()) -> [string()].
+-spec ignore(config() | map()) -> [string()].
 ignore(Config) when is_list(Config) ->
     lists:flatmap(fun ignore/1, Config);
 ignore(_RuleGroup = #{ignore := Ignore}) ->
@@ -121,19 +121,23 @@ ignore(_RuleGroup = #{ignore := Ignore}) ->
 ignore(#{}) ->
     [].
 
--spec filter(config()) -> [string()].
+-spec filter(RuleGroup::map()) -> [string()].
 filter(_RuleGroup = #{filter := Filter}) ->
     Filter;
 filter(#{}) ->
     ?DEFAULT_FILTER.
 
--spec files(config()) -> [string()].
+-spec files(RuleGroup::config() | map()) -> [string()].
+files(RuleGroup) when is_list(RuleGroup) ->
+    lists:map(fun files/1, RuleGroup);
 files(_RuleGroup = #{files := Files}) ->
     Files;
 files(#{}) ->
     undefined.
 
--spec rules(config()) -> [string()] | undefined.
+-spec rules(Rules::config() | map()) -> [string()] | undefined.
+rules(Rules) when is_list(Rules) ->
+    lists:map(fun rules/1, Rules);
 rules(#{rules := UserRules, ruleset := RuleSet}) ->
     DefaultRules = elvis_rulesets:rules(RuleSet),
     merge_rules(UserRules, DefaultRules);
@@ -147,7 +151,8 @@ rules(#{}) ->
 %%      of them according to the 'filter' key, or if not specified
 %%      uses '*.erl'.
 %% @end
--spec resolve_files(config(), [elvis_file:file()]) -> config().
+-spec resolve_files(Config::config() | map(), Files::[elvis_file:file()]) ->
+    config() | map().
 resolve_files(Config, Files) when is_list(Config) ->
     Fun = fun(RuleGroup) -> resolve_files(RuleGroup, Files) end,
     lists:map(Fun, Config);
@@ -174,7 +179,7 @@ resolve_files(RuleGroup = #{dirs := Dirs}) ->
 %% @doc Takes a function and configuration and applies the function to all
 %%      file in the configuration.
 %% @end
--spec apply_to_files(fun(), config()) -> config().
+-spec apply_to_files(Fun::fun(), Config::config() | map()) -> config() | map().
 apply_to_files(Fun, Config) when is_list(Config) ->
     ApplyFun = fun(RuleGroup) -> apply_to_files(Fun, RuleGroup) end,
     lists:map(ApplyFun, Config);
