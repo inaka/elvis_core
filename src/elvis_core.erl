@@ -75,13 +75,11 @@ rock_this(Path, Config) ->
 
     ApplyRulesFun = fun(Cfg) -> apply_rules(Cfg, LoadedFile) end,
     Results = lists:map(ApplyRulesFun, FilteredConfig),
-    case elvis_result:status(Results) of
-        fail -> {fail, elvis_result:clean(Results)};
-        ok -> ok
-    end.
+    elvis_result_status(Results).
 
 %% @private
--spec do_rock(elvis_config:config()) -> ok | {fail, [elvis_result:file()]}.
+-spec do_rock(Config0::elvis_config:config()) ->
+    ok | {fail, [elvis_result:file()]}.
 do_rock(Config0) ->
     elvis_utils:info("Loading files..."),
     Config = elvis_config:resolve_files(Config0),
@@ -90,11 +88,7 @@ do_rock(Config0) ->
     LoadedFiles = lists:map(Fun, Files),
     elvis_utils:info("Applying rules..."),
     Results = [apply_rules(Config, File) || File <- LoadedFiles],
-
-    case elvis_result:status(Results) of
-        fail -> {fail, elvis_result:clean(Results)};
-        ok -> ok
-    end.
+    elvis_result_status(Results).
 
 %% @private
 -spec load_file_data(elvis_config:config(), elvis_file:file()) ->
@@ -125,7 +119,7 @@ combine_results(Item, ok) ->
 combine_results({fail, ItemResults}, {fail, AccResults}) ->
     {fail, ItemResults ++ AccResults}.
 
--spec apply_rules(elvis_config:config(), elvis_file:file()) ->
+-spec apply_rules(Config::elvis_config:config(), File::elvis_file:file()) ->
     elvis_result:file().
 apply_rules(Config, File) ->
     Rules = elvis_config:rules(Config),
@@ -176,3 +170,10 @@ ensure_config_map(elvis_style,
     #{regex => Regex, ignore => IgnoreModules};
 ensure_config_map(_, _, []) ->
     #{}.
+
+%% @private
+elvis_result_status(Results) ->
+    case elvis_result:status(Results) of
+        fail -> {fail, elvis_result:clean(Results)};
+        ok -> ok
+    end.

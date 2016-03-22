@@ -14,4 +14,5 @@
 -type config() :: [{atom(), term()}].
 
 -spec init_per_suite(config()) -> config().
-init_per_suite(Config) -> [{application, elvis}, {base_dir, "../../"} | Config].
+init_per_suite(Config) ->
+  [{base_dir, "../../"} , {dirs, ["ebin"]} | Config].

@@ -46,7 +46,7 @@ git_for_deps_erlang_mk(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 protocol_for_deps_erlang_mk(_Config, Target, RuleConfig) ->
     IgnoreDeps = maps:get(ignore, RuleConfig, []),
-    Regex = maps:get(regex, RuleConfig, "https://.*"),
+    Regex = maps:get(regex, RuleConfig, "(https://.*|[0-9]+([.][0-9]+)*)"),
     Deps = get_erlang_mk_deps(Target),
     BadDeps = lists:filter(fun(Dep) -> is_erlang_mk_not_git_dep(Dep, Regex) end,
                            Deps),
@@ -72,7 +72,7 @@ git_for_deps_rebar(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 protocol_for_deps_rebar(_Config, Target, RuleConfig) ->
     IgnoreDeps = maps:get(ignore, RuleConfig, []),
-    Regex = maps:get(regex, RuleConfig, "https://.*"),
+    Regex = maps:get(regex, RuleConfig, "(https://.*|[0-9]+([.][0-9]+)*)"),
     Deps = get_rebar_deps(Target),
     NoHexDeps = lists:filter(fun(Dep) -> not is_rebar_hex_dep(Dep) end,
                              Deps),
@@ -217,15 +217,16 @@ get_erlang_mk_deps(File) ->
     {Src, _} = elvis_file:src(File),
     Lines = binary:split(Src, <<"\n">>, [global]),
     Opts = [{capture, all_but_first, binary}],
-    IsDepsLine = fun(Line) ->
-                     case re:run(Line, "dep_([^ ]*)", Opts) of
-                         nomatch ->
-                             false;
-                         {match, [Name]} ->
-                             %% Filter out dep_depname_commit lines
-                             binary:longest_common_suffix([Name, <<"_commit">>]) /= 7
-                     end
-                 end,
+    IsDepsLine =
+      fun(Line) ->
+          case re:run(Line, "dep_([^ ]*)", Opts) of
+              nomatch ->
+                  false;
+              {match, [Name]} ->
+                  %% Filter out dep_depname_commit lines
+                  binary:longest_common_suffix([Name, <<"_commit">>]) /= 7
+          end
+      end,
     lists:filter(IsDepsLine, Lines).
 
 erlang_mk_dep_to_result(Line, Message, {IgnoreDeps, Regex}) ->
