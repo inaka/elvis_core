@@ -71,7 +71,7 @@ ensure_config_list(Config) when is_map(Config) ->
 ensure_config_list(Config) ->
     Config.
 
--spec validate(config()) -> ok | {error, term()}.
+-spec validate(Config::config() | map()) -> ok.
 validate([]) ->
     throw({invalid_config, empty_config});
 validate(Config) when is_list(Config) ->
@@ -94,15 +94,32 @@ validate(RuleGroup) ->
         true -> ok
     end.
 
--spec normalize(config()) -> config().
+%% something weird is happening with this function and we haven't found the
+%% issue yet. If you want to give it a try, replace `[_]' by `config()' that
+%% SHOULD be the right return type.
+%% If you set `config()' as the return type, you'll get some dialyzer warnings
+%% when running dialyzer for `elvis' project that depends on this project, e.g:
+%%
+%% ["elvis.erl:100: The pattern {'fail', _} can never match the type 'ok'\n",
+%%  "elvis_git.erl:29: The pattern {'fail', _} can never match the type 'ok'\n",
+%%  "elvis_webhook.erl:44:
+%%    The pattern {'fail', Results} can never match the type 'ok'\n",
+%%  "elvis_webhook.erl:85:
+%%    Function messages_from_results/1 will never be called\n"]
+%%
+%% Using `[_]' is the way we found for this function to work properly and no
+%% dialyzer errors are emitted when using this approach.
+-spec normalize(Config::config()) -> [_].
 normalize(Config) when is_list(Config) ->
-    lists:map(fun normalize/1, Config);
-normalize(Config = #{src_dirs := Dirs}) ->
+    lists:map(fun do_normalize/1, Config).
+
+%% @private
+do_normalize(Config = #{src_dirs := Dirs}) ->
     %% NOTE: Provided for backwards compatibility.
     %% Rename 'src_dirs' key to 'dirs'.
     Config1 = maps:remove(src_dirs, Config),
     Config1#{dirs => Dirs};
-normalize(Config) ->
+do_normalize(Config) ->
     Config.
 
 -spec dirs(Config::config() | map()) -> [string()].

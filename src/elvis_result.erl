@@ -33,7 +33,8 @@
 -type item() ::
         #{
            message => string(),
-           info => list()
+           info => string(),
+           line_num => integer()
          }.
 -type rule() ::
         #{
@@ -43,7 +44,12 @@
 -type file() ::
         #{
            file => elvis_file:file(),
-           rules => list()
+           rules => [rule()]
+         }.
+-type elvis_error() ::
+        #{
+           error_msg => string(),
+           info => list()
          }.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -52,8 +58,10 @@
 
 %% New
 
--spec new(item | rule | file | error, any(), any()) ->
-    item() | rule() | file().
+-spec new(item, string(), iodata()) -> item()
+       ; (rule, atom(), [item()]) -> rule()
+       ; (file, elvis_file:file(), [rule()]) -> file()
+       ; (error, string(), string()) -> elvis_error().
 new(item, Msg, Info) ->
     new(item, Msg, Info, 0);
 new(rule, Name, Results) ->
@@ -63,7 +71,7 @@ new(file, File, Rules) ->
 new(error, Msg, Info) ->
     #{error_msg => Msg, info => Info}.
 
--spec new(item, term(), any(), any()) -> item().
+-spec new(item, string(), iodata(), integer()) -> item().
 new(item, Msg, Info, LineNum) ->
     #{message => Msg,
       info => Info,
@@ -87,15 +95,15 @@ get_items(_) -> [].
 -spec get_message(item()) -> string().
 get_message(#{message := Message}) -> Message.
 
--spec get_info(item()) -> list().
+-spec get_info(item()) -> string().
 get_info(#{info := Info}) -> Info.
 
--spec get_line_num(item()) -> list().
+-spec get_line_num(item()) -> integer().
 get_line_num(#{line_num := LineNum}) -> LineNum.
 
 %% Print
 
--spec print(item() | rule() | [file()]) -> ok.
+-spec print(item() | rule() | elvis_error() | [file()]) -> ok.
 print([]) ->
     ok;
 print([Result | Results]) ->

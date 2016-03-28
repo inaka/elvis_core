@@ -777,7 +777,7 @@ check_macro_names(Line, Num, _Args) ->
 %% Macro in Function Call as Module or Functon Name
 
 -spec check_macro_module_names(binary(), integer(), [term()]) ->
-    no_result | {ok, elvis_result:item_result()}.
+    no_result | {ok, elvis_result:item()}.
 check_macro_module_names(Line, Num, [Root]) ->
     {ok, ModNameRegex} = re:compile("[?](\\w+)[:][?]?\\w+\\s*\\("),
     {ok, FunNameRegex} = re:compile("[?]?\\w+[:][?](\\w+)\\s*\\("),
@@ -894,7 +894,7 @@ character_at_location(Position, Lines, Operator, {Line, Col}) ->
 
 %% Nesting Level
 -spec check_nesting_level(ktn_code:tree_node(), [integer()]) ->
-    [elvis_result:item_result()].
+    [elvis_result:item()].
 check_nesting_level(ParentNode, [MaxLevel]) ->
     case elvis_code:past_nesting_limit(ParentNode, MaxLevel) of
         [] -> [];
@@ -913,7 +913,7 @@ check_nesting_level(ParentNode, [MaxLevel]) ->
 %% Invalid Dynamic Calls
 
 -spec check_invalid_dynamic_calls(ktn_code:tree_node()) ->
-    [elvis_result:item_result()].
+    [elvis_result:item()].
 check_invalid_dynamic_calls(Root) ->
     case elvis_code:find(fun is_dynamic_call/1, Root) of
         [] -> [];
