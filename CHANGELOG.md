@@ -1,10 +1,22 @@
 # Change Log
 
+## [0.2.9](https://github.com/inaka/elvis_core/tree/0.2.9) (2016-03-28)
+[Full Changelog](https://github.com/inaka/elvis_core/compare/0.2.8-2...0.2.9)
+
+**Merged pull requests:**
+
+- \[Fix \#364\] Fix specs [\#43](https://github.com/inaka/elvis_core/pull/43) ([harenson](https://github.com/harenson))
+- Refactor discussed in \#40 [\#42](https://github.com/inaka/elvis_core/pull/42) ([elbrujohalcon](https://github.com/elbrujohalcon))
+- \[Fix \#360\] Update dependencies; Update erlang.mk; Add meta suite [\#41](https://github.com/inaka/elvis_core/pull/41) ([elbrujohalcon](https://github.com/elbrujohalcon))
+- don't ignore ignore \(pun\) after \#6 [\#40](https://github.com/inaka/elvis_core/pull/40) ([andreineculau](https://github.com/andreineculau))
+- \[Fix \#353\] Update katana [\#39](https://github.com/inaka/elvis_core/pull/39) ([harenson](https://github.com/harenson))
+
 ## [0.2.8-2](https://github.com/inaka/elvis_core/tree/0.2.8-2) (2016-03-07)
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.2.8...0.2.8-2)
 
 **Merged pull requests:**
 
+- \[Fix \#349\] Bump version to 0.2.8-2 [\#38](https://github.com/inaka/elvis_core/pull/38) ([harenson](https://github.com/harenson))
 - \[Fix \#347\] Remove unused application [\#37](https://github.com/inaka/elvis_core/pull/37) ([harenson](https://github.com/harenson))
 
 ## [0.2.8](https://github.com/inaka/elvis_core/tree/0.2.8) (2016-03-07)
