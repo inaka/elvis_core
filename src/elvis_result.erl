@@ -58,7 +58,7 @@
 
 %% New
 
--spec new(item, string(), string()) -> item()
+-spec new(item, string(), iodata()) -> item()
        ; (rule, atom(), [item()]) -> rule()
        ; (file, elvis_file:file(), [rule()]) -> file()
        ; (error, string(), string()) -> elvis_error().
@@ -71,7 +71,7 @@ new(file, File, Rules) ->
 new(error, Msg, Info) ->
     #{error_msg => Msg, info => Info}.
 
--spec new(item, string(), string(), integer()) -> item().
+-spec new(item, string(), iodata(), integer()) -> item().
 new(item, Msg, Info, LineNum) ->
     #{message => Msg,
       info => Info,
@@ -147,14 +147,12 @@ status(_Rules) ->
 
 
 %% @doc Removes files that don't have any failures.
--spec clean([file()]) -> [file()];
-           ([rule()]) -> [rule()].
+-spec clean([file() | rule()]) -> [file() | rule()].
 clean(Files)->
     clean(Files, []).
 
 %% @private
--spec clean([file()], [file()]) -> [file()];
-           ([rule()], [rule()]) -> [rule()].
+-spec clean([file() | rule()], [file() | rule()]) -> [file() | rule()].
 clean([], Result) ->
     lists:reverse(Result);
 clean([#{rules := []} | Files], Result) ->

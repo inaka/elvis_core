@@ -78,7 +78,7 @@ rock_this(Path, Config) ->
     elvis_result_status(Results).
 
 %% @private
--spec do_rock(map()) ->
+-spec do_rock(Config0::elvis_config:config()) ->
     ok | {fail, [elvis_result:file()]}.
 do_rock(Config0) ->
     elvis_utils:info("Loading files..."),

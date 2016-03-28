@@ -102,8 +102,10 @@ validate(RuleGroup) ->
 %%
 %% ["elvis.erl:100: The pattern {'fail', _} can never match the type 'ok'\n",
 %%  "elvis_git.erl:29: The pattern {'fail', _} can never match the type 'ok'\n",
-%%  "elvis_webhook.erl:44: The pattern {'fail', Results} can never match the type 'ok'\n",
-%%  "elvis_webhook.erl:85: Function messages_from_results/1 will never be called\n"]
+%%  "elvis_webhook.erl:44:
+%%    The pattern {'fail', Results} can never match the type 'ok'\n",
+%%  "elvis_webhook.erl:85:
+%%    Function messages_from_results/1 will never be called\n"]
 %%
 %% Using `[_]' is the way we found for this function to work properly and no
 %% dialyzer errors are emitted when using this approach.
