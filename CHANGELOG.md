@@ -1,10 +1,18 @@
 # Change Log
 
+## [0.2.10](https://github.com/inaka/elvis_core/tree/0.2.10) (2016-03-30)
+[Full Changelog](https://github.com/inaka/elvis_core/compare/0.2.9...0.2.10)
+
+**Merged pull requests:**
+
+- \[Fix inaka/elvis\#368\] Upgrade katana\_code dep [\#45](https://github.com/inaka/elvis_core/pull/45) ([elbrujohalcon](https://github.com/elbrujohalcon))
+
 ## [0.2.9](https://github.com/inaka/elvis_core/tree/0.2.9) (2016-03-28)
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.2.8-2...0.2.9)
 
 **Merged pull requests:**
 
+- \[Fix \#365\] Bump version to 0.2.9 [\#44](https://github.com/inaka/elvis_core/pull/44) ([harenson](https://github.com/harenson))
 - \[Fix \#364\] Fix specs [\#43](https://github.com/inaka/elvis_core/pull/43) ([harenson](https://github.com/harenson))
 - Refactor discussed in \#40 [\#42](https://github.com/inaka/elvis_core/pull/42) ([elbrujohalcon](https://github.com/elbrujohalcon))
 - \[Fix \#360\] Update dependencies; Update erlang.mk; Add meta suite [\#41](https://github.com/inaka/elvis_core/pull/41) ([elbrujohalcon](https://github.com/elbrujohalcon))
