@@ -16,7 +16,7 @@
 
 ERLANG_MK_FILENAME := $(realpath $(lastword $(MAKEFILE_LIST)))
 
-ERLANG_MK_VERSION = 2.0.0-pre.2-88-g865bc1f
+ERLANG_MK_VERSION = 2.0.0-pre.2-88-g9b5ebb4
 
 # Core configuration.
 
@@ -1842,14 +1842,6 @@ pkg_gen_unix_homepage = https://github.com/msantos/gen_unix
 pkg_gen_unix_fetch = git
 pkg_gen_unix_repo = https://github.com/msantos/gen_unix
 pkg_gen_unix_commit = master
-
-PACKAGES += geode
-pkg_geode_name = geode
-pkg_geode_description = geohash/proximity lookup in pure, uncut erlang.
-pkg_geode_homepage = https://github.com/bradfordw/geode
-pkg_geode_fetch = git
-pkg_geode_repo = https://github.com/bradfordw/geode
-pkg_geode_commit = master
 
 PACKAGES += getopt
 pkg_getopt_name = getopt
@@ -4545,8 +4537,13 @@ endef
 define dep_fetch_hex.erl
 	ssl:start(),
 	inets:start(),
+	Url =
+		case "$(3)" of
+			"" -> "https://s3.amazonaws.com/s3.hex.pm/tarballs/$(1)-$(2).tar";
+			_ -> "https://s3.amazonaws.com/s3.hex.pm/tarballs/$(3)-$(2).tar"
+		end,
 	{ok, {{_, 200, _}, _, Body}} = httpc:request(get,
-		{"https://s3.amazonaws.com/s3.hex.pm/tarballs/$(1)-$(2).tar", []},
+		{Url, []},
 		[], [{body_format, binary}]),
 	{ok, Files} = erl_tar:extract({binary, Body}, [memory]),
 	{_, Source} = lists:keyfind("contents.tar.gz", 1, Files),
@@ -4554,9 +4551,9 @@ define dep_fetch_hex.erl
 	halt()
 endef
 
-# Hex only has a package version. No need to look in the Erlang.mk packages.
+# Hex has a package version and optionally a package name. No need to look in the Erlang.mk packages.
 define dep_fetch_hex
-	$(call erlang,$(call dep_fetch_hex.erl,$(1),$(strip $(word 2,$(dep_$(1))))));
+	$(call erlang,$(call dep_fetch_hex.erl,$(1),$(strip $(word 2,$(dep_$(1)))),$(strip $(word 3,$(dep_$(1))))));
 endef
 
 define dep_fetch_fail
