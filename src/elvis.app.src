@@ -2,7 +2,7 @@
   application, elvis,
   [
    {description, "Core library for the Erlang style reviewer"},
-   {vsn, "0.2.9"},
+   {vsn, "0.2.10"},
    {applications, [kernel, stdlib, lager, zipper]},
    {modules,
     [
