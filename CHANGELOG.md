@@ -1,10 +1,18 @@
 # Change Log
 
+## [0.2.11](https://github.com/inaka/elvis_core/tree/0.2.11) (2016-04-07)
+[Full Changelog](https://github.com/inaka/elvis_core/compare/0.2.10...0.2.11)
+
+**Merged pull requests:**
+
+- \[\#371\] \[Fix inaka/elvis\#371\] Move deps to app.src [\#47](https://github.com/inaka/elvis_core/pull/47) ([elbrujohalcon](https://github.com/elbrujohalcon))
+
 ## [0.2.10](https://github.com/inaka/elvis_core/tree/0.2.10) (2016-03-30)
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.2.9...0.2.10)
 
 **Merged pull requests:**
 
+- \[Fix inaka/elvis\#369\] Version Bump to 0.2.10 [\#46](https://github.com/inaka/elvis_core/pull/46) ([elbrujohalcon](https://github.com/elbrujohalcon))
 - \[Fix inaka/elvis\#368\] Upgrade katana\_code dep [\#45](https://github.com/inaka/elvis_core/pull/45) ([elbrujohalcon](https://github.com/elbrujohalcon))
 
 ## [0.2.9](https://github.com/inaka/elvis_core/tree/0.2.9) (2016-03-28)
