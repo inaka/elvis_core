@@ -51,8 +51,8 @@ find(Pred, Root) ->
            find_options()) ->
     [ktn_code:tree_node()].
 find(Pred, Root, Opts) ->
-    Mode = ktn_maps:get(mode, Opts, node),
-    ZipperMode = ktn_maps:get(traverse, Opts, content),
+    Mode = maps:get(mode, Opts, node),
+    ZipperMode = maps:get(traverse, Opts, content),
     Zipper = code_zipper(Root, ZipperMode),
     Results = find(Pred, Zipper, [], Mode),
     lists:reverse(Results).
