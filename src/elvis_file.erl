@@ -74,7 +74,13 @@ find_files(Dirs, Pattern) ->
 %% @doc Filter files based on the glob provided.
 -spec filter_files([file()], [string()], string(), [string()]) -> [file()].
 filter_files(Files, Dirs, Filter, IgnoreList) ->
-    FullFilters = lists:map(fun(Dir) -> Dir ++ "/" ++ Filter end, Dirs),
+    AppendFilter = fun(Dir) ->
+                         case Dir of
+                             "." -> Filter;
+                             Dir -> Dir ++ "/" ++ Filter
+                         end
+                   end,
+    FullFilters = lists:map(AppendFilter, Dirs),
     Regexes = lists:map(fun glob_to_regex/1, FullFilters),
     FlatmapFun =
         fun(Regex) ->
