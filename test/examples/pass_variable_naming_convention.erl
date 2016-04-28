@@ -1,6 +1,7 @@
 -module(pass_variable_naming_convention).
 
 -export([should_pass/5]).
+-export([should_pass/0, should_pass/1]).
 
 %% CamelCase must be used for variables. Don’t
 %% separate words in variables with _.
@@ -14,3 +15,8 @@ should_pass(Should, Pass, Way2Home, Fun1, Fun2) ->
     Way2Home = "Way to home",
     Fun1 = Should ++ Pass,
     Fun2 = Fun1 ++ Way2Home.
+
+should_pass() ->
+  ?MODULE_STRING.
+
+should_pass(_) -> ?MODULE_STRING.
