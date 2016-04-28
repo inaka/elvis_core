@@ -13,7 +13,7 @@ should_pass(Should, Pass, Way2Home, Fun1, Fun2) ->
     Should = "Should",
     Pass = "Pass",
     Way2Home = "Way to home",
-    Fun1 = Should ++ Pass,
+Fun1 = Should ++ Pass,
     Fun2 = Fun1 ++ Way2Home.
 
 should_pass() ->

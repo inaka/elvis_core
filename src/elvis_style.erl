@@ -161,8 +161,9 @@ variable_naming_convention(Config, Target, RuleConfig) ->
     ModuleName = elvis_code:module_name(Root),
     case lists:member(ModuleName, IgnoreModules) of
         false ->
-            IsVar = fun(Node) -> ktn_code:type(Node) =:= 'var' end,
-            Vars = elvis_code:find(IsVar, Root, #{traverse => all}),
+            Vars =
+                elvis_code:find(
+                    fun is_var/1, Root, #{traverse => all, mode => zipper}),
             check_variables_name(Regex, Vars);
         true -> []
     end.
@@ -936,6 +937,23 @@ is_dynamic_call(Node) ->
             end;
         _ ->
             false
+    end.
+
+%% Plain Variable
+-spec is_var(ktn_code:tree_node()) -> boolean().
+is_var(Zipper) ->
+    case ktn_code:type(zipper:node(Zipper)) of
+        var ->
+            PrevLocation =
+                case ktn_code:attr(location, zipper:node(Zipper)) of
+                    {L, 1} -> {L-1, 9999};
+                    {L, C} -> {L, C - 1}
+                end,
+            case elvis_code:find_token(zipper:root(Zipper), PrevLocation) of
+                not_found -> true;
+                {ok, PrevToken} -> ktn_code:type(PrevToken) /= '?'
+            end;
+        _NotVar -> false
     end.
 
 %% Ignored Variable
