@@ -449,7 +449,9 @@ verify_max_module_length(_Config) ->
     [_] = elvis_style:max_module_length(ElvisConfig, FileFail, RuleConfig7),
 
     RuleConfig8 = NoCountRuleConfig#{max_length => 3},
-    [] = elvis_style:max_module_length(ElvisConfig, FileFail, RuleConfig8).
+    [] = elvis_style:max_module_length(ElvisConfig, FileFail, RuleConfig8),
+
+    {comment, ""}.
 
 -spec verify_max_function_length(config()) -> any().
 verify_max_function_length(_Config) ->
@@ -504,7 +506,9 @@ verify_max_function_length(_Config) ->
         elvis_style:max_function_length(ElvisConfig, FileFail, RuleConfig9),
 
     RuleConfig10 = NoCountRuleConfig#{max_length => 2},
-    [] = elvis_style:max_function_length(ElvisConfig, FileFail, RuleConfig10).
+    [] = elvis_style:max_function_length(ElvisConfig, FileFail, RuleConfig10),
+
+    {comment, ""}.
 
 -spec verify_no_debug_call(config()) -> any().
 verify_no_debug_call(_Config) ->
