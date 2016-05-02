@@ -946,7 +946,7 @@ is_var(Zipper) ->
         var ->
             PrevLocation =
                 case ktn_code:attr(location, zipper:node(Zipper)) of
-                    {L, 1} -> {L-1, 9999};
+                    {L, 1} -> {L - 1, 9999};
                     {L, C} -> {L, C - 1}
                 end,
             case elvis_code:find_token(zipper:root(Zipper), PrevLocation) of
