@@ -1,13 +1,15 @@
 -module(fail_operator_spaces).
 
--export([function1/2,
-         function2/2,
-         function3/2,
-         function4/2,
-         function5/0,
-         function6/0,
-         function7/0,
-         tag_filters/2]).
+-export([ function1/2
+        , function2/2
+        , function3/2
+        , function4/2
+        , function5/0
+        , function6/0
+        , function7/0
+        , tag_filters/2
+        , unicode_characters/0
+        ]).
 
 %% No space before and after coma,on a comment.
 
@@ -63,3 +65,8 @@ tag_filters(DocName, #{conn := Conn} = State) ->
     {error, Error, _} ->
       {error, Error, State}
   end.
+
+unicode_characters() ->
+  <<"©"/utf8>> = <<"\\u00A9">>,
+  <<"ß"/utf8>> = <<"\\o337">>,
+  ok.

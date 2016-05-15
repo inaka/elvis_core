@@ -878,7 +878,7 @@ check_operator_spaces(Lines, Tokens, {Position, Operator}) ->
                             Operator::string(),
                             Location::{integer(), integer()}) -> char().
 character_at_location(Position, Lines, Operator, {Line, Col}) ->
-    OperatorLineStr = binary_to_list(lists:nth(Line, Lines)),
+    OperatorLineStr = unicode:characters_to_list(lists:nth(Line, Lines)),
     ColToCheck = case Position of
         left  -> Col - 1;
         right -> Col + length(Operator)
