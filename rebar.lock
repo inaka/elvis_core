@@ -7,6 +7,7 @@
   {git,"https://github.com/inaka/erlang-katana.git",
        {ref,"4ed813673c96c0926bcb002516087c018b8f428c"}},
   0},
+ {<<"katana_code">>,{pkg,<<"katana_code">>,<<"0.1.0">>},0},
  {<<"lager">>,{pkg,<<"lager">>,<<"3.0.2">>},0},
  {<<"zipper">>,
   {git,"https://github.com/inaka/zipper.git",

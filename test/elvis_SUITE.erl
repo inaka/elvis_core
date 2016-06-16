@@ -48,7 +48,8 @@ all() ->
 
 -spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
-    application:start(elvis),
+    ct:comment("init::::"),
+    application:ensure_all_started(elvis),
     Config.
 
 -spec end_per_suite(config()) -> config().
@@ -113,8 +114,10 @@ rock_with_list_config(_Config) ->
 
 -spec rock_with_file_config(config()) -> ok.
 rock_with_file_config(_Config) ->
+    ct:comment("ENTRA O NO LA CONCHA DE LA LORA"),
     Fun = fun() -> elvis_core:rock() end,
     Expected = "# \\.\\./\\.\\./test/examples/.*\\.erl.*FAIL",
+    ct:comment("rock_with_file_config::::"),
     check_some_line_output(Fun, Expected, fun matches_regex/2),
     ok.
 
@@ -149,7 +152,9 @@ rock_with_old_config(_Config) ->
 
 -spec rock_with_rebar_default_config(config()) -> ok.
 rock_with_rebar_default_config(_Config) ->
-    {ok, _} = file:copy("../../config/rebar.config", "rebar.config"),
+    lager:info("file:get_cwd::: ~p", [file:get_cwd()]),
+    {ok, _} = file:copy("../../lib/elvis_core/config/rebar.config", "rebar.config"),
+    lager:info("PASO"),
     try
         {fail, Results} = elvis_core:rock(),
         [#{name := line_length}] = [ Rule || #{rules := [Rule] } <- Results]
@@ -288,6 +293,7 @@ to_string(_Config) ->
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 check_some_line_output(Fun, Expected, FilterFun) ->
+    ct:comment("check_some_line_output::"),
     ct:capture_start(),
     Fun(),
     ct:capture_stop(),

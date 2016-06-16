@@ -17,6 +17,6 @@
    {maintainers, ["Inaka"]},
    {licenses, ["Apache 2.0"]},
    {links, [{"Github", "https://github.com/inaka/elvis_core"}]},
-   {build_tools, ["make", "rebar"]}
+   {build_tools, ["rebar3"]}
   ]
 }.
