@@ -34,12 +34,13 @@
 
 -spec default() -> config().
 default() ->
-lager:info("DEFAULT_CONFIG_PATH: ~p", [file:consult(?DEFAULT_CONFIG_PATH)]),
+    ct:pal("cwd -> ~p", [file:get_cwd()]),
+    lager:info("DEFAULT_CONFIG_PATH: ~p", [file:consult(?DEFAULT_CONFIG_PATH)]),
     case file:consult(?DEFAULT_CONFIG_PATH) of
         {ok, [Config]} ->
             load(Config);
         {error, enoent} ->
-lager:info("REBAR_PATH: ~p", [file:consult(?DEFAULT_REBAR_CONFIG_PATH)]),
+            lager:info("REBAR_PATH: ~p", [file:consult(?DEFAULT_REBAR_CONFIG_PATH)]),
             case file:consult(?DEFAULT_REBAR_CONFIG_PATH) of
                 {ok, Config} ->
                     load(Config);

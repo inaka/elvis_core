@@ -3,6 +3,7 @@
        {ref,"95e7bc6a2ff0de0cde4d0af353ae86d7dea03095"}},
   0},
  {<<"goldrush">>,{pkg,<<"goldrush">>,<<"0.1.7">>},1},
+ {<<"inaka_aleppo">>,{pkg,<<"inaka_aleppo">>,<<"1.0.0">>},1},
  {<<"katana">>,
   {git,"https://github.com/inaka/erlang-katana.git",
        {ref,"4ed813673c96c0926bcb002516087c018b8f428c"}},

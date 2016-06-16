@@ -114,10 +114,8 @@ rock_with_list_config(_Config) ->
 
 -spec rock_with_file_config(config()) -> ok.
 rock_with_file_config(_Config) ->
-    ct:comment("ENTRA O NO LA CONCHA DE LA LORA"),
     Fun = fun() -> elvis_core:rock() end,
     Expected = "# \\.\\./\\.\\./test/examples/.*\\.erl.*FAIL",
-    ct:comment("rock_with_file_config::::"),
     check_some_line_output(Fun, Expected, fun matches_regex/2),
     ok.
 
@@ -153,7 +151,8 @@ rock_with_old_config(_Config) ->
 -spec rock_with_rebar_default_config(config()) -> ok.
 rock_with_rebar_default_config(_Config) ->
     lager:info("file:get_cwd::: ~p", [file:get_cwd()]),
-    {ok, _} = file:copy("../../lib/elvis_core/config/rebar.config", "rebar.config"),
+    %{ok, _} = file:copy("../../lib/elvis_core/config/rebar.config", "rebar.config"),
+    {ok, _} = file:copy("../../config/rebar.config", "rebar.config"),
     lager:info("PASO"),
     try
         {fail, Results} = elvis_core:rock(),
@@ -293,7 +292,6 @@ to_string(_Config) ->
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 check_some_line_output(Fun, Expected, FilterFun) ->
-    ct:comment("check_some_line_output::"),
     ct:capture_start(),
     Fun(),
     ct:capture_stop(),

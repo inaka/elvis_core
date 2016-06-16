@@ -30,9 +30,7 @@ start() ->
 
 -spec rock() -> ok | {fail, [elvis_result:file()]}.
 rock() ->
-    lager:warning("elvis_core:rock()::"),
     Config = elvis_config:default(),
-    lager:warning("Config:: ~p", [Config]),
     rock(Config).
 
 -spec rock(elvis_config:config()) -> ok | {fail, [elvis_result:file()]}.
@@ -83,15 +81,15 @@ rock_this(Path, Config) ->
 -spec do_rock(Config0::elvis_config:config()) ->
     ok | {fail, [elvis_result:file()]}.
 do_rock(Config0) ->
-    lager:info("do_rock():::: ~p", [Config0]),
+    %lager:info("do_rock():::: ~p", [Config0]),
     elvis_utils:info("Loading files..."),
     Config = elvis_config:resolve_files(Config0),
-    lager:info("do_rock():resolve_files:::: ~p", [Config]),
+    %lager:info("do_rock():resolve_files:::: ~p", [Config]),
     Files = elvis_config:files(Config),
-    lager:info("do_rock():files::: ~p", [Files]),
+    %lager:info("do_rock():files::: ~p", [Files]),
     Fun = fun (File) -> load_file_data(Config, File) end,
     LoadedFiles = lists:map(Fun, Files),
-    lager:info("do_rock():load_file_data::: ~p", [LoadedFiles]),
+    %lager:info("do_rock():load_file_data::: ~p", [LoadedFiles]),
     elvis_utils:info("Applying rules..."),
     Results = [apply_rules(Config, File) || File <- LoadedFiles],
     elvis_result_status(Results).
