@@ -57,12 +57,12 @@ all() ->
 
 -spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
-    application:start(elvis),
+    ok = application:start(elvis),
     Config.
 
 -spec end_per_suite(config()) -> config().
 end_per_suite(Config) ->
-    application:stop(elvis),
+    ok = application:stop(elvis),
     Config.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -263,7 +263,6 @@ verify_god_modules(_Config) ->
 
     Path = "fail_god_modules.erl",
     {ok, File} = elvis_test_utils:find_file(SrcDirs, Path),
-
     [_] = elvis_style:god_modules(ElvisConfig, File, #{limit => 25}),
 
     RuleConfig = #{limit => 25, ignore => [fail_god_modules]},

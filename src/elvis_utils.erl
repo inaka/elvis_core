@@ -99,7 +99,7 @@ check_nodes([Node | Nodes], Fun, Args, Results) ->
 erlang_halt(Code) ->
     halt(Code).
 
--spec to_str(binary() | list() | atom()) -> string().
+-spec to_str(binary() | list() | atom() | integer()) -> string().
 to_str(Arg) when is_binary(Arg) ->
     unicode:characters_to_list(Arg);
 to_str(Arg) when is_atom(Arg) ->

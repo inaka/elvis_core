@@ -1,5 +1,7 @@
 -module(fail_no_if_expression).
 
+-dialyzer(no_match).
+
 -export([
          uses_if/1,
          uses_if_twice/1

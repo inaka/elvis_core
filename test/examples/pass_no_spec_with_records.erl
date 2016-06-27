@@ -1,5 +1,7 @@
 -module(pass_no_spec_with_records).
 
+-dialyzer(no_contracts).
+
 -export([
          function_1/1,
          function_2/2,

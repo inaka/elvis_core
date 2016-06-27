@@ -1,5 +1,8 @@
 -module(fail_state_type).
 
+-dialyzer(no_contracts).
+-dialyzer(no_behaviours).
+
 -behavior(gen_server).
 
 -export([

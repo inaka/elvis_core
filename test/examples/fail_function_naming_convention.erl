@@ -1,5 +1,7 @@
 -module(fail_function_naming_convention).
 
+-dialyzer({nowarn_function, bad_names_inside/0}).
+
 -export([bad_names_inside/0]).
 
 %% Function names must use only lowercase characters.

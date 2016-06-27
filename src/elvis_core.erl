@@ -33,7 +33,7 @@ rock() ->
     Config = elvis_config:default(),
     rock(Config).
 
--spec rock(elvis_config:config()) -> ok | {fail, [elvis_result:file()]}.
+-spec rock(elvis_config:config() | map()) -> ok | {fail, [elvis_result:file()]}.
 rock(Config) ->
     elvis_config:validate(Config),
     NewConfig = elvis_config:normalize(Config),
@@ -72,7 +72,6 @@ rock_this(Path, Config) ->
     FilteredConfig = lists:filter(FilterFun, NewConfig),
 
     LoadedFile = load_file_data(FilteredConfig, File),
-
     ApplyRulesFun = fun(Cfg) -> apply_rules(Cfg, LoadedFile) end,
     Results = lists:map(ApplyRulesFun, FilteredConfig),
     elvis_result_status(Results).

@@ -1,5 +1,7 @@
 -module(fail_state_record_and_type).
 
+-dialyzer(no_behaviours).
+
 -behavior(gen_server).
 
 -export([

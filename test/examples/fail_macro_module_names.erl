@@ -1,5 +1,7 @@
 -module(fail_macro_module_names).
 
+-dialyzer({nowarn_function, [function_name/0, build_binary/0]}).
+
 -export([
          module_name/0,
          function_name/0,

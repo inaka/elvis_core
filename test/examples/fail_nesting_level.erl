@@ -1,5 +1,7 @@
 -module(fail_nesting_level).
 
+-dialyzer(no_match).
+
 %% Used so that the line positions don't change for tests.
 -compile([export_all]).
 

@@ -34,13 +34,10 @@
 
 -spec default() -> config().
 default() ->
-    ct:pal("cwd -> ~p", [file:get_cwd()]),
-    lager:info("DEFAULT_CONFIG_PATH: ~p", [file:consult(?DEFAULT_CONFIG_PATH)]),
     case file:consult(?DEFAULT_CONFIG_PATH) of
         {ok, [Config]} ->
             load(Config);
         {error, enoent} ->
-            lager:info("REBAR_PATH: ~p", [file:consult(?DEFAULT_REBAR_CONFIG_PATH)]),
             case file:consult(?DEFAULT_REBAR_CONFIG_PATH) of
                 {ok, Config} ->
                     load(Config);
@@ -112,7 +109,7 @@ validate(RuleGroup) ->
 %%
 %% Using `[_]' is the way we found for this function to work properly and no
 %% dialyzer errors are emitted when using this approach.
--spec normalize(Config::config()) -> [_].
+-spec normalize(Config::config() | map()) -> [_].
 normalize(Config) when is_list(Config) ->
     lists:map(fun do_normalize/1, Config).
 

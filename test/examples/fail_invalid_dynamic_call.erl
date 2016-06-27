@@ -1,5 +1,7 @@
 -module(fail_invalid_dynamic_call).
 
+-dialyzer(no_match).
+
 -export([
          dynamic_module_name_call/0,
          dynamic_function_name_call/0,

@@ -1,5 +1,7 @@
 -module(fail_no_nested_try_catch).
 
+-dialyzer({nowarn_function, bad2/0}).
+
 -export([
          bad1/0,
          bad2/0,
