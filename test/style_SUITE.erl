@@ -408,16 +408,19 @@ verify_dont_repeat_yourself(_Config) ->
 
 -spec verify_max_module_length(config()) -> any().
 verify_max_module_length(_Config) ->
-    ElvisConfig = elvis_config:default(),
+    ElvisConfig = elvis_config:default(), %[map()]
     SrcDirs = elvis_config:dirs(ElvisConfig),
-
+ct:print("ElvisConfig ~p", [ElvisConfig]),
     PathFail = "fail_max_module_length.erl",
     {ok, FileFail} = elvis_test_utils:find_file(SrcDirs, PathFail),
+    %file() = #{path => string(), content => binary()}.
+ct:print("FileFail ~p", [FileFail]),
 
     CountAllRuleConfig = #{count_comments => true, count_whitespace => true},
 
     ct:comment("Count whitespace and comment lines"),
     RuleConfig = CountAllRuleConfig#{max_length => 10},
+    % rule config = #{}
     [_] = elvis_style:max_module_length(ElvisConfig, FileFail, RuleConfig),
 
     RuleConfig1 = CountAllRuleConfig#{max_length => 14},

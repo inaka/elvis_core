@@ -32,7 +32,7 @@
 %%% Public
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec default() -> config().
+-spec default() -> config() | {error, string()}.
 default() ->
     case file:consult(?DEFAULT_CONFIG_PATH) of
         {ok, [Config]} ->
@@ -71,7 +71,8 @@ ensure_config_list(Config) when is_map(Config) ->
 ensure_config_list(Config) ->
     Config.
 
--spec validate(Config::config() | map()) -> ok.
+-spec validate(Config::config() | map()) ->
+    ok | {invalid_config, {atom(), any()}}.
 validate([]) ->
     throw({invalid_config, empty_config});
 validate(Config) when is_list(Config) ->

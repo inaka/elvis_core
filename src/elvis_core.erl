@@ -34,6 +34,7 @@ rock() ->
     rock(Config).
 
 -spec rock(elvis_config:config() | map()) -> ok | {fail, [elvis_result:file()]}.
+    % ok | {fail, [elvis_result:file()]} | {invalid_config, {atom(), any()}}.
 rock(Config) ->
     elvis_config:validate(Config),
     NewConfig = elvis_config:normalize(Config),

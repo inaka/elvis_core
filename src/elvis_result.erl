@@ -33,7 +33,7 @@
 -type item() ::
         #{
            message => string(),
-           info => string(),
+           info => iodata(),
            line_num => integer()
          }.
 -type rule() ::

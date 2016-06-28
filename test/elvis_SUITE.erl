@@ -66,13 +66,13 @@ end_per_suite(Config) ->
 -spec rock_with_empty_map_config(config()) -> any().
 rock_with_empty_map_config(_Config) ->
     ok = try
-             {fail, _} = elvis_core:rock(#{}),
+             ok = elvis_core:rock(#{}),
              fail
          catch
              throw:{invalid_config, _} -> ok
          end,
     ok = try
-             {fail, _} = elvis_core:rock([]),
+             ok = elvis_core:rock([]),
              fail
          catch
              throw:{invalid_config, _} -> ok
@@ -81,7 +81,7 @@ rock_with_empty_map_config(_Config) ->
 -spec rock_with_empty_list_config(config()) -> any().
 rock_with_empty_list_config(_Config) ->
     ok = try
-             {fail, _} = elvis_core:rock([#{}, #{}]),
+             ok = elvis_core:rock([#{}, #{}]),
              fail
          catch
              throw:{invalid_config, _} -> ok
@@ -91,7 +91,7 @@ rock_with_empty_list_config(_Config) ->
 rock_with_incomplete_config(_Config) ->
     ElvisConfig = #{src_dirs => ["src"]},
     ok = try
-             {fail, _} = elvis_core:rock(ElvisConfig),
+             ok = elvis_core:rock(ElvisConfig),
              fail
          catch
              throw:{invalid_config, _} -> ok
@@ -115,7 +115,7 @@ rock_with_file_config(_Config) ->
     Fun = fun() -> elvis_core:rock() end,
     Expected = "# \\.\\./\\.\\./_build/test/lib/elvis_core/test/" ++
                "examples/.*\\.erl.*FAIL",
-    check_some_line_output(Fun, Expected, fun matches_regex/2),
+    [_ | _] = check_some_line_output(Fun, Expected, fun matches_regex/2),
     ok.
 
 -spec rock_with_old_config(config()) -> ok.
@@ -146,11 +146,10 @@ rock_with_old_config(_Config) ->
 
 -spec rock_with_rebar_default_config(config()) -> ok.
 rock_with_rebar_default_config(_Config) ->
-    %{ok, _} = file:copy("../../lib/elvis_core/config/rebar.config", "rebar.config"),
     {ok, _} = file:copy("../../config/rebar.config", "rebar.config"),
-    try
+    [#{name := line_length}] = try
         {fail, Results} = elvis_core:rock(),
-        [#{name := line_length}] = [ Rule || #{rules := [Rule] } <- Results]
+        [Rule || #{rules := [Rule]} <- Results]
     after
         file:delete("rebar.config")
     end,
@@ -194,8 +193,7 @@ rock_with_rule_groups(_Config) ->
          #{dirs => ["."], filter => "rebar.config", ruleset => rebar_config},
          #{dirs => ["."], filter => "elvis.config", ruleset => elvis_config}],
     ok = try
-             elvis_core:rock(RulesGroupConfig),
-             ok
+             ok = elvis_core:rock(RulesGroupConfig)
          catch
              throw:{invalid_config, _} -> fail
          end,
@@ -224,8 +222,7 @@ rock_with_rule_groups(_Config) ->
          #{dirs => ["."], filter => "rebar.config", ruleset => rebar_config},
          #{dirs => ["."], filter => "elvis.config", ruleset => elvis_config}],
     ok = try
-           elvis_core:rock(OverrideConfig),
-           ok
+           ok = elvis_core:rock(OverrideConfig)
        catch
            throw:{invalid_config, _} -> fail
        end.
