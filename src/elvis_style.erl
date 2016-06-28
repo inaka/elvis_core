@@ -203,7 +203,7 @@ no_spaces(_Config, Target, _RuleConfig) ->
 
 -spec no_trailing_whitespace(Config::elvis_config:config(),
                              Target::elvis_file:file(),
-                             RuleConfig::[map()]) ->
+                             RuleConfig::map()) ->
     [elvis_result:item()].
 no_trailing_whitespace(_Config, Target, RuleConfig) ->
     {Src, _} = elvis_file:src(Target),
