@@ -171,6 +171,8 @@ is_rebar_hex_dep({_AppName, _Vsn})
 is_rebar_hex_dep(_) ->
     false.
 
+is_rebar_not_git_dep({_AppName, {pkg, _OtherName}}, _Regex) ->
+    false;
 is_rebar_not_git_dep({_AppName, {_SCM, Url, _Branch}}, Regex) ->
     nomatch == re:run(Url, Regex, []);
 is_rebar_not_git_dep({_AppName, {_SCM, Url}}, Regex) ->
