@@ -140,6 +140,8 @@ list of items with the following structure `{Module, Function, RuleConfig}` or
 `disable` certain rules if you want to just by specifying the rule in the `rules`
 key and passing `disable` as its third parameter.
 
+**IMPORTANT:** `disable` will only work if you also provided a `ruleset` as shown above.
+
 Let's say you like your files to have a maximum of 90 characters per line and
 also you like to use tabs instead of spaces, so you need to override `erl_files`
 `ruleset` default `rules` as follows:

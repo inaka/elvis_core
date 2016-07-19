@@ -133,7 +133,13 @@ apply_rules(Config, File) ->
 apply_rule({Module, Function}, {Result, Config, File}) ->
     apply_rule({Module, Function, #{}}, {Result, Config, File});
 apply_rule({Module, Function, ConfigArgs}, {Result, Config, File}) ->
-    ConfigMap = ensure_config_map(Module, Function, ConfigArgs),
+    ConfigMap =
+        try
+            ensure_config_map(Module, Function, ConfigArgs)
+        catch
+            _:function_clause ->
+                throw({invalid_config, disable_without_ruleset})
+        end,
     RuleResult = try
                     Results = Module:Function(Config, File, ConfigMap),
                     SortFun = fun(#{line_num := L1}, #{line_num := L2}) ->
