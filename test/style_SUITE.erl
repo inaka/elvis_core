@@ -408,13 +408,10 @@ verify_dont_repeat_yourself(_Config) ->
 
 -spec verify_max_module_length(config()) -> any().
 verify_max_module_length(_Config) ->
-    ElvisConfig = elvis_config:default(), %[map()]
+    ElvisConfig = elvis_config:default(),
     SrcDirs = elvis_config:dirs(ElvisConfig),
-ct:print("ElvisConfig ~p", [ElvisConfig]),
     PathFail = "fail_max_module_length.erl",
     {ok, FileFail} = elvis_test_utils:find_file(SrcDirs, PathFail),
-    %file() = #{path => string(), content => binary()}.
-ct:print("FileFail ~p", [FileFail]),
 
     CountAllRuleConfig = #{count_comments => true, count_whitespace => true},
 
@@ -538,6 +535,7 @@ verify_no_debug_call(_Config) ->
 -spec verify_no_nested_try_catch(config()) -> any().
 verify_no_nested_try_catch(_Config) ->
     ElvisConfig = elvis_config:default(),
+% ct:print("ElvisConfig::: ~p", [ElvisConfig]),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     Path = "fail_no_nested_try_catch.erl",
@@ -548,7 +546,7 @@ verify_no_nested_try_catch(_Config) ->
      #{line_num := 35}
     ] = elvis_style:no_nested_try_catch(ElvisConfig, File, #{}).
 
--spec results_are_ordered_by_line(config()) -> any().
+-spec results_are_ordered_by_line(config()) -> true.
 results_are_ordered_by_line(_Config) ->
     ElvisConfig = elvis_config:default(),
     {fail, Results} = elvis_core:rock(ElvisConfig),
@@ -558,7 +556,7 @@ results_are_ordered_by_line(_Config) ->
 %% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec is_item_line_sort(any()) -> [boolean()].
+-spec is_item_line_sort([elvis_result:file()]) -> [boolean()].
 is_item_line_sort(Result) ->
     Items = [Items
              || #{rules := Rules} <- Result,

@@ -66,13 +66,13 @@ end_per_suite(Config) ->
 -spec rock_with_empty_map_config(config()) -> any().
 rock_with_empty_map_config(_Config) ->
     ok = try
-             ok = elvis_core:rock(#{}),
+             ok = elvis_core:rock([#{}]),
              fail
          catch
              throw:{invalid_config, _} -> ok
          end,
     ok = try
-             ok = elvis_core:rock([]),
+             ok = elvis_core:rock([#{} || X <- lists:seq(1,10), X < 1]),
              fail
          catch
              throw:{invalid_config, _} -> ok
@@ -89,7 +89,7 @@ rock_with_empty_list_config(_Config) ->
 
 -spec rock_with_incomplete_config(config()) -> any().
 rock_with_incomplete_config(_Config) ->
-    ElvisConfig = #{src_dirs => ["src"]},
+    ElvisConfig = [#{src_dirs => ["src"]}],
     ok = try
              ok = elvis_core:rock(ElvisConfig),
              fail
@@ -203,7 +203,7 @@ rock_with_rule_groups(_Config) ->
            rules => [{elvis_style, line_length, #{limit => 90}},
                      {elvis_style, state_record_and_type, disable}]}],
     ok = try
-           elvis_core:rock(OverrideFailConfig),
+           _ = elvis_core:rock(OverrideFailConfig),
            fail
        catch
            throw:{invalid_config, _} -> ok
@@ -235,7 +235,7 @@ throw_configuration(_Config) ->
     Filename = "./elvis.config",
     ok = file:write_file(Filename, <<"-">>),
     ok = try
-             {error, _} = elvis_config:default(),
+             _ = elvis_config:default(),
              fail
          catch
              throw:_ -> ok
@@ -284,9 +284,9 @@ to_string(_Config) ->
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 check_some_line_output(Fun, Expected, FilterFun) ->
-    ct:capture_start(),
-    Fun(),
-    ct:capture_stop(),
+    _ = ct:capture_start(),
+    _ = Fun(),
+    _ = ct:capture_stop(),
     Lines = ct:capture_get([]),
     ListFun = fun(Line) -> FilterFun(Line, Expected) end,
     [_ | _] = lists:filter(ListFun, Lines).

@@ -1,5 +1,5 @@
-[{<<"goldrush">>,{pkg,<<"goldrush">>,<<"0.1.7">>},1},
- {<<"inaka_aleppo">>,{pkg,<<"inaka_aleppo">>,<<"1.0.0">>},1},
+[{<<"aleppo">>,{pkg,<<"inaka_aleppo">>,<<"1.0.0">>},1},
+ {<<"goldrush">>,{pkg,<<"goldrush">>,<<"0.1.7">>},1},
  {<<"katana_code">>,{pkg,<<"katana_code">>,<<"0.1.0">>},0},
  {<<"lager">>,{pkg,<<"lager">>,<<"3.0.2">>},0},
  {<<"zipper">>,{pkg,<<"zipper">>,<<"1.0.0">>},0}].
