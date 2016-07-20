@@ -200,6 +200,17 @@ rock_with_rule_groups(_Config) ->
          catch
              throw:{invalid_config, _} -> fail
          end,
+    % Override default elvis_core rules without ruleset should fail.
+    OverrideFailConfig =
+        [#{dirs => ["src"],
+           rules => [{elvis_style, line_length, #{limit => 90}},
+                     {elvis_style, state_record_and_type, disable}]}],
+    ok = try
+           elvis_core:rock(OverrideFailConfig),
+           fail
+       catch
+           throw:{invalid_config, _} -> ok
+       end,
     % Override default elvis_core rules.
     OverrideConfig =
         [#{dirs => ["src"],
