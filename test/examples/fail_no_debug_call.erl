@@ -1,6 +1,9 @@
 -module(fail_no_debug_call).
 -export([fail/0]).
 
+-ignore_xref({cthr, pal, 1}).
+-ignore_xref({cthr, pal, 2}).
+
 -spec fail() -> any().
 fail() ->
     io:format("debug print~n"),

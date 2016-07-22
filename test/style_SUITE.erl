@@ -417,7 +417,7 @@ verify_max_module_length(_Config) ->
 
     ct:comment("Count whitespace and comment lines"),
     RuleConfig = CountAllRuleConfig#{max_length => 10},
-    % rule config = #{}
+
     [_] = elvis_style:max_module_length(ElvisConfig, FileFail, RuleConfig),
 
     RuleConfig1 = CountAllRuleConfig#{max_length => 14},
@@ -535,7 +535,7 @@ verify_no_debug_call(_Config) ->
 -spec verify_no_nested_try_catch(config()) -> any().
 verify_no_nested_try_catch(_Config) ->
     ElvisConfig = elvis_config:default(),
-% ct:print("ElvisConfig::: ~p", [ElvisConfig]),
+
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     Path = "fail_no_nested_try_catch.erl",

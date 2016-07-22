@@ -35,13 +35,11 @@
 default() ->
     case file:consult(?DEFAULT_CONFIG_PATH) of
         {ok, [Config]} ->
-            C1 = load(Config),
-            C1;
+            load(Config);
         {error, enoent} ->
             case file:consult(?DEFAULT_REBAR_CONFIG_PATH) of
                 {ok, Config} ->
-                    C2 = load(Config),
-                    C2;
+                    load(Config);
                 {error, enoent} ->
                     Config = application:get_env(elvis, config, []),
                     ensure_config_list(Config);

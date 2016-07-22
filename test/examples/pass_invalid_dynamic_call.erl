@@ -2,10 +2,8 @@
 
 -dialyzer(no_match).
 
--ignore_xref([dynamic_module_name_call/0]).
--ignore_xref([dynamic_function_name_call/0]).
--ignore_xref([another_dynamic_module_name_call/0]).
--ignore_xref([dynamic_module_name_call_in_case/0]).
+-ignore_xref({normal, call, 0}).
+-ignore_xref({another_normal, call, 0}).
 
 -export([
          dynamic_module_name_call/0,

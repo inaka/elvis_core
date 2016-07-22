@@ -1,5 +1,8 @@
 -module(fail_no_nested_try_catch).
 
+-ignore_xref({maybe, throw, 1}).
+-ignore_xref({a_function, that_deals, 2}).
+
 -dialyzer({nowarn_function, bad2/0}).
 
 -export([

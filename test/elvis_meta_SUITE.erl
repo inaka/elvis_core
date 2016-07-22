@@ -1,12 +1,3 @@
-
-% -export([init_per_suite/1]).
-
-% -type config() :: [{atom(), term()}].
-
-% -spec init_per_suite(config()) -> config().
-% init_per_suite(Config) ->
-%   [{base_dir, "../../_build/default/lib/katana_code/"}, {dirs, ["ebin"]} | Config].
-
 -module(elvis_meta_SUITE).
 -author('euen@inaka.net').
 
