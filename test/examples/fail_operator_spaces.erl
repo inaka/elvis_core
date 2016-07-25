@@ -1,5 +1,7 @@
 -module(fail_operator_spaces).
 
+-dialyzer({nowarn_function, function7/0}).
+
 -export([ function1/2
         , function2/2
         , function3/2

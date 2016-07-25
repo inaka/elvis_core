@@ -1,5 +1,7 @@
 -module(fail_no_spec_with_records).
 
+-dialyzer({nowarn_function, function_2/2}).
+
 -export([
          function_1/1,
          function_2/2,

@@ -35,7 +35,7 @@ rock() ->
 
 -spec rock(elvis_config:config()) -> ok | {fail, [elvis_result:file()]}.
 rock(Config) ->
-    elvis_config:validate(Config),
+    ok = elvis_config:validate(Config),
     NewConfig = elvis_config:normalize(Config),
     Results = lists:map(fun do_rock/1, NewConfig),
     lists:foldl(fun combine_results/2, ok, Results).
@@ -70,16 +70,13 @@ rock_this(Path, Config) ->
                                                        IgnoreList)
                 end,
     FilteredConfig = lists:filter(FilterFun, NewConfig),
-
     LoadedFile = load_file_data(FilteredConfig, File),
-
     ApplyRulesFun = fun(Cfg) -> apply_rules(Cfg, LoadedFile) end,
     Results = lists:map(ApplyRulesFun, FilteredConfig),
     elvis_result_status(Results).
 
 %% @private
--spec do_rock(Config0::elvis_config:config()) ->
-    ok | {fail, [elvis_result:file()]}.
+-spec do_rock(map()) -> ok | {fail, [elvis_result:file()]}.
 do_rock(Config0) ->
     elvis_utils:info("Loading files..."),
     Config = elvis_config:resolve_files(Config0),
@@ -91,8 +88,7 @@ do_rock(Config0) ->
     elvis_result_status(Results).
 
 %% @private
--spec load_file_data(elvis_config:config(), elvis_file:file()) ->
-    elvis_file:file().
+-spec load_file_data(map() | [map()], elvis_file:file()) -> elvis_file:file().
 load_file_data(Config, File) ->
     Path = elvis_file:path(File),
     elvis_utils:info("Loading ~s", [Path]),
@@ -119,7 +115,7 @@ combine_results(Item, ok) ->
 combine_results({fail, ItemResults}, {fail, AccResults}) ->
     {fail, ItemResults ++ AccResults}.
 
--spec apply_rules(Config::elvis_config:config(), File::elvis_file:file()) ->
+-spec apply_rules(map(), File::elvis_file:file()) ->
     elvis_result:file().
 apply_rules(Config, File) ->
     Rules = elvis_config:rules(Config),

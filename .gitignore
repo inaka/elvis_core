@@ -14,3 +14,5 @@ elvis
 rebar
 .erlang.mk/
 elvis.d
+doc
+rebar3.crashdump

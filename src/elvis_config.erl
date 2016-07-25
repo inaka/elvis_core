@@ -14,7 +14,6 @@
          rules/1,
          %% Files
          resolve_files/1,
-         resolve_files/2,
          apply_to_files/2
         ]).
 
@@ -71,12 +70,13 @@ ensure_config_list(Config) when is_map(Config) ->
 ensure_config_list(Config) ->
     Config.
 
--spec validate(Config::config() | map()) -> ok.
+-spec validate(Config::config()) -> ok.
 validate([]) ->
     throw({invalid_config, empty_config});
-validate(Config) when is_list(Config) ->
-    lists:foreach(fun validate/1, Config);
-validate(RuleGroup) ->
+validate(Config) ->
+    lists:foreach(fun do_validate/1, Config).
+
+do_validate(RuleGroup) ->
     case maps:is_key(src_dirs, RuleGroup) or maps:is_key(dirs, RuleGroup) of
         false -> throw({invalid_config, {missing_dirs, RuleGroup}});
         true -> ok
@@ -94,22 +94,7 @@ validate(RuleGroup) ->
         true -> ok
     end.
 
-%% something weird is happening with this function and we haven't found the
-%% issue yet. If you want to give it a try, replace `[_]' by `config()' that
-%% SHOULD be the right return type.
-%% If you set `config()' as the return type, you'll get some dialyzer warnings
-%% when running dialyzer for `elvis' project that depends on this project, e.g:
-%%
-%% ["elvis.erl:100: The pattern {'fail', _} can never match the type 'ok'\n",
-%%  "elvis_git.erl:29: The pattern {'fail', _} can never match the type 'ok'\n",
-%%  "elvis_webhook.erl:44:
-%%    The pattern {'fail', Results} can never match the type 'ok'\n",
-%%  "elvis_webhook.erl:85:
-%%    Function messages_from_results/1 will never be called\n"]
-%%
-%% Using `[_]' is the way we found for this function to work properly and no
-%% dialyzer errors are emitted when using this approach.
--spec normalize(Config::config()) -> [_].
+-spec normalize(config()) -> config().
 normalize(Config) when is_list(Config) ->
     lists:map(fun do_normalize/1, Config).
 
@@ -144,9 +129,7 @@ filter(_RuleGroup = #{filter := Filter}) ->
 filter(#{}) ->
     ?DEFAULT_FILTER.
 
--spec files(RuleGroup::config() | map()) -> [string()].
-files(RuleGroup) when is_list(RuleGroup) ->
-    lists:map(fun files/1, RuleGroup);
+-spec files(map()) -> [elvis_file:file()] | undefined.
 files(_RuleGroup = #{files := Files}) ->
     Files;
 files(#{}) ->
@@ -168,11 +151,7 @@ rules(#{}) ->
 %%      of them according to the 'filter' key, or if not specified
 %%      uses '*.erl'.
 %% @end
--spec resolve_files(Config::config() | map(), Files::[elvis_file:file()]) ->
-    config() | map().
-resolve_files(Config, Files) when is_list(Config) ->
-    Fun = fun(RuleGroup) -> resolve_files(RuleGroup, Files) end,
-    lists:map(Fun, Config);
+-spec resolve_files(map(), Files::[elvis_file:file()]) -> map().
 resolve_files(RuleGroup, Files) ->
     Filter = filter(RuleGroup),
     Dirs = dirs(RuleGroup),
@@ -183,9 +162,7 @@ resolve_files(RuleGroup, Files) ->
 %% @doc Takes a configuration and finds all files according to its 'dirs'
 %%      end  'filter' key, or if not specified uses '*.erl'.
 %% @end
--spec resolve_files(config()) -> config().
-resolve_files(Config) when is_list(Config) ->
-    lists:map(fun resolve_files/1, Config);
+-spec resolve_files(map()) -> map().
 resolve_files(RuleGroup = #{files := _Files}) ->
     RuleGroup;
 resolve_files(RuleGroup = #{dirs := Dirs}) ->

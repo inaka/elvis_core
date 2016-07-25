@@ -1,14 +1,5 @@
-[{<<"aleppo">>,
-  {git,"https://github.com/inaka/aleppo.git",
-       {ref,"95e7bc6a2ff0de0cde4d0af353ae86d7dea03095"}},
-  0},
+[{<<"aleppo">>,{pkg,<<"inaka_aleppo">>,<<"1.0.0">>},1},
  {<<"goldrush">>,{pkg,<<"goldrush">>,<<"0.1.7">>},1},
- {<<"katana">>,
-  {git,"https://github.com/inaka/erlang-katana.git",
-       {ref,"4ed813673c96c0926bcb002516087c018b8f428c"}},
-  0},
+ {<<"katana_code">>,{pkg,<<"katana_code">>,<<"0.1.0">>},0},
  {<<"lager">>,{pkg,<<"lager">>,<<"3.0.2">>},0},
- {<<"zipper">>,
-  {git,"https://github.com/inaka/zipper.git",
-       {ref,"7b155ca851b3167b3e0031e52129901663e86a83"}},
-  0}].
+ {<<"zipper">>,{pkg,<<"zipper">>,<<"1.0.0">>},0}].

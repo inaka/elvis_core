@@ -40,8 +40,8 @@ path(File) ->
     throw({invalid_file, File}).
 
 %% @doc Add the root node of the parse tree to the file data.
--spec parse_tree(elvis_config:config(), file()) ->
-    {ktn_code:tree_node(), file()}.
+-spec parse_tree(elvis_config:config() | map(), file()) ->
+  {ktn_code:tree_node(), file()}.
 parse_tree(_Config, File = #{parse_tree := ParseTree}) ->
     {ParseTree, File};
 parse_tree(Config, File = #{path := Path, content := Content}) ->
@@ -56,7 +56,7 @@ parse_tree(_Config, File) ->
     throw({invalid_file, File}).
 
 %% @doc Loads and adds all related file data.
--spec load_file_data(elvis_config:config(), file()) -> file().
+-spec load_file_data(map(), file()) -> file().
 load_file_data(Config, File0 = #{path := _Path}) ->
     {_, File1} = src(File0),
     {_, File2} = parse_tree(Config, File1),
@@ -105,7 +105,7 @@ filter_files(Files, Dirs, Filter, IgnoreList) ->
 %% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec resolve_parse_tree(elvis_config:config(), string(), binary()) ->
+-spec resolve_parse_tree(map(), string(), binary()) ->
     undefined | ktn_code:tree_node().
 resolve_parse_tree(Config, ".erl", Content) ->
     ktn_code:parse_tree(Config, Content);

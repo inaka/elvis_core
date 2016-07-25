@@ -1,5 +1,7 @@
 -module(fail_line_length).
 
+-ignore_xref({model, random_ant_state, 1}).
+
 -export([
          function_1/0,
          function_2/0,

@@ -120,6 +120,11 @@
 
 -type empty_rule_config() :: #{}.
 
+-type max_module_length_config() :: #{count_comments => boolean(),
+                                      count_whitespace => boolean(),
+                                      ignore => [atom()],
+                                      max_length => integer()}.
+
 -type function_naming_convention_config() :: #{regex => string(),
                                                ignore => [module()]
                                               }.
@@ -203,7 +208,7 @@ no_spaces(_Config, Target, _RuleConfig) ->
 
 -spec no_trailing_whitespace(Config::elvis_config:config(),
                              Target::elvis_file:file(),
-                             RuleConfig::[map()]) ->
+                             RuleConfig::map()) ->
     [elvis_result:item()].
 no_trailing_whitespace(_Config, Target, RuleConfig) ->
     {Src, _} = elvis_file:src(Target),
@@ -476,7 +481,7 @@ dont_repeat_yourself(Config, Target, RuleConfig) ->
 
 -spec max_module_length(elvis_config:config(),
                         elvis_file:file(),
-                        empty_rule_config()) ->
+                        max_module_length_config()) ->
     [elvis_result:item()].
 max_module_length(Config, Target, RuleConfig) ->
     MaxLength = maps:get(max_length, RuleConfig, 500),

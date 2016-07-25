@@ -48,12 +48,12 @@ all() ->
 
 -spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
-    application:start(elvis),
+    {ok, _} = application:ensure_all_started(elvis),
     Config.
 
 -spec end_per_suite(config()) -> config().
 end_per_suite(Config) ->
-    application:stop(elvis),
+    ok = application:stop(elvis),
     Config.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -66,13 +66,13 @@ end_per_suite(Config) ->
 -spec rock_with_empty_map_config(config()) -> any().
 rock_with_empty_map_config(_Config) ->
     ok = try
-             elvis_core:rock(#{}),
+             ok = elvis_core:rock([#{}]),
              fail
          catch
              throw:{invalid_config, _} -> ok
          end,
     ok = try
-             elvis_core:rock([]),
+             ok = elvis_core:rock([#{} || X <- lists:seq(1,10), X < 1]),
              fail
          catch
              throw:{invalid_config, _} -> ok
@@ -81,7 +81,7 @@ rock_with_empty_map_config(_Config) ->
 -spec rock_with_empty_list_config(config()) -> any().
 rock_with_empty_list_config(_Config) ->
     ok = try
-             elvis_core:rock([#{}, #{}]),
+             ok = elvis_core:rock([#{}, #{}]),
              fail
          catch
              throw:{invalid_config, _} -> ok
@@ -89,9 +89,9 @@ rock_with_empty_list_config(_Config) ->
 
 -spec rock_with_incomplete_config(config()) -> any().
 rock_with_incomplete_config(_Config) ->
-    ElvisConfig = #{src_dirs => ["src"]},
+    ElvisConfig = [#{src_dirs => ["src"]}],
     ok = try
-             elvis_core:rock(ElvisConfig),
+             ok = elvis_core:rock(ElvisConfig),
              fail
          catch
              throw:{invalid_config, _} -> ok
@@ -105,8 +105,7 @@ rock_with_list_config(_Config) ->
                      filter => "Makefile",
                      rules => []}],
     ok = try
-             elvis_core:rock(ElvisConfig),
-             ok
+             ok = elvis_core:rock(ElvisConfig)
          catch
              throw:{invalid_config, _} -> fail
          end.
@@ -114,8 +113,9 @@ rock_with_list_config(_Config) ->
 -spec rock_with_file_config(config()) -> ok.
 rock_with_file_config(_Config) ->
     Fun = fun() -> elvis_core:rock() end,
-    Expected = "# \\.\\./\\.\\./test/examples/.*\\.erl.*FAIL",
-    check_some_line_output(Fun, Expected, fun matches_regex/2),
+    Expected = "# \\.\\./\\.\\./_build/test/lib/elvis_core/test/" ++
+               "examples/.*\\.erl.*FAIL",
+    [_ | _] = check_some_line_output(Fun, Expected, fun matches_regex/2),
     ok.
 
 -spec rock_with_old_config(config()) -> ok.
@@ -123,8 +123,7 @@ rock_with_old_config(_Config) ->
     ConfigPath = "../../config/old/elvis.config",
     ElvisConfig = elvis_config:load_file(ConfigPath),
     ok = try
-             elvis_core:rock(ElvisConfig),
-             ok
+             ok = elvis_core:rock(ElvisConfig)
          catch
              throw:{invalid_config, _} -> fail
          end,
@@ -132,8 +131,7 @@ rock_with_old_config(_Config) ->
     ConfigPath1 = "../../config/old/elvis-test.config",
     ElvisConfig1 = elvis_config:load_file(ConfigPath1),
     ok = try
-             elvis_core:rock(ElvisConfig1),
-             ok
+             ok = elvis_core:rock(ElvisConfig1)
          catch
              throw:{invalid_config, _} -> fail
          end,
@@ -141,8 +139,7 @@ rock_with_old_config(_Config) ->
     ConfigPath2 = "../../config/old/elvis-test-rule-config-list.config",
     ElvisConfig2 = elvis_config:load_file(ConfigPath2),
     ok = try
-             elvis_core:rock(ElvisConfig2),
-             ok
+             ok = elvis_core:rock(ElvisConfig2)
          catch
              throw:{invalid_config, _} -> fail
          end.
@@ -150,9 +147,9 @@ rock_with_old_config(_Config) ->
 -spec rock_with_rebar_default_config(config()) -> ok.
 rock_with_rebar_default_config(_Config) ->
     {ok, _} = file:copy("../../config/rebar.config", "rebar.config"),
-    try
+    [#{name := line_length}] = try
         {fail, Results} = elvis_core:rock(),
-        [#{name := line_length}] = [ Rule || #{rules := [Rule] } <- Results]
+        [Rule || #{rules := [Rule]} <- Results]
     after
         file:delete("rebar.config")
     end,
@@ -163,12 +160,13 @@ rock_this(_Config) ->
     ok = elvis_core:rock_this(elvis_core),
 
     ok = try
-             elvis_core:rock_this("bla.erl")
+             {fail, _} = elvis_core:rock_this("bla.erl")
          catch
              _:{enoent, "bla.erl"} -> ok
          end,
 
-    Path = "../../test/examples/fail_god_modules.erl",
+    Path =
+        "../../_build/test/lib/elvis_core/test/examples/fail_line_length.erl",
     {fail, _} = elvis_core:rock_this(Path),
 
     ok.
@@ -195,8 +193,7 @@ rock_with_rule_groups(_Config) ->
          #{dirs => ["."], filter => "rebar.config", ruleset => rebar_config},
          #{dirs => ["."], filter => "elvis.config", ruleset => elvis_config}],
     ok = try
-             elvis_core:rock(RulesGroupConfig),
-             ok
+             ok = elvis_core:rock(RulesGroupConfig)
          catch
              throw:{invalid_config, _} -> fail
          end,
@@ -206,7 +203,7 @@ rock_with_rule_groups(_Config) ->
            rules => [{elvis_style, line_length, #{limit => 90}},
                      {elvis_style, state_record_and_type, disable}]}],
     ok = try
-           elvis_core:rock(OverrideFailConfig),
+           _ = elvis_core:rock(OverrideFailConfig),
            fail
        catch
            throw:{invalid_config, _} -> ok
@@ -225,8 +222,7 @@ rock_with_rule_groups(_Config) ->
          #{dirs => ["."], filter => "rebar.config", ruleset => rebar_config},
          #{dirs => ["."], filter => "elvis.config", ruleset => elvis_config}],
     ok = try
-           elvis_core:rock(OverrideConfig),
-           ok
+           ok = elvis_core:rock(OverrideConfig)
        catch
            throw:{invalid_config, _} -> fail
        end.
@@ -239,7 +235,7 @@ throw_configuration(_Config) ->
     Filename = "./elvis.config",
     ok = file:write_file(Filename, <<"-">>),
     ok = try
-             elvis_config:default(),
+             _ = elvis_config:default(),
              fail
          catch
              throw:_ -> ok
@@ -271,7 +267,7 @@ find_file_with_ignore(_Config) ->
 -spec invalid_file(config()) -> any().
 invalid_file(_Config) ->
     ok = try
-             elvis_file:src(#{}),
+             {error, _} = elvis_file:src(#{}),
              fail
          catch
              throw:{invalid_file, #{}} -> ok
@@ -288,9 +284,9 @@ to_string(_Config) ->
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 check_some_line_output(Fun, Expected, FilterFun) ->
-    ct:capture_start(),
-    Fun(),
-    ct:capture_stop(),
+    _ = ct:capture_start(),
+    _ = Fun(),
+    _ = ct:capture_stop(),
     Lines = ct:capture_get([]),
     ListFun = fun(Line) -> FilterFun(Line, Expected) end,
     [_ | _] = lists:filter(ListFun, Lines).

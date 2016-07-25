@@ -33,7 +33,7 @@
 -type item() ::
         #{
            message => string(),
-           info => string(),
+           info => iodata(),
            line_num => integer()
          }.
 -type rule() ::
@@ -58,9 +58,9 @@
 
 %% New
 
--spec new(item, string(), iodata()) -> item()
+-spec new(item, string(), [term()]) -> item()
        ; (rule, atom(), [item()]) -> rule()
-       ; (file, elvis_file:file(), [rule()]) -> file()
+       ; (file, elvis_file:file(), [elvis_error() | rule()]) -> file()
        ; (error, string(), string()) -> elvis_error().
 new(item, Msg, Info) ->
     new(item, Msg, Info, 0);
@@ -71,7 +71,7 @@ new(file, File, Rules) ->
 new(error, Msg, Info) ->
     #{error_msg => Msg, info => Info}.
 
--spec new(item, string(), iodata(), integer()) -> item().
+-spec new(item, string(), [term()], integer()) -> item().
 new(item, Msg, Info, LineNum) ->
     #{message => Msg,
       info => Info,

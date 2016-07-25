@@ -27,7 +27,7 @@
 -type find_options() :: #{mode => node | zipper,
                           traverse => content | all}.
 
-%% @doc Same as calling find/3 with `#{mode => node, traverse => content}` as
+%% @doc Same as calling find/3 with `#{mode => node, traverse => content}' as
 %%      the options map.
 %% @end
 -spec find(fun((zipper:zipper()) -> boolean()),
@@ -37,15 +37,22 @@ find(Pred, Root) ->
     find(Pred, Root, #{mode => node, traverse => content}).
 
 %% @doc Find all nodes in the tree for which the predicate function returns
-%%      `true`. The options map has two keys:
-%%        - `mode`: when the value `node` is specified the predicate function
-%%          receives a tree_node() as its argument. When `zipper` is specified
+%%      `true'. The options map has two keys:
+%%      <ul>
+%%        <li>
+%%        - `mode': when the value `node' is specified the predicate function
+%%          receives a tree_node() as its argument. When `zipper' is specified
 %%          the argument is the zipper location for the current node.
-%%        - `traverse`: the value `content` indicates to only take into account
-%%          nodes in the parent-child hierarchy. When `all` is provided the
-%%          nodes held in the `node_attrs` map are also taken into account in
+%%        </li>
+%%        <li>
+%%        - `traverse': the value `content' indicates to only take into account
+%%          nodes in the parent-child hierarchy. When `all' is provided the
+%%          nodes held in the `node_attrs' map are also taken into account in
 %%          the search.
+%%        </li>
+%%      </ul>
 %% @end
+
 -spec find(fun((zipper:zipper()) -> boolean()),
            ktn_code:tree_node(),
            find_options()) ->

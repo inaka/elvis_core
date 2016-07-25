@@ -57,12 +57,12 @@ all() ->
 
 -spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
-    application:start(elvis),
+    ok = application:start(elvis),
     Config.
 
 -spec end_per_suite(config()) -> config().
 end_per_suite(Config) ->
-    application:stop(elvis),
+    ok = application:stop(elvis),
     Config.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -263,7 +263,6 @@ verify_god_modules(_Config) ->
 
     Path = "fail_god_modules.erl",
     {ok, File} = elvis_test_utils:find_file(SrcDirs, Path),
-
     [_] = elvis_style:god_modules(ElvisConfig, File, #{limit => 25}),
 
     RuleConfig = #{limit => 25, ignore => [fail_god_modules]},
@@ -411,7 +410,6 @@ verify_dont_repeat_yourself(_Config) ->
 verify_max_module_length(_Config) ->
     ElvisConfig = elvis_config:default(),
     SrcDirs = elvis_config:dirs(ElvisConfig),
-
     PathFail = "fail_max_module_length.erl",
     {ok, FileFail} = elvis_test_utils:find_file(SrcDirs, PathFail),
 
@@ -419,6 +417,7 @@ verify_max_module_length(_Config) ->
 
     ct:comment("Count whitespace and comment lines"),
     RuleConfig = CountAllRuleConfig#{max_length => 10},
+
     [_] = elvis_style:max_module_length(ElvisConfig, FileFail, RuleConfig),
 
     RuleConfig1 = CountAllRuleConfig#{max_length => 14},
@@ -536,6 +535,7 @@ verify_no_debug_call(_Config) ->
 -spec verify_no_nested_try_catch(config()) -> any().
 verify_no_nested_try_catch(_Config) ->
     ElvisConfig = elvis_config:default(),
+
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     Path = "fail_no_nested_try_catch.erl",
@@ -546,7 +546,7 @@ verify_no_nested_try_catch(_Config) ->
      #{line_num := 35}
     ] = elvis_style:no_nested_try_catch(ElvisConfig, File, #{}).
 
--spec results_are_ordered_by_line(config()) -> any().
+-spec results_are_ordered_by_line(config()) -> true.
 results_are_ordered_by_line(_Config) ->
     ElvisConfig = elvis_config:default(),
     {fail, Results} = elvis_core:rock(ElvisConfig),
@@ -556,7 +556,7 @@ results_are_ordered_by_line(_Config) ->
 %% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec is_item_line_sort(any()) -> [boolean()].
+-spec is_item_line_sort([elvis_result:file()]) -> [boolean()].
 is_item_line_sort(Result) ->
     Items = [Items
              || #{rules := Rules} <- Result,
