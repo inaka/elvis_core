@@ -1,10 +1,23 @@
 # Change Log
 
+## [0.3.0](https://github.com/inaka/elvis_core/tree/0.3.0) (2016-07-25)
+[Full Changelog](https://github.com/inaka/elvis_core/compare/0.2.11...0.3.0)
+
+**Merged pull requests:**
+
+- \[Close inaka/elvis\#381\] Euen.381.rebar3 [\#54](https://github.com/inaka/elvis_core/pull/54) ([Euen](https://github.com/Euen))
+- \[\#384\] improve documentation and error [\#53](https://github.com/inaka/elvis_core/pull/53) ([Euen](https://github.com/Euen))
+- Don't crash on rebar3's pkg aliases [\#52](https://github.com/inaka/elvis_core/pull/52) ([sstrigler](https://github.com/sstrigler))
+- \[Fix inaka/elvis\#343\] Use unicode module to convert utf8 binary to list [\#51](https://github.com/inaka/elvis_core/pull/51) ([jfacorro](https://github.com/jfacorro))
+- \[Fix inaka/elvis\#362\] Correctly distinguish macros from variables [\#50](https://github.com/inaka/elvis_core/pull/50) ([elbrujohalcon](https://github.com/elbrujohalcon))
+- exclude '.' to be prepended to a filter [\#49](https://github.com/inaka/elvis_core/pull/49) ([bwegh](https://github.com/bwegh))
+
 ## [0.2.11](https://github.com/inaka/elvis_core/tree/0.2.11) (2016-04-07)
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.2.10...0.2.11)
 
 **Merged pull requests:**
 
+- \[inaka/elvis\#372\] Version Bump to 0.2.11 [\#48](https://github.com/inaka/elvis_core/pull/48) ([elbrujohalcon](https://github.com/elbrujohalcon))
 - \[\#371\] \[Fix inaka/elvis\#371\] Move deps to app.src [\#47](https://github.com/inaka/elvis_core/pull/47) ([elbrujohalcon](https://github.com/elbrujohalcon))
 
 ## [0.2.10](https://github.com/inaka/elvis_core/tree/0.2.10) (2016-03-30)
