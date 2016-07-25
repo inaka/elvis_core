@@ -1,0 +1,115 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Module elvis_result</title>
+<link rel="stylesheet" type="text/css" href="stylesheet.css" title="EDoc">
+</head>
+<body bgcolor="white">
+<div class="navbar"><a name="#navbar_top"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="overview-summary.html" target="overviewFrame">Overview</a></td><td><a href="http://www.erlang.org/"><img src="erlang.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
+<hr>
+
+<h1>Module elvis_result</h1>
+<ul class="index"><li><a href="#types">Data Types</a></li><li><a href="#index">Function Index</a></li><li><a href="#functions">Function Details</a></li></ul>
+
+
+<h2><a name="types">Data Types</a></h2>
+
+<h3 class="typedecl"><a name="type-elvis_error">elvis_error()</a></h3>
+<p><tt>elvis_error() = #{error_msg =&gt; string(), info =&gt; list()}</tt></p>
+
+
+<h3 class="typedecl"><a name="type-file">file()</a></h3>
+<p><tt>file() = #{file =&gt; <a href="elvis_file.html#type-file">elvis_file:file()</a>, rules =&gt; [<a href="#type-rule">rule()</a>]}</tt></p>
+
+
+<h3 class="typedecl"><a name="type-item">item()</a></h3>
+<p><tt>item() = #{message =&gt; string(), info =&gt; iodata(), line_num =&gt; integer()}</tt></p>
+
+
+<h3 class="typedecl"><a name="type-rule">rule()</a></h3>
+<p><tt>rule() = #{name =&gt; atom(), items =&gt; [<a href="#type-item">item()</a>]}</tt></p>
+
+
+<h2><a name="index">Function Index</a></h2>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#clean-1">clean/1</a></td><td>Removes files that don't have any failures.</td></tr>
+<tr><td valign="top"><a href="#get_file-1">get_file/1</a></td><td></td></tr>
+<tr><td valign="top"><a href="#get_info-1">get_info/1</a></td><td></td></tr>
+<tr><td valign="top"><a href="#get_items-1">get_items/1</a></td><td></td></tr>
+<tr><td valign="top"><a href="#get_line_num-1">get_line_num/1</a></td><td></td></tr>
+<tr><td valign="top"><a href="#get_message-1">get_message/1</a></td><td></td></tr>
+<tr><td valign="top"><a href="#get_name-1">get_name/1</a></td><td></td></tr>
+<tr><td valign="top"><a href="#get_rules-1">get_rules/1</a></td><td></td></tr>
+<tr><td valign="top"><a href="#new-3">new/3</a></td><td></td></tr>
+<tr><td valign="top"><a href="#new-4">new/4</a></td><td></td></tr>
+<tr><td valign="top"><a href="#print-1">print/1</a></td><td></td></tr>
+<tr><td valign="top"><a href="#status-1">status/1</a></td><td></td></tr>
+</table>
+
+<h2><a name="functions">Function Details</a></h2>
+
+<h3 class="function"><a name="clean-1">clean/1</a></h3>
+<div class="spec">
+<p><tt>clean(Files::[<a href="#type-file">file()</a> | <a href="#type-rule">rule()</a>]) -&gt; [<a href="#type-file">file()</a> | <a href="#type-rule">rule()</a>]</tt><br></p>
+</div><p>Removes files that don't have any failures.</p>
+
+<h3 class="function"><a name="get_file-1">get_file/1</a></h3>
+<div class="spec">
+<p><tt>get_file(X1::<a href="#type-file">file()</a>) -&gt; <a href="elvis_file.html#type-file">elvis_file:file()</a></tt><br></p>
+</div>
+
+<h3 class="function"><a name="get_info-1">get_info/1</a></h3>
+<div class="spec">
+<p><tt>get_info(X1::<a href="#type-item">item()</a>) -&gt; string()</tt><br></p>
+</div>
+
+<h3 class="function"><a name="get_items-1">get_items/1</a></h3>
+<div class="spec">
+<p><tt>get_items(X1::<a href="#type-rule">rule()</a>) -&gt; [<a href="#type-item">item()</a>]</tt><br></p>
+</div>
+
+<h3 class="function"><a name="get_line_num-1">get_line_num/1</a></h3>
+<div class="spec">
+<p><tt>get_line_num(X1::<a href="#type-item">item()</a>) -&gt; integer()</tt><br></p>
+</div>
+
+<h3 class="function"><a name="get_message-1">get_message/1</a></h3>
+<div class="spec">
+<p><tt>get_message(X1::<a href="#type-item">item()</a>) -&gt; string()</tt><br></p>
+</div>
+
+<h3 class="function"><a name="get_name-1">get_name/1</a></h3>
+<div class="spec">
+<p><tt>get_name(X1::<a href="#type-rule">rule()</a>) -&gt; atom()</tt><br></p>
+</div>
+
+<h3 class="function"><a name="get_rules-1">get_rules/1</a></h3>
+<div class="spec">
+<p><tt>get_rules(X1::<a href="#type-file">file()</a>) -&gt; [<a href="#type-rule">rule()</a>]</tt><br></p>
+</div>
+
+<h3 class="function"><a name="new-3">new/3</a></h3>
+<div class="spec">
+<p><tt>new(X1::item, Msg::string(), Info::[term()]) -&gt; <a href="#type-item">item()</a></tt><br></p>
+</div>
+
+<h3 class="function"><a name="new-4">new/4</a></h3>
+<div class="spec">
+<p><tt>new(X1::item, Msg::string(), Info::[term()], LineNum::integer()) -&gt; <a href="#type-item">item()</a></tt><br></p>
+</div>
+
+<h3 class="function"><a name="print-1">print/1</a></h3>
+<div class="spec">
+<p><tt>print(Results::<a href="#type-item">item()</a> | <a href="#type-rule">rule()</a> | <a href="#type-elvis_error">elvis_error()</a> | [<a href="#type-file">file()</a>]) -&gt; ok</tt><br></p>
+</div>
+
+<h3 class="function"><a name="status-1">status/1</a></h3>
+<div class="spec">
+<p><tt>status(Files::[<a href="#type-file">file()</a> | <a href="#type-rule">rule()</a>]) -&gt; ok | fail</tt><br></p>
+</div>
+<hr>
+
+<div class="navbar"><a name="#navbar_bottom"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="overview-summary.html" target="overviewFrame">Overview</a></td><td><a href="http://www.erlang.org/"><img src="erlang.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
+<p><i>Generated by EDoc, Jul 25 2016, 09:40:12.</i></p>
+</body>
+</html>

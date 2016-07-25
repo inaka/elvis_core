@@ -1,0 +1,125 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Module elvis_utils</title>
+<link rel="stylesheet" type="text/css" href="stylesheet.css" title="EDoc">
+</head>
+<body bgcolor="white">
+<div class="navbar"><a name="#navbar_top"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="overview-summary.html" target="overviewFrame">Overview</a></td><td><a href="http://www.erlang.org/"><img src="erlang.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
+<hr>
+
+<h1>Module elvis_utils</h1>
+<ul class="index"><li><a href="#types">Data Types</a></li><li><a href="#index">Function Index</a></li><li><a href="#functions">Function Details</a></li></ul>
+
+
+<h2><a name="types">Data Types</a></h2>
+
+<h3 class="typedecl"><a name="type-file">file()</a></h3>
+<p><tt>file() = #{path =&gt; string(), content =&gt; binary()}</tt></p>
+
+
+<h3 class="typedecl"><a name="type-line_content">line_content()</a></h3>
+<p><tt>line_content() = {integer(), integer()}</tt></p>
+
+
+<h2><a name="index">Function Index</a></h2>
+<table width="100%" border="1" cellspacing="0" cellpadding="2" summary="function index"><tr><td valign="top"><a href="#check_lines-3">check_lines/3</a></td><td>Takes a binary that holds source code and applies
+       Fun to each line.</td></tr>
+<tr><td valign="top"><a href="#check_lines_with_context-4">check_lines_with_context/4</a></td><td>Checks each line calling fun and providing the previous and next
+       lines based on the context tuple {Before, After}.</td></tr>
+<tr><td valign="top"><a href="#check_nodes-3">check_nodes/3</a></td><td>Takes a binary that holds source code and applies
+  Fun to each line.</td></tr>
+<tr><td valign="top"><a href="#erlang_halt-1">erlang_halt/1</a></td><td>This is defined so that it can be mocked for tests.</td></tr>
+<tr><td valign="top"><a href="#error_prn-1">error_prn/1</a></td><td></td></tr>
+<tr><td valign="top"><a href="#error_prn-2">error_prn/2</a></td><td></td></tr>
+<tr><td valign="top"><a href="#indentation-3">indentation/3</a></td><td>Takes a line, a character and a count, returning the indentation level
+       invalid if the number of character is not a multiple of count.</td></tr>
+<tr><td valign="top"><a href="#info-1">info/1</a></td><td></td></tr>
+<tr><td valign="top"><a href="#info-2">info/2</a></td><td></td></tr>
+<tr><td valign="top"><a href="#notice-1">notice/1</a></td><td></td></tr>
+<tr><td valign="top"><a href="#notice-2">notice/2</a></td><td></td></tr>
+<tr><td valign="top"><a href="#parse_colors-1">parse_colors/1</a></td><td></td></tr>
+<tr><td valign="top"><a href="#to_str-1">to_str/1</a></td><td></td></tr>
+</table>
+
+<h2><a name="functions">Function Details</a></h2>
+
+<h3 class="function"><a name="check_lines-3">check_lines/3</a></h3>
+<div class="spec">
+<p><tt>check_lines(Src::binary(), Fun::function(), Args::term()) -&gt; [<a href="elvis_result.html#type-item">elvis_result:item()</a>]</tt><br></p>
+</div><p>Takes a binary that holds source code and applies
+       Fun to each line. Fun takes 3 arguments (the line
+       as a binary, the line number and the supplied Args) and
+       returns 'no_result' or {'ok', Result}.</p>
+
+<h3 class="function"><a name="check_lines_with_context-4">check_lines_with_context/4</a></h3>
+<div class="spec">
+<p><tt>check_lines_with_context(Src::binary(), Fun::function(), Args::term(), Ctx::<a href="#type-line_content">line_content()</a>) -&gt; [<a href="elvis_result.html#type-item">elvis_result:item()</a>]</tt><br></p>
+</div><p>Checks each line calling fun and providing the previous and next
+       lines based on the context tuple {Before, After}.</p>
+
+<h3 class="function"><a name="check_nodes-3">check_nodes/3</a></h3>
+<div class="spec">
+<p><tt>check_nodes(RootNode::<a href="ktn_code.html#type-tree_node">ktn_code:tree_node()</a>, Fun::function(), Args::[term()]) -&gt; [<a href="elvis_result.html#type-item">elvis_result:item()</a>]</tt><br></p>
+</div><p>Takes a binary that holds source code and applies
+  Fun to each line. Fun takes 3 arguments (the line
+  as a binary, the line number and the supplied Args) and
+  returns 'no_result' or {'ok', Result}.</p>
+
+<h3 class="function"><a name="erlang_halt-1">erlang_halt/1</a></h3>
+<div class="spec">
+<p><tt>erlang_halt(Code::integer()) -&gt; no_return()</tt><br></p>
+</div><p>This is defined so that it can be mocked for tests.</p>
+
+<h3 class="function"><a name="error_prn-1">error_prn/1</a></h3>
+<div class="spec">
+<p><tt>error_prn(Message::string()) -&gt; ok</tt><br></p>
+</div>
+
+<h3 class="function"><a name="error_prn-2">error_prn/2</a></h3>
+<div class="spec">
+<p><tt>error_prn(Message::string(), Args::[term()]) -&gt; ok</tt><br></p>
+</div>
+
+<h3 class="function"><a name="indentation-3">indentation/3</a></h3>
+<div class="spec">
+<p><tt>indentation(Line::binary() | string(), Char::char(), Count::integer()) -&gt; invalid | integer()</tt><br></p>
+</div><p>Takes a line, a character and a count, returning the indentation level
+       invalid if the number of character is not a multiple of count.</p>
+
+<h3 class="function"><a name="info-1">info/1</a></h3>
+<div class="spec">
+<p><tt>info(Message::string()) -&gt; ok</tt><br></p>
+</div>
+
+<h3 class="function"><a name="info-2">info/2</a></h3>
+<div class="spec">
+<p><tt>info(Message::string(), Args::[term()]) -&gt; ok</tt><br></p>
+</div>
+
+<h3 class="function"><a name="notice-1">notice/1</a></h3>
+<div class="spec">
+<p><tt>notice(Message::string()) -&gt; ok</tt><br></p>
+</div>
+
+<h3 class="function"><a name="notice-2">notice/2</a></h3>
+<div class="spec">
+<p><tt>notice(Message::string(), Args::[term()]) -&gt; ok</tt><br></p>
+</div>
+
+<h3 class="function"><a name="parse_colors-1">parse_colors/1</a></h3>
+<div class="spec">
+<p><tt>parse_colors(Message::string()) -&gt; string()</tt><br></p>
+</div>
+
+<h3 class="function"><a name="to_str-1">to_str/1</a></h3>
+<div class="spec">
+<p><tt>to_str(Arg::binary() | list() | atom() | integer()) -&gt; string()</tt><br></p>
+</div>
+<hr>
+
+<div class="navbar"><a name="#navbar_bottom"></a><table width="100%" border="0" cellspacing="0" cellpadding="2" summary="navigation bar"><tr><td><a href="overview-summary.html" target="overviewFrame">Overview</a></td><td><a href="http://www.erlang.org/"><img src="erlang.png" align="right" border="0" alt="erlang logo"></a></td></tr></table></div>
+<p><i>Generated by EDoc, Jul 25 2016, 09:40:12.</i></p>
+</body>
+</html>
