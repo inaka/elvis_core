@@ -46,7 +46,7 @@ rock_this(Target) ->
     Config = elvis_config:default(),
     rock_this(Target, Config).
 
- -spec rock_this(target(), elvis_config:config()) ->
+-spec rock_this(target(), elvis_config:config()) ->
     ok | {fail, elvis_result:file()}.
 rock_this(Module, Config) when is_atom(Module) ->
     ModuleInfo = Module:module_info(compile),

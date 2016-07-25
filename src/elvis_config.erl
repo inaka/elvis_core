@@ -129,9 +129,6 @@ filter(_RuleGroup = #{filter := Filter}) ->
 filter(#{}) ->
     ?DEFAULT_FILTER.
 
-% -spec files(RuleGroup::config()) -> [string()].
-% files(RuleGroup) when is_list(RuleGroup) ->
-%     lists:map(fun do_files/1, RuleGroup).
 -spec files(map()) -> [elvis_file:file()] | undefined.
 files(_RuleGroup = #{files := Files}) ->
     Files;

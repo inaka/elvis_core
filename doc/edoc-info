@@ -1,4 +1,0 @@
-%% encoding: UTF-8
-{application,elvis}.
-{modules,[elvis_code,elvis_config,elvis_core,elvis_file,elvis_project,
-          elvis_result,elvis_rulesets,elvis_style,elvis_utils]}.
