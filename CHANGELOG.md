@@ -1,10 +1,20 @@
 # Change Log
 
+## [0.3.1](https://github.com/inaka/elvis_core/tree/0.3.1) (2016-07-27)
+[Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.0...0.3.1)
+
+**Merged pull requests:**
+
+- fix spec for dialyzer [\#58](https://github.com/inaka/elvis_core/pull/58) ([Euen](https://github.com/Euen))
+- fix application name [\#57](https://github.com/inaka/elvis_core/pull/57) ([Euen](https://github.com/Euen))
+- fix application name [\#56](https://github.com/inaka/elvis_core/pull/56) ([Euen](https://github.com/Euen))
+
 ## [0.3.0](https://github.com/inaka/elvis_core/tree/0.3.0) (2016-07-25)
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.2.11...0.3.0)
 
 **Merged pull requests:**
 
+- \[Close inaka/elvis\#386\] version bump to 0.3.0 [\#55](https://github.com/inaka/elvis_core/pull/55) ([Euen](https://github.com/Euen))
 - \[Close inaka/elvis\#381\] Euen.381.rebar3 [\#54](https://github.com/inaka/elvis_core/pull/54) ([Euen](https://github.com/Euen))
 - \[\#384\] improve documentation and error [\#53](https://github.com/inaka/elvis_core/pull/53) ([Euen](https://github.com/Euen))
 - Don't crash on rebar3's pkg aliases [\#52](https://github.com/inaka/elvis_core/pull/52) ([sstrigler](https://github.com/sstrigler))
