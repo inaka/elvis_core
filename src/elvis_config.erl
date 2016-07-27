@@ -123,7 +123,9 @@ ignore(_RuleGroup = #{ignore := Ignore}) ->
 ignore(#{}) ->
     [].
 
--spec filter(RuleGroup::map()) -> [string()].
+-spec filter(config() | map()) -> [string()].
+filter(Config) when is_list(Config) ->
+    lists:flatmap(fun filter/1, Config);
 filter(_RuleGroup = #{filter := Filter}) ->
     Filter;
 filter(#{}) ->
@@ -151,7 +153,8 @@ rules(#{}) ->
 %%      of them according to the 'filter' key, or if not specified
 %%      uses '*.erl'.
 %% @end
--spec resolve_files(map(), Files::[elvis_file:file()]) -> map().
+%% resolve_files/2 with a config() type is used in elvis project
+-spec resolve_files(config() | map(), Files::[elvis_file:file()]) -> map().
 resolve_files(RuleGroup, Files) ->
     Filter = filter(RuleGroup),
     Dirs = dirs(RuleGroup),
