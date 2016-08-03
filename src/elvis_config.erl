@@ -132,7 +132,6 @@ filter(_RuleGroup = #{filter := Filter}) ->
 filter(#{}) ->
     ?DEFAULT_FILTER.
 
-% -spec files(map()) -> [elvis_file:file()] | undefined.
 -spec files(RuleGroup::config() | map()) -> [elvis_file:file()] | undefined.
 files(RuleGroup) when is_list(RuleGroup) ->
     lists:map(fun files/1, RuleGroup);
