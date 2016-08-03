@@ -14,6 +14,7 @@
          rules/1,
          %% Files
          resolve_files/1,
+         resolve_files/2,
          apply_to_files/2
         ]).
 
@@ -131,7 +132,9 @@ filter(_RuleGroup = #{filter := Filter}) ->
 filter(#{}) ->
     ?DEFAULT_FILTER.
 
--spec files(map()) -> [elvis_file:file()] | undefined.
+-spec files(RuleGroup::config() | map()) -> [elvis_file:file()] | undefined.
+files(RuleGroup) when is_list(RuleGroup) ->
+    lists:map(fun files/1, RuleGroup);
 files(_RuleGroup = #{files := Files}) ->
     Files;
 files(#{}) ->
@@ -154,7 +157,11 @@ rules(#{}) ->
 %%      uses '*.erl'.
 %% @end
 %% resolve_files/2 with a config() type is used in elvis project
--spec resolve_files(config() | map(), Files::[elvis_file:file()]) -> map().
+-spec resolve_files(Config::config() | map(), Files::[elvis_file:file()]) ->
+    config() | map().
+resolve_files(Config, Files) when is_list(Config) ->
+    Fun = fun(RuleGroup) -> resolve_files(RuleGroup, Files) end,
+    lists:map(Fun, Config);
 resolve_files(RuleGroup, Files) ->
     Filter = filter(RuleGroup),
     Dirs = dirs(RuleGroup),

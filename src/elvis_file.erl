@@ -114,5 +114,12 @@ resolve_parse_tree(_, _, _) ->
 
 -spec glob_to_regex(iodata()) -> iodata().
 glob_to_regex(Glob) ->
-    Regex1 = re:replace(Glob, "\\.", "\\\\.", [global]),
-    re:replace(Regex1, "\\*", ".*", [global]).
+  add_delimiters(replace_questions(replace_stars(escape_all_chars(Glob)))).
+
+add_delimiters(Glob) -> [$^, Glob, $$].
+
+escape_all_chars(Glob) -> re:replace(Glob, ".", "[&]", [global]).
+
+replace_stars(Glob) -> re:replace(Glob, "[[][*][]]", ".*", [global]).
+
+replace_questions(Glob) -> re:replace(Glob, "[[][?][]]", ".", [global]).
