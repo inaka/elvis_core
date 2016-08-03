@@ -1,10 +1,18 @@
 # Change Log
 
+## [0.3.2](https://github.com/inaka/elvis_core/tree/0.3.2) (2016-08-03)
+[Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.1...0.3.2)
+
+**Merged pull requests:**
+
+- Euen.fix dialyzer [\#60](https://github.com/inaka/elvis_core/pull/60) ([Euen](https://github.com/Euen))
+
 ## [0.3.1](https://github.com/inaka/elvis_core/tree/0.3.1) (2016-07-27)
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.0...0.3.1)
 
 **Merged pull requests:**
 
+- \[close inaka/elvis\#388\] version bump 0.3.1 [\#59](https://github.com/inaka/elvis_core/pull/59) ([Euen](https://github.com/Euen))
 - fix spec for dialyzer [\#58](https://github.com/inaka/elvis_core/pull/58) ([Euen](https://github.com/Euen))
 - fix application name [\#57](https://github.com/inaka/elvis_core/pull/57) ([Euen](https://github.com/Euen))
 - fix application name [\#56](https://github.com/inaka/elvis_core/pull/56) ([Euen](https://github.com/Euen))
