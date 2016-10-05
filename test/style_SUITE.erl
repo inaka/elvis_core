@@ -458,6 +458,8 @@ verify_max_function_length(_Config) ->
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     PathFail = "fail_max_function_length.erl",
+    ModuleFail = fail_max_function_length,
+
     {ok, FileFail} = elvis_test_utils:find_file(SrcDirs, PathFail),
 
     CountAllRuleConfig = #{count_comments => true, count_whitespace => true},
@@ -506,6 +508,10 @@ verify_max_function_length(_Config) ->
 
     RuleConfig10 = NoCountRuleConfig#{max_length => 2},
     [] = elvis_style:max_function_length(ElvisConfig, FileFail, RuleConfig10),
+
+    IgnoredFunctions = [{ModuleFail, f15}, {ModuleFail, f10, 1}],
+    RuleConfig11 = RuleConfig5#{ignore_functions => IgnoredFunctions},
+    [] = elvis_style:max_function_length(ElvisConfig, FileFail, RuleConfig11),
 
     {comment, ""}.
 
