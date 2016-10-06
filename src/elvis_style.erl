@@ -120,6 +120,9 @@
 
 -type empty_rule_config() :: #{}.
 
+-type max_function_length_config() :: #{ignore_functions => [function_spec()],
+                                        max_length => non_neg_integer()}.
+
 -type max_module_length_config() :: #{count_comments => boolean(),
                                       count_whitespace => boolean(),
                                       ignore => [atom()],
@@ -519,20 +522,21 @@ max_module_length(Config, Target, RuleConfig) ->
 
 -spec max_function_length(elvis_config:config(),
                           elvis_file:file(),
-                          empty_rule_config()) ->
+                          max_function_length_config()) ->
     [elvis_result:item()].
 max_function_length(Config, Target, RuleConfig) ->
+    IgnoreFunctions = maps:get(ignore_functions, RuleConfig, []),
     MaxLength = maps:get(max_length, RuleConfig, 30),
     CountComments = maps:get(count_comments, RuleConfig, false),
     CountWhitespace = maps:get(count_whitespace, RuleConfig, false),
 
     {Root, _} = elvis_file:parse_tree(Config, Target),
     {Src, _} = elvis_file:src(Target),
+    ModuleName = elvis_code:module_name(Root),
     Lines = binary:split(Src, <<"\n">>, [global, trim]),
 
     IsFunction = fun(Node) -> ktn_code:type(Node) == function end,
-    Functions = elvis_code:find(IsFunction, Root),
-
+    Functions0 = elvis_code:find(IsFunction, Root),
     FilterFun =
         fun(Line) ->
                 (CountComments orelse (not line_is_comment(Line)))
@@ -549,8 +553,17 @@ max_function_length(Config, Target, RuleConfig) ->
                 L = length(FilteredLines),
                 {Name, Min, L}
         end,
-
-    FunLenInfos = lists:map(PairFun, Functions),
+    IgnoreFunctionFilterFun =
+        fun(FunctionNode) ->
+            FunctionName = ktn_code:attr(name, FunctionNode),
+            FunctionArity = ktn_code:attr(arity, FunctionNode),
+            MFA = {ModuleName, FunctionName, FunctionArity},
+            MF = {ModuleName, FunctionName},
+            not (lists:member(MF, IgnoreFunctions)
+                orelse lists:member(MFA, IgnoreFunctions))
+        end,
+    Functions1 = lists:filter(IgnoreFunctionFilterFun, Functions0),
+    FunLenInfos = lists:map(PairFun, Functions1),
     MaxLengthPred = fun({_, _, L}) -> L > MaxLength end,
     FunLenMaxPairs = lists:filter(MaxLengthPred, FunLenInfos),
 
