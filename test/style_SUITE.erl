@@ -95,7 +95,7 @@ verify_variable_naming_convention(_Config) ->
     ElvisConfig = elvis_config:default(),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
-    RuleConfig = #{regex => "^([A-Z][0-9a-zA-Z]*)$"},
+    RuleConfig = #{regex => "^_?([A-Z][0-9a-zA-Z]*)$"},
 
     PathPass = "pass_variable_naming_convention.erl",
     {ok, FilePass} = elvis_test_utils:find_file(SrcDirs, PathPass),
