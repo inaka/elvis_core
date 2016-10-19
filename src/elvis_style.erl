@@ -607,9 +607,16 @@ no_debug_call(Config, Target, RuleConfig) ->
 node_line_limits(FunctionNode) ->
     Zipper = elvis_code:code_zipper(FunctionNode),
     LineFun = fun(N) -> {L, _} = ktn_code:attr(location, N), L end,
+    % The first number in `lineNums' list is the location of the first
+    % line of the function. That's why we use it for the `Min' value.
     LineNums = zipper:map(LineFun, Zipper),
+    % Last function's line
     Max = lists:max(LineNums),
-    Min = lists:min(LineNums),
+    % If you use `lists:min/1' here, you will get weird results when using
+    % macros because most of the time macros are defined at the beginning of
+    % the module, but your function's first line could be in the middle or
+    % even at the end of the module.
+    [Min | _] = LineNums, % Min = first function's line
     {Min, Max}.
 
 -spec no_nested_try_catch(elvis_config:config(),
