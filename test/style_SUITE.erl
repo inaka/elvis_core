@@ -31,6 +31,7 @@
          verify_max_function_length/1,
          verify_no_debug_call/1,
          verify_no_nested_try_catch/1,
+         verify_no_seqbind/1,
          %% Non-rule
          results_are_ordered_by_line/1
         ]).
@@ -551,6 +552,19 @@ verify_no_nested_try_catch(_Config) ->
      #{line_num := 28},
      #{line_num := 35}
     ] = elvis_style:no_nested_try_catch(ElvisConfig, File, #{}).
+
+-spec verify_no_seqbind(config()) -> any().
+verify_no_seqbind(_Config) ->
+    ElvisConfig = elvis_config:default(),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+    Path = "fail_no_seqbind.erl",
+    {ok, File} = elvis_test_utils:find_file(SrcDirs, Path),
+    [
+     #{line_num := 3},
+     #{line_num := 4},
+     #{line_num := 5}
+    ] = elvis_style:no_seqbind(ElvisConfig, File, #{}).
+
 
 -spec results_are_ordered_by_line(config()) -> true.
 results_are_ordered_by_line(_Config) ->

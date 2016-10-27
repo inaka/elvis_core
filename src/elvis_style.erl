@@ -23,7 +23,8 @@
          max_module_length/3,
          max_function_length/3,
          no_debug_call/3,
-         no_nested_try_catch/3
+         no_nested_try_catch/3,
+         no_seqbind/3
         ]).
 
 -define(LINE_LENGTH_MSG, "Line ~p is too long: ~s.").
@@ -113,6 +114,9 @@
 
 -define(NO_NESTED_TRY_CATCH,
         "Nested try...catch block starting at line ~p.").
+
+-define(NO_SEQBIND,
+        "Declaration of seqbind at line ~p.").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Rules
@@ -1182,3 +1186,29 @@ check_nested_try_catchs(ResultFun, TryExp) ->
                              false
                     end,
                     elvis_code:find(Predicate, TryExp)).
+
+
+
+%% Disallow `-compile({parse_trans, seqbind})`
+-spec no_seqbind(elvis_config:config(),
+                 elvis_file:file(),
+                 empty_rule_config()) ->
+    [elvis_result:item()].
+no_seqbind(Config, Target, _RuleConfig) ->
+    {Root, _} = elvis_file:parse_tree(Config, Target),
+    ResultFun = result_node_line_fun(?NO_SEQBIND),
+    SeqbindDecls = elvis_code:find(fun is_seqbind_declaration/1, Root),
+    lists:map(ResultFun, SeqbindDecls).
+
+
+is_seqbind_declaration(Node) ->
+    case ktn_code:type(Node) of
+        compile -> declares_seqbind(ktn_code:attr(value, Node));
+        _ -> false
+    end.
+
+
+declares_seqbind(Decls) when is_list(Decls) ->
+    lists:keyfind(parse_transform, 1, Decls) =:= {parse_transform, seqbind};
+declares_seqbind(Singleton) ->
+    Singleton =:= {parse_transform, seqbind}.
