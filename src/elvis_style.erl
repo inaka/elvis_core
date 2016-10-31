@@ -1244,7 +1244,4 @@ uses_seq_bindings(Root) ->
                             lists:last(ktn_code:attr(text, Node)) =:= $@
                     end,
                     Root),
-    case SeqBindings of
-        [] -> false;
-        _  -> true
-    end.
+    SeqBindings /= [].
