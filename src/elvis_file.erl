@@ -12,7 +12,7 @@
 
 -export_type([file/0]).
 
--type file() :: #{path => string(), content => binary()}.
+-type file() :: #{path => string(), content => binary(), _ => _}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Public
