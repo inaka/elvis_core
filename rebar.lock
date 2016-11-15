@@ -1,13 +1,13 @@
 {"1.1.0",
-[{<<"goldrush">>,{pkg,<<"goldrush">>,<<"0.1.7">>},1},
- {<<"inaka_aleppo">>,{pkg,<<"inaka_aleppo">>,<<"1.0.0">>},1},
+[{<<"aleppo">>,{pkg,<<"inaka_aleppo">>,<<"1.0.0">>},1},
+ {<<"goldrush">>,{pkg,<<"goldrush">>,<<"0.1.7">>},1},
  {<<"katana_code">>,{pkg,<<"katana_code">>,<<"0.1.0">>},0},
  {<<"lager">>,{pkg,<<"lager">>,<<"3.0.2">>},0},
  {<<"zipper">>,{pkg,<<"zipper">>,<<"1.0.1">>},0}]}.
 [
 {pkg_hash,[
+ {<<"aleppo">>, <<"8DB14CF16BB8C263C14FF4C3F69F64D7C849D40888944F4204D2CA74F1114CEB">>},
  {<<"goldrush">>, <<"349A351D17C71C2FDAA18A6C2697562ABE136FEC945F147B381F0CF313160228">>},
- {<<"inaka_aleppo">>, <<"8DB14CF16BB8C263C14FF4C3F69F64D7C849D40888944F4204D2CA74F1114CEB">>},
  {<<"katana_code">>, <<"C34F3926A258D6BEACD8D21F140F3D47D175501936431C460B144339D5271A0B">>},
  {<<"lager">>, <<"25DC81BC3659B62F5AB9BD073E97DDD894FC4C242019FCCEF96F3889D7366C97">>},
  {<<"zipper">>, <<"3CCB4F14B97C06B2749B93D8B6C204A1ECB6FAFC6050CACC3B93B9870C05952A">>}]}
