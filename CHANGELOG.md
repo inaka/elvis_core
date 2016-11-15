@@ -1,10 +1,19 @@
 # Change Log
 
+## [0.3.4](https://github.com/inaka/elvis_core/tree/0.3.4) (2016-11-15)
+[Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.3...0.3.4)
+
+**Merged pull requests:**
+
+- \[Close inaka/elvis\#416\] update wrong file type [\#70](https://github.com/inaka/elvis_core/pull/70) ([Euen](https://github.com/Euen))
+
 ## [0.3.3](https://github.com/inaka/elvis_core/tree/0.3.3) (2016-11-11)
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.2...0.3.3)
 
 **Merged pull requests:**
 
+- Add zipper to rebar.lock [\#69](https://github.com/inaka/elvis_core/pull/69) ([Euen](https://github.com/Euen))
+- \[Close inaka/elvis\#414\] bump version to 0.3.3 [\#68](https://github.com/inaka/elvis_core/pull/68) ([Euen](https://github.com/Euen))
 - Rules for warning about seqbind [\#67](https://github.com/inaka/elvis_core/pull/67) ([gnuvince](https://github.com/gnuvince))
 - \[Fix \#407\] Fix bug in max\_function\_length rule [\#64](https://github.com/inaka/elvis_core/pull/64) ([harenson](https://github.com/harenson))
 - Don't automatically strip leading underscore, allow it by regex [\#63](https://github.com/inaka/elvis_core/pull/63) ([bartekgorny](https://github.com/bartekgorny))
