@@ -16,6 +16,8 @@
          rock_with_old_config/1,
          rock_with_rebar_default_config/1,
          rock_this/1,
+         rock_this_not_skipping_files/1,
+         rock_this_skipping_files/1,
          rock_without_colors/1,
          rock_with_rule_groups/1,
          %% Utill & Config
@@ -226,6 +228,28 @@ rock_with_rule_groups(_Config) ->
        catch
            throw:{invalid_config, _} -> fail
        end.
+
+rock_this_skipping_files(_Config) ->
+    meck:new(elvis_file, [passthrough]),
+    Dirs = ["../../_build/test/lib/elvis_core/test/examples"],
+    [File] = elvis_file:find_files(Dirs, "small.erl"),
+    Path = elvis_file:path(File),
+    ConfigPath = "../../config/elvis-test-pa.config",
+    ElvisConfig = elvis_config:load_file(ConfigPath),
+    elvis_core:rock_this(Path, ElvisConfig),
+    0 = meck:num_calls(elvis_file, load_file_data, '_'),
+    meck:unload(elvis_file).
+
+rock_this_not_skipping_files(_Config) ->
+    meck:new(elvis_file, [passthrough]),
+    Dirs = ["../../_build/test/lib/elvis_core/test/examples"],
+    [File] = elvis_file:find_files(Dirs, "small.erl"),
+    Path = elvis_file:path(File),
+    ConfigPath = "../../config/test.config",
+    ElvisConfig = elvis_config:load_file(ConfigPath),
+    elvis_core:rock_this(Path, ElvisConfig),
+    1 = meck:num_calls(elvis_file, load_file_data, '_'),
+    meck:unload(elvis_file).
 
 %%%%%%%%%%%%%%%
 %%% Utils
