@@ -69,11 +69,15 @@ rock_this(Path, Config) ->
                         [] =/= elvis_file:filter_files([File], Dirs, Filter,
                                                        IgnoreList)
                 end,
-    FilteredConfig = lists:filter(FilterFun, NewConfig),
-    LoadedFile = load_file_data(FilteredConfig, File),
-    ApplyRulesFun = fun(Cfg) -> apply_rules(Cfg, LoadedFile) end,
-    Results = lists:map(ApplyRulesFun, FilteredConfig),
-    elvis_result_status(Results).
+    case lists:filter(FilterFun, NewConfig) of
+        [] ->
+            elvis_utils:info("Skipping ~s", [Path]);
+        FilteredConfig ->
+            LoadedFile = load_file_data(FilteredConfig, File),
+            ApplyRulesFun = fun(Cfg) -> apply_rules(Cfg, LoadedFile) end,
+            Results = lists:map(ApplyRulesFun, FilteredConfig),
+            elvis_result_status(Results)
+    end.
 
 %% @private
 -spec do_rock(map()) -> ok | {fail, [elvis_result:file()]}.
