@@ -3,7 +3,7 @@
   [
    {pkg_name, elvis_core},
    {description, "Core library for the Erlang style reviewer"},
-   {vsn, "0.3.4"},
+   {vsn, "0.3.5"},
    {applications, [kernel, stdlib, lager, zipper, katana_code]},
    {modules,
     [
