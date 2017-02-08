@@ -2,6 +2,8 @@
 
 -compile({parse_transformer, seqbind}).
 
+-dialyzer(no_match).
+
 -export([demo/0]).
 
 demo() ->
