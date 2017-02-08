@@ -127,7 +127,7 @@ verify_line_length_rule(_Config) ->
     Result = elvis_style:line_length(ElvisConfig, Path, #{limit => 80}),
     8 = length(Result),
     #{info := Info, message := Msg} = lists:nth(7, Result),
-    <<"Line 32 is too long:     gb_trees:from_orddict(", _/binary>> =
+    <<"Line 34 is too long:     gb_trees:from_orddict(", _/binary>> =
         list_to_binary(io_lib:format(Msg, Info)),
 
     WholeLineResult = elvis_style:line_length(ElvisConfig, Path,
@@ -246,13 +246,13 @@ verify_nesting_level(_Config) ->
     {ok, File} = elvis_test_utils:find_file(SrcDirs, Path),
 
     [
-     #{line_num := 9},
-     #{line_num := 16},
-     #{line_num := 28},
-     #{line_num := 43},
-     #{line_num := 76},
-     #{line_num := 118},
-     #{line_num := 164}
+     #{line_num := 11},
+     #{line_num := 18},
+     #{line_num := 30},
+     #{line_num := 45},
+     #{line_num := 78},
+     #{line_num := 120},
+     #{line_num := 166}
     ] = elvis_style:nesting_level(ElvisConfig, File, #{limit => 3}),
     [] = elvis_style:nesting_level( ElvisConfig
                                   , File
@@ -278,9 +278,9 @@ verify_no_if_expression(_Config) ->
     Path = "fail_no_if_expression.erl",
     {ok, File} = elvis_test_utils:find_file(SrcDirs, Path),
     [
-     #{line_num := 9},
-     #{line_num := 20},
-     #{line_num := 29}
+     #{line_num := 11},
+     #{line_num := 22},
+     #{line_num := 31}
     ] = elvis_style:no_if_expression(ElvisConfig, File, #{}).
 
 -spec verify_invalid_dynamic_call(config()) -> any().
@@ -295,10 +295,10 @@ verify_invalid_dynamic_call(_Config) ->
     PathFail = "fail_invalid_dynamic_call.erl",
     {ok, FileFail} = elvis_test_utils:find_file(SrcDirs, PathFail),
     [
-     #{line_num := 13},
-     #{line_num := 25},
-     #{line_num := 26},
-     #{line_num := 34}
+     #{line_num := 18},
+     #{line_num := 30},
+     #{line_num := 31},
+     #{line_num := 39}
     ] = elvis_style:invalid_dynamic_call(ElvisConfig, FileFail, #{}),
 
     RuleConfig = #{ignore => [fail_invalid_dynamic_call]},
@@ -549,9 +549,9 @@ verify_no_nested_try_catch(_Config) ->
     Path = "fail_no_nested_try_catch.erl",
     {ok, File} = elvis_test_utils:find_file(SrcDirs, Path),
     [
-     #{line_num := 13},
-     #{line_num := 28},
-     #{line_num := 35}
+     #{line_num := 18},
+     #{line_num := 33},
+     #{line_num := 40}
     ] = elvis_style:no_nested_try_catch(ElvisConfig, File, #{}).
 
 -spec verify_no_seqbind(config()) -> any().

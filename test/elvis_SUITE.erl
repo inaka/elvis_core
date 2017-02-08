@@ -115,7 +115,7 @@ rock_with_list_config(_Config) ->
 -spec rock_with_file_config(config()) -> ok.
 rock_with_file_config(_Config) ->
     Fun = fun() -> elvis_core:rock() end,
-    Expected = "# \\.\\./\\.\\./_build/test/lib/elvis_core/test/" ++
+    Expected = "# \\.\\./\\.\\./_build/test/lib/elvis/test/" ++
                "examples/.*\\.erl.*FAIL",
     [_ | _] = check_some_line_output(Fun, Expected, fun matches_regex/2),
     ok.
@@ -168,7 +168,7 @@ rock_this(_Config) ->
          end,
 
     Path =
-        "../../_build/test/lib/elvis_core/test/examples/fail_line_length.erl",
+        "../../_build/test/lib/elvis/test/examples/fail_line_length.erl",
     {fail, _} = elvis_core:rock_this(Path),
 
     ok.
@@ -231,23 +231,23 @@ rock_with_rule_groups(_Config) ->
 
 rock_this_skipping_files(_Config) ->
     meck:new(elvis_file, [passthrough]),
-    Dirs = ["../../_build/test/lib/elvis_core/test/examples"],
+    Dirs = ["../../_build/test/lib/elvis/test/examples"],
     [File] = elvis_file:find_files(Dirs, "small.erl"),
     Path = elvis_file:path(File),
     ConfigPath = "../../config/elvis-test-pa.config",
     ElvisConfig = elvis_config:load_file(ConfigPath),
-    elvis_core:rock_this(Path, ElvisConfig),
+    ok = elvis_core:rock_this(Path, ElvisConfig),
     0 = meck:num_calls(elvis_file, load_file_data, '_'),
     meck:unload(elvis_file).
 
 rock_this_not_skipping_files(_Config) ->
     meck:new(elvis_file, [passthrough]),
-    Dirs = ["../../_build/test/lib/elvis_core/test/examples"],
+    Dirs = ["../../_build/test/lib/elvis/test/examples"],
     [File] = elvis_file:find_files(Dirs, "small.erl"),
     Path = elvis_file:path(File),
     ConfigPath = "../../config/test.config",
     ElvisConfig = elvis_config:load_file(ConfigPath),
-    elvis_core:rock_this(Path, ElvisConfig),
+    ok = elvis_core:rock_this(Path, ElvisConfig),
     1 = meck:num_calls(elvis_file, load_file_data, '_'),
     meck:unload(elvis_file).
 
