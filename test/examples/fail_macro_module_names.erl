@@ -12,7 +12,7 @@
          build_binary/0
         ]).
 
--define(FUNCTION_NAME, function_name).
+-define(FUN_NAME, function_name).
 -define(BINARY, "bla").
 -define(BINARY_SIZE, 3).
 -define(function_name, function_name).
@@ -23,8 +23,8 @@ module_name() ->
     ?module_name:?function_name().
 
 function_name() ->
-    module:?FUNCTION_NAME(params),
-    module:?FUNCTION_NAME (params),
+    module:?FUN_NAME(params),
+    module:?FUN_NAME (params),
     lists:?MODULE().
 
 build_binary() ->

@@ -28,7 +28,8 @@
 %% Rules
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--type protocol_for_deps_erlang_mk_config() :: #{ignore => [module()]}.
+-type protocol_for_deps_erlang_mk_config() :: #{ignore => [module()],
+                                                regex => string()}.
 
 %% Deprecated
 -spec git_for_deps_erlang_mk(elvis_config:config(),
@@ -55,7 +56,8 @@ protocol_for_deps_erlang_mk(_Config, Target, RuleConfig) ->
             erlang_mk_dep_to_result(Line, ?DEP_NO_GIT, {IgnoreDeps, Regex})
         end, BadDeps).
 
--type protocol_for_deps_rebar_config() :: #{ignore => [module()]}.
+-type protocol_for_deps_rebar_config() :: #{ignore => [module()],
+                                            regex => string()}.
 
 -spec git_for_deps_rebar(elvis_config:config(),
                          elvis_file:file(),
