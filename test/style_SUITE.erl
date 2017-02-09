@@ -525,7 +525,7 @@ verify_no_debug_call(_Config) ->
     PathFail = "fail_no_debug_call.erl",
     {ok, FileFail} = elvis_test_utils:find_file(SrcDirs, PathFail),
 
-    [_, _, _, _] = elvis_style:no_debug_call(ElvisConfig, FileFail, #{}),
+    [_, _, _, _, _, _] = elvis_style:no_debug_call(ElvisConfig, FileFail, #{}),
 
     RuleConfig = #{ignore => [fail_no_debug_call]},
     [] = elvis_style:no_debug_call(ElvisConfig, FileFail, RuleConfig),
@@ -538,7 +538,10 @@ verify_no_debug_call(_Config) ->
 
     RuleConfig4 = #{debug_functions => [{io, format}]},
     [_, _, _] =
-        elvis_style:no_debug_call(ElvisConfig, FileFail, RuleConfig4).
+        elvis_style:no_debug_call(ElvisConfig, FileFail, RuleConfig4),
+
+    RuleConfig5 = #{debug_functions => [{ct, print}]},
+    [_, _] = elvis_style:no_debug_call(ElvisConfig, FileFail, RuleConfig5).
 
 -spec verify_no_nested_try_catch(config()) -> any().
 verify_no_nested_try_catch(_Config) ->
