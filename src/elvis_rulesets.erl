@@ -35,6 +35,7 @@ rules(erl_files) ->
     , variable_naming_convention
     , #{regex => "^_?([A-Z][0-9a-zA-Z]*)$"}
     }
+  , {elvis_style, no_nested_try_catch}
   ];
 rules(makefiles) ->
   [ {elvis_project, no_deps_master_erlang_mk, #{ignore => []}}
