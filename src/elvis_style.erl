@@ -129,7 +129,9 @@
 -type empty_rule_config() :: #{}.
 
 -type max_function_length_config() :: #{ignore_functions => [function_spec()],
-                                        max_length => non_neg_integer()}.
+                                        max_length => non_neg_integer(),
+                                        count_comments => boolean(),
+                                        count_whitespace => boolean()}.
 
 -type max_module_length_config() :: #{count_comments => boolean(),
                                       count_whitespace => boolean(),
@@ -262,7 +264,8 @@ operator_spaces(Config, Target, RuleConfig) ->
         Rules
     ).
 
--type nesting_level_config() :: #{level => integer()}.
+-type nesting_level_config() :: #{level => integer(),
+                                  ignore => [atom()]}.
 
 -spec nesting_level(elvis_config:config(),
                     elvis_file:file(),
@@ -282,7 +285,8 @@ nesting_level(Config, Target, RuleConfig) ->
             []
     end.
 
--type god_modules_config() :: #{limit => integer()}.
+-type god_modules_config() :: #{limit => integer(),
+                                ignore => [atom()]}.
 
 -spec god_modules(elvis_config:config(),
                   elvis_file:file(),
@@ -456,9 +460,13 @@ no_spec_with_records(Config, Target, _RuleConfig) ->
             lists:map(ResultFun, SpecNodes)
     end.
 
+-type dont_repeat_yourself_config() :: #{min_complexity => non_neg_integer(),
+                                         ignore => [module()]
+                                        }.
+
 -spec dont_repeat_yourself(elvis_config:config(),
                            elvis_file:file(),
-                           empty_rule_config()) ->
+                           dont_repeat_yourself_config()) ->
     [elvis_result:item()].
 dont_repeat_yourself(Config, Target, RuleConfig) ->
     MinComplexity = maps:get(min_complexity, RuleConfig, 5),
