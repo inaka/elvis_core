@@ -199,8 +199,8 @@ variable_naming_convention(Config, Target, RuleConfig) ->
 line_length(_Config, Target, RuleConfig) ->
     Limit = maps:get(limit, RuleConfig, 80),
     SkipComments = maps:get(skip_comments, RuleConfig, false),
-    {Src, _} = elvis_file:src(Target),
-    Args = [Limit, SkipComments],
+    {Src, #{encoding := Encoding}} = elvis_file:src(Target),
+    Args = [Limit, SkipComments, Encoding],
     elvis_utils:check_lines(Src, fun check_line_length/3, Args).
 
 -spec no_tabs(elvis_config:config(),
@@ -253,13 +253,13 @@ macro_module_names(Config, Target, _RuleConfig) ->
     [elvis_result:item()].
 operator_spaces(Config, Target, RuleConfig) ->
     Rules = maps:get(rules, RuleConfig, []),
-    {Src, _} = elvis_file:src(Target),
+    {Src, #{encoding := Encoding}} = elvis_file:src(Target),
     {Root, _} = elvis_file:parse_tree(Config, Target),
     Tokens = ktn_code:attr(tokens, Root),
     Lines = binary:split(Src, <<"\n">>, [global]),
     lists:flatmap(
         fun(Rule) ->
-            check_operator_spaces(Lines, Tokens, Rule)
+            check_operator_spaces(Lines, Tokens, Rule, Encoding)
         end,
         Rules
     ).
@@ -720,18 +720,18 @@ remove_comment(Line) ->
 
 -spec check_line_length(binary(), integer(), [term()]) ->
     no_result | {ok, elvis_result:item()}.
-check_line_length(Line, Num, [Limit, whole_line]) ->
+check_line_length(Line, Num, [Limit, whole_line, Encoding]) ->
     case line_is_comment(Line) of
-        false -> check_line_length(Line, Num, Limit);
+        false -> check_line_length(Line, Num, [Limit, Encoding]);
         true  -> no_result
     end;
-check_line_length(Line, Num, [Limit, any]) ->
+check_line_length(Line, Num, [Limit, any, Encoding]) ->
     LineWithoutComment = remove_comment(Line),
-    check_line_length(LineWithoutComment, Num, Limit);
-check_line_length(Line, Num, [Limit|_]) ->
-    check_line_length(Line, Num, Limit);
-check_line_length(Line, Num, Limit) ->
-    Chars = unicode:characters_to_list(Line),
+    check_line_length(LineWithoutComment, Num, [Limit, Encoding]);
+check_line_length(Line, Num, [Limit, _, Encoding]) ->
+    check_line_length(Line, Num, [Limit, Encoding]);
+check_line_length(Line, Num, [Limit, Encoding]) ->
+    Chars = unicode:characters_to_list(Line, Encoding),
     case length(Chars) of
         Large when Large > Limit ->
             Msg = ?LINE_LENGTH_MSG,
@@ -888,9 +888,10 @@ has_remote_call_parent(Zipper) ->
 %% Operator Spaces
 -spec check_operator_spaces(Lines::[binary()],
                             Tokens::[map()],
-                            Rule::{right | left, string()}) ->
+                            Rule::{right | left, string()},
+                            Encoding::latin1 | utf8) ->
     [elvis_result:item()].
-check_operator_spaces(Lines, Tokens, {Position, Operator}) ->
+check_operator_spaces(Lines, Tokens, {Position, Operator}, Encoding) ->
     Nodes = lists:filter(
         fun(Node) -> ktn_code:attr(text, Node) =:= Operator end,
         Tokens
@@ -899,7 +900,13 @@ check_operator_spaces(Lines, Tokens, {Position, Operator}) ->
     lists:flatmap(
         fun(Node) ->
             Location = ktn_code:attr(location, Node),
-            case character_at_location(Position, Lines, Operator, Location) of
+            case
+                character_at_location(Position,
+                                      Lines,
+                                      Operator,
+                                      Location,
+                                      Encoding)
+            of
                 SpaceChar -> [];
                 _         ->
                     Msg = ?OPERATOR_SPACE_MSG,
@@ -915,9 +922,11 @@ check_operator_spaces(Lines, Tokens, {Position, Operator}) ->
 -spec character_at_location(Position::atom(),
                             Lines::[binary()],
                             Operator::string(),
-                            Location::{integer(), integer()}) -> char().
-character_at_location(Position, Lines, Operator, {Line, Col}) ->
-    OperatorLineStr = unicode:characters_to_list(lists:nth(Line, Lines)),
+                            Location::{integer(), integer()},
+                            Encoding::latin1|utf8) -> char().
+character_at_location(Position, Lines, Operator, {LineNo, Col}, Encoding) ->
+    Line = lists:nth(LineNo, Lines),
+    OperatorLineStr = unicode:characters_to_list(Line, Encoding),
     ColToCheck = case Position of
         left  -> Col - 1;
         right -> Col + length(Operator)

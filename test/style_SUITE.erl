@@ -10,6 +10,7 @@
          verify_function_naming_convention/1,
          verify_variable_naming_convention/1,
          verify_line_length_rule/1,
+         verify_line_length_rule_latin1/1,
          verify_unicode_line_length_rule/1,
          verify_no_tabs_rule/1,
          verify_no_spaces_rule/1,
@@ -17,6 +18,7 @@
          verify_macro_names_rule/1,
          verify_macro_module_names/1,
          verify_operator_spaces/1,
+         verify_operator_spaces_latin1/1,
          verify_nesting_level/1,
          verify_god_modules/1,
          verify_no_if_expression/1,
@@ -140,6 +142,19 @@ verify_line_length_rule(_Config) ->
                                           skip_comments => any}),
     6 = length(AnyResult).
 
+-spec verify_line_length_rule_latin1(config()) -> any().
+verify_line_length_rule_latin1(_Config) ->
+    ElvisConfig = elvis_config:default(),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+
+    File = "fail_line_length_latin1.erl",
+    {ok, Path} = elvis_test_utils:find_file(SrcDirs, File),
+
+    Result = elvis_style:line_length(ElvisConfig, Path, #{limit => 80}),
+    1 = length(Result),
+    #{info := Info, message := Msg} = lists:nth(1, Result),
+    <<"Line 13 is too long:", _/binary>> = list_to_binary(io_lib:format(Msg, Info)).
+
 -spec verify_unicode_line_length_rule(config()) -> any().
 verify_unicode_line_length_rule(_Config) ->
     ElvisConfig = elvis_config:default(),
@@ -236,6 +251,20 @@ verify_operator_spaces(_Config) ->
                              {left, "+"}]},
     [_, _, _, _, _, _] =
         elvis_style:operator_spaces(ElvisConfig, Path, AllOptions).
+
+-spec verify_operator_spaces_latin1(config()) -> any().
+verify_operator_spaces_latin1(_Config) ->
+    ElvisConfig = elvis_config:default(),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+
+    File = "fail_operator_spaces_latin1.erl",
+    {ok, Path} = elvis_test_utils:find_file(SrcDirs, File),
+
+    [] = elvis_style:operator_spaces(ElvisConfig, Path, #{}),
+
+    AppendOptions = #{rules => [{right, "++"}, {left, "++"}]},
+    [_, _] = elvis_style:operator_spaces(ElvisConfig, Path, AppendOptions).
+
 
 -spec verify_nesting_level(config()) -> any().
 verify_nesting_level(_Config) ->
