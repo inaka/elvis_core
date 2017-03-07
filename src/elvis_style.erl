@@ -891,7 +891,11 @@ has_remote_call_parent(Zipper) ->
                             Rule::{right | left, string()},
                             Encoding::latin1 | utf8) ->
     [elvis_result:item()].
-check_operator_spaces(Lines, Tokens, {Position, Operator}, Encoding) ->
+check_operator_spaces(Lines, Tokens0, {Position, Operator}, Encoding) ->
+    Tokens = case Operator =:= "-" of
+                 true  -> filter_compiler_directive_dashes(Tokens0);
+                 false -> Tokens0
+             end,
     Nodes = lists:filter(
         fun(Node) -> ktn_code:attr(text, Node) =:= Operator end,
         Tokens
@@ -918,6 +922,19 @@ check_operator_spaces(Lines, Tokens, {Position, Operator}, Encoding) ->
         end,
         Nodes
     ).
+
+filter_compiler_directive_dashes(Tokens) ->
+    filter_compiler_directive_dashes(Tokens, []).
+
+filter_compiler_directive_dashes([], Acc) ->
+    lists:append(lists:reverse(Acc));
+filter_compiler_directive_dashes([#{type := '-'}|Tokens], Acc) ->
+    filter_compiler_directive_dashes(Tokens, Acc);
+filter_compiler_directive_dashes(Tokens0, Acc) ->
+    {Tokens, [Dot|Rest]} = lists:splitwith(fun(#{type := T}) -> T =/= dot end,
+                                           Tokens0),
+    filter_compiler_directive_dashes(Rest, [Tokens ++ [Dot]|Acc]).
+
 
 -spec character_at_location(Position::atom(),
                             Lines::[binary()],

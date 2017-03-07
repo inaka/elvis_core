@@ -244,6 +244,9 @@ verify_operator_spaces(_Config) ->
     SumOperation = #{rules => [{right, "+"}, {left, "+"}]},
     [_, _] = elvis_style:operator_spaces(ElvisConfig, Path, SumOperation),
 
+    MinusOperation = #{rules => [{right, "-"}, {left, "-"}]},
+    [] = elvis_style:operator_spaces(ElvisConfig, Path, MinusOperation),
+
     AllOptions = #{rules => [{right, ","},
                              {right, "++"},
                              {left, "++"},
