@@ -931,9 +931,14 @@ filter_compiler_directive_dashes([], Acc) ->
 filter_compiler_directive_dashes([#{type := '-'}|Tokens], Acc) ->
     filter_compiler_directive_dashes(Tokens, Acc);
 filter_compiler_directive_dashes(Tokens0, Acc) ->
-    {Tokens, [Dot|Rest]} = lists:splitwith(fun(#{type := T}) -> T =/= dot end,
-                                           Tokens0),
-    filter_compiler_directive_dashes(Rest, [Tokens ++ [Dot]|Acc]).
+    {Tokens, Rest} = case
+                         lists:splitwith(fun(#{type := T}) -> T =/= dot end,
+                                         Tokens0)
+                     of
+                         {Tokens1, [Dot|Rest0]} -> {Tokens1 ++ [Dot], Rest0};
+                         {Tokens1, []}          -> {Tokens1,          []}
+                     end,
+    filter_compiler_directive_dashes(Rest, [Tokens|Acc]).
 
 
 -spec character_at_location(Position::atom(),
