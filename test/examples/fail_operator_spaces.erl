@@ -1,3 +1,5 @@
+%% Initial comment
+%% Another initial comment
 -module(fail_operator_spaces).
 
 -dialyzer({nowarn_function, function7/0}).

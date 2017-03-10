@@ -930,6 +930,10 @@ filter_compiler_directive_dashes([], Acc) ->
     lists:append(lists:reverse(Acc));
 filter_compiler_directive_dashes([#{type := '-'}|Tokens], Acc) ->
     filter_compiler_directive_dashes(Tokens, Acc);
+filter_compiler_directive_dashes([#{type := comment}|_] = Tokens0, Acc) ->
+    {Tokens, Rest} = lists:splitwith(fun(#{type := T}) -> T =:= comment end,
+                                     Tokens0),
+    filter_compiler_directive_dashes(Rest, [Tokens|Acc]);
 filter_compiler_directive_dashes(Tokens0, Acc) ->
     {Tokens, Rest} = case
                          lists:splitwith(fun(#{type := T}) -> T =/= dot end,
