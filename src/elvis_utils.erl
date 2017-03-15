@@ -150,6 +150,7 @@ error_prn(Message, Args) ->
     ColoredMessage = "{{red}}Error: {{reset}}" ++ Message ++ "{{reset}}~n",
     print(ColoredMessage, Args).
 
+-spec print(string(), [term()]) -> ok.
 print(Message, Args) ->
     case application:get_env(elvis, no_output) of
         {ok, true} -> ok;
