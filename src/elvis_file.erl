@@ -12,7 +12,7 @@
 
 -export_type([file/0]).
 
--type file() :: #{path => string(), content => binary()}.
+-type file() :: #{path => string(), content => binary(), _ => _}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Public
@@ -26,7 +26,12 @@ src(File = #{content := Content}) ->
 src(File = #{path := Path}) ->
     case file:read_file(Path) of
         {ok, Content} ->
-            src(File#{content => Content});
+            Encoding = case epp:read_encoding_from_binary(Content) of
+                           none -> utf8;
+                           Enc  -> Enc
+                       end,
+            src(File#{content => Content,
+                      encoding => Encoding});
         Error -> Error
     end;
 src(File) ->

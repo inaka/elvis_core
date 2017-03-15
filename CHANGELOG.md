@@ -1,10 +1,48 @@
 # Change Log
 
+## [0.3.5](https://github.com/inaka/elvis_core/tree/0.3.5) (2017-02-09)
+[Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.5-pre...0.3.5)
+
+**Merged pull requests:**
+
+- \[inaka/elvis\#402\] ct:print added to no\_debug\_call rule [\#77](https://github.com/inaka/elvis_core/pull/77) ([ferigis](https://github.com/ferigis))
+- \[inaka/elvis\#406\] dialyzer warnings fixed [\#76](https://github.com/inaka/elvis_core/pull/76) ([ferigis](https://github.com/ferigis))
+- \[inaka/elvis\#410\] no\_nested\_try\_catch rule added [\#75](https://github.com/inaka/elvis_core/pull/75) ([ferigis](https://github.com/ferigis))
+
+## [0.3.5-pre](https://github.com/inaka/elvis_core/tree/0.3.5-pre) (2017-02-08)
+[Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.4...0.3.5-pre)
+
+**Merged pull requests:**
+
+- \[inaka/elvis\#424\] updating dependencies [\#74](https://github.com/inaka/elvis_core/pull/74) ([ferigis](https://github.com/ferigis))
+- Fix unnecessary loading of files caused by git-branch option \(\#421\) [\#72](https://github.com/inaka/elvis_core/pull/72) ([onno-vos-dev](https://github.com/onno-vos-dev))
+
+## [0.3.4](https://github.com/inaka/elvis_core/tree/0.3.4) (2016-11-15)
+[Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.3...0.3.4)
+
+**Merged pull requests:**
+
+- \[Close inaka/elvis\#417\] bump version to 0.3.4 - elvis\_core [\#71](https://github.com/inaka/elvis_core/pull/71) ([Euen](https://github.com/Euen))
+- \[Close inaka/elvis\#416\] update wrong file type [\#70](https://github.com/inaka/elvis_core/pull/70) ([Euen](https://github.com/Euen))
+
+## [0.3.3](https://github.com/inaka/elvis_core/tree/0.3.3) (2016-11-11)
+[Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.2...0.3.3)
+
+**Merged pull requests:**
+
+- Add zipper to rebar.lock [\#69](https://github.com/inaka/elvis_core/pull/69) ([Euen](https://github.com/Euen))
+- \[Close inaka/elvis\#414\] bump version to 0.3.3 [\#68](https://github.com/inaka/elvis_core/pull/68) ([Euen](https://github.com/Euen))
+- Rules for warning about seqbind [\#67](https://github.com/inaka/elvis_core/pull/67) ([gnuvince](https://github.com/gnuvince))
+- \[Fix \#407\] Fix bug in max\_function\_length rule [\#64](https://github.com/inaka/elvis_core/pull/64) ([harenson](https://github.com/harenson))
+- Don't automatically strip leading underscore, allow it by regex [\#63](https://github.com/inaka/elvis_core/pull/63) ([bartekgorny](https://github.com/bartekgorny))
+- Make it so that the max\_function\_length style checker can ignore func… [\#62](https://github.com/inaka/elvis_core/pull/62) ([sargun](https://github.com/sargun))
+
 ## [0.3.2](https://github.com/inaka/elvis_core/tree/0.3.2) (2016-08-03)
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.1...0.3.2)
 
 **Merged pull requests:**
 
+- \[Close inaka/elvis\#389\] version bump 0.3.2 [\#61](https://github.com/inaka/elvis_core/pull/61) ([Euen](https://github.com/Euen))
 - Euen.fix dialyzer [\#60](https://github.com/inaka/elvis_core/pull/60) ([Euen](https://github.com/Euen))
 
 ## [0.3.1](https://github.com/inaka/elvis_core/tree/0.3.1) (2016-07-27)

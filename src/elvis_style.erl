@@ -23,7 +23,9 @@
          max_module_length/3,
          max_function_length/3,
          no_debug_call/3,
-         no_nested_try_catch/3
+         no_nested_try_catch/3,
+         no_seqbind/3,
+         no_useless_seqbind/3
         ]).
 
 -define(LINE_LENGTH_MSG, "Line ~p is too long: ~s.").
@@ -114,6 +116,12 @@
 -define(NO_NESTED_TRY_CATCH,
         "Nested try...catch block starting at line ~p.").
 
+-define(NO_SEQBIND,
+        "Declaration of seqbind at line ~p.").
+
+-define(NO_USELESS_SEQBIND,
+        "Module declares seqbind on line ~p, but no seq-bindings are used.").
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Rules
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -121,7 +129,9 @@
 -type empty_rule_config() :: #{}.
 
 -type max_function_length_config() :: #{ignore_functions => [function_spec()],
-                                        max_length => non_neg_integer()}.
+                                        max_length => non_neg_integer(),
+                                        count_comments => boolean(),
+                                        count_whitespace => boolean()}.
 
 -type max_module_length_config() :: #{count_comments => boolean(),
                                       count_whitespace => boolean(),
@@ -189,8 +199,8 @@ variable_naming_convention(Config, Target, RuleConfig) ->
 line_length(_Config, Target, RuleConfig) ->
     Limit = maps:get(limit, RuleConfig, 80),
     SkipComments = maps:get(skip_comments, RuleConfig, false),
-    {Src, _} = elvis_file:src(Target),
-    Args = [Limit, SkipComments],
+    {Src, #{encoding := Encoding}} = elvis_file:src(Target),
+    Args = [Limit, SkipComments, Encoding],
     elvis_utils:check_lines(Src, fun check_line_length/3, Args).
 
 -spec no_tabs(elvis_config:config(),
@@ -243,18 +253,19 @@ macro_module_names(Config, Target, _RuleConfig) ->
     [elvis_result:item()].
 operator_spaces(Config, Target, RuleConfig) ->
     Rules = maps:get(rules, RuleConfig, []),
-    {Src, _} = elvis_file:src(Target),
+    {Src, #{encoding := Encoding}} = elvis_file:src(Target),
     {Root, _} = elvis_file:parse_tree(Config, Target),
     Tokens = ktn_code:attr(tokens, Root),
     Lines = binary:split(Src, <<"\n">>, [global]),
     lists:flatmap(
         fun(Rule) ->
-            check_operator_spaces(Lines, Tokens, Rule)
+            check_operator_spaces(Lines, Tokens, Rule, Encoding)
         end,
         Rules
     ).
 
--type nesting_level_config() :: #{level => integer()}.
+-type nesting_level_config() :: #{level => integer(),
+                                  ignore => [atom()]}.
 
 -spec nesting_level(elvis_config:config(),
                     elvis_file:file(),
@@ -274,7 +285,8 @@ nesting_level(Config, Target, RuleConfig) ->
             []
     end.
 
--type god_modules_config() :: #{limit => integer()}.
+-type god_modules_config() :: #{limit => integer(),
+                                ignore => [atom()]}.
 
 -spec god_modules(elvis_config:config(),
                   elvis_file:file(),
@@ -448,9 +460,13 @@ no_spec_with_records(Config, Target, _RuleConfig) ->
             lists:map(ResultFun, SpecNodes)
     end.
 
+-type dont_repeat_yourself_config() :: #{min_complexity => non_neg_integer(),
+                                         ignore => [module()]
+                                        }.
+
 -spec dont_repeat_yourself(elvis_config:config(),
                            elvis_file:file(),
-                           empty_rule_config()) ->
+                           dont_repeat_yourself_config()) ->
     [elvis_result:item()].
 dont_repeat_yourself(Config, Target, RuleConfig) ->
     MinComplexity = maps:get(min_complexity, RuleConfig, 5),
@@ -590,6 +606,11 @@ no_debug_call(Config, Target, RuleConfig) ->
     {Root, _} = elvis_file:parse_tree(Config, Target),
     ModuleName = elvis_code:module_name(Root),
     DefaultDebugFuns = [{ct, pal},
+                        {ct, print, 1},
+                        {ct, print, 2},
+                        {ct, print, 3},
+                        {ct, print, 4},
+                        {ct, print, 5},
                         {io, format, 1},
                         {io, format, 2}],
     DebugFuns = maps:get(debug_functions, RuleConfig, DefaultDebugFuns),
@@ -699,18 +720,18 @@ remove_comment(Line) ->
 
 -spec check_line_length(binary(), integer(), [term()]) ->
     no_result | {ok, elvis_result:item()}.
-check_line_length(Line, Num, [Limit, whole_line]) ->
+check_line_length(Line, Num, [Limit, whole_line, Encoding]) ->
     case line_is_comment(Line) of
-        false -> check_line_length(Line, Num, Limit);
+        false -> check_line_length(Line, Num, [Limit, Encoding]);
         true  -> no_result
     end;
-check_line_length(Line, Num, [Limit, any]) ->
+check_line_length(Line, Num, [Limit, any, Encoding]) ->
     LineWithoutComment = remove_comment(Line),
-    check_line_length(LineWithoutComment, Num, Limit);
-check_line_length(Line, Num, [Limit|_]) ->
-    check_line_length(Line, Num, Limit);
-check_line_length(Line, Num, Limit) ->
-    Chars = unicode:characters_to_list(Line),
+    check_line_length(LineWithoutComment, Num, [Limit, Encoding]);
+check_line_length(Line, Num, [Limit, _, Encoding]) ->
+    check_line_length(Line, Num, [Limit, Encoding]);
+check_line_length(Line, Num, [Limit, Encoding]) ->
+    Chars = unicode:characters_to_list(Line, Encoding),
     case length(Chars) of
         Large when Large > Limit ->
             Msg = ?LINE_LENGTH_MSG,
@@ -867,9 +888,14 @@ has_remote_call_parent(Zipper) ->
 %% Operator Spaces
 -spec check_operator_spaces(Lines::[binary()],
                             Tokens::[map()],
-                            Rule::{right | left, string()}) ->
+                            Rule::{right | left, string()},
+                            Encoding::latin1 | utf8) ->
     [elvis_result:item()].
-check_operator_spaces(Lines, Tokens, {Position, Operator}) ->
+check_operator_spaces(Lines, Tokens0, {Position, Operator}, Encoding) ->
+    Tokens = case Operator =:= "-" of
+                 true  -> filter_compiler_directive_dashes(Tokens0);
+                 false -> Tokens0
+             end,
     Nodes = lists:filter(
         fun(Node) -> ktn_code:attr(text, Node) =:= Operator end,
         Tokens
@@ -878,7 +904,13 @@ check_operator_spaces(Lines, Tokens, {Position, Operator}) ->
     lists:flatmap(
         fun(Node) ->
             Location = ktn_code:attr(location, Node),
-            case character_at_location(Position, Lines, Operator, Location) of
+            case
+                character_at_location(Position,
+                                      Lines,
+                                      Operator,
+                                      Location,
+                                      Encoding)
+            of
                 SpaceChar -> [];
                 _         ->
                     Msg = ?OPERATOR_SPACE_MSG,
@@ -891,12 +923,36 @@ check_operator_spaces(Lines, Tokens, {Position, Operator}) ->
         Nodes
     ).
 
+filter_compiler_directive_dashes(Tokens) ->
+    filter_compiler_directive_dashes(Tokens, []).
+
+filter_compiler_directive_dashes([], Acc) ->
+    lists:append(lists:reverse(Acc));
+filter_compiler_directive_dashes([#{type := '-'}|Tokens], Acc) ->
+    filter_compiler_directive_dashes(Tokens, Acc);
+filter_compiler_directive_dashes([#{type := comment}|_] = Tokens0, Acc) ->
+    {Tokens, Rest} = lists:splitwith(fun(#{type := T}) -> T =:= comment end,
+                                     Tokens0),
+    filter_compiler_directive_dashes(Rest, [Tokens|Acc]);
+filter_compiler_directive_dashes(Tokens0, Acc) ->
+    {Tokens, Rest} = case
+                         lists:splitwith(fun(#{type := T}) -> T =/= dot end,
+                                         Tokens0)
+                     of
+                         {Tokens1, [Dot|Rest0]} -> {Tokens1 ++ [Dot], Rest0};
+                         {Tokens1, []}          -> {Tokens1,          []}
+                     end,
+    filter_compiler_directive_dashes(Rest, [Tokens|Acc]).
+
+
 -spec character_at_location(Position::atom(),
                             Lines::[binary()],
                             Operator::string(),
-                            Location::{integer(), integer()}) -> char().
-character_at_location(Position, Lines, Operator, {Line, Col}) ->
-    OperatorLineStr = unicode:characters_to_list(lists:nth(Line, Lines)),
+                            Location::{integer(), integer()},
+                            Encoding::latin1|utf8) -> char().
+character_at_location(Position, Lines, Operator, {LineNo, Col}, Encoding) ->
+    Line = lists:nth(LineNo, Lines),
+    OperatorLineStr = unicode:characters_to_list(Line, Encoding),
     ColToCheck = case Position of
         left  -> Col - 1;
         right -> Col + length(Operator)
@@ -1182,3 +1238,58 @@ check_nested_try_catchs(ResultFun, TryExp) ->
                              false
                     end,
                     elvis_code:find(Predicate, TryExp)).
+
+
+%% Disallow `-compile({parse_trans, seqbind})`
+-spec no_seqbind(elvis_config:config(),
+                 elvis_file:file(),
+                 empty_rule_config()) ->
+    [elvis_result:item()].
+no_seqbind(Config, Target, _RuleConfig) ->
+    {Root, _} = elvis_file:parse_tree(Config, Target),
+    ResultFun = result_node_line_fun(?NO_SEQBIND),
+    SeqbindDecls = elvis_code:find(fun is_seqbind_declaration/1, Root),
+    lists:map(ResultFun, SeqbindDecls).
+
+
+is_seqbind_declaration(Node) ->
+    case ktn_code:type(Node) of
+        compile -> declares_seqbind(ktn_code:attr(value, Node));
+        _ -> false
+    end.
+
+
+declares_seqbind(Decls) when is_list(Decls) ->
+    lists:keyfind(parse_transform, 1, Decls) =:= {parse_transform, seqbind};
+declares_seqbind(Singleton) ->
+    Singleton =:= {parse_transform, seqbind}.
+
+
+%% Warn when `-compile({parse_trans, seqbind})` is declared,
+%% but no seq-bindings (i.e., VarName@) are used in the module.
+-spec no_useless_seqbind(elvis_config:config(),
+                         elvis_file:file(),
+                         empty_rule_config()) ->
+    [elvis_result:item()].
+no_useless_seqbind(Config, Target, _RuleConfig) ->
+    {Root, _} = elvis_file:parse_tree(Config, Target),
+    ResultFun = result_node_line_fun(?NO_USELESS_SEQBIND),
+    SeqbindDecls = elvis_code:find(fun is_seqbind_declaration/1, Root),
+    case SeqbindDecls of
+        [] -> [];
+        _ ->
+            case uses_seq_bindings(Root) of
+                true -> [];
+                false -> lists:map(ResultFun, SeqbindDecls)
+            end
+    end.
+
+
+uses_seq_bindings(Root) ->
+    SeqBindings = elvis_code:find(
+                    fun(Node) ->
+                            ktn_code:type(Node) =:= var andalso
+                            lists:last(ktn_code:attr(text, Node)) =:= $@
+                    end,
+                    Root),
+    SeqBindings /= [].
