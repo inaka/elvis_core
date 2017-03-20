@@ -161,8 +161,8 @@ past_nesting_limit(Node, CurrentLevel, MaxLevel) when CurrentLevel > MaxLevel ->
 past_nesting_limit(#{content := Content},
                    CurrentLevel,
                    MaxLevel) ->
-    Fun = fun(ChildNode = #{type := Type}) ->
-              Increment = level_increment(Type),
+    Fun = fun(ChildNode) ->
+              Increment = level_increment(ChildNode),
               past_nesting_limit(ChildNode,
                                  Increment + CurrentLevel,
                                  MaxLevel)
@@ -216,14 +216,17 @@ function_names(#{type := root, content := Content}) ->
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% @private
-%% @doc Takes a node type and determines its nesting level increment.
-level_increment(Type) ->
+%% @doc Takes a node and determines its nesting level increment.
+level_increment(#{type := 'fun', content := _}) ->
+  1;
+level_increment(#{type := 'fun'}) ->
+  0;
+level_increment(#{type := Type}) ->
     IncrementOne = [function,
                     'case',
                     'if',
                     try_case,
                     try_catch,
-                    'fun',
                     named_fun,
                     receive_case
                    ],

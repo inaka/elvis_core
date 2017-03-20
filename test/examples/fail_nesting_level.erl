@@ -172,3 +172,27 @@ exceed_with_list_compr() ->
              end;
         3 -> 3
     end.
+
+exceed_with_fun() ->
+    case 1 of
+        1 -> ok;
+        2 -> receive
+                 1 -> ok;
+                 2 -> ok;
+                 3 -> fun() -> ok end;
+                 4 -> ok
+             end;
+        3 -> 3
+    end.
+
+dont_exceed_with_fun() ->
+    case 1 of
+        1 -> ok;
+        2 -> receive
+                 1 -> ok;
+                 2 -> ok;
+                 3 -> fun erlang:display/1;
+                 4 -> ok
+             end;
+        3 -> 3
+    end.
