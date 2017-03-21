@@ -61,7 +61,7 @@ all() ->
 
 -spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
-    ok = application:start(elvis),
+    _ = application:ensure_all_started(elvis),
     Config.
 
 -spec end_per_suite(config()) -> config().
@@ -277,14 +277,14 @@ verify_nesting_level(_Config) ->
     Path = "fail_nesting_level.erl",
     {ok, File} = elvis_test_utils:find_file(SrcDirs, Path),
 
-    [
-     #{line_num := 11},
-     #{line_num := 18},
-     #{line_num := 30},
-     #{line_num := 45},
-     #{line_num := 78},
-     #{line_num := 120},
-     #{line_num := 166}
+    [ #{line_num := 11}
+    , #{line_num := 18}
+    , #{line_num := 30}
+    , #{line_num := 45}
+    , #{line_num := 78}
+    , #{line_num := 120}
+    , #{line_num := 166}
+    , #{line_num := 182}
     ] = elvis_style:nesting_level(ElvisConfig, File, #{level => 3}),
     [] = elvis_style:nesting_level( ElvisConfig
                                   , File
