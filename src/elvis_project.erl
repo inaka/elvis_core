@@ -166,6 +166,11 @@ is_rebar_master_dep(_) ->
     false.
 is_rebar_hex_dep(_AppName) when is_atom(_AppName) ->
     true;
+is_rebar_hex_dep({_AppName, _Vsn, {pkg, _PackageName}})
+  when is_atom(_AppName),
+       is_list(_Vsn),
+       is_atom(_PackageName) ->
+    true;
 is_rebar_hex_dep({_AppName, _Vsn})
   when is_atom(_AppName),
        is_list(_Vsn) ->
