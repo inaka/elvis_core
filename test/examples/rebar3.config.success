@@ -1,6 +1,7 @@
 {deps,
  [
   {lager, "2.1.1"},
+  {uuid, "1.7.0", {pkg, uuid_erl}},
   {meck, "0.8.2", {git, "https://github.com/basho/meck.git", {tag, "0.8.2"}}},
   {jiffy, {git, "https://github.com/davisp/jiffy.git"}},
   recon
