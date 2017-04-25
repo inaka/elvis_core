@@ -4,7 +4,7 @@
 
 -spec rules(Group::atom()) -> list().
 rules(erl_files) ->
-  [ {elvis_style, line_length, #{limit => 80, skip_comments => false}}
+  [ {elvis_style, line_length, #{limit => 100, skip_comments => false}}
   , {elvis_style, no_tabs}
   , {elvis_style, no_trailing_whitespace}
   , {elvis_style, macro_names}
