@@ -10,5 +10,5 @@ function_1() ->
     io:format("Hellö").
 
 function_2() ->
-    io:format("Hellö, This line is 81 characters long and should be detected, yeah!!!").
+    io:format("Hellö, This line is 101 characters long and should be detected, yeah!!!!!!!!!!!!!!!").
 

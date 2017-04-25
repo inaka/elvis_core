@@ -150,7 +150,7 @@ also you like to use tabs instead of spaces, so you need to override `erl_files`
 ...
 #{dirs => ["src"],
   filter => "*.erl",
-  rules => [{elvis_style, line_length, #{limit => 90}}, %% change default line_length limit from 80 to 90
+  rules => [{elvis_style, line_length, #{limit => 90}}, %% change default line_length limit from 100 to 90
             {elvis_style, no_tabs, disable}], %% disable no_tabs rule
   ruleset => erl_files
 },
