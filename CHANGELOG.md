@@ -1,10 +1,23 @@
 # Change Log
 
+## [0.3.6](https://github.com/inaka/elvis_core/tree/0.3.6) (2017-04-25)
+[Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.5...0.3.6)
+
+**Merged pull requests:**
+
+- \[Close inaka/Elvis\#411\] unpdate line length to 100 [\#84](https://github.com/inaka/elvis_core/pull/84) ([Euen](https://github.com/Euen))
+- Handle Hex deps with package name [\#83](https://github.com/inaka/elvis_core/pull/83) ([varnerac](https://github.com/varnerac))
+- \[inaka/elvis\#342\] function references shouldn't count as a level [\#82](https://github.com/inaka/elvis_core/pull/82) ([jfacorro](https://github.com/jfacorro))
+- Fix broken support for dashes in operator\_spaces rule [\#81](https://github.com/inaka/elvis_core/pull/81) ([tjarvstrand](https://github.com/tjarvstrand))
+- Adds latin1 support for line\_length and operator\_spaces rules [\#80](https://github.com/inaka/elvis_core/pull/80) ([tjarvstrand](https://github.com/tjarvstrand))
+- Remove Lager as a direct dependency [\#65](https://github.com/inaka/elvis_core/pull/65) ([waisbrot](https://github.com/waisbrot))
+
 ## [0.3.5](https://github.com/inaka/elvis_core/tree/0.3.5) (2017-02-09)
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.5-pre...0.3.5)
 
 **Merged pull requests:**
 
+- \[inaka/elvis\#423\] Version Bump to 0.3.5 [\#79](https://github.com/inaka/elvis_core/pull/79) ([ferigis](https://github.com/ferigis))
 - \[inaka/elvis\#402\] ct:print added to no\_debug\_call rule [\#77](https://github.com/inaka/elvis_core/pull/77) ([ferigis](https://github.com/ferigis))
 - \[inaka/elvis\#406\] dialyzer warnings fixed [\#76](https://github.com/inaka/elvis_core/pull/76) ([ferigis](https://github.com/ferigis))
 - \[inaka/elvis\#410\] no\_nested\_try\_catch rule added [\#75](https://github.com/inaka/elvis_core/pull/75) ([ferigis](https://github.com/ferigis))
