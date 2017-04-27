@@ -148,10 +148,16 @@
     [elvis_result:item()].
 function_naming_convention(Config, Target, RuleConfig) ->
     Regex = maps:get(regex, RuleConfig, ".*"),
+    IgnoreModules = maps:get(ignore, RuleConfig, []),
 
     {Root, _} = elvis_file:parse_tree(Config, Target),
-    FunctionNames = elvis_code:function_names(Root),
-    errors_for_function_names(Regex, FunctionNames).
+    ModuleName = elvis_code:module_name(Root),
+    case lists:member(ModuleName, IgnoreModules) of
+      false ->
+        FunctionNames = elvis_code:function_names(Root),
+        errors_for_function_names(Regex, FunctionNames);
+      true -> []
+    end.
 
 errors_for_function_names(_Regex, []) -> [];
 errors_for_function_names(Regex, [FunctionName | RemainingFuncNames]) ->
