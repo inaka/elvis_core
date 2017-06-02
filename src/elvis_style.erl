@@ -107,7 +107,7 @@
         "maximum of ~p.").
 
 -define(MAX_FUNCTION_LENGTH,
-        "The code for function ~p has ~p lines which exceeds the "
+        "The code for function ~p/~w has ~p lines which exceeds the "
         "maximum of ~p.").
 
 -define(NO_DEBUG_CALL_MSG,
@@ -569,11 +569,12 @@ max_function_length(Config, Target, RuleConfig) ->
     PairFun =
         fun(FunctionNode) ->
                 Name = ktn_code:attr(name, FunctionNode),
+                Arity = ktn_code:attr(arity, FunctionNode),
                 {Min, Max} = node_line_limits(FunctionNode),
                 FunLines = lists:sublist(Lines, Min, Max - Min + 1),
                 FilteredLines = lists:filter(FilterFun, FunLines),
                 L = length(FilteredLines),
-                {Name, Min, L}
+                {Name, Arity, Min, L}
         end,
     IgnoreFunctionFilterFun =
         fun(FunctionNode) ->
@@ -586,12 +587,12 @@ max_function_length(Config, Target, RuleConfig) ->
         end,
     Functions1 = lists:filter(IgnoreFunctionFilterFun, Functions0),
     FunLenInfos = lists:map(PairFun, Functions1),
-    MaxLengthPred = fun({_, _, L}) -> L > MaxLength end,
+    MaxLengthPred = fun({_, _, _, L}) -> L > MaxLength end,
     FunLenMaxPairs = lists:filter(MaxLengthPred, FunLenInfos),
 
     ResultFun =
-        fun({Name, StartPos, L}) ->
-                Info = [Name, L, MaxLength],
+        fun({Name, Arity, StartPos, L}) ->
+                Info = [Name, Arity, L, MaxLength],
                 Msg = ?MAX_FUNCTION_LENGTH,
                 elvis_result:new(item, Msg, Info, StartPos)
         end,
