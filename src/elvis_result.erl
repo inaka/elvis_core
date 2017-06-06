@@ -1,5 +1,7 @@
 -module(elvis_result).
 
+-compile({no_auto_import, [error/2]}).
+
 %% API
 -export([
          new/3,
@@ -112,22 +114,22 @@ print([Result | Results]) ->
 %% File
 print(#{file := File, rules := Rules}) ->
     Path = elvis_file:path(File),
-    Status = case status(Rules) of
-                 ok -> "{{green-bold}}OK";
-                 fail -> "{{red-bold}}FAIL"
-             end,
-
-    elvis_utils:notice("# ~s [~s{{white-bold}}]", [Path, Status]),
+    case status(Rules) of
+        ok ->
+          elvis_utils:notice("# ~s [{{green-bold}}OK{{white-bold}}]", [Path]);
+        fail ->
+          elvis_utils:error("# ~s [{{red-bold}}FAIL{{white-bold}}]", [Path])
+    end,
     print(Rules);
 %% Rule
 print(#{items := []}) ->
     ok;
 print(#{name := Name, items := Items}) ->
-    elvis_utils:notice("  - ~s", [atom_to_list(Name)]),
+    elvis_utils:error("  - ~s", [atom_to_list(Name)]),
     print(Items);
 %% Item
 print(#{message := Msg, info := Info}) ->
-    elvis_utils:notice("    - " ++ Msg, Info);
+    elvis_utils:error("    - " ++ Msg, Info);
 %% Error
 print(#{error_msg := Msg, info := Info}) ->
     elvis_utils:error_prn(Msg, Info).

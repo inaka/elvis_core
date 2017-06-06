@@ -1,5 +1,7 @@
 -module(elvis_utils).
 
+-compile({no_auto_import, [error/2]}).
+
 -export([
          %% Rules
          check_lines/3,
@@ -16,6 +18,8 @@
          info/2,
          notice/1,
          notice/2,
+         error/1,
+         error/2,
          error_prn/1,
          error_prn/2,
          parse_colors/1
@@ -129,7 +133,7 @@ info(Message) ->
 -spec info(string(), [term()]) -> ok.
 info(Message, Args) ->
     ColoredMessage = Message ++ "{{reset}}~n",
-    print(ColoredMessage, Args).
+    print_info(ColoredMessage, Args).
 
 -spec notice(string()) -> ok.
 notice(Message) ->
@@ -138,8 +142,16 @@ notice(Message) ->
 -spec notice(string(), [term()]) -> ok.
 notice(Message, Args) ->
     ColoredMessage = "{{white-bold}}" ++ Message ++ "{{reset}}~n",
-    print(ColoredMessage, Args).
+    print_info(ColoredMessage, Args).
 
+-spec error(string()) -> ok.
+error(Message) ->
+    error(Message, []).
+
+-spec error(string(), [term()]) -> ok.
+error(Message, Args) ->
+    ColoredMessage = "{{white-bold}}" ++ Message ++ "{{reset}}~n",
+    print(ColoredMessage, Args).
 
 -spec error_prn(string()) -> ok.
 error_prn(Message) ->
@@ -149,6 +161,13 @@ error_prn(Message) ->
 error_prn(Message, Args) ->
     ColoredMessage = "{{red}}Error: {{reset}}" ++ Message ++ "{{reset}}~n",
     print(ColoredMessage, Args).
+
+-spec print_info(string(), [term()]) -> ok.
+print_info(Message, Args) ->
+    case application:get_env(elvis, verbose) of
+        {ok, true} -> print(Message, Args);
+        _ -> ok
+    end.
 
 -spec print(string(), [term()]) -> ok.
 print(Message, Args) ->

@@ -19,8 +19,12 @@
          rock_this_not_skipping_files/1,
          rock_this_skipping_files/1,
          rock_without_colors/1,
+         rock_with_no_output_has_no_output/1,
+         rock_with_errors_has_output/1,
+         rock_without_errors_has_no_output/1,
+         rock_without_errors_and_with_verbose_has_output/1,
          rock_with_rule_groups/1,
-         %% Utill & Config
+         %% Util & Config
          throw_configuration/1,
          find_file_and_check_src/1,
          find_file_with_ignore/1,
@@ -185,6 +189,44 @@ rock_without_colors(_Config) ->
              _:{badmatch, []} -> ok
          end.
 
+-spec rock_with_no_output_has_no_output(config()) -> ok.
+rock_with_no_output_has_no_output(_Config) ->
+    application:set_env(elvis, no_output, true),
+    ConfigPath = "../../config/test.config",
+    ElvisConfig = elvis_config:load_file(ConfigPath),
+    Fun = fun() -> elvis_core:rock(ElvisConfig) end,
+    [] = check_no_line_output(Fun),
+    application:unset_env(elvis, no_output),
+    ok.
+
+-spec rock_with_errors_has_output(config()) -> ok.
+rock_with_errors_has_output(_Config) ->
+    ConfigPath = "../../config/test.config",
+    ElvisConfig = elvis_config:load_file(ConfigPath),
+    Fun = fun() -> elvis_core:rock(ElvisConfig) end,
+    Expected = "FAIL",
+    [_|_] = check_some_line_output(Fun, Expected, fun matches_regex/2),
+    ok.
+
+-spec rock_without_errors_has_no_output(config()) -> ok.
+rock_without_errors_has_no_output(_Config) ->
+    ConfigPath = "../../config/test.pass.config",
+    ElvisConfig = elvis_config:load_file(ConfigPath),
+    Fun = fun() -> elvis_core:rock(ElvisConfig) end,
+    [] = check_no_line_output(Fun),
+    ok.
+
+-spec rock_without_errors_and_with_verbose_has_output(config()) -> ok.
+rock_without_errors_and_with_verbose_has_output(_Config) ->
+    application:set_env(elvis, verbose, true),
+    ConfigPath = "../../config/test.pass.config",
+    ElvisConfig = elvis_config:load_file(ConfigPath),
+    Fun = fun() -> elvis_core:rock(ElvisConfig) end,
+    Expected = "OK",
+    [_|_] = check_some_line_output(Fun, Expected, fun matches_regex/2),
+    application:unset_env(elvis, verbose),
+    ok.
+
 -spec rock_with_rule_groups(Config::config()) -> ok.
 rock_with_rule_groups(_Config) ->
     % elvis_config will load default elvis_core rules for every
@@ -314,6 +356,12 @@ check_some_line_output(Fun, Expected, FilterFun) ->
     Lines = ct:capture_get([]),
     ListFun = fun(Line) -> FilterFun(Line, Expected) end,
     [_ | _] = lists:filter(ListFun, Lines).
+
+check_no_line_output(Fun) ->
+    _ = ct:capture_start(),
+    _ = Fun(),
+    _ = ct:capture_stop(),
+    [] = ct:capture_get([]).
 
 matches_regex(Result, Regex) ->
     case re:run(Result, Regex) of
