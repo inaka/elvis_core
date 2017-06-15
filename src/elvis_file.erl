@@ -21,15 +21,14 @@
 %% @doc Returns a tuple with the contents of the file and the file itself.
 -spec src(file()) ->
     {binary(), file()} | {error, enoent}.
-src(File = #{content := Content}) ->
+src(File = #{content := Content, encoding := _}) ->
     {Content, File};
+src(File = #{content := Content}) ->
+    {Content, File#{encoding => find_encoding(Content)}};
 src(File = #{path := Path}) ->
     case file:read_file(Path) of
         {ok, Content} ->
-            Encoding = case epp:read_encoding_from_binary(Content) of
-                           none -> utf8;
-                           Enc  -> Enc
-                       end,
+            Encoding = find_encoding(Content),
             src(File#{content => Content,
                       encoding => Encoding});
         Error -> Error
@@ -128,3 +127,11 @@ escape_all_chars(Glob) -> re:replace(Glob, ".", "[&]", [global]).
 replace_stars(Glob) -> re:replace(Glob, "[[][*][]]", ".*", [global]).
 
 replace_questions(Glob) -> re:replace(Glob, "[[][?][]]", ".", [global]).
+
+-spec find_encoding(Content::binary()) ->
+  atom().
+find_encoding(Content) ->
+    case epp:read_encoding_from_binary(Content) of
+        none -> utf8;
+        Enc  -> Enc
+    end.
