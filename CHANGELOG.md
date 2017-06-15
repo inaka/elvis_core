@@ -1,10 +1,21 @@
 # Change Log
 
+## [0.3.7](https://github.com/inaka/elvis_core/tree/0.3.7) (2017-06-15)
+[Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.6...0.3.7)
+
+**Merged pull requests:**
+
+- \[Fix \#450\] Fix encoding issue for elvis\_file:src/1 [\#89](https://github.com/inaka/elvis_core/pull/89) ([harenson](https://github.com/harenson))
+- add verbosity config option, output only errors unless set [\#88](https://github.com/inaka/elvis_core/pull/88) ([srenatus](https://github.com/srenatus))
+- max\_function\_length: report violations including function arity [\#87](https://github.com/inaka/elvis_core/pull/87) ([srenatus](https://github.com/srenatus))
+- Support ignore option in function\_naming\_convention [\#86](https://github.com/inaka/elvis_core/pull/86) ([define-null](https://github.com/define-null))
+
 ## [0.3.6](https://github.com/inaka/elvis_core/tree/0.3.6) (2017-04-25)
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.5...0.3.6)
 
 **Merged pull requests:**
 
+- \[Close inaka/Elvis\#442\] bump version to 0.3.6 [\#85](https://github.com/inaka/elvis_core/pull/85) ([Euen](https://github.com/Euen))
 - \[Close inaka/Elvis\#411\] unpdate line length to 100 [\#84](https://github.com/inaka/elvis_core/pull/84) ([Euen](https://github.com/Euen))
 - Handle Hex deps with package name [\#83](https://github.com/inaka/elvis_core/pull/83) ([varnerac](https://github.com/varnerac))
 - \[inaka/elvis\#342\] function references shouldn't count as a level [\#82](https://github.com/inaka/elvis_core/pull/82) ([jfacorro](https://github.com/jfacorro))
