@@ -5,6 +5,7 @@
 
 **Merged pull requests:**
 
+- \[Fix inaka/elvis\#451\] Bump elvis\_core version to 0.3.7 [\#90](https://github.com/inaka/elvis_core/pull/90) ([harenson](https://github.com/harenson))
 - \[Fix \#450\] Fix encoding issue for elvis\_file:src/1 [\#89](https://github.com/inaka/elvis_core/pull/89) ([harenson](https://github.com/harenson))
 - add verbosity config option, output only errors unless set [\#88](https://github.com/inaka/elvis_core/pull/88) ([srenatus](https://github.com/srenatus))
 - max\_function\_length: report violations including function arity [\#87](https://github.com/inaka/elvis_core/pull/87) ([srenatus](https://github.com/srenatus))
