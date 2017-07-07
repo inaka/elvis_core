@@ -1,6 +1,6 @@
 [![Stories in Ready](https://badge.waffle.io/inaka/elvis.png?label=ready&title=Ready)](https://waffle.io/inaka/elvis)
 
-# elvis-core
+# elvis-core [![Build Status](https://travis-ci.org/inaka/elvis_core.svg?branch=master)](https://travis-ci.org/inaka/elvis_core)
 
 Erlang style reviewer core library.
 
