@@ -16,14 +16,15 @@
          rock_with_old_config/1,
          rock_with_rebar_default_config/1,
          rock_this/1,
-         rock_this_not_skipping_files/1,
-         rock_this_skipping_files/1,
          rock_without_colors/1,
          rock_with_no_output_has_no_output/1,
          rock_with_errors_has_output/1,
          rock_without_errors_has_no_output/1,
          rock_without_errors_and_with_verbose_has_output/1,
          rock_with_rule_groups/1,
+         rock_this_skipping_files/1,
+         rock_this_not_skipping_files/1,
+         rock_with_include_dirs/1,
          %% Util & Config
          throw_configuration/1,
          find_file_and_check_src/1,
@@ -271,6 +272,7 @@ rock_with_rule_groups(_Config) ->
            throw:{invalid_config, _} -> fail
        end.
 
+-spec rock_this_skipping_files(Config::config()) -> ok.
 rock_this_skipping_files(_Config) ->
     meck:new(elvis_file, [passthrough]),
     Dirs = ["../../_build/test/lib/elvis/test/examples"],
@@ -280,8 +282,10 @@ rock_this_skipping_files(_Config) ->
     ElvisConfig = elvis_config:load_file(ConfigPath),
     ok = elvis_core:rock_this(Path, ElvisConfig),
     0 = meck:num_calls(elvis_file, load_file_data, '_'),
-    meck:unload(elvis_file).
+    meck:unload(elvis_file),
+    ok.
 
+-spec rock_this_not_skipping_files(Config::config()) -> ok.
 rock_this_not_skipping_files(_Config) ->
     meck:new(elvis_file, [passthrough]),
     Dirs = ["../../_build/test/lib/elvis/test/examples"],
@@ -291,7 +295,61 @@ rock_this_not_skipping_files(_Config) ->
     ElvisConfig = elvis_config:load_file(ConfigPath),
     ok = elvis_core:rock_this(Path, ElvisConfig),
     1 = meck:num_calls(elvis_file, load_file_data, '_'),
-    meck:unload(elvis_file).
+    meck:unload(elvis_file),
+    ok.
+
+-spec rock_with_include_dirs(Config::config()) -> ok.
+rock_with_include_dirs(_Config) ->
+    meck:new(ktn_code, [unstick]),
+    Dirs = ["../../test/examples"],
+    Filter = "small.erl",
+    _ = application:set_env(elvis, verbose, true),
+
+    % Default `include_dirs' value is used when not provided
+    meck:expect(ktn_code,
+                parse_tree,
+                fun(IDirs = ["include"], Content) ->
+                    meck:passthrough([IDirs, Content]);
+                   (_, _) ->
+                    % Received include dirs are different than expected
+                    throw({error, badmatch})
+                end),
+    DefaultConf = [#{dirs => Dirs, filter => Filter, ruleset => erl_files}],
+    % We don't care about checks results
+    _ = elvis_core:rock(DefaultConf),
+    true = meck:validate(ktn_code),
+
+    % Given `include_dirs' are used when provided
+    CustomIDirs = ["path/to/include1", "path/to/include2"],
+    meck:expect(ktn_code,
+                parse_tree,
+                fun(IDirs, Content) ->
+                  case IDirs of
+                    CustomIDirs ->
+                      meck:passthrough([IDirs, Content]);
+                    _ ->
+                      % Received include dirs are different than expected
+                      throw({error, badmatch})
+                  end
+                end),
+    CustomConf = #{dirs => Dirs,
+                   include_dirs => CustomIDirs,
+                   filter => Filter,
+                   ruleset => erl_files},
+    % We don't care about checks results
+    _ = elvis_core:rock([CustomConf]),
+    true = meck:validate(ktn_code),
+
+    % It must fail when the received include_dirs value is different
+    % than expected.
+    _ = elvis_core:rock([CustomConf#{include_dirs => ["unknown/path"]}]),
+    false = meck:validate(ktn_code),
+
+    % Clean up environment
+    _ = application:set_env(elvis, verbose, false),
+    _ = meck:unload(ktn_code),
+    ok.
+
 
 %%%%%%%%%%%%%%%
 %%% Utils

@@ -103,6 +103,7 @@ in the root directory:
    [
     {config,
      [#{dirs => ["src"],
+        include_dirs => ["include"],
         filter => "*.erl",
         ruleset => erl_files
        },
@@ -129,6 +130,9 @@ in the root directory:
  }
 ].
 ```
+
+The `include_dirs` key is just a list of folders (`[string()]`) where to search for
+header files.
 
 The `dirs` key is a list that indicates where `elvis` should look for the
 files that match `filter`, which will be run through each of the default rules
