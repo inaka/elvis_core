@@ -1,6 +1,4 @@
-[![Stories in Ready](https://badge.waffle.io/inaka/elvis.png?label=ready&title=Ready)](https://waffle.io/inaka/elvis)
-
-# elvis-core [![Build Status](https://travis-ci.org/inaka/elvis_core.svg?branch=master)](https://travis-ci.org/inaka/elvis_core)
+# elvis-core [![Build Status](https://travis-ci.org/inaka/elvis_core.svg?branch=master)](https://travis-ci.org/inaka/elvis_core) [![Stories in Ready](https://badge.waffle.io/inaka/elvis.png?label=ready&title=Ready)](https://waffle.io/inaka/elvis)
 
 Erlang style reviewer core library.
 
@@ -103,6 +101,7 @@ in the root directory:
    [
     {config,
      [#{dirs => ["src"],
+        include_dirs => ["include"],
         filter => "*.erl",
         ruleset => erl_files
        },
@@ -130,6 +129,9 @@ in the root directory:
 ].
 ```
 
+The `include_dirs` key is just a list of folders (`[string()]`) where to search for
+header files.
+
 The `dirs` key is a list that indicates where `elvis` should look for the
 files that match `filter`, which will be run through each of the default rules
 in the specified `ruleset`, which is an *atom*. If you want to override the
@@ -147,15 +149,30 @@ also you like to use tabs instead of spaces, so you need to override `erl_files`
 `ruleset` default `rules` as follows:
 
 ```erlang
-...
 #{dirs => ["src"],
   filter => "*.erl",
   rules => [{elvis_style, line_length, #{limit => 90}}, %% change default line_length limit from 100 to 90
             {elvis_style, no_tabs, disable}], %% disable no_tabs rule
   ruleset => erl_files
 },
-...
 ```
+
+You can also `ignore` modules at a _check level_ or at a _ruleset (group of checks) level_:
+- at check level by setting the ignore parameter in the rule you want to skip, e.g:
+  ```erlang
+  {elvis_style, no_debug_call, #{ignore => [elvis, elvis_utils]}}
+  ```
+  There we are telling elvis to **ignore** _elvis_ and _elvis_utils_ modules when running `no_debug_call` check.
+
+- at ruleset level by setting the **ignore** group level option for the group you want to skip, e.g:
+  ```erlang
+  #{dirs => ["src"],
+    filter => "*.erl",
+    ruleset => erl_files,
+    ignore => [module1, module4]
+   }
+  ```
+  With this configuration, none of the checks for [erl_files](https://github.com/inaka/elvis_core/blob/master/src/elvis_rulesets.erl#L6-L34) would be applied to `module1.erl` and `module4.erl` files.
 
 The implementation of a rule is just a function that takes 3 arguments: `elvis`'s
 `config` entry from its [configuration](#configuration); the file to be

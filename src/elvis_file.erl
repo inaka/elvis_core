@@ -112,7 +112,7 @@ filter_files(Files, Dirs, Filter, IgnoreList) ->
 -spec resolve_parse_tree(map(), string(), binary()) ->
     undefined | ktn_code:tree_node().
 resolve_parse_tree(Config, ".erl", Content) ->
-    ktn_code:parse_tree(Config, Content);
+    ktn_code:parse_tree(elvis_config:include_dirs(Config), Content);
 resolve_parse_tree(_, _, _) ->
     undefined.
 

@@ -8,6 +8,7 @@
          normalize/1,
          %% Geters
          dirs/1,
+         include_dirs/1,
          ignore/1,
          filter/1,
          files/1,
@@ -27,6 +28,7 @@
 -define(DEFAULT_CONFIG_PATH, "./elvis.config").
 -define(DEFAULT_REBAR_CONFIG_PATH, "./rebar.config").
 -define(DEFAULT_FILTER, "*.erl").
+-define(DEFAULT_INCLUDE_DIRS, ["include"]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Public
@@ -115,6 +117,15 @@ dirs(_RuleGroup = #{dirs := Dirs}) ->
     Dirs;
 dirs(#{}) ->
     [].
+
+% Only get `include_dirs' value for erl files RuleGroup, discard other ones.
+-spec include_dirs(Config::config() | map()) -> [string()].
+include_dirs(Config) when is_list(Config) ->
+    lists:flatmap(fun include_dirs/1, Config);
+include_dirs(_RuleGroup = #{include_dirs := IDirs})->
+    IDirs;
+include_dirs(_) ->
+    ?DEFAULT_INCLUDE_DIRS.
 
 -spec ignore(config() | map()) -> [string()].
 ignore(Config) when is_list(Config) ->
