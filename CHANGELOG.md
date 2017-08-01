@@ -1,5 +1,20 @@
 # Change Log
 
+## [0.3.9](https://github.com/inaka/elvis_core/tree/0.3.9) (2017-08-01)
+[Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.8...0.3.9)
+
+**Merged pull requests:**
+
+- \[Fix \#468\] Add include\_dirs/1 to elvis\_config [\#93](https://github.com/inaka/elvis_core/pull/93) ([harenson](https://github.com/harenson))
+- \[\#456\] Adding Travis CI [\#92](https://github.com/inaka/elvis_core/pull/92) ([ferigis](https://github.com/ferigis))
+
+## [0.3.8](https://github.com/inaka/elvis_core/tree/0.3.8) (2017-06-15)
+[Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.7...0.3.8)
+
+**Merged pull requests:**
+
+- Bump version to 0.3.8 [\#91](https://github.com/inaka/elvis_core/pull/91) ([harenson](https://github.com/harenson))
+
 ## [0.3.7](https://github.com/inaka/elvis_core/tree/0.3.7) (2017-06-15)
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.6...0.3.7)
 
