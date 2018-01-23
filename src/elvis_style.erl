@@ -651,19 +651,21 @@ node_line_limits(FunctionNode) ->
                           elvis_file:file(),
                           empty_rule_config()) ->
     [elvis_result:item()].
-no_nested_try_catch(Config, Target, _RuleConfig) ->
+no_nested_try_catch(Config, Target, RuleConfig) ->
     {Root, _} = elvis_file:parse_tree(Config, Target),
-    Predicate = fun(Node) -> ktn_code:type(Node) == 'try' end,
-    ResultFun = result_node_line_fun(?NO_NESTED_TRY_CATCH),
-    case elvis_code:find(Predicate, Root) of
-        [] ->
-            [];
-        TryExprs ->
-            lists:flatmap(fun (TryExp) ->
-                                   check_nested_try_catchs(ResultFun, TryExp)
-                          end,
-                          TryExprs)
+    IgnoreModules = maps:get(ignore, RuleConfig, []),
+    case lists:member(elvis_code:module_name(Root), IgnoreModules) of
+        false -> Predicate = fun(Node) -> ktn_code:type(Node) == 'try' end,
+                 ResultFun = result_node_line_fun(?NO_NESTED_TRY_CATCH),
+                 case elvis_code:find(Predicate, Root) of
+                     [] -> [];
+                     TryExprs -> lists:flatmap(fun (TryExp) ->
+                                                   check_nested_try_catchs(ResultFun, TryExp)
+                                               end, TryExprs)
+                 end;
+         true -> []
     end.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
