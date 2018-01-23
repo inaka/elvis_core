@@ -647,9 +647,11 @@ node_line_limits(FunctionNode) ->
     [Min | _] = LineNums, % Min = first function's line
     {Min, Max}.
 
+-type no_nested_try_catch_config() :: #{ignore => [module()]}.
+
 -spec no_nested_try_catch(elvis_config:config(),
                           elvis_file:file(),
-                          empty_rule_config()) ->
+                          no_nested_try_catch_config()) ->
     [elvis_result:item()].
 no_nested_try_catch(Config, Target, RuleConfig) ->
     {Root, _} = elvis_file:parse_tree(Config, Target),
