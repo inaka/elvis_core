@@ -589,13 +589,17 @@ verify_no_nested_try_catch(_Config) ->
 
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
-    Path = "fail_no_nested_try_catch.erl",
+    Module = fail_no_nested_try_catch,
+    Path   = atom_to_list(Module) ++ ".erl",
     {ok, File} = elvis_test_utils:find_file(SrcDirs, Path),
     [
      #{line_num := 18},
      #{line_num := 33},
      #{line_num := 40}
-    ] = elvis_style:no_nested_try_catch(ElvisConfig, File, #{}).
+    ] = elvis_style:no_nested_try_catch(ElvisConfig, File, #{}),
+
+    [] = elvis_style:no_nested_try_catch(ElvisConfig, File,
+                                         #{ignore => [Module]}).
 
 -spec verify_no_seqbind(config()) -> any().
 verify_no_seqbind(_Config) ->
