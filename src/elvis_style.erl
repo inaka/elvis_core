@@ -364,20 +364,20 @@ invalid_dynamic_call(Config, Target, RuleConfig) ->
                             elvis_file:file(),
                             used_ignored_variable_config()) ->
     [elvis_result:item()].
-used_ignored_variable(Config, Target, _RuleConfig) ->
+used_ignored_variable(Config, Target, RuleConfig) ->
     IgnoreModules = maps:get(ignore, RuleConfig, []),
     {Root, _} = elvis_file:parse_tree(Config, Target),
     ResultFun = result_node_line_col_fun(?USED_IGNORED_VAR_MSG),
     ModuleName = elvis_code:module_name(Root),
-    
-    case lists:member(ModuleName, IgnoreModules) of 
+
+    case lists:member(ModuleName, IgnoreModules) of
         false ->
             case elvis_code:find(fun is_ignored_var/1, Root, #{mode => zipper}) of
                 [] ->
                     [];
                 UsedIgnoredVars ->
                     lists:map(ResultFun, UsedIgnoredVars)
-            end
+            end;
         true -> []
     end.
 
