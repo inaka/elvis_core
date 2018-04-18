@@ -358,7 +358,10 @@ verify_used_ignored_variable(_Config) ->
      #{line_num := 13},
      #{line_num := 17},
      #{line_num := 17}
-    ] = elvis_style:used_ignored_variable(ElvisConfig, File, #{}).
+    ] = elvis_style:used_ignored_variable(ElvisConfig, File, #{}),
+    [] = elvis_style:used_ignored_variable(ElvisConfig,
+                                           File,
+                                           #{ignore => [fail_used_ignored_variable]}).
 
 -spec verify_no_behavior_info(config()) -> any().
 verify_no_behavior_info(_Config) ->
