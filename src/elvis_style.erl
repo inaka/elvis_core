@@ -22,7 +22,9 @@
          dont_repeat_yourself/3,
          max_module_length/3,
          max_function_length/3,
+         no_call/3,
          no_debug_call/3,
+         no_common_caveats_call/3,
          no_nested_try_catch/3,
          no_seqbind/3,
          no_useless_seqbind/3
@@ -110,8 +112,15 @@
         "The code for function ~p/~w has ~p lines which exceeds the "
         "maximum of ~p.").
 
+-define(NO_CALL_MSG,
+        "The call to ~p:~p/~p on line ~p is in the no_call list.").
+
 -define(NO_DEBUG_CALL_MSG,
         "Remove the debug call to ~p:~p/~p on line ~p.").
+
+-define(NO_COMMON_CAVEATS_CALL_MSG,
+        "The call to ~p:~p/~p on line ~p is in the list of "
+        "Erlang Efficiency Guide common caveats.").
 
 -define(NO_NESTED_TRY_CATCH,
         "Nested try...catch block starting at line ~p.").
@@ -607,37 +616,58 @@ max_function_length(Config, Target, RuleConfig) ->
         end,
     lists:map(ResultFun, FunLenMaxPairs).
 
--type no_debug_call_config() :: #{debug_functions => [function_spec()],
-                                  ignore => [module()]
-                                 }.
 -type function_spec() :: {module(), atom(), non_neg_integer()}
                        | {module(), atom()}.
 
+-type no_call_config() :: #{no_call_functions => [function_spec()],
+                            ignore => [module()]
+                           }.
+-spec no_call(elvis_config:config(),
+              elvis_file:file(),
+              no_call_config()) ->
+    [elvis_result:item()].
+no_call(Config, Target, RuleConfig) ->
+    DefaultFns = [],
+    no_call_common(Config, Target, RuleConfig, no_call_functions, DefaultFns, ?NO_CALL_MSG).
+
+
+-type no_debug_call_config() :: #{debug_functions => [function_spec()],
+                                  ignore => [module()]
+                                 }.
 -spec no_debug_call(elvis_config:config(),
                     elvis_file:file(),
                     no_debug_call_config()) ->
     [elvis_result:item()].
 no_debug_call(Config, Target, RuleConfig) ->
-    IgnoreModules = maps:get(ignore, RuleConfig, []),
-    {Root, _} = elvis_file:parse_tree(Config, Target),
-    ModuleName = elvis_code:module_name(Root),
-    DefaultDebugFuns = [{ct, pal},
-                        {ct, print, 1},
-                        {ct, print, 2},
-                        {ct, print, 3},
-                        {ct, print, 4},
-                        {ct, print, 5},
-                        {io, format, 1},
-                        {io, format, 2}],
-    DebugFuns = maps:get(debug_functions, RuleConfig, DefaultDebugFuns),
+    DefaultFns = [{ct, pal},
+                  {ct, print, 1},
+                  {ct, print, 2},
+                  {ct, print, 3},
+                  {ct, print, 4},
+                  {ct, print, 5},
+                  {ct, print, 5},
+                  {io, format, 1},
+                  {io, format, 2}
+                 ],
+    no_call_common(Config, Target, RuleConfig, debug_functions, DefaultFns, ?NO_DEBUG_CALL_MSG).
 
-    case lists:member(ModuleName, IgnoreModules) of
-        false ->
-            IsCall = fun(Node) -> ktn_code:type(Node) =:= 'call' end,
-            Calls = elvis_code:find(IsCall, Root),
-            check_no_debug_call(Calls, DebugFuns);
-        true -> []
-    end.
+
+-type no_common_caveats_call_config() :: #{caveat_functions => [function_spec()],
+                                           ignore => [module()]
+                                          }.
+-spec no_common_caveats_call(elvis_config:config(),
+                             elvis_file:file(),
+                             no_common_caveats_call_config()) ->
+    [elvis_result:item()].
+
+no_common_caveats_call(Config, Target, RuleConfig) ->
+    DefaultFns = [{timer, send_after, 2},
+                  {timer, send_after, 3},
+                  {timer, send_interval, 2},
+                  {timer, send_interval, 3},
+                  {erlang, size, 1}
+                 ],
+    no_call_common(Config, Target, RuleConfig, caveat_functions, DefaultFns, ?NO_COMMON_CAVEATS_CALL_MSG).
 
 -spec node_line_limits(ktn_code:tree_node())->
     {Min :: integer(), Max :: integer()}.
@@ -1216,23 +1246,47 @@ is_children(Parent, Node) ->
     Zipper = elvis_code:code_zipper(Parent),
     [] =/= zipper:filter(fun(Child) -> Child == Node end, Zipper).
 
-%% No debug call
-
--spec check_no_debug_call([ktn_code:node()], [function_spec()]) ->
+%% No call
+-type no_call_configs() :: no_call_config()
+                         | no_debug_call_config()
+                         | no_common_caveats_call_config().
+-spec no_call_common(elvis_config:config(),
+                     elvis_file:file(),
+                     no_call_configs(),
+                     atom(),
+                     [function_spec()],
+                     string()
+                    ) ->
     [elvis_result:item()].
-check_no_debug_call(Calls, DebugFuns) ->
-    DebugCalls = [Call || Call <- Calls, is_debug_call(Call, DebugFuns)],
+no_call_common(Config, Target, RuleConfig, ConfigKey, DefaultNoCallFns, Msg) ->
+    IgnoreModules = maps:get(ignore, RuleConfig, []),
+    {Root, _} = elvis_file:parse_tree(Config, Target),
+    ModuleName = elvis_code:module_name(Root),
+    NoCallFuns = maps:get(ConfigKey, RuleConfig, DefaultNoCallFns),
+
+    case lists:member(ModuleName, IgnoreModules) of
+        false ->
+            IsCall = fun(Node) -> ktn_code:type(Node) =:= 'call' end,
+            Calls = elvis_code:find(IsCall, Root),
+            check_no_call(Calls, Msg, NoCallFuns);
+        true -> []
+    end.
+
+-spec check_no_call([ktn_code:node()], string(), [function_spec()]) ->
+    [elvis_result:item()].
+check_no_call(Calls, Msg, NoCallFuns) ->
+    DebugCalls = [Call || Call <- Calls, is_in_call_list(Call, NoCallFuns)],
     ResultFun = fun(Call) ->
                         {M, F, A} = call_mfa(Call),
                         {Line, _} = ktn_code:attr(location, Call),
                         elvis_result:new(item,
-                                         ?NO_DEBUG_CALL_MSG,
+                                         Msg,
                                          [M, F, A, Line],
                                          Line)
                 end,
     lists:map(ResultFun, DebugCalls).
 
-is_debug_call(Call, DebugFuns) ->
+is_in_call_list(Call, DebugFuns) ->
     MFA = call_mfa(Call),
     MatchFun = fun(Spec) -> fun_spec_match(Spec, MFA) end,
     lists:any(MatchFun, DebugFuns).

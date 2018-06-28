@@ -32,6 +32,8 @@
          verify_max_module_length/1,
          verify_max_function_length/1,
          verify_no_debug_call/1,
+         verify_no_common_caveats_call/1,
+         verify_no_call/1,
          verify_no_nested_try_catch/1,
          verify_no_seqbind/1,
          verify_no_useless_seqbind/1,
@@ -586,6 +588,44 @@ verify_no_debug_call(_Config) ->
     RuleConfig5 = #{debug_functions => [{ct, print}]},
     [_, _] = elvis_style:no_debug_call(ElvisConfig, FileFail, RuleConfig5).
 
+%% We test no_call and no_common_caveats_call by building the equivalent config and make sure that
+%% other than defaults, they behave the same
+-spec verify_no_common_caveats_call(config()) -> any().
+verify_no_common_caveats_call(_Config) ->
+    verify_no_call_flavours(no_common_caveats_call, fun elvis_style:no_common_caveats_call/3, caveat_functions, 6).
+
+-spec verify_no_call(config()) -> any().
+verify_no_call(_Config) ->
+    verify_no_call_flavours(no_call, fun elvis_style:no_call/3, no_call_functions, 0).
+
+-spec verify_no_call_flavours(atom(), fun(), atom(), non_neg_integer()) -> any().
+verify_no_call_flavours(RuleName, RuleFun, RuleConfigMapKey, ExpectedDefaultRuleMatchCount) ->
+    ElvisConfig = elvis_config:default(),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+
+    PathFail = "fail_no_call_classes.erl",
+    {ok, FileFail} = elvis_test_utils:find_file(SrcDirs, PathFail),
+
+    assert_length(ExpectedDefaultRuleMatchCount, RuleFun(ElvisConfig, FileFail, #{}), RuleName),
+
+    RuleConfig = #{ignore => [fail_no_call_classes]},
+    assert_length(0, RuleFun(ElvisConfig, FileFail, RuleConfig), RuleName),
+
+    RuleMatchTuples = [{{timer, send_after, 2}, 1},
+                       {{timer, send_after, 3}, 1},
+                       {{timer, send_interval, 2}, 1},
+                       {{timer, send_interval, 3}, 1},
+                       {{erlang, size, 1}, 2},
+                       {{timer, send_after}, 2}
+                      ],
+
+    lists:foreach(fun({FunSpec, ExpectedCount}) ->
+                      ThisRuleConfig = maps:from_list([{RuleConfigMapKey, [FunSpec]}]),
+                      Result = RuleFun(ElvisConfig, FileFail, ThisRuleConfig),
+                      assert_length(ExpectedCount, Result, RuleName)
+                  end,
+                  RuleMatchTuples).
+
 -spec verify_no_nested_try_catch(config()) -> any().
 verify_no_nested_try_catch(_Config) ->
     ElvisConfig = elvis_config:default(),
@@ -650,4 +690,11 @@ is_list_sort([#{line_num := Line1} | T1]) ->
     case Line1 =< Line2 of
         true -> is_list_sort(T1);
         false -> false
+    end.
+
+-spec assert_length(non_neg_integer(), [any()], atom()) -> any().
+assert_length(Expected, List, RuleName) ->
+    case length(List) of
+        Expected -> ok;
+        _ -> throw({unexpected_response_length, RuleName, {expected, Expected}, {got, List}})
     end.
