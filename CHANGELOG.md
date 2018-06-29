@@ -1,10 +1,22 @@
 # Change Log
 
+## [0.4.0](https://github.com/inaka/elvis_core/tree/0.4.0) (2018-06-29)
+[Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.9...0.4.0)
+
+**Merged pull requests:**
+
+- \[Fix inaka/elvis\#481\] Update dependencies [\#99](https://github.com/inaka/elvis_core/pull/99) ([elbrujohalcon](https://github.com/elbrujohalcon))
+- Support for no\_call and no\_common\_caveats [\#98](https://github.com/inaka/elvis_core/pull/98) ([adrianroe](https://github.com/adrianroe))
+- Support ignore for ignored variable used [\#97](https://github.com/inaka/elvis_core/pull/97) ([cypherfox](https://github.com/cypherfox))
+- Support the option to ignore no\_nested\_try\_catch rule on module basis [\#96](https://github.com/inaka/elvis_core/pull/96) ([frms-](https://github.com/frms-))
+- Update README.md [\#95](https://github.com/inaka/elvis_core/pull/95) ([igaray](https://github.com/igaray))
+
 ## [0.3.9](https://github.com/inaka/elvis_core/tree/0.3.9) (2017-08-01)
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.8...0.3.9)
 
 **Merged pull requests:**
 
+- \[Fix \#469\] Bump elvis\_core version to 0.3.9 [\#94](https://github.com/inaka/elvis_core/pull/94) ([harenson](https://github.com/harenson))
 - \[Fix \#468\] Add include\_dirs/1 to elvis\_config [\#93](https://github.com/inaka/elvis_core/pull/93) ([harenson](https://github.com/harenson))
 - \[\#456\] Adding Travis CI [\#92](https://github.com/inaka/elvis_core/pull/92) ([ferigis](https://github.com/ferigis))
 
