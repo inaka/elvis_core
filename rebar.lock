@@ -1,10 +1,10 @@
 {"1.1.0",
-[{<<"aleppo">>,{pkg,<<"inaka_aleppo">>,<<"1.0.0">>},1},
- {<<"katana_code">>,{pkg,<<"katana_code">>,<<"0.1.0">>},0},
+[{<<"aleppo">>,{pkg,<<"inaka_aleppo">>,<<"1.1.1">>},1},
+ {<<"katana_code">>,{pkg,<<"katana_code">>,<<"0.1.2">>},0},
  {<<"zipper">>,{pkg,<<"zipper">>,<<"1.0.1">>},0}]}.
 [
 {pkg_hash,[
- {<<"aleppo">>, <<"8DB14CF16BB8C263C14FF4C3F69F64D7C849D40888944F4204D2CA74F1114CEB">>},
- {<<"katana_code">>, <<"C34F3926A258D6BEACD8D21F140F3D47D175501936431C460B144339D5271A0B">>},
+ {<<"aleppo">>, <<"B0F7D05A118C5EBC3A735D68E92A7BD5837FE53455495EDE37CF0AA8BA4912E3">>},
+ {<<"katana_code">>, <<"347D42D5E89AC6C4BF8D02B64633AC1BFE14B7724B5910260D39EFEAFE737F01">>},
  {<<"zipper">>, <<"3CCB4F14B97C06B2749B93D8B6C204A1ECB6FAFC6050CACC3B93B9870C05952A">>}]}
 ].
