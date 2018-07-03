@@ -1,10 +1,18 @@
 # Change Log
 
+## [0.4.1](https://github.com/inaka/elvis_core/tree/0.4.1) (2018-07-03)
+[Full Changelog](https://github.com/inaka/elvis_core/compare/0.4.0...0.4.1)
+
+**Merged pull requests:**
+
+- fix OTP 21 dialyzer warnings [\#101](https://github.com/inaka/elvis_core/pull/101) ([f3c0](https://github.com/f3c0))
+
 ## [0.4.0](https://github.com/inaka/elvis_core/tree/0.4.0) (2018-06-29)
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.9...0.4.0)
 
 **Merged pull requests:**
 
+- Bump Version to 0.4.0 [\#100](https://github.com/inaka/elvis_core/pull/100) ([elbrujohalcon](https://github.com/elbrujohalcon))
 - \[Fix inaka/elvis\#481\] Update dependencies [\#99](https://github.com/inaka/elvis_core/pull/99) ([elbrujohalcon](https://github.com/elbrujohalcon))
 - Support for no\_call and no\_common\_caveats [\#98](https://github.com/inaka/elvis_core/pull/98) ([adrianroe](https://github.com/adrianroe))
 - Support ignore for ignored variable used [\#97](https://github.com/inaka/elvis_core/pull/97) ([cypherfox](https://github.com/cypherfox))
