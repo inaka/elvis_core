@@ -41,13 +41,13 @@ rock(Config) ->
     lists:foldl(fun combine_results/2, ok, Results).
 
 -spec rock_this(target()) ->
-    ok | {fail, elvis_result:file()}.
+    ok | {fail, [elvis_result:file() | elvis_result:rule()]}.
 rock_this(Target) ->
     Config = elvis_config:default(),
     rock_this(Target, Config).
 
 -spec rock_this(target(), elvis_config:config()) ->
-    ok | {fail, elvis_result:file()}.
+    ok | {fail, [elvis_result:file() | elvis_result:rule()]}.
 rock_this(Module, Config) when is_atom(Module) ->
     ModuleInfo = Module:module_info(compile),
     Path = proplists:get_value(source, ModuleInfo),
@@ -80,7 +80,7 @@ rock_this(Path, Config) ->
     end.
 
 %% @private
--spec do_rock(map()) -> ok | {fail, [elvis_result:file()]}.
+-spec do_rock(map()) -> ok | {fail, [elvis_result:file() | elvis_result:rule()]}.
 do_rock(Config0) ->
     elvis_utils:info("Loading files..."),
     Config = elvis_config:resolve_files(Config0),
