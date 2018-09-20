@@ -46,7 +46,7 @@ found `invalid_config` will be thrown.
 To start the application in the shell enter the following command:
 
 ```erlang
-application:start(elvis_core).
+application:start(elvis).
 %%= ok
 ```
 
