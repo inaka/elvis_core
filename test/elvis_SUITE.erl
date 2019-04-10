@@ -17,6 +17,7 @@
          rock_with_rebar_default_config/1,
          rock_this/1,
          rock_without_colors/1,
+         rock_with_parsable/1,
          rock_with_no_output_has_no_output/1,
          rock_with_errors_has_output/1,
          rock_without_errors_has_no_output/1,
@@ -188,6 +189,24 @@ rock_without_colors(_Config) ->
              Result -> ct:fail("Unexpected result ~p", [Result])
          catch
              _:{badmatch, []} -> ok
+         end.
+
+-spec rock_with_parsable(config()) -> ok.
+rock_with_parsable(_Config) ->
+    {ok, Default} = application:get_env(elvis, output_format),
+    application:set_env(elvis, output_format, parsable),
+    ConfigPath = "../../config/test.config",
+    ElvisConfig = elvis_config:load_file(ConfigPath),
+    Fun = fun() -> elvis_core:rock(ElvisConfig) end,
+    Expected = ".*\\.erl:\\d:[a-zA-Z0-9_]+:.*",
+    ok = try check_some_line_output(Fun, Expected, fun matches_regex/2) of
+             Result ->
+                 io:format("~p~n", [Result])
+         catch
+             _:{badmatch, []} ->
+                 ct:fail("Unexpected result ~p")
+         after
+             application:set_env(elvis, output_format, Default)
          end.
 
 -spec rock_with_no_output_has_no_output(config()) -> ok.
@@ -424,5 +443,6 @@ check_no_line_output(Fun) ->
 matches_regex(Result, Regex) ->
     case re:run(Result, Regex) of
         {match, _} -> true;
-        nomatch -> false
+        nomatch ->
+            false
     end.
