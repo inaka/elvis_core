@@ -114,24 +114,54 @@ print([Result | Results]) ->
 %% File
 print(#{file := File, rules := Rules}) ->
     Path = elvis_file:path(File),
-    case status(Rules) of
-        ok ->
-          elvis_utils:notice("# ~s [{{green-bold}}OK{{white-bold}}]", [Path]);
-        fail ->
-          elvis_utils:error("# ~s [{{red-bold}}FAIL{{white-bold}}]", [Path])
+    case application:get_env(elvis, parsable, false) of
+        false ->
+            case status(Rules) of
+                ok ->
+                    elvis_utils:notice("# ~s [{{green-bold}}OK{{white-bold}}]", [Path]);
+                fail ->
+                    elvis_utils:error("# ~s [{{red-bold}}FAIL{{white-bold}}]", [Path])
+            end;
+        true ->
+            ok
     end,
-    print(Rules);
-%% Rule
-print(#{items := []}) ->
+    print_rules(Path, Rules);
+print(Error) ->
+    print_error(Error).
+
+print_rules(_File, []) ->
     ok;
-print(#{name := Name, items := Items}) ->
-    elvis_utils:error("  - ~s", [atom_to_list(Name)]),
-    print(Items);
+print_rules(File, [#{items := []} | Items]) ->
+    print_rules(File, Items);
+print_rules(File, [#{items := Items, name := Name} | EItems]) ->
+    case application:get_env(elvis, parsable, false) of
+        true -> ok;
+        false->
+            elvis_utils:error("  - ~s", [atom_to_list(Name)])
+    end,
+    print_item(File, Name, Items),
+    print_rules(File, EItems);
+print_rules(File, [Error | Items]) ->
+    print_error(Error),
+    print_rules(File, Items).
+
 %% Item
-print(#{message := Msg, info := Info}) ->
-    elvis_utils:error("    - " ++ Msg, Info);
-%% Error
-print(#{error_msg := Msg, info := Info}) ->
+print_item(File, Name, [#{message := Msg, line_num := Ln, info := Info} | Items]) ->
+    case application:get_env(elvis, parsable, false) of
+        true ->
+            FMsg = io_lib:format(Msg, Info),
+            io:format("~s:~p:~p:~s~n", [File, Ln, Name, FMsg]);
+        false->
+            elvis_utils:error("    - " ++ Msg, Info)
+    end,
+    print_item(File, Name, Items);
+print_item(File, Name, [Error|Items]) ->
+    print_error(Error),
+    print_item(File, Name, Items);
+print_item(_File, _Name, []) ->
+    ok.
+
+print_error(#{error_msg := Msg, info := Info}) ->
     elvis_utils:error_prn(Msg, Info).
 
 -spec status([file() | rule()]) -> ok | fail.
