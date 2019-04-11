@@ -8,7 +8,7 @@
          new/4,
          status/1,
          clean/1,
-         print/1
+         print_results/1
         ]).
 
 -export([
@@ -105,33 +105,67 @@ get_line_num(#{line_num := LineNum}) -> LineNum.
 
 %% Print
 
--spec print(item() | rule() | elvis_error() | [file()]) -> ok.
-print([]) ->
+-spec print_results(file()) -> ok.
+print_results(Results) ->
+    Format = application:get_env(elvis, output_format, colors),
+    print(Format, Results).
+
+-spec print(plain | colors | parsable, [file()] | file()) -> ok.
+print(_, []) ->
     ok;
-print([Result | Results]) ->
-    print(Result),
-    print(Results);
+print(Format, [Result | Results]) ->
+    print(Format, Result),
+    print(Format, Results);
 %% File
-print(#{file := File, rules := Rules}) ->
+print(Format, #{file := File, rules := Rules}) ->
     Path = elvis_file:path(File),
-    case status(Rules) of
-        ok ->
-          elvis_utils:notice("# ~s [{{green-bold}}OK{{white-bold}}]", [Path]);
-        fail ->
-          elvis_utils:error("# ~s [{{red-bold}}FAIL{{white-bold}}]", [Path])
+    case Format of
+        parsable -> ok;
+        _ ->
+            case status(Rules) of
+                ok ->
+                    elvis_utils:notice("# ~s [{{green-bold}}OK{{white-bold}}]", [Path]);
+                fail ->
+                    elvis_utils:error("# ~s [{{red-bold}}FAIL{{white-bold}}]", [Path])
+            end
     end,
-    print(Rules);
-%% Rule
-print(#{items := []}) ->
+    print_rules(Format, Path, Rules);
+print(_, Error) ->
+    print_error(Error).
+
+print_rules(_Format, _File, []) ->
     ok;
-print(#{name := Name, items := Items}) ->
-    elvis_utils:error("  - ~s", [atom_to_list(Name)]),
-    print(Items);
+print_rules(Format, File, [#{items := []} | Items]) ->
+    print_rules(Format, File, Items);
+print_rules(Format, File, [#{items := Items, name := Name} | EItems]) ->
+    case Format of
+        parsable -> ok;
+        _ ->
+            elvis_utils:error("  - ~s", [atom_to_list(Name)])
+    end,
+    print_item(Format, File, Name, Items),
+    print_rules(Format, File, EItems);
+print_rules(Format, File, [Error | Items]) ->
+    print_error(Error),
+    print_rules(Format, File, Items).
+
 %% Item
-print(#{message := Msg, info := Info}) ->
-    elvis_utils:error("    - " ++ Msg, Info);
-%% Error
-print(#{error_msg := Msg, info := Info}) ->
+print_item(Format, File, Name, [#{message := Msg, line_num := Ln, info := Info} | Items]) ->
+    case Format of
+        parsable ->
+            FMsg = io_lib:format(Msg, Info),
+            io:format("~s:~p:~p:~s~n", [File, Ln, Name, FMsg]);
+        _ ->
+            elvis_utils:error("    - " ++ Msg, Info)
+    end,
+    print_item(Format, File, Name, Items);
+print_item(Format, File, Name, [Error|Items]) ->
+    print_error(Error),
+    print_item(Format, File, Name, Items);
+print_item(_Format, _File, _Name, []) ->
+    ok.
+
+print_error(#{error_msg := Msg, info := Info}) ->
     elvis_utils:error_prn(Msg, Info).
 
 -spec status([file() | rule()]) -> ok | fail.

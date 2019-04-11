@@ -137,6 +137,17 @@ list of items with the following structure `{Module, Function, RuleConfig}` or
 `disable` certain rules if you want to just by specifying the rule in the `rules`
 key and passing `disable` as its third parameter.
 
+`output_format` is used to configure the output format. Possible values are `colors`,
+`plain` and `parsable`. The latter could be use for the automated parsing and has a
+format very close to dialyzer in a form `FILE:LINE:RULE:MESSAGE`:
+
+```
+src/example.erl:1:god_modules:This module has too many functions (56). Consider breaking it into a number of modules.
+src/example_a.erl:341:no_debug_call:Remove the debug call to io:format/2 on line 341.
+src/example_a.erl:511:used_ignored_variable:Ignored variable is being used on line 511 and column 54.
+src/example_a.erl:1252:used_ignored_variable:Ignored variable is being used on line 1252 and column 21.
+```
+
 **IMPORTANT:** `disable` will only work if you also provided a `ruleset` as shown above.
 
 Let's say you like your files to have a maximum of 90 characters per line and
