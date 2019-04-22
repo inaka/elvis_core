@@ -191,7 +191,8 @@ parse_colors(Message) ->
                "reset" => "\e[0m"},
     Opts = [global, {return, list}],
     case application:get_env(elvis, output_format, colors) of
-        plain ->
+        P when P =:= plain orelse
+               P =:= parsable ->
             re:replace(Message, "{{.*?}}", "", Opts);
         colors ->
             Fun = fun(Key, Acc) ->

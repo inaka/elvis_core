@@ -12,7 +12,7 @@
         ]).
 
 -export([
-         get_file/1,
+         get_path/1,
          get_rules/1,
          get_name/1,
          get_items/1,
@@ -45,7 +45,7 @@
          }.
 -type file() ::
         #{
-           file => elvis_file:file(),
+           file => string(),
            rules => [rule()]
          }.
 -type elvis_error() ::
@@ -68,8 +68,8 @@ new(item, Msg, Info) ->
     new(item, Msg, Info, 0);
 new(rule, Name, Results) ->
     #{name => Name, items => Results};
-new(file, File, Rules) ->
-    #{file => File, rules => Rules};
+new(file, #{path := Path}, Rules) ->
+    #{file => Path, rules => Rules};
 new(error, Msg, Info) ->
     #{error_msg => Msg, info => Info}.
 
@@ -81,8 +81,8 @@ new(item, Msg, Info, LineNum) ->
 
 %% Getters
 
--spec get_file(file()) -> elvis_file:file().
-get_file(#{file := File}) -> File.
+-spec get_path(file()) -> string().
+get_path(#{file := File}) -> File.
 
 -spec get_rules(file()) -> [rule()].
 get_rules(#{rules := Rules}) -> Rules.
@@ -117,8 +117,7 @@ print(Format, [Result | Results]) ->
     print(Format, Result),
     print(Format, Results);
 %% File
-print(Format, #{file := File, rules := Rules}) ->
-    Path = elvis_file:path(File),
+print(Format, #{file := Path, rules := Rules}) ->
     case Format of
         parsable -> ok;
         _ ->
@@ -193,12 +192,9 @@ clean([], Result) ->
     lists:reverse(Result);
 clean([#{rules := []} | Files], Result) ->
     clean(Files, Result);
-clean([File = #{rules := Rules, file := FileInfo} | Files], Result) ->
+clean([File = #{rules := Rules} | Files], Result) ->
     CleanRules = clean(Rules),
-    FileInfo1 = maps:remove(content, FileInfo),
-    FileInfo2 = maps:remove(parse_tree, FileInfo1),
-    NewFile = File#{rules => CleanRules,
-                    file => FileInfo2},
+    NewFile = File#{rules => CleanRules},
     clean(Files, [NewFile | Result]);
 clean([#{items := []} | Rules], Result) ->
     clean(Rules, Result);

@@ -37,7 +37,7 @@ rock() ->
 rock(Config) ->
     ok = elvis_config:validate(Config),
     NewConfig = elvis_config:normalize(Config),
-    Results = lists:map(fun do_rock/1, NewConfig),
+    Results = lists:map(fun do_parallel_rock/1, NewConfig),
     lists:foldl(fun combine_results/2, ok, Results).
 
 -spec rock_this(target()) ->
@@ -74,22 +74,87 @@ rock_this(Path, Config) ->
             elvis_utils:info("Skipping ~s", [Path]);
         FilteredConfig ->
             LoadedFile = load_file_data(FilteredConfig, File),
-            ApplyRulesFun = fun(Cfg) -> apply_rules(Cfg, LoadedFile) end,
+            ApplyRulesFun = fun(Cfg) -> apply_rules_and_print(Cfg, LoadedFile) end,
             Results = lists:map(ApplyRulesFun, FilteredConfig),
             elvis_result_status(Results)
     end.
 
 %% @private
--spec do_rock(map()) -> ok | {fail, [elvis_result:file() | elvis_result:rule()]}.
-do_rock(Config0) ->
-    elvis_utils:info("Loading files..."),
+-spec do_parallel_rock(map()) -> ok | {fail, [elvis_result:file() | elvis_result:rule()]}.
+do_parallel_rock(Config0) ->
+    Parallel = application:get_env(elvis, parallel, 1),
     Config = elvis_config:resolve_files(Config0),
     Files = elvis_config:files(Config),
-    Fun = fun (File) -> load_file_data(Config, File) end,
-    LoadedFiles = lists:map(Fun, Files),
-    elvis_utils:info("Applying rules..."),
-    Results = [apply_rules(Config, File) || File <- LoadedFiles],
+
+    Results = do_parallel_rock0(Config, Files, Parallel),
     elvis_result_status(Results).
+
+do_parallel_rock0(Config, Files, N) ->
+    do_parallel_rock1(Config, Files, N, N, [], []).
+
+do_parallel_rock1(_Config, [], _MaxW, _RemainW, AccR, AccG) ->
+    gather_all_results(AccR, AccG);
+do_parallel_rock1(Config, FilesList, MaxW, 0, AccR, AccG) ->
+    {AccR1, AccG1, N} = gather_results(AccR, AccG),
+    do_parallel_rock1(Config, FilesList, MaxW, erlang:min(N, MaxW), AccR1, AccG1);
+do_parallel_rock1(Config, FilesList, MaxW, RemainW, AccR, AccG) ->
+    {WorkToBeDone, FilesRemain} =
+        try lists:split(RemainW, FilesList) of
+            Res -> Res
+        catch error:badarg -> {FilesList, []}
+        end,
+
+    Gather = [do_rock_worker(Config, File) || File <- WorkToBeDone],
+    do_parallel_rock1(Config, FilesRemain, MaxW, 0, AccR, Gather ++ AccG).
+
+do_rock_worker(Config, #{path := Path} = File) ->
+    Parent = self(),
+    Key = spawn_monitor(fun() -> do_rock(Parent, Config, File) end),
+    {Key, Path}.
+
+-spec do_rock(pid(), elvis_config:config(), elvis_result:file()) -> no_return().
+do_rock(Parent, Config, File) ->
+    try
+        LoadedFile = load_file_data(Config, File),
+        apply_rules(Config, LoadedFile)
+    of
+        Results ->
+            exit({Parent, {ok, Results}})
+    catch T:E ->
+            exit({Parent, {error, {T,E}}})
+    end.
+
+gather_all_results(AccR, Remain) ->
+    {AccR1, _, _} = gather_results0(AccR, Remain, 0, infinity),
+    AccR1.
+
+gather_results(AccR, AccG) ->
+    {Key, Res0} = gather(infinity),
+    gather_results0([Res0 | AccR], lists:keydelete(Key, 1, AccG), 1, 0).
+
+gather_results0(AccR, [], N, _Timeout) ->
+    {AccR, [], N};
+gather_results0(AccR, AccG, N, Timeout) ->
+    case gather(Timeout) of
+        timeout -> {AccR, AccG, N};
+        {Key, Res0} ->
+            gather_results0([Res0 | AccR], lists:keydelete(Key, 1, AccG), N + 1, Timeout)
+    end.
+
+gather(Timeout) ->
+    Self = self(),
+    receive
+        {'DOWN', MonRef, process, Pid, {Self, Res}} ->
+            case Res of
+                {ok, Res0} ->
+                    elvis_result:print_results(Res0),
+                    {{Pid, MonRef}, Res0};
+                {error, {T,E}} ->
+                    erlang:T(E)
+            end
+    after Timeout ->
+            timeout
+    end.
 
 %% @private
 -spec load_file_data(map() | [map()], elvis_file:file()) -> elvis_file:file().
@@ -119,16 +184,18 @@ combine_results(Item, ok) ->
 combine_results({fail, ItemResults}, {fail, AccResults}) ->
     {fail, ItemResults ++ AccResults}.
 
+apply_rules_and_print(Config, File) ->
+    Results = apply_rules(Config, File),
+    elvis_result:print_results(Results),
+    Results.
+
 -spec apply_rules(map(), File::elvis_file:file()) ->
     elvis_result:file().
 apply_rules(Config, File) ->
     Rules = elvis_config:rules(Config),
     Acc = {[], Config, File},
     {RulesResults, _, _} = lists:foldl(fun apply_rule/2, Acc, Rules),
-
-    Results = elvis_result:new(file, File, RulesResults),
-    elvis_result:print_results(Results),
-    Results.
+    elvis_result:new(file, File, RulesResults).
 
 apply_rule({Module, Function}, {Result, Config, File}) ->
     apply_rule({Module, Function, #{}}, {Result, Config, File});
