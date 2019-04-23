@@ -11,6 +11,9 @@
 
 -export([start/0]).
 
+%% for internal use only
+-export([do_rock/2]).
+
 -define(APP_NAME, "elvis").
 
 -type source_filename() :: nonempty_string().
@@ -37,7 +40,7 @@ rock() ->
 rock(Config) ->
     ok = elvis_config:validate(Config),
     NewConfig = elvis_config:normalize(Config),
-    Results = lists:map(fun do_rock/1, NewConfig),
+    Results = lists:map(fun do_parallel_rock/1, NewConfig),
     lists:foldl(fun combine_results/2, ok, Results).
 
 -spec rock_this(target()) ->
@@ -74,22 +77,32 @@ rock_this(Path, Config) ->
             elvis_utils:info("Skipping ~s", [Path]);
         FilteredConfig ->
             LoadedFile = load_file_data(FilteredConfig, File),
-            ApplyRulesFun = fun(Cfg) -> apply_rules(Cfg, LoadedFile) end,
+            ApplyRulesFun = fun(Cfg) -> apply_rules_and_print(Cfg, LoadedFile) end,
             Results = lists:map(ApplyRulesFun, FilteredConfig),
             elvis_result_status(Results)
     end.
 
 %% @private
--spec do_rock(map()) -> ok | {fail, [elvis_result:file() | elvis_result:rule()]}.
-do_rock(Config0) ->
-    elvis_utils:info("Loading files..."),
+-spec do_parallel_rock(map()) -> ok | {fail, [elvis_result:file() | elvis_result:rule()]}.
+do_parallel_rock(Config0) ->
+    Parallel = application:get_env(elvis, parallel, 1),
     Config = elvis_config:resolve_files(Config0),
     Files = elvis_config:files(Config),
-    Fun = fun (File) -> load_file_data(Config, File) end,
-    LoadedFiles = lists:map(Fun, Files),
-    elvis_utils:info("Applying rules..."),
-    Results = [apply_rules(Config, File) || File <- LoadedFiles],
+
+    {ok, Results} =
+        elvis_task:chunk_fold({?MODULE, do_rock},
+                              fun(Elem, Acc) ->
+                                      elvis_result:print_results(Elem),
+                                      {ok, [Elem | Acc]}
+                              end,
+                              [], [Config], Files, Parallel),
     elvis_result_status(Results).
+
+-spec do_rock(elvis_file:file(), map() | [map()]) -> {ok, elvis_result:file()}.
+do_rock(File, Config) ->
+    LoadedFile = load_file_data(Config, File),
+    Results = apply_rules(Config, LoadedFile),
+    {ok, Results}.
 
 %% @private
 -spec load_file_data(map() | [map()], elvis_file:file()) -> elvis_file:file().
@@ -119,16 +132,18 @@ combine_results(Item, ok) ->
 combine_results({fail, ItemResults}, {fail, AccResults}) ->
     {fail, ItemResults ++ AccResults}.
 
+apply_rules_and_print(Config, File) ->
+    Results = apply_rules(Config, File),
+    elvis_result:print_results(Results),
+    Results.
+
 -spec apply_rules(map(), File::elvis_file:file()) ->
     elvis_result:file().
 apply_rules(Config, File) ->
     Rules = elvis_config:rules(Config),
     Acc = {[], Config, File},
     {RulesResults, _, _} = lists:foldl(fun apply_rule/2, Acc, Rules),
-
-    Results = elvis_result:new(file, File, RulesResults),
-    elvis_result:print_results(Results),
-    Results.
+    elvis_result:new(file, File, RulesResults).
 
 apply_rule({Module, Function}, {Result, Config, File}) ->
     apply_rule({Module, Function, #{}}, {Result, Config, File});
