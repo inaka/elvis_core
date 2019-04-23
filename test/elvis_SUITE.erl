@@ -3,7 +3,8 @@
 -export([
          all/0,
          init_per_suite/1,
-         end_per_suite/1
+         end_per_suite/1,
+         chunk_fold_task/2
         ]).
 
 -export([
@@ -31,7 +32,8 @@
          find_file_and_check_src/1,
          find_file_with_ignore/1,
          invalid_file/1,
-         to_string/1
+         to_string/1,
+         chunk_fold/1
         ]).
 
 -define(EXCLUDED_FUNS,
@@ -40,7 +42,8 @@
          all,
          test,
          init_per_suite,
-         end_per_suite
+         end_per_suite,
+         chunk_fold_task
         ]).
 
 -type config() :: [{atom(), term()}].
@@ -421,6 +424,28 @@ to_string(_Config) ->
     "1" = elvis_utils:to_str(1),
     "hello" = elvis_utils:to_str(<<"hello">>),
     "atom" = elvis_utils:to_str(atom).
+
+-spec chunk_fold(config()) -> any().
+chunk_fold(_Config) ->
+    Multiplier = 10,
+    List = lists:seq(1,10),
+    {ok, Value} = elvis_task:chunk_fold({?MODULE, chunk_fold_task},
+                                        fun(Elem, Acc) ->
+                                                {ok, Acc + Elem}
+                                        end, 0, [Multiplier], lists:seq(1,10), 10),
+    Value = lists:sum(
+              lists:map(fun(E) -> E * Multiplier end, List)),
+
+    {error, {error, undef}} =
+        elvis_task:chunk_fold({?MODULE, chunk_fold_task_do_not_exist},
+                              fun(Elem, Acc) ->
+                                      {ok, Acc + Elem}
+                              end, 0, [Multiplier], lists:seq(1,10), 10).
+
+
+-spec chunk_fold_task(integer(), integer()) -> {ok, integer()}.
+chunk_fold_task(Elem, Miltiplier) ->
+    {ok, Elem * Miltiplier}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Private

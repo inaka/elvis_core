@@ -11,6 +11,9 @@
 
 -export([start/0]).
 
+%% for internal use only
+-export([do_rock/2]).
+
 -define(APP_NAME, "elvis").
 
 -type source_filename() :: nonempty_string().
@@ -86,75 +89,20 @@ do_parallel_rock(Config0) ->
     Config = elvis_config:resolve_files(Config0),
     Files = elvis_config:files(Config),
 
-    Results = do_parallel_rock0(Config, Files, Parallel),
+    {ok, Results} =
+        elvis_task:chunk_fold({?MODULE, do_rock},
+                              fun(Elem, Acc) ->
+                                      elvis_result:print_results(Elem),
+                                      {ok, [Elem | Acc]}
+                              end,
+                              [], [Config], Files, Parallel),
     elvis_result_status(Results).
 
-do_parallel_rock0(Config, Files, N) ->
-    do_parallel_rock1(Config, Files, N, N, [], []).
-
-do_parallel_rock1(_Config, [], _MaxW, _RemainW, AccR, AccG) ->
-    gather_all_results(AccR, AccG);
-do_parallel_rock1(Config, FilesList, MaxW, 0, AccR, AccG) ->
-    {AccR1, AccG1, N} = gather_results(AccR, AccG),
-    do_parallel_rock1(Config, FilesList, MaxW, erlang:min(N, MaxW), AccR1, AccG1);
-do_parallel_rock1(Config, FilesList, MaxW, RemainW, AccR, AccG) ->
-    {WorkToBeDone, FilesRemain} =
-        try lists:split(RemainW, FilesList) of
-            Res -> Res
-        catch error:badarg -> {FilesList, []}
-        end,
-
-    Gather = [do_rock_worker(Config, File) || File <- WorkToBeDone],
-    do_parallel_rock1(Config, FilesRemain, MaxW, 0, AccR, Gather ++ AccG).
-
-do_rock_worker(Config, #{path := Path} = File) ->
-    Parent = self(),
-    Key = spawn_monitor(fun() -> do_rock(Parent, Config, File) end),
-    {Key, Path}.
-
--spec do_rock(pid(), elvis_config:config(), elvis_result:file()) -> no_return().
-do_rock(Parent, Config, File) ->
-    try
-        LoadedFile = load_file_data(Config, File),
-        apply_rules(Config, LoadedFile)
-    of
-        Results ->
-            exit({Parent, {ok, Results}})
-    catch T:E ->
-            exit({Parent, {error, {T,E}}})
-    end.
-
-gather_all_results(AccR, Remain) ->
-    {AccR1, _, _} = gather_results0(AccR, Remain, 0, infinity),
-    AccR1.
-
-gather_results(AccR, AccG) ->
-    {Key, Res0} = gather(infinity),
-    gather_results0([Res0 | AccR], lists:keydelete(Key, 1, AccG), 1, 0).
-
-gather_results0(AccR, [], N, _Timeout) ->
-    {AccR, [], N};
-gather_results0(AccR, AccG, N, Timeout) ->
-    case gather(Timeout) of
-        timeout -> {AccR, AccG, N};
-        {Key, Res0} ->
-            gather_results0([Res0 | AccR], lists:keydelete(Key, 1, AccG), N + 1, Timeout)
-    end.
-
-gather(Timeout) ->
-    Self = self(),
-    receive
-        {'DOWN', MonRef, process, Pid, {Self, Res}} ->
-            case Res of
-                {ok, Res0} ->
-                    elvis_result:print_results(Res0),
-                    {{Pid, MonRef}, Res0};
-                {error, {T,E}} ->
-                    erlang:T(E)
-            end
-    after Timeout ->
-            timeout
-    end.
+-spec do_rock(elvis_result:file(), elvis_config:config()) -> {ok, elvis_result:file()}.
+do_rock(File, Config) ->
+    LoadedFile = load_file_data(Config, File),
+    Results = apply_rules(Config, LoadedFile),
+    {ok, Results}.
 
 %% @private
 -spec load_file_data(map() | [map()], elvis_file:file()) -> elvis_file:file().
