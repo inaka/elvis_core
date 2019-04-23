@@ -98,7 +98,7 @@ do_parallel_rock(Config0) ->
                               [], [Config], Files, Parallel),
     elvis_result_status(Results).
 
--spec do_rock(elvis_result:file(), elvis_config:config()) -> {ok, elvis_result:file()}.
+-spec do_rock(elvis_file:file(), map() | [map()]) -> {ok, elvis_result:file()}.
 do_rock(File, Config) ->
     LoadedFile = load_file_data(Config, File),
     Results = apply_rules(Config, LoadedFile),

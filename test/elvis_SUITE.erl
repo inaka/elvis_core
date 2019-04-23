@@ -444,8 +444,8 @@ chunk_fold(_Config) ->
 
 
 -spec chunk_fold_task(integer(), integer()) -> {ok, integer()}.
-chunk_fold_task(Elem, Miltiplier) ->
-    {ok, Elem * Miltiplier}.
+chunk_fold_task(Elem, Multiplier) ->
+    {ok, Elem * Multiplier}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Private

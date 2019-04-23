@@ -12,7 +12,7 @@
                                       Acc :: term()),
                  InitialAcc :: term(),
                  ExtraArgs :: list(),
-                 JonItemList :: list(),
+                 JoinItemList :: list(),
                  Concurrency :: non_neg_integer()) ->
                         {ok, FinalAcc :: term()} | {error, term()}.
 chunk_fold({M,F} = FunWork, FunAcc, InitialAcc, ExtraArgs, List, ChunkSize)
@@ -53,6 +53,7 @@ start_worker(FunWork, ExtraArgs, Arg) ->
     Key = spawn_monitor(fun() -> do_work(Parent, FunWork, ExtraArgs, Arg) end),
     Key.
 
+-spec do_work(pid(), {module(), atom()}, list(), term()) -> no_return().
 do_work(Parent, {M,F}, ExtraArgs, Arg) ->
     try erlang:apply(M, F, [Arg | ExtraArgs]) of
         {ok, Results} ->
@@ -88,7 +89,7 @@ accumulate(AccF, AccR, Res, AccG) ->
         {ok, AccR1} = AccF(Res, AccR),
         AccR1
     catch T:E ->
-            cleanup(AccG),
+            _ = cleanup(AccG),
             throw({T,E})
     end.
 
@@ -107,7 +108,7 @@ gather(Timeout, AccG) ->
                 {ok, Res0} ->
                     {AccG1, Res0};
                 {error, {T,E}} ->
-                    cleanup(AccG1),
+                    _ = cleanup(AccG1),
                     throw({T,E})
             end
     after Timeout ->
