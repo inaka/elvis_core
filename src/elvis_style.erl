@@ -346,15 +346,14 @@ no_if_expression(Config, Target, _RuleConfig) ->
 
 -type invalid_dynamic_call_config() :: #{ignore => [module()]}.
 
--spec invalid_dynamic_call(elvis_config:config(),
+-spec invalid_dynamic_call(elvis_config:config() | map(),
                            elvis_file:file(),
                            invalid_dynamic_call_config()) ->
     [elvis_result:item()].
 invalid_dynamic_call(Config, Target, RuleConfig) ->
     IgnoreModules = maps:get(ignore, RuleConfig, []),
-    {Root, _} = elvis_file:parse_tree(Config, Target),
+    Root = get_root(Config, Target),
     ModuleName = elvis_code:module_name(Root),
-
     case lists:member(ModuleName, IgnoreModules) of
         false ->
             Predicate = fun(Node) -> ktn_code:type(Node) == 'callback' end,
@@ -622,7 +621,7 @@ max_function_length(Config, Target, RuleConfig) ->
 -type no_call_config() :: #{no_call_functions => [function_spec()],
                             ignore => [module()]
                            }.
--spec no_call(elvis_config:config(),
+-spec no_call(elvis_config:config() | map(),
               elvis_file:file(),
               no_call_config()) ->
     [elvis_result:item()].
@@ -634,7 +633,7 @@ no_call(Config, Target, RuleConfig) ->
 -type no_debug_call_config() :: #{debug_functions => [function_spec()],
                                   ignore => [module()]
                                  }.
--spec no_debug_call(elvis_config:config(),
+-spec no_debug_call(elvis_config:config() | map(),
                     elvis_file:file(),
                     no_debug_call_config()) ->
     [elvis_result:item()].
@@ -651,11 +650,10 @@ no_debug_call(Config, Target, RuleConfig) ->
                  ],
     no_call_common(Config, Target, RuleConfig, debug_functions, DefaultFns, ?NO_DEBUG_CALL_MSG).
 
-
 -type no_common_caveats_call_config() :: #{caveat_functions => [function_spec()],
                                            ignore => [module()]
                                           }.
--spec no_common_caveats_call(elvis_config:config(),
+-spec no_common_caveats_call(elvis_config:config() | map(),
                              elvis_file:file(),
                              no_common_caveats_call_config()) ->
     [elvis_result:item()].
@@ -1250,7 +1248,7 @@ is_children(Parent, Node) ->
 -type no_call_configs() :: no_call_config()
                          | no_debug_call_config()
                          | no_common_caveats_call_config().
--spec no_call_common(elvis_config:config(),
+-spec no_call_common(elvis_config:config() | map(),
                      elvis_file:file(),
                      no_call_configs(),
                      atom(),
@@ -1260,7 +1258,7 @@ is_children(Parent, Node) ->
     [elvis_result:item()].
 no_call_common(Config, Target, RuleConfig, ConfigKey, DefaultNoCallFns, Msg) ->
     IgnoreModules = maps:get(ignore, RuleConfig, []),
-    {Root, _} = elvis_file:parse_tree(Config, Target),
+    Root = get_root(Config, Target),
     ModuleName = elvis_code:module_name(Root),
     NoCallFuns = maps:get(ConfigKey, RuleConfig, DefaultNoCallFns),
 
@@ -1367,3 +1365,16 @@ uses_seq_bindings(Root) ->
                     end,
                     Root),
     SeqBindings /= [].
+
+-spec get_root(Config, Target) -> Res when
+      Config :: elvis_config:config() | map(),
+      Target :: elvis_file:file(),
+      Res :: ktn_code:tree_node().
+get_root(Config, Target) ->
+    case maps:get(ruleset, Config) of
+        beam_files ->
+            maps:get(abstract_parse_tree, Target);
+        _ ->
+            {Root0, _} = elvis_file:parse_tree(Config, Target),
+            Root0
+    end.

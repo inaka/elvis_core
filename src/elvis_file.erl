@@ -52,7 +52,8 @@ parse_tree(Config, File = #{path := Path, content := Content}) ->
     Ext = filename:extension(Path),
     ExtStr = elvis_utils:to_str(Ext),
     ParseTree = resolve_parse_tree(Config, ExtStr, Content),
-    parse_tree(Config, File#{parse_tree => ParseTree});
+    File1 = maybe_add_abstract_parse_tree(Config, File),
+    parse_tree(Config, File1#{parse_tree => ParseTree});
 parse_tree(Config, File0 = #{path := _Path}) ->
     {_, File} = src(File0),
     parse_tree(Config, File);
@@ -109,7 +110,7 @@ filter_files(Files, Dirs, Filter, IgnoreList) ->
 %% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec resolve_parse_tree(map(), string(), binary()) ->
+-spec resolve_parse_tree(map(), string(), string() | binary()) ->
     undefined | ktn_code:tree_node().
 resolve_parse_tree(Config, ".erl", Content) ->
     ktn_code:parse_tree(elvis_config:include_dirs(Config), Content);
@@ -135,3 +136,29 @@ find_encoding(Content) ->
         none -> utf8;
         Enc  -> Enc
     end.
+
+-spec maybe_add_abstract_parse_tree(Config, File) -> Res when
+      Config :: elvis_config:config() | map(),
+      File :: file(),
+      Res :: file().
+maybe_add_abstract_parse_tree(Config = #{ruleset := beam_files},
+                                        File = #{path := Path}) ->
+    AbstractParseTree = get_abstract_parse_tree(Path, Config),
+    File#{abstract_parse_tree => AbstractParseTree};
+maybe_add_abstract_parse_tree(_Config, File) ->
+    File.
+
+-spec get_abstract_parse_tree(BeamPath, Config) -> Res when
+      BeamPath :: file:filename(),
+      Config :: elvis_config:config() | map(),
+      Res :: ktn_code:tree_node() | undefined.
+get_abstract_parse_tree(BeamPath, Config) ->
+    AbstractSrc = get_abstract_source(BeamPath),
+    resolve_parse_tree(Config, ".erl", AbstractSrc).
+
+-spec get_abstract_source(BeamPath) -> Res when
+    BeamPath :: file:filename(),
+    Res :: string().
+get_abstract_source(BeamPath) ->
+    {ok,{_,[{abstract_code,{_,AC}}]}} = beam_lib:chunks(BeamPath, [abstract_code]),
+    erl_prettypr:format(erl_syntax:form_list(AC)).

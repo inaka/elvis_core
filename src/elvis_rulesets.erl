@@ -30,12 +30,15 @@ rules(erl_files) ->
   , {elvis_style, state_record_and_type}
   , {elvis_style, no_spec_with_records}
   , {elvis_style, dont_repeat_yourself, #{min_complexity => 10}}
-  , {elvis_style, no_debug_call, #{ignore => [elvis, elvis_utils]}}
   , { elvis_style
     , variable_naming_convention
     , #{regex => "^_?([A-Z][0-9a-zA-Z]*)$"}
     }
   , {elvis_style, no_nested_try_catch}
+  ];
+rules(beam_files) ->
+  [ {elvis_style, no_debug_call, #{ignore => [elvis, elvis_utils]}}
+  , {elvis_style, invalid_dynamic_call, #{}}
   ];
 rules(makefiles) ->
   [ {elvis_project, no_deps_master_erlang_mk, #{ignore => []}}
