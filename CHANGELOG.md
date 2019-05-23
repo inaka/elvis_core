@@ -1,10 +1,21 @@
 # Change Log
 
+## [0.4.2](https://github.com/inaka/elvis_core/tree/0.4.2) (2019-05-23)
+[Full Changelog](https://github.com/inaka/elvis_core/compare/0.4.1...0.4.2)
+
+**Merged pull requests:**
+
+- Rock in parallel [\#107](https://github.com/inaka/elvis_core/pull/107) ([define-null](https://github.com/define-null))
+- Add parsable option in order to output results in the dialyzer-like format [\#106](https://github.com/inaka/elvis_core/pull/106) ([define-null](https://github.com/define-null))
+- Fix app name in README.md [\#105](https://github.com/inaka/elvis_core/pull/105) ([elbrujohalcon](https://github.com/elbrujohalcon))
+- update erlang test [\#103](https://github.com/inaka/elvis_core/pull/103) ([getong](https://github.com/getong))
+
 ## [0.4.1](https://github.com/inaka/elvis_core/tree/0.4.1) (2018-07-03)
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.4.0...0.4.1)
 
 **Merged pull requests:**
 
+- Bump Version to 0.4.1 [\#102](https://github.com/inaka/elvis_core/pull/102) ([elbrujohalcon](https://github.com/elbrujohalcon))
 - fix OTP 21 dialyzer warnings [\#101](https://github.com/inaka/elvis_core/pull/101) ([f3c0](https://github.com/f3c0))
 
 ## [0.4.0](https://github.com/inaka/elvis_core/tree/0.4.0) (2018-06-29)
