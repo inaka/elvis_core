@@ -33,7 +33,7 @@ rules(erl_files) ->
   , {elvis_style, no_debug_call, #{ignore => [elvis, elvis_utils]}}
   , { elvis_style
     , variable_naming_convention
-    , #{regex => "^_?([A-Z][0-9a-zA-Z]*)$"}
+    , #{regex => "^_?([A-Z][0-9a-zA-Z]*)$|^FUNCTION_NAME$"}
     }
   , {elvis_style, no_nested_try_catch}
   ];
