@@ -73,7 +73,7 @@ find_files(Dirs, Pattern) ->
     Fun = fun(Dir) ->
               filelib:wildcard(filename:join(Dir, Pattern))
           end,
-    [#{path => Path} || Path <- lists:flatmap(Fun, Dirs)].
+    [#{path => Path} || Path <- lists:usort(lists:flatmap(Fun, Dirs))].
 
 %% @doc Filter files based on the glob provided.
 -spec filter_files([file()], [string()], string(), [string()]) -> [file()].
