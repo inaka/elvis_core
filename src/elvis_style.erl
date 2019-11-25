@@ -261,6 +261,7 @@ macro_module_names(Config, Target, _RuleConfig) ->
     elvis_utils:check_lines(Src, fun check_macro_module_names/3, [Root]).
 
 -type operator_spaces_config() :: #{rules => [{right|left, string()}]}.
+-define(PUNCTUATION_SYMBOLS, [',', ';', 'dot', '->', ':', '::']).
 
 -spec operator_spaces(elvis_config:config(),
                       elvis_file:file(),
@@ -270,14 +271,31 @@ operator_spaces(Config, Target, RuleConfig) ->
     Rules = maps:get(rules, RuleConfig, []),
     {Src, #{encoding := Encoding}} = elvis_file:src(Target),
     {Root, _} = elvis_file:parse_tree(Config, Target),
+
+    Zipper = elvis_code:code_zipper(Root),
+    OpNodes = zipper:filter(fun is_operator_node/1, Zipper),
+
     Tokens = ktn_code:attr(tokens, Root),
+    PunctuationTokens = lists:filter(fun is_punctuation_token/1, Tokens),
+
     Lines = binary:split(Src, <<"\n">>, [global]),
-    lists:flatmap(
-        fun(Rule) ->
-            check_operator_spaces(Lines, Tokens, Rule, Encoding)
-        end,
-        Rules
-    ).
+    AllNodes = OpNodes ++ PunctuationTokens,
+
+    FlatMap = fun(Rule) ->
+                  check_operator_spaces(Lines, AllNodes, Rule, Encoding)
+              end,
+    lists:flatmap(FlatMap, Rules).
+
+%% @doc Returns true when the node is an operator with more than one operand
+-spec is_operator_node(zipper:zipper()) -> boolean().
+is_operator_node(Node) ->
+    ktn_code:type(Node) =:= op andalso length(ktn_code:content(Node)) > 1.
+
+%% @doc Returns true when the token is one of the ?PUNCTUATION_SYMBOLS
+-spec is_punctuation_token(ktc_code:tree_node()) -> boolean().
+is_punctuation_token(Node) ->
+    Type = ktn_code:type(Node),
+    lists:member(Type, ?PUNCTUATION_SYMBOLS).
 
 -type nesting_level_config() :: #{level => integer(),
                                   ignore => [atom()]}.
@@ -936,64 +954,30 @@ has_remote_call_parent(Zipper) ->
     end.
 
 %% Operator Spaces
--spec check_operator_spaces(Lines::[binary()],
-                            Tokens::[map()],
-                            Rule::{right | left, string()},
-                            Encoding::latin1 | utf8) ->
+-spec check_operator_spaces(Lines :: [binary()],
+                            OperatorNodes :: [ktn_code:tree_node()],
+                            Rule :: {right | left, string()},
+                            Encoding :: latin1 | utf8) ->
     [elvis_result:item()].
-check_operator_spaces(Lines, Tokens0, {Position, Operator}, Encoding) ->
-    Tokens = case Operator =:= "-" of
-                 true  -> filter_compiler_directive_dashes(Tokens0);
-                 false -> Tokens0
-             end,
-    Nodes = lists:filter(
-        fun(Node) -> ktn_code:attr(text, Node) =:= Operator end,
-        Tokens
-    ),
-    SpaceChar = $\s,
-    lists:flatmap(
-        fun(Node) ->
-            Location = ktn_code:attr(location, Node),
-            case
-                character_at_location(Position,
-                                      Lines,
-                                      Operator,
-                                      Location,
-                                      Encoding)
-            of
-                SpaceChar -> [];
-                _         ->
+check_operator_spaces(Lines, OperatorNodes, {Position, Operator}, Encoding) ->
+  FilterFun = fun(Node) -> ktn_code:attr(text, Node) =:= Operator end,
+  Nodes = lists:filter(FilterFun, OperatorNodes),
+  SpaceChar = $\s,
+  FlatFun = fun(Node) ->
+                Location = ktn_code:attr(location, Node),
+                case
+                  character_at_location(Position, Lines, Operator, Location, Encoding)
+                of
+                  SpaceChar -> [];
+                  _         ->
                     Msg = ?OPERATOR_SPACE_MSG,
                     {Line, _Col} = Location,
                     Info = [Position, Operator, Line],
                     Result = elvis_result:new(item, Msg, Info, Line),
                     [Result]
-            end
-        end,
-        Nodes
-    ).
-
-filter_compiler_directive_dashes(Tokens) ->
-    filter_compiler_directive_dashes(Tokens, []).
-
-filter_compiler_directive_dashes([], Acc) ->
-    lists:append(lists:reverse(Acc));
-filter_compiler_directive_dashes([#{type := '-'}|Tokens], Acc) ->
-    filter_compiler_directive_dashes(Tokens, Acc);
-filter_compiler_directive_dashes([#{type := comment}|_] = Tokens0, Acc) ->
-    {Tokens, Rest} = lists:splitwith(fun(#{type := T}) -> T =:= comment end,
-                                     Tokens0),
-    filter_compiler_directive_dashes(Rest, [Tokens|Acc]);
-filter_compiler_directive_dashes(Tokens0, Acc) ->
-    {Tokens, Rest} = case
-                         lists:splitwith(fun(#{type := T}) -> T =/= dot end,
-                                         Tokens0)
-                     of
-                         {Tokens1, [Dot|Rest0]} -> {Tokens1 ++ [Dot], Rest0};
-                         {Tokens1, []}          -> {Tokens1,          []}
-                     end,
-    filter_compiler_directive_dashes(Rest, [Tokens|Acc]).
-
+                end
+            end,
+  lists:flatmap(FlatFun, Nodes).
 
 -spec character_at_location(Position::atom(),
                             Lines::[binary()],

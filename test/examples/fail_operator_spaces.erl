@@ -41,7 +41,8 @@ function5() ->
 function6() ->
     _MissingLeftSpace = 2+ 3,
     _MissingRightSpace = 2 +3,
-    _Successfull = 2 + 3.
+    _Successful = 2 + 3,
+    _AlsoSuccessful = +1.
 
 function7() ->
     % commas within strings must be ignored
