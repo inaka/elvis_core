@@ -58,12 +58,12 @@ all() ->
 
 -spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
-    {ok, _} = application:ensure_all_started(elvis),
+    {ok, _} = application:ensure_all_started(elvis_core),
     Config.
 
 -spec end_per_suite(config()) -> config().
 end_per_suite(Config) ->
-    ok = application:stop(elvis),
+    ok = application:stop(elvis_core),
     Config.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -195,8 +195,8 @@ rock_without_colors(_Config) ->
 
 -spec rock_with_parsable(config()) -> ok.
 rock_with_parsable(_Config) ->
-    {ok, Default} = application:get_env(elvis, output_format),
-    application:set_env(elvis, output_format, parsable),
+    {ok, Default} = application:get_env(elvis_core, output_format),
+    application:set_env(elvis_core, output_format, parsable),
     ConfigPath = "../../config/test.config",
     ElvisConfig = elvis_config:load_file(ConfigPath),
     Fun = fun() -> elvis_core:rock(ElvisConfig) end,
@@ -208,17 +208,17 @@ rock_with_parsable(_Config) ->
              _:{badmatch, []} ->
                  ct:fail("Unexpected result ~p")
          after
-             application:set_env(elvis, output_format, Default)
+             application:set_env(elvis_core, output_format, Default)
          end.
 
 -spec rock_with_no_output_has_no_output(config()) -> ok.
 rock_with_no_output_has_no_output(_Config) ->
-    application:set_env(elvis, no_output, true),
+    application:set_env(elvis_core, no_output, true),
     ConfigPath = "../../config/test.config",
     ElvisConfig = elvis_config:load_file(ConfigPath),
     Fun = fun() -> elvis_core:rock(ElvisConfig) end,
     [] = check_no_line_output(Fun),
-    application:unset_env(elvis, no_output),
+    application:unset_env(elvis_core, no_output),
     ok.
 
 -spec rock_with_errors_has_output(config()) -> ok.
@@ -240,13 +240,13 @@ rock_without_errors_has_no_output(_Config) ->
 
 -spec rock_without_errors_and_with_verbose_has_output(config()) -> ok.
 rock_without_errors_and_with_verbose_has_output(_Config) ->
-    application:set_env(elvis, verbose, true),
+    application:set_env(elvis_core, verbose, true),
     ConfigPath = "../../config/test.pass.config",
     ElvisConfig = elvis_config:load_file(ConfigPath),
     Fun = fun() -> elvis_core:rock(ElvisConfig) end,
     Expected = "OK",
     [_|_] = check_some_line_output(Fun, Expected, fun matches_regex/2),
-    application:unset_env(elvis, verbose),
+    application:unset_env(elvis_core, verbose),
     ok.
 
 -spec rock_with_rule_groups(Config::config()) -> ok.

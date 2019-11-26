@@ -1,5 +1,5 @@
 {
-  application, elvis,
+  application, elvis_core,
   [
    {pkg_name, elvis_core},
    {description, "Core library for the Erlang style reviewer"},

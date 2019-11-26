@@ -164,14 +164,14 @@ error_prn(Message, Args) ->
 
 -spec print_info(string(), [term()]) -> ok.
 print_info(Message, Args) ->
-    case application:get_env(elvis, verbose) of
+    case application:get_env(elvis_core, verbose) of
         {ok, true} -> print(Message, Args);
         _ -> ok
     end.
 
 -spec print(string(), [term()]) -> ok.
 print(Message, Args) ->
-    case application:get_env(elvis, no_output) of
+    case application:get_env(elvis_core, no_output) of
         {ok, true} -> ok;
         _ ->
             Output = io_lib:format(Message, Args),
@@ -190,7 +190,7 @@ parse_colors(Message) ->
                "white-bold" => "\e[1;37m",
                "reset" => "\e[0m"},
     Opts = [global, {return, list}],
-    case application:get_env(elvis, output_format, colors) of
+    case application:get_env(elvis_core, output_format, colors) of
         P when P =:= plain orelse
                P =:= parsable ->
             re:replace(Message, "{{.*?}}", "", Opts);

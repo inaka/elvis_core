@@ -44,7 +44,7 @@ default() ->
                 {ok, Config} ->
                     load(Config);
                 {error, enoent} ->
-                    Config = application:get_env(elvis, config, []),
+                    Config = application:get_env(elvis_core, config, []),
                     ensure_config_list(Config);
                 {error, Reason} ->
                     throw(Reason)

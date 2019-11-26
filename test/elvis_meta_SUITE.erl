@@ -11,7 +11,7 @@ all() -> [dialyzer, xref].
 
 -spec dialyzer(config()) -> {comment, []}.
 dialyzer(_Config) ->
-  BaseDir = code:lib_dir(elvis),
+  BaseDir = code:lib_dir(elvis_core),
   DefaultRebar3PltLoc = filename:join(BaseDir, "../../../default"),
   Plts = filelib:wildcard(filename:join(DefaultRebar3PltLoc, "*_plt")),
   Dirs = [filename:join(BaseDir, Dir) || Dir <- ["ebin", "test"]],
@@ -29,7 +29,7 @@ dialyzer(_Config) ->
 
 -spec xref(config()) -> {comment, []}.
 xref(_Config) ->
-  BaseDir = code:lib_dir(elvis),
+  BaseDir = code:lib_dir(elvis_core),
   Dirs = [filename:join(BaseDir, Dir) || Dir <- ["ebin", "test"]],
   XrefConfig = #{ dirs => Dirs
                 , xref_defaults =>

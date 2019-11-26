@@ -14,8 +14,6 @@
 %% for internal use only
 -export([do_rock/2]).
 
--define(APP_NAME, "elvis").
-
 -type source_filename() :: nonempty_string().
 -type target() :: source_filename() | module().
 
@@ -26,7 +24,7 @@
 %% @doc Used when starting the application on the shell.
 -spec start() -> ok.
 start() ->
-    {ok, _} = application:ensure_all_started(elvis),
+    {ok, _} = application:ensure_all_started(elvis_core),
     ok.
 
 %%% Rock Command
@@ -85,7 +83,7 @@ rock_this(Path, Config) ->
 %% @private
 -spec do_parallel_rock(map()) -> ok | {fail, [elvis_result:file() | elvis_result:rule()]}.
 do_parallel_rock(Config0) ->
-    Parallel = application:get_env(elvis, parallel, 1),
+    Parallel = application:get_env(elvis_core, parallel, 1),
     Config = elvis_config:resolve_files(Config0),
     Files = elvis_config:files(Config),
 
