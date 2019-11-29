@@ -51,7 +51,7 @@ parse_tree(_Config, File = #{parse_tree := ParseTree}) ->
 parse_tree(Config, File = #{path := Path, content := Content}) ->
     Ext = filename:extension(Path),
     ExtStr = elvis_utils:to_str(Ext),
-    ParseTree = resolve_parse_tree(Config, ExtStr, Content),
+    ParseTree = resolve_parse_tree(ExtStr, Content),
     parse_tree(Config, File#{parse_tree => ParseTree});
 parse_tree(Config, File0 = #{path := _Path}) ->
     {_, File} = src(File0),
@@ -109,11 +109,11 @@ filter_files(Files, Dirs, Filter, IgnoreList) ->
 %% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec resolve_parse_tree(map(), string(), binary()) ->
+-spec resolve_parse_tree(string(), binary()) ->
     undefined | ktn_code:tree_node().
-resolve_parse_tree(Config, ".erl", Content) ->
-    ktn_code:parse_tree(elvis_config:include_dirs(Config), Content);
-resolve_parse_tree(_, _, _) ->
+resolve_parse_tree(".erl", Content) ->
+    ktn_code:parse_tree(Content);
+resolve_parse_tree( _, _) ->
     undefined.
 
 -spec glob_to_regex(iodata()) -> iodata().
