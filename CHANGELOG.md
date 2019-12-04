@@ -1,10 +1,20 @@
 # Change Log
 
+## [0.4.3](https://github.com/inaka/elvis_core/tree/0.4.3)
+
+[Full Changelog](https://github.com/inaka/elvis_core/compare/0.4.2...0.4.3)
+
+**Merged pull requests:**
+
+- \[inaka/elvis\#483\] Operator spaces false positives [\#112](https://github.com/inaka/elvis_core/pull/112) ([jfacorro](https://github.com/jfacorro))
+- Prevent duplicate linting of files [\#111](https://github.com/inaka/elvis_core/pull/111) ([elbrujohalcon](https://github.com/elbrujohalcon))
+
 ## [0.4.2](https://github.com/inaka/elvis_core/tree/0.4.2) (2019-05-23)
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.4.1...0.4.2)
 
 **Merged pull requests:**
 
+- Version bump to 0.4.2 [\#109](https://github.com/inaka/elvis_core/pull/109) ([igaray](https://github.com/igaray))
 - Rock in parallel [\#107](https://github.com/inaka/elvis_core/pull/107) ([define-null](https://github.com/define-null))
 - Add parsable option in order to output results in the dialyzer-like format [\#106](https://github.com/inaka/elvis_core/pull/106) ([define-null](https://github.com/define-null))
 - Fix app name in README.md [\#105](https://github.com/inaka/elvis_core/pull/105) ([elbrujohalcon](https://github.com/elbrujohalcon))
