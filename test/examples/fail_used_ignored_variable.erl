@@ -1,9 +1,9 @@
 -module(fail_used_ignored_variable).
 
--export([
-         use_ignored_var/2,
-         use_ignored_var_in_fun/2,
-         no_used_ignored_vars_here/2, handle_call/3
+-export([ use_ignored_var/2
+        , use_ignored_var_in_fun/2
+        , no_used_ignored_vars_here/2, handle_call/3
+        , macro_with_underscore/0
         ]).
 
 use_ignored_var(_One, Two) ->
@@ -24,3 +24,8 @@ no_used_ignored_vars_here(One, _Two) ->
     {stop, {unknown_request, Msg}, {unknown_request, Msg}, term()}.
 handle_call(Msg, _From, State) ->
     {stop, {unknown_request, Msg}, {unknown_request, Msg}, State}.
+
+-define(__(X), X).
+
+macro_with_underscore() ->
+    ?__("This string will be translated").

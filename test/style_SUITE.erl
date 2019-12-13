@@ -440,11 +440,12 @@ verify_dont_repeat_yourself(_Config) ->
     PathFail = "fail_dont_repeat_yourself.erl",
     {ok, FileFail} = elvis_test_utils:find_file(SrcDirs, PathFail),
     RuleConfig5 = #{min_complexity => 5},
-    [_, _] =
-        elvis_style:dont_repeat_yourself(ElvisConfig, FileFail, RuleConfig5),
+    Res1 = elvis_style:dont_repeat_yourself(ElvisConfig, FileFail, RuleConfig5),
+    2 = length(Res1),
 
     RuleConfig9 = #{min_complexity => 9},
-    [_] = elvis_style:dont_repeat_yourself(ElvisConfig, FileFail, RuleConfig9),
+    Res2 = elvis_style:dont_repeat_yourself(ElvisConfig, FileFail, RuleConfig9),
+    1 = length(Res2),
 
     IgnoreRule = #{ignore => [fail_dont_repeat_yourself]},
     [] = elvis_style:dont_repeat_yourself(ElvisConfig, FileFail, IgnoreRule),

@@ -519,26 +519,27 @@ dont_repeat_yourself(Config, Target, RuleConfig) ->
 
     Ignored = lists:member(ModuleName, IgnoreModules),
 
-    case Ignored orelse find_repeated_nodes(Root, MinComplexity) of
-        true when Ignored -> [];
-        [] -> [];
-        [_|_] = Nodes ->
-            LocationCat =
-                fun
-                    ({Line, Col}, "") ->
-                        io_lib:format("(~p, ~p)", [Line, Col]);
-                    ({Line, Col}, Str) ->
-                        io_lib:format("~s, (~p, ~p)", [Str, Line, Col])
-                end,
-            ResultFun =
-                fun([{Line, _} | _] = Locations) ->
-                        LocationsStr = lists:foldl(LocationCat, "", Locations),
-                        Info = [LocationsStr],
-                        Msg = ?DONT_REPEAT_YOURSELF,
-                        elvis_result:new(item, Msg, Info, Line)
-                end,
-            lists:map(ResultFun, Nodes)
-    end.
+    Nodes = case Ignored of
+                true  -> [];
+                false -> find_repeated_nodes(Root, MinComplexity)
+            end,
+
+    LocationCat =
+        fun
+            ({Line, Col}, "") ->
+                io_lib:format("(~p, ~p)", [Line, Col]);
+            ({Line, Col}, Str) ->
+                io_lib:format("~s, (~p, ~p)", [Str, Line, Col])
+        end,
+    ResultFun =
+        fun([{Line, _} | _] = Locations) ->
+                LocationsStr = lists:foldl(LocationCat, "", Locations),
+                Info = [LocationsStr],
+                Msg = ?DONT_REPEAT_YOURSELF,
+                elvis_result:new(item, Msg, Info, Line)
+        end,
+
+    lists:map(ResultFun, Nodes).
 
 -spec max_module_length(elvis_config:config(),
                         elvis_file:file(),
@@ -882,7 +883,7 @@ check_macro_names(Line, Num, _Args) ->
             end
     end.
 
-%% Macro in Function Call as Module or Functon Name
+%% Macro in Function Call as Module or Function Name
 
 -spec check_macro_module_names(binary(), integer(), [term()]) ->
     no_result | {ok, elvis_result:item()}.
@@ -939,7 +940,8 @@ is_remote_call({Num, Col}, Root) ->
                         (Node0 == zipper:node(Zipper))
                             andalso has_remote_call_parent(Zipper)
                 end,
-            [] =/= elvis_code:find(Pred, Root, #{mode => zipper})
+            Opts = #{mode => zipper, traverse => all},
+            [] =/= elvis_code:find(Pred, Root, Opts)
     end.
 
 has_remote_call_parent(undefined) ->
@@ -1048,7 +1050,7 @@ is_dynamic_call(Node) ->
     end.
 
 %% Plain Variable
--spec is_var(ktn_code:tree_node()) -> boolean().
+-spec is_var(zipper:zipper(_)) -> boolean().
 is_var(Zipper) ->
     case ktn_code:type(zipper:node(Zipper)) of
         var ->
@@ -1066,7 +1068,7 @@ is_var(Zipper) ->
 
 %% Ignored Variable
 
--spec is_ignored_var(ktn_code:tree_node()) ->
+-spec is_ignored_var(zipper:zipper(_)) ->
     boolean().
 is_ignored_var(Zipper) ->
     Node = zipper:node(Zipper),
