@@ -1,11 +1,19 @@
 # Change Log
 
-## [0.4.3](https://github.com/inaka/elvis_core/tree/0.4.3)
+## [0.5.0](https://github.com/inaka/elvis_core/tree/0.5.0)
 
+[Full Changelog](https://github.com/inaka/elvis_core/compare/0.4.3...0.5.0)
+
+**Merged pull requests:**
+
+- Update katana code [\#113](https://github.com/inaka/elvis_core/pull/113) ([jfacorro](https://github.com/jfacorro))
+
+## [0.4.3](https://github.com/inaka/elvis_core/tree/0.4.3) (2019-12-04)
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.4.2...0.4.3)
 
 **Merged pull requests:**
 
+- Prepare release 0.4.3 [\#114](https://github.com/inaka/elvis_core/pull/114) ([jfacorro](https://github.com/jfacorro))
 - \[inaka/elvis\#483\] Operator spaces false positives [\#112](https://github.com/inaka/elvis_core/pull/112) ([jfacorro](https://github.com/jfacorro))
 - Prevent duplicate linting of files [\#111](https://github.com/inaka/elvis_core/pull/111) ([elbrujohalcon](https://github.com/elbrujohalcon))
 
