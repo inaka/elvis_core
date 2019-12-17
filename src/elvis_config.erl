@@ -1,34 +1,29 @@
 -module(elvis_config).
 
--export([
-         default/0,
-         load_file/1,
-         load/1,
-         validate/1,
-         normalize/1,
-         %% Geters
-         dirs/1,
-         include_dirs/1,
-         ignore/1,
-         filter/1,
-         files/1,
-         rules/1,
-         %% Files
-         resolve_files/1,
-         resolve_files/2,
-         apply_to_files/2
+-export([ default/0
+        , load_file/1
+        , load/1
+        , validate/1
+        , normalize/1
+          %% Geters
+        , dirs/1
+        , ignore/1
+        , filter/1
+        , files/1
+        , rules/1
+          %% Files
+        , resolve_files/1
+        , resolve_files/2
+        , apply_to_files/2
         ]).
 
--export_type([
-              config/0
-             ]).
+-export_type([config/0]).
 
 -type config() :: [map()].
 
 -define(DEFAULT_CONFIG_PATH, "./elvis.config").
 -define(DEFAULT_REBAR_CONFIG_PATH, "./rebar.config").
 -define(DEFAULT_FILTER, "*.erl").
--define(DEFAULT_INCLUDE_DIRS, ["include"]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Public
@@ -117,15 +112,6 @@ dirs(_RuleGroup = #{dirs := Dirs}) ->
     Dirs;
 dirs(#{}) ->
     [].
-
-% Only get `include_dirs' value for erl files RuleGroup, discard other ones.
--spec include_dirs(Config::config() | map()) -> [string()].
-include_dirs(Config) when is_list(Config) ->
-    lists:flatmap(fun include_dirs/1, Config);
-include_dirs(_RuleGroup = #{include_dirs := IDirs})->
-    IDirs;
-include_dirs(_) ->
-    ?DEFAULT_INCLUDE_DIRS.
 
 -spec ignore(config() | map()) -> [string()].
 ignore(Config) when is_list(Config) ->

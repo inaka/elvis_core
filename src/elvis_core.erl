@@ -2,11 +2,8 @@
 
 %% Public API
 
--export([
-         rock/0,
-         rock/1,
-         rock_this/1,
-         rock_this/2
+-export([ rock/1
+        , rock_this/2
         ]).
 
 -export([start/0]).
@@ -29,23 +26,12 @@ start() ->
 
 %%% Rock Command
 
--spec rock() -> ok | {fail, [elvis_result:file()]}.
-rock() ->
-    Config = elvis_config:default(),
-    rock(Config).
-
 -spec rock(elvis_config:config()) -> ok | {fail, [elvis_result:file()]}.
 rock(Config) ->
     ok = elvis_config:validate(Config),
     NewConfig = elvis_config:normalize(Config),
     Results = lists:map(fun do_parallel_rock/1, NewConfig),
     lists:foldl(fun combine_results/2, ok, Results).
-
--spec rock_this(target()) ->
-    ok | {fail, [elvis_result:file() | elvis_result:rule()]}.
-rock_this(Target) ->
-    Config = elvis_config:default(),
-    rock_this(Target, Config).
 
 -spec rock_this(target(), elvis_config:config()) ->
     ok | {fail, [elvis_result:file() | elvis_result:rule()]}.
