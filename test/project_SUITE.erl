@@ -53,7 +53,7 @@ end_per_suite(Config) ->
 
 -spec verify_no_deps_master_erlang_mk(config()) -> any().
 verify_no_deps_master_erlang_mk(_Config) ->
-    ElvisConfig = elvis_config:default(),
+    ElvisConfig = elvis_test_utils:config(),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     Filename = "Makefile.fail",
@@ -73,7 +73,7 @@ verify_no_deps_master_erlang_mk(_Config) ->
 
 -spec verify_no_deps_master_rebar(config()) -> any().
 verify_no_deps_master_rebar(_Config) ->
-    ElvisConfig = elvis_config:default(),
+    ElvisConfig = elvis_test_utils:config(),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     Filename = "rebar.config.fail",
@@ -90,7 +90,7 @@ verify_no_deps_master_rebar(_Config) ->
 
 -spec verify_git_for_deps_erlang_mk(config()) -> any().
 verify_git_for_deps_erlang_mk(_Config) ->
-    ElvisConfig = elvis_config:default(),
+    ElvisConfig = elvis_test_utils:config(),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     Filename = "Makefile.fail",
@@ -116,7 +116,7 @@ verify_git_for_deps_erlang_mk(_Config) ->
 
 -spec verify_protocol_for_deps_erlang_mk(config()) -> any().
 verify_protocol_for_deps_erlang_mk(_Config) ->
-    ElvisConfig = elvis_config:default(),
+    ElvisConfig = elvis_test_utils:config(),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     Filename = "Makefile.fail",
@@ -142,7 +142,7 @@ verify_protocol_for_deps_erlang_mk(_Config) ->
 
 -spec verify_git_for_deps_rebar(config()) -> any().
 verify_git_for_deps_rebar(_Config) ->
-    ElvisConfig = elvis_config:default(),
+    ElvisConfig = elvis_test_utils:config(),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     Filename = "rebar.config.fail",
@@ -162,7 +162,7 @@ verify_git_for_deps_rebar(_Config) ->
 
 -spec verify_protocol_for_deps_rebar(config()) -> any().
 verify_protocol_for_deps_rebar(_Config) ->
-    ElvisConfig = elvis_config:default(),
+    ElvisConfig = elvis_test_utils:config(),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     Filename = "rebar.config.fail",
@@ -182,7 +182,7 @@ verify_protocol_for_deps_rebar(_Config) ->
 
 -spec verify_hex_dep_rebar(config()) -> any().
 verify_hex_dep_rebar(_Config) ->
-    ElvisConfig = elvis_config:default(),
+    ElvisConfig = elvis_test_utils:config(),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     Filename = "rebar3.config.success",
@@ -192,7 +192,7 @@ verify_hex_dep_rebar(_Config) ->
 
 -spec verify_old_config_format(config()) -> any().
 verify_old_config_format(_Config) ->
-    ElvisConfig = elvis_config:default(),
+    ElvisConfig = elvis_test_utils:config(),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     PathFail = "fail.elvis.config",

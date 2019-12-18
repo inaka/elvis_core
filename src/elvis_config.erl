@@ -1,8 +1,7 @@
 -module(elvis_config).
 
--export([ default/0
-        , load_file/1
-        , load/1
+-export([ from_rebar/1
+        , from_file/1
         , validate/1
         , normalize/1
           %% Geters
@@ -21,45 +20,33 @@
 
 -type config() :: [map()].
 
--define(DEFAULT_CONFIG_PATH, "./elvis.config").
--define(DEFAULT_REBAR_CONFIG_PATH, "./rebar.config").
 -define(DEFAULT_FILTER, "*.erl").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Public
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec default() -> config().
-default() ->
-    case file:consult(?DEFAULT_CONFIG_PATH) of
-        {ok, [Config]} ->
-            load(Config);
-        {error, enoent} ->
-            case file:consult(?DEFAULT_REBAR_CONFIG_PATH) of
-                {ok, Config} ->
-                    load(Config);
-                {error, enoent} ->
-                    Config = application:get_env(elvis_core, config, []),
-                    ensure_config_list(Config);
-                {error, Reason} ->
-                    throw(Reason)
-            end;
+-spec from_rebar(string()) -> config().
+from_rebar(Path) ->
+    case file:consult(Path) of
+        {ok, Config} ->
+            load(elvis, Config);
         {error, Reason} ->
             throw(Reason)
     end.
 
--spec load_file(string()) -> config().
-load_file(Path) ->
+-spec from_file(string()) -> config().
+from_file(Path) ->
     case file:consult(Path) of
         {ok, [Config]} ->
-            load(Config);
+            load(elvis, Config);
         {error, Reason} ->
             throw(Reason)
     end.
 
--spec load(term()) -> config().
-load(AppConfig) ->
-    ElvisConfig = proplists:get_value(elvis, AppConfig, []),
+-spec load(atom(), term()) -> config().
+load(Key, AppConfig) ->
+    ElvisConfig = proplists:get_value(Key, AppConfig, []),
     Config =  proplists:get_value(config, ElvisConfig, []),
     ensure_config_list(Config).
 
