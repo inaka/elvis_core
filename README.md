@@ -5,33 +5,43 @@ Erlang style reviewer core library.
 This library includes the mechanism to apply rules to your code and their
 implementation.
 
-## Contact Us
+## Contributing & Reporting Bugs
+
 If you find any **bugs** or have a **problem** while using this library, please
 [open an issue](https://github.com/inaka/elvis/issues/new) in this repo
 (or a pull request :)).
 
-## Contributing & Reporting Bugs
-
-If you find a bug or want to contribute to this project please create an issue through
-the [elvis](https://github.com/inaka/elvis) repository. This is where all elvis related
-work is coordinated.
+The [elvis](https://github.com/inaka/elvis) repository is where all elvis_core
+related work is coordinated.
 
 ## Usage
 
 ### As a library
 
-This library implements all the core functionality for the
-[`elvis`](https://github.com/inaka/elvis) command-line tool. For an example on
-how to use it please check that project.
+This library implements all the core functionality for analyzing files and
+applying the styles rules defined here or custom ones defined by its users.
+
+The [`elvis`](https://github.com/inaka/elvis) command-line tool uses it
+extensively, so please check that project for a concrete example on how
+you could use for your own purposes.
 
 ### Erlang Shell
 
-After adding `elvis_core` as a dependency to your project and setting up its
-[configuration](#configuration), you can run it from an Erlang shell in the
-following two ways.
+After adding `elvis_core` as a dependency to your project and starting a
+shell, you will need to make sure the application is started:
 
 ```erlang
-elvis_core:rock().
+{ok, _} = application:ensure_all_started(elvis_core).
+%%= {ok,[ zipper, katana_code, elvis_core]}
+```
+
+Once this is done you can run the style rules in the following ways.
+
+#### Load configuration from a file
+
+```erlang
+ElvisConfig = elvis_core:from_file("elvis.config").
+elvis_core:rock(ElvisConfig).
 %%+ # src/elvis_core.erl [OK]
 %%+ # src/elvis_result.erl [OK]
 %%+ # src/elvis_style.erl [OK]
@@ -39,23 +49,18 @@ elvis_core:rock().
 %%= ok
 ```
 
-This will try to load the configuration for `elvis_core` specified in an
-`elvis.config` located in the current directory. If no configuration is
-found `invalid_config` will be thrown.
+This will try to load the [configuration](#configuration) specified in an
+`elvis.config` located in the current directory. If no configuration is found
+`invalid_config` will be thrown.
 
-To start the application in the shell enter the following command:
-
-```erlang
-application:start(elvis).
-%%= ok
-```
+#### Provide configuration as a value
 
 Another option for using `elvis_core` from the shell is explicitly providing a
 configuration as an argument to `rock/1`:
 
 ```erlang
-Config = [#{dirs => ["src"], filter => "*.erl", rules => []}],
-elvis_core:rock(Config).
+ElvisConfig = [#{dirs => ["src"], filter => "*.erl", rules => []}],
+elvis_core:rock(ElvisConfig).
 %%+ # src/elvis_core.erl [OK]
 %%+ # src/elvis_result.erl [OK]
 %%+ # src/elvis_style.erl [OK]
@@ -67,6 +72,8 @@ elvis_core:rock(Config).
 under development the definition for *valid format* is still a work in progress.
 If the configuration format changes though, the example configuration files and
 the documentation in this README will be updated.
+
+#### Output for failing rules
 
 We have only presented results where all files were well-behaved (respect all
 the rules), so here's an example of how it looks when files break some of the
@@ -86,67 +93,60 @@ rules:
 
 ## Configuration
 
-To provide a default configuration you should create an `elvis.config` file located
-in the root directory:
+An `elvis.config` configuration file should look like this:
 
 ```erlang
-[
- {
-   elvis,
-   [
-    {config,
-     [#{dirs => ["src"],
-        include_dirs => ["include"],
-        filter => "*.erl",
-        ruleset => erl_files
-       },
-      #{dirs => ["."],
-        filter => "Makefile",
-        ruleset => makefiles
-       },
-      #{dirs => ["."],
-        filter => "rebar.config",
-        ruleset => rebar_config
-       },
-      #{dirs => ["."],
-        filter => "elvis.config",
-        ruleset => elvis_config
-       }
-     ]
-    },
-    %% Optional to select the output format, the default is colors
-    {output_format, plain},
-    %% Only necessary for the 'webhook' functionality
-    {github_user, "user"},
-    {github_password, "password"}
-   ]
- }
+[ { elvis
+  , [ { config
+      , [ #{ dirs    => ["src"]
+           , filter  => "*.erl"
+           , ruleset => erl_files
+           }
+        , #{ dirs    => ["."]
+           , filter  => "Makefile"
+           , ruleset => makefiles
+           }
+        , #{ dirs    => ["."]
+           , filter  => "rebar.config"
+           , ruleset => rebar_config
+           }
+        , #{ dirs    => ["."]
+           , filter  => "elvis.config"
+           , ruleset => elvis_config
+           }
+        ]
+      }
+      %% output_format (optional): how to format the output.
+      %% Possible values are 'plain', 'colors' or 'parsable' (default='colors').
+    , {output_format, colors},
+      %% verbose (optional): when 'true' more information will
+      %% be printed (default=false).
+    , {verbose, true}
+      %% no_output (optional): when 'true' nothing will be printed
+      %% (default=false).
+    , {no_output, false}
+      %% parallel: determine how many files in parallel will be
+      %% analyzed (default=1).
+    , {parallel, 1}
+    ]
+  }
 ].
 ```
 
-The `include_dirs` key is just a list of folders (`[string()]`) where to search for
-header files.
+### Files, Rules & Rulesets
 
 The `dirs` key is a list that indicates where `elvis` should look for the
 files that match `filter`, which will be run through each of the default rules
-in the specified `ruleset`, which is an *atom*. If you want to override the
-[default rules](https://github.com/inaka/elvis_core/blob/master/src/elvis_rulesets.erl)
-for a given ruleset you need to specify them in a `rules` key which is a
-list of items with the following structure `{Module, Function, RuleConfig}` or
-`{Module, Function}` if the rule takes no configuration values. You can also
-`disable` certain rules if you want to just by specifying the rule in the `rules`
-key and passing `disable` as its third parameter.
+in the specified `ruleset`, which is an *atom*.
 
-`output_format` is used to configure the output format. Possible values are `colors`,
-`plain` and `parsable`. The latter could be use for the automated parsing and has a
-format very close to dialyzer in a form `FILE:LINE:RULE:MESSAGE`:
+If you want to override the [default rules][default-rules] for a given ruleset
+you need to specify them in a `rules` key which is a list of items with the
+following structure `{Module, Function, RuleConfig}` or `{Module, Function}`
+if the rule takes no configuration values. You can also `disable` certain rules
+if you want to just by specifying the rule in the `rules` key and passing
+`disable` as its third parameter.
 
-```
-src/example.erl:1:god_modules:This module has too many functions (56). Consider breaking it into a number of modules.
-src/example_a.erl:341:no_debug_call:Remove the debug call to io:format/2 on line 341.
-src/example_a.erl:511:used_ignored_variable:Ignored variable is being used on line 511 and column 54.
-src/example_a.erl:1252:used_ignored_variable:Ignored variable is being used on line 1252 and column 21.
-```
+#### Disabling Rules
 
 **IMPORTANT:** `disable` will only work if you also provided a `ruleset` as shown above.
 
@@ -162,6 +162,8 @@ also you like to use tabs instead of spaces, so you need to override `erl_files`
   ruleset => erl_files
 },
 ```
+
+#### Ignoring Modules
 
 You can also `ignore` modules at a _check level_ or at a _ruleset (group of checks) level_:
 - at check level by setting the ignore parameter in the rule you want to skip, e.g:
@@ -180,25 +182,64 @@ You can also `ignore` modules at a _check level_ or at a _ruleset (group of chec
   ```
   With this configuration, none of the checks for [erl_files](https://github.com/inaka/elvis_core/blob/master/src/elvis_rulesets.erl#L6-L34) would be applied to `module1.erl` and `module4.erl` files.
 
-The implementation of a rule is just a function that takes 3 arguments: `elvis`'s
-`config` entry from its [configuration](#configuration); the file to be
-analyzed; and a configuration map specified for the rule. This means you can
-define rules of your own as long as the functions that implement them respect
-this arity.
+### Formating
 
-You can find the default `elvis` configuration file at `config/elvis.config`.
+`output_format` is used to configure the output format. Possible values are `colors`,
+`plain` and `parsable`. The latter could be use for the automated parsing and has a
+format very close to dialyzer in a form `FILE:LINE:RULE:MESSAGE`:
 
-The GitHub configuration parameters `github_user` and `github_password` are
-required only when `elvis` is used as a [webhook](#webhook).
+```
+src/example.erl:1:god_modules:This module has too many functions (56). Consider breaking it into a number of modules.
+src/example_a.erl:341:no_debug_call:Remove the debug call to io:format/2 on line 341.
+src/example_a.erl:511:used_ignored_variable:Ignored variable is being used on line 511 and column 54.
+src/example_a.erl:1252:used_ignored_variable:Ignored variable is being used on line 1252 and column 21.
+```
+
+### Verbosity
+
+It is possible to indicate elvis_core to produce more information in its output
+with the `verbose` option. The value provided should be a boolean, either `true`
+or `false`.
+
+The default value for `verbose` is `false`.
+
+On the other hand if no output is desired then the value for the  `no_output`
+option should be `true`.
+
+The default value for `no_output` is `false`.
+
+### Parallelization
+
+In order to speed up the analysis of files, the `parallel` option can be used.
+
+Its value indicates how many processes to use at the same time to apply the
+style rules to all the files gathered. The number provided should be less than
+or equal to the available CPUs, since any value higher than that won't report
+any speedup benefits.
+
+The default value for `parallel` is `1`.
+
+## Configuration Examples
+
+You can find examples for  configuration files in this project's `config` directory.
 
 ## Implemented Rules
 
 A reference of all rules implemented in Elvis can be found in this wiki page:
 [Rules](https://github.com/inaka/elvis/wiki/Rules).
 
+### Custom Rules
+
+The implementation of a rule is just a function that takes 3 arguments: `elvis`'s
+`config` entry from its [configuration](#configuration); the file to be
+analyzed; and a configuration map specified for the rule. This means you can
+define rules of your own as long as the functions that implement them respect
+this arity.
+
 ## References
 
 Inspired by [HoundCI][houndci]
 
-  [houndci]: https://houndci.com/
-  [config]: http://www.erlang.org/doc/man/config.html
+[default-rules]: (https://github.com/inaka/elvis_core/blob/master/src/elvis_rulesets.erl)
+[houndci]: https://houndci.com/
+[config]: http://www.erlang.org/doc/man/config.html
