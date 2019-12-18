@@ -2,19 +2,14 @@
 
 %% Public API
 
--export([
-         rock/0,
-         rock/1,
-         rock_this/1,
-         rock_this/2
+-export([ rock/1
+        , rock_this/2
         ]).
 
 -export([start/0]).
 
 %% for internal use only
 -export([do_rock/2]).
-
--define(APP_NAME, "elvis").
 
 -type source_filename() :: nonempty_string().
 -type target() :: source_filename() | module().
@@ -26,15 +21,10 @@
 %% @doc Used when starting the application on the shell.
 -spec start() -> ok.
 start() ->
-    {ok, _} = application:ensure_all_started(elvis),
+    {ok, _} = application:ensure_all_started(elvis_core),
     ok.
 
 %%% Rock Command
-
--spec rock() -> ok | {fail, [elvis_result:file()]}.
-rock() ->
-    Config = elvis_config:default(),
-    rock(Config).
 
 -spec rock(elvis_config:config()) -> ok | {fail, [elvis_result:file()]}.
 rock(Config) ->
@@ -42,12 +32,6 @@ rock(Config) ->
     NewConfig = elvis_config:normalize(Config),
     Results = lists:map(fun do_parallel_rock/1, NewConfig),
     lists:foldl(fun combine_results/2, ok, Results).
-
--spec rock_this(target()) ->
-    ok | {fail, [elvis_result:file() | elvis_result:rule()]}.
-rock_this(Target) ->
-    Config = elvis_config:default(),
-    rock_this(Target, Config).
 
 -spec rock_this(target(), elvis_config:config()) ->
     ok | {fail, [elvis_result:file() | elvis_result:rule()]}.
@@ -85,7 +69,7 @@ rock_this(Path, Config) ->
 %% @private
 -spec do_parallel_rock(map()) -> ok | {fail, [elvis_result:file() | elvis_result:rule()]}.
 do_parallel_rock(Config0) ->
-    Parallel = application:get_env(elvis, parallel, 1),
+    Parallel = application:get_env(elvis_core, parallel, 1),
     Config = elvis_config:resolve_files(Config0),
     Files = elvis_config:files(Config),
 

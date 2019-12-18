@@ -58,12 +58,12 @@ all() ->
 
 -spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
-    {ok, _} = application:ensure_all_started(elvis),
+    {ok, _} = application:ensure_all_started(elvis_core),
     Config.
 
 -spec end_per_suite(config()) -> config().
 end_per_suite(Config) ->
-    ok = application:stop(elvis),
+    ok = application:stop(elvis_core),
     Config.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -122,8 +122,10 @@ rock_with_list_config(_Config) ->
 
 -spec rock_with_file_config(config()) -> ok.
 rock_with_file_config(_Config) ->
-    Fun = fun() -> elvis_core:rock() end,
-    Expected = "# \\.\\./\\.\\./_build/test/lib/elvis/test/" ++
+    ConfigPath = "../../config/elvis.config",
+    ElvisConfig = elvis_config:from_file(ConfigPath),
+    Fun = fun() -> elvis_core:rock(ElvisConfig) end,
+    Expected = "# \\.\\./\\.\\./_build/test/lib/elvis_core/test/" ++
                "examples/.*\\.erl.*FAIL",
     [_ | _] = check_some_line_output(Fun, Expected, fun matches_regex/2),
     ok.
@@ -131,7 +133,7 @@ rock_with_file_config(_Config) ->
 -spec rock_with_old_config(config()) -> ok.
 rock_with_old_config(_Config) ->
     ConfigPath = "../../config/old/elvis.config",
-    ElvisConfig = elvis_config:load_file(ConfigPath),
+    ElvisConfig = elvis_config:from_file(ConfigPath),
     ok = try
              ok = elvis_core:rock(ElvisConfig)
          catch
@@ -139,7 +141,7 @@ rock_with_old_config(_Config) ->
          end,
 
     ConfigPath1 = "../../config/old/elvis-test.config",
-    ElvisConfig1 = elvis_config:load_file(ConfigPath1),
+    ElvisConfig1 = elvis_config:from_file(ConfigPath1),
     ok = try
              ok = elvis_core:rock(ElvisConfig1)
          catch
@@ -147,7 +149,7 @@ rock_with_old_config(_Config) ->
          end,
 
     ConfigPath2 = "../../config/old/elvis-test-rule-config-list.config",
-    ElvisConfig2 = elvis_config:load_file(ConfigPath2),
+    ElvisConfig2 = elvis_config:from_file(ConfigPath2),
     ok = try
              ok = elvis_core:rock(ElvisConfig2)
          catch
@@ -157,8 +159,9 @@ rock_with_old_config(_Config) ->
 -spec rock_with_rebar_default_config(config()) -> ok.
 rock_with_rebar_default_config(_Config) ->
     {ok, _} = file:copy("../../config/rebar.config", "rebar.config"),
+    ElvisConfig = elvis_config:from_rebar("rebar.config"),
     [#{name := line_length}] = try
-        {fail, Results} = elvis_core:rock(),
+        {fail, Results} = elvis_core:rock(ElvisConfig),
         [Rule || #{rules := [Rule]} <- Results]
     after
         file:delete("rebar.config")
@@ -167,24 +170,24 @@ rock_with_rebar_default_config(_Config) ->
 
 -spec rock_this(config()) -> ok.
 rock_this(_Config) ->
-    ok = elvis_core:rock_this(elvis_core),
+    ElvisConfig = elvis_test_utils:config(),
+    ok = elvis_core:rock_this(elvis_core, ElvisConfig),
 
     ok = try
-             {fail, _} = elvis_core:rock_this("bla.erl")
+             {fail, _} = elvis_core:rock_this("bla.erl", ElvisConfig)
          catch
              _:{enoent, "bla.erl"} -> ok
          end,
 
     Path =
-        "../../_build/test/lib/elvis/test/examples/fail_line_length.erl",
-    {fail, _} = elvis_core:rock_this(Path),
+        "../../_build/test/lib/elvis_core/test/examples/fail_line_length.erl",
+    {fail, _} = elvis_core:rock_this(Path, ElvisConfig),
 
     ok.
 
 -spec rock_without_colors(config()) -> ok.
 rock_without_colors(_Config) ->
-    ConfigPath = "../../config/test.config",
-    ElvisConfig = elvis_config:load_file(ConfigPath),
+    ElvisConfig = elvis_test_utils:config(),
     Fun = fun() -> elvis_core:rock(ElvisConfig) end,
     Expected = "\\e.*?m",
     ok = try check_some_line_output(Fun, Expected, fun matches_regex/2) of
@@ -195,10 +198,9 @@ rock_without_colors(_Config) ->
 
 -spec rock_with_parsable(config()) -> ok.
 rock_with_parsable(_Config) ->
-    {ok, Default} = application:get_env(elvis, output_format),
-    application:set_env(elvis, output_format, parsable),
-    ConfigPath = "../../config/test.config",
-    ElvisConfig = elvis_config:load_file(ConfigPath),
+    {ok, Default} = application:get_env(elvis_core, output_format),
+    application:set_env(elvis_core, output_format, parsable),
+    ElvisConfig = elvis_test_utils:config(),
     Fun = fun() -> elvis_core:rock(ElvisConfig) end,
     Expected = ".*\\.erl:\\d:[a-zA-Z0-9_]+:.*",
     ok = try check_some_line_output(Fun, Expected, fun matches_regex/2) of
@@ -208,23 +210,21 @@ rock_with_parsable(_Config) ->
              _:{badmatch, []} ->
                  ct:fail("Unexpected result ~p")
          after
-             application:set_env(elvis, output_format, Default)
+             application:set_env(elvis_core, output_format, Default)
          end.
 
 -spec rock_with_no_output_has_no_output(config()) -> ok.
 rock_with_no_output_has_no_output(_Config) ->
-    application:set_env(elvis, no_output, true),
-    ConfigPath = "../../config/test.config",
-    ElvisConfig = elvis_config:load_file(ConfigPath),
+    application:set_env(elvis_core, no_output, true),
+    ElvisConfig = elvis_test_utils:config(),
     Fun = fun() -> elvis_core:rock(ElvisConfig) end,
     [] = check_no_line_output(Fun),
-    application:unset_env(elvis, no_output),
+    application:unset_env(elvis_core, no_output),
     ok.
 
 -spec rock_with_errors_has_output(config()) -> ok.
 rock_with_errors_has_output(_Config) ->
-    ConfigPath = "../../config/test.config",
-    ElvisConfig = elvis_config:load_file(ConfigPath),
+    ElvisConfig = elvis_test_utils:config(),
     Fun = fun() -> elvis_core:rock(ElvisConfig) end,
     Expected = "FAIL",
     [_|_] = check_some_line_output(Fun, Expected, fun matches_regex/2),
@@ -233,20 +233,19 @@ rock_with_errors_has_output(_Config) ->
 -spec rock_without_errors_has_no_output(config()) -> ok.
 rock_without_errors_has_no_output(_Config) ->
     ConfigPath = "../../config/test.pass.config",
-    ElvisConfig = elvis_config:load_file(ConfigPath),
+    ElvisConfig = elvis_config:from_file(ConfigPath),
     Fun = fun() -> elvis_core:rock(ElvisConfig) end,
     [] = check_no_line_output(Fun),
     ok.
 
 -spec rock_without_errors_and_with_verbose_has_output(config()) -> ok.
 rock_without_errors_and_with_verbose_has_output(_Config) ->
-    application:set_env(elvis, verbose, true),
-    ConfigPath = "../../config/test.pass.config",
-    ElvisConfig = elvis_config:load_file(ConfigPath),
+    application:set_env(elvis_core, verbose, true),
+    ElvisConfig = elvis_test_utils:config(),
     Fun = fun() -> elvis_core:rock(ElvisConfig) end,
     Expected = "OK",
     [_|_] = check_some_line_output(Fun, Expected, fun matches_regex/2),
-    application:unset_env(elvis, verbose),
+    application:unset_env(elvis_core, verbose),
     ok.
 
 -spec rock_with_rule_groups(Config::config()) -> ok.
@@ -296,11 +295,11 @@ rock_with_rule_groups(_Config) ->
 -spec rock_this_skipping_files(Config::config()) -> ok.
 rock_this_skipping_files(_Config) ->
     meck:new(elvis_file, [passthrough]),
-    Dirs = ["../../_build/test/lib/elvis/test/examples"],
+    Dirs = ["../../_build/test/lib/elvis_core/test/examples"],
     [File] = elvis_file:find_files(Dirs, "small.erl"),
     Path = elvis_file:path(File),
     ConfigPath = "../../config/elvis-test-pa.config",
-    ElvisConfig = elvis_config:load_file(ConfigPath),
+    ElvisConfig = elvis_config:from_file(ConfigPath),
     ok = elvis_core:rock_this(Path, ElvisConfig),
     0 = meck:num_calls(elvis_file, load_file_data, '_'),
     meck:unload(elvis_file),
@@ -309,11 +308,10 @@ rock_this_skipping_files(_Config) ->
 -spec rock_this_not_skipping_files(Config::config()) -> ok.
 rock_this_not_skipping_files(_Config) ->
     meck:new(elvis_file, [passthrough]),
-    Dirs = ["../../_build/test/lib/elvis/test/examples"],
+    Dirs = ["../../_build/test/lib/elvis_core/test/examples"],
     [File] = elvis_file:find_files(Dirs, "small.erl"),
     Path = elvis_file:path(File),
-    ConfigPath = "../../config/test.config",
-    ElvisConfig = elvis_config:load_file(ConfigPath),
+    ElvisConfig = elvis_test_utils:config(),
     ok = elvis_core:rock_this(Path, ElvisConfig),
     1 = meck:num_calls(elvis_file, load_file_data, '_'),
     meck:unload(elvis_file),
@@ -327,7 +325,7 @@ throw_configuration(_Config) ->
     Filename = "./elvis.config",
     ok = file:write_file(Filename, <<"-">>),
     ok = try
-             _ = elvis_config:default(),
+             _ = elvis_config:from_file(Filename),
              fail
          catch
              throw:_ -> ok

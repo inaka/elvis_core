@@ -107,7 +107,7 @@ get_line_num(#{line_num := LineNum}) -> LineNum.
 
 -spec print_results(file()) -> ok.
 print_results(Results) ->
-    Format = application:get_env(elvis, output_format, colors),
+    Format = application:get_env(elvis_core, output_format, colors),
     print(Format, Results).
 
 -spec print(plain | colors | parsable, [file()] | file()) -> ok.

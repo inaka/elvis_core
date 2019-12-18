@@ -1,8 +1,12 @@
 -module(elvis_test_utils).
 
--export([
-         find_file/2
+-export([ config/0
+        , find_file/2
         ]).
+
+-spec config() -> elvis_config:config().
+config() ->
+  application:get_env(elvis_core, config, []).
 
 -spec find_file([string()], string()) ->
     {ok, elvis_file:file()} | {error, enoent}.
