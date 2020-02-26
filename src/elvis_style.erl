@@ -147,8 +147,9 @@
                                       ignore => [atom()],
                                       max_length => integer()}.
 
+-type function_naming_convention_spec() :: module() | {module(), atom()}.
 -type function_naming_convention_config() :: #{regex => string(),
-                                               ignore => [module()]
+                                               ignore => [function_naming_convention_spec()]
                                               }.
 
 -spec function_naming_convention(elvis_config:config(),
@@ -157,27 +158,34 @@
     [elvis_result:item()].
 function_naming_convention(Config, Target, RuleConfig) ->
     Regex = maps:get(regex, RuleConfig, ".*"),
-    IgnoreModules = maps:get(ignore, RuleConfig, []),
-
+    Ignores = maps:get(ignore, RuleConfig, []),
     {Root, _} = elvis_file:parse_tree(Config, Target),
     ModuleName = elvis_code:module_name(Root),
-    case lists:member(ModuleName, IgnoreModules) of
-      false ->
-        FunctionNames = elvis_code:function_names(Root),
-        errors_for_function_names(Regex, FunctionNames);
-      true -> []
+    IgnoredFuns = lists:filtermap(
+                    fun({_ModuleName, Function}) -> {true, Function};
+                       (_) -> false
+                    end, Ignores),
+    case lists:member(ModuleName, Ignores) of
+      true -> [];
+        false ->
+        FunctionNames0 = elvis_code:function_names(Root),
+        FunctionNames = lists:filter(
+                          fun(FunctionNames) ->
+                                  not lists:member(FunctionNames, IgnoredFuns)
+                          end, FunctionNames0),
+        errors_for_function_names(Regex, FunctionNames)
     end.
 
 errors_for_function_names(_Regex, []) -> [];
-errors_for_function_names(Regex, [FunctionName | RemainingFuncNames]) ->
+errors_for_function_names(Regex, [FunctionName | Rem]) ->
     FunctionNameStr = atom_to_list(FunctionName),
     case re:run(FunctionNameStr, Regex) of
         nomatch ->
             Msg = ?FUNCTION_NAMING_CONVENTION_MSG,
             Info = [FunctionNameStr, Regex],
             Result = elvis_result:new(item, Msg, Info, 1),
-            [Result | errors_for_function_names(Regex, RemainingFuncNames)];
-        {match, _} -> errors_for_function_names(Regex, RemainingFuncNames)
+            [Result | errors_for_function_names(Regex, Rem)];
+        {match, _} -> errors_for_function_names(Regex, Rem)
     end.
 
 -type variable_naming_convention_config() :: #{regex => string(),

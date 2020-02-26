@@ -102,7 +102,17 @@ verify_function_naming_convention(_Config) ->
 
     {ok, FileFail} = elvis_test_utils:find_file(SrcDirs, PathFail),
     [] =
-      elvis_style:function_naming_convention(ElvisConfig, FilePass, RuleConfig2).
+        elvis_style:function_naming_convention(ElvisConfig, FilePass, RuleConfig2),
+
+    RuleConfig3 = #{regex => "^([a-z][a-z0-9]*_?)*$",
+                    ignore => [ {fail_function_naming_convention, camelCase}
+                              , {fail_function_naming_convention, 'ALL_CAPS'}
+                              , {fail_function_naming_convention, 'Initial_cap'}
+                              , {fail_function_naming_convention, 'ok-for-lisp'}
+                              , {fail_function_naming_convention, 'no_predicates?'}
+                              ]
+                   },
+    [_EmailError] = elvis_style:function_naming_convention(ElvisConfig, FileFail, RuleConfig3).
 
 -spec verify_variable_naming_convention(config()) -> any().
 verify_variable_naming_convention(_Config) ->
