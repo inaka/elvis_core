@@ -162,30 +162,30 @@ function_naming_convention(Config, Target, RuleConfig) ->
     {Root, _} = elvis_file:parse_tree(Config, Target),
     ModuleName = elvis_code:module_name(Root),
     IgnoredFuns = lists:filtermap(
-                    fun({_ModuleName, Function}) -> {true, Function};
+                    fun({Mod, Function}) when Mod =:= ModuleName -> {true, Function};
                        (_) -> false
                     end, Ignores),
     case lists:member(ModuleName, Ignores) of
-      true -> [];
+        true -> [];
         false ->
-        FunctionNames0 = elvis_code:function_names(Root),
-        FunctionNames = lists:filter(
-                          fun(FunctionNames) ->
-                                  not lists:member(FunctionNames, IgnoredFuns)
-                          end, FunctionNames0),
-        errors_for_function_names(Regex, FunctionNames)
+            FunctionNames0 = elvis_code:function_names(Root),
+            FunctionNames = lists:filter(
+                              fun(FunctionNames) ->
+                                      not lists:member(FunctionNames, IgnoredFuns)
+                              end, FunctionNames0),
+            errors_for_function_names(Regex, FunctionNames)
     end.
 
 errors_for_function_names(_Regex, []) -> [];
-errors_for_function_names(Regex, [FunctionName | Rem]) ->
+errors_for_function_names(Regex, [FunctionName | RemainingFuncNames]) ->
     FunctionNameStr = atom_to_list(FunctionName),
     case re:run(FunctionNameStr, Regex) of
         nomatch ->
             Msg = ?FUNCTION_NAMING_CONVENTION_MSG,
             Info = [FunctionNameStr, Regex],
             Result = elvis_result:new(item, Msg, Info, 1),
-            [Result | errors_for_function_names(Regex, Rem)];
-        {match, _} -> errors_for_function_names(Regex, Rem)
+            [Result | errors_for_function_names(Regex, RemainingFuncNames)];
+        {match, _} -> errors_for_function_names(Regex, RemainingFuncNames)
     end.
 
 -type variable_naming_convention_config() :: #{regex => string(),
