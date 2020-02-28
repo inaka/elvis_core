@@ -1,14 +1,26 @@
-# Change Log
+# Changelog
 
-## [0.5.0](https://github.com/inaka/elvis_core/tree/0.5.0)
+## [0.6.0](https://github.com/inaka/elvis_core/tree/0.6.0)
+
+[Full Changelog](https://github.com/inaka/elvis_core/compare/0.5.0...0.6.0)
+
+**Merged pull requests:**
+
+- Allow {Module, Function} ignores in function\_naming\_convention/3 [\#118](https://github.com/inaka/elvis_core/pull/118) ([onno-vos-dev](https://github.com/onno-vos-dev))
+- \[inaka/elvis\#425\] Update README after renaming the application [\#117](https://github.com/inaka/elvis_core/pull/117) ([jfacorro](https://github.com/jfacorro))
+- \[inaka/elvis\#425\] Rename application to elvis\_core [\#116](https://github.com/inaka/elvis_core/pull/116) ([jfacorro](https://github.com/jfacorro))
+
+## [0.5.0](https://github.com/inaka/elvis_core/tree/0.5.0) (2019-12-14)
 
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.4.3...0.5.0)
 
 **Merged pull requests:**
 
+- Prepare release 0.5.0 [\#115](https://github.com/inaka/elvis_core/pull/115) ([jfacorro](https://github.com/jfacorro))
 - Update katana code [\#113](https://github.com/inaka/elvis_core/pull/113) ([jfacorro](https://github.com/jfacorro))
 
 ## [0.4.3](https://github.com/inaka/elvis_core/tree/0.4.3) (2019-12-04)
+
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.4.2...0.4.3)
 
 **Merged pull requests:**
@@ -18,6 +30,7 @@
 - Prevent duplicate linting of files [\#111](https://github.com/inaka/elvis_core/pull/111) ([elbrujohalcon](https://github.com/elbrujohalcon))
 
 ## [0.4.2](https://github.com/inaka/elvis_core/tree/0.4.2) (2019-05-23)
+
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.4.1...0.4.2)
 
 **Merged pull requests:**
@@ -29,6 +42,7 @@
 - update erlang test [\#103](https://github.com/inaka/elvis_core/pull/103) ([getong](https://github.com/getong))
 
 ## [0.4.1](https://github.com/inaka/elvis_core/tree/0.4.1) (2018-07-03)
+
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.4.0...0.4.1)
 
 **Merged pull requests:**
@@ -37,6 +51,7 @@
 - fix OTP 21 dialyzer warnings [\#101](https://github.com/inaka/elvis_core/pull/101) ([f3c0](https://github.com/f3c0))
 
 ## [0.4.0](https://github.com/inaka/elvis_core/tree/0.4.0) (2018-06-29)
+
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.9...0.4.0)
 
 **Merged pull requests:**
@@ -49,6 +64,7 @@
 - Update README.md [\#95](https://github.com/inaka/elvis_core/pull/95) ([igaray](https://github.com/igaray))
 
 ## [0.3.9](https://github.com/inaka/elvis_core/tree/0.3.9) (2017-08-01)
+
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.8...0.3.9)
 
 **Merged pull requests:**
@@ -58,6 +74,7 @@
 - \[\#456\] Adding Travis CI [\#92](https://github.com/inaka/elvis_core/pull/92) ([ferigis](https://github.com/ferigis))
 
 ## [0.3.8](https://github.com/inaka/elvis_core/tree/0.3.8) (2017-06-15)
+
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.7...0.3.8)
 
 **Merged pull requests:**
@@ -65,6 +82,7 @@
 - Bump version to 0.3.8 [\#91](https://github.com/inaka/elvis_core/pull/91) ([harenson](https://github.com/harenson))
 
 ## [0.3.7](https://github.com/inaka/elvis_core/tree/0.3.7) (2017-06-15)
+
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.6...0.3.7)
 
 **Merged pull requests:**
@@ -76,6 +94,7 @@
 - Support ignore option in function\_naming\_convention [\#86](https://github.com/inaka/elvis_core/pull/86) ([define-null](https://github.com/define-null))
 
 ## [0.3.6](https://github.com/inaka/elvis_core/tree/0.3.6) (2017-04-25)
+
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.5...0.3.6)
 
 **Merged pull requests:**
@@ -89,6 +108,7 @@
 - Remove Lager as a direct dependency [\#65](https://github.com/inaka/elvis_core/pull/65) ([waisbrot](https://github.com/waisbrot))
 
 ## [0.3.5](https://github.com/inaka/elvis_core/tree/0.3.5) (2017-02-09)
+
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.5-pre...0.3.5)
 
 **Merged pull requests:**
@@ -99,6 +119,7 @@
 - \[inaka/elvis\#410\] no\_nested\_try\_catch rule added [\#75](https://github.com/inaka/elvis_core/pull/75) ([ferigis](https://github.com/ferigis))
 
 ## [0.3.5-pre](https://github.com/inaka/elvis_core/tree/0.3.5-pre) (2017-02-08)
+
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.4...0.3.5-pre)
 
 **Merged pull requests:**
@@ -107,6 +128,7 @@
 - Fix unnecessary loading of files caused by git-branch option \(\#421\) [\#72](https://github.com/inaka/elvis_core/pull/72) ([onno-vos-dev](https://github.com/onno-vos-dev))
 
 ## [0.3.4](https://github.com/inaka/elvis_core/tree/0.3.4) (2016-11-15)
+
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.3...0.3.4)
 
 **Merged pull requests:**
@@ -115,6 +137,7 @@
 - \[Close inaka/elvis\#416\] update wrong file type [\#70](https://github.com/inaka/elvis_core/pull/70) ([Euen](https://github.com/Euen))
 
 ## [0.3.3](https://github.com/inaka/elvis_core/tree/0.3.3) (2016-11-11)
+
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.2...0.3.3)
 
 **Merged pull requests:**
@@ -127,6 +150,7 @@
 - Make it so that the max\_function\_length style checker can ignore func… [\#62](https://github.com/inaka/elvis_core/pull/62) ([sargun](https://github.com/sargun))
 
 ## [0.3.2](https://github.com/inaka/elvis_core/tree/0.3.2) (2016-08-03)
+
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.1...0.3.2)
 
 **Merged pull requests:**
@@ -135,6 +159,7 @@
 - Euen.fix dialyzer [\#60](https://github.com/inaka/elvis_core/pull/60) ([Euen](https://github.com/Euen))
 
 ## [0.3.1](https://github.com/inaka/elvis_core/tree/0.3.1) (2016-07-27)
+
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.3.0...0.3.1)
 
 **Merged pull requests:**
@@ -145,6 +170,7 @@
 - fix application name [\#56](https://github.com/inaka/elvis_core/pull/56) ([Euen](https://github.com/Euen))
 
 ## [0.3.0](https://github.com/inaka/elvis_core/tree/0.3.0) (2016-07-25)
+
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.2.11...0.3.0)
 
 **Merged pull requests:**
@@ -158,6 +184,7 @@
 - exclude '.' to be prepended to a filter [\#49](https://github.com/inaka/elvis_core/pull/49) ([bwegh](https://github.com/bwegh))
 
 ## [0.2.11](https://github.com/inaka/elvis_core/tree/0.2.11) (2016-04-07)
+
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.2.10...0.2.11)
 
 **Merged pull requests:**
@@ -166,6 +193,7 @@
 - \[\#371\] \[Fix inaka/elvis\#371\] Move deps to app.src [\#47](https://github.com/inaka/elvis_core/pull/47) ([elbrujohalcon](https://github.com/elbrujohalcon))
 
 ## [0.2.10](https://github.com/inaka/elvis_core/tree/0.2.10) (2016-03-30)
+
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.2.9...0.2.10)
 
 **Merged pull requests:**
@@ -174,6 +202,7 @@
 - \[Fix inaka/elvis\#368\] Upgrade katana\_code dep [\#45](https://github.com/inaka/elvis_core/pull/45) ([elbrujohalcon](https://github.com/elbrujohalcon))
 
 ## [0.2.9](https://github.com/inaka/elvis_core/tree/0.2.9) (2016-03-28)
+
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.2.8-2...0.2.9)
 
 **Merged pull requests:**
@@ -186,6 +215,7 @@
 - \[Fix \#353\] Update katana [\#39](https://github.com/inaka/elvis_core/pull/39) ([harenson](https://github.com/harenson))
 
 ## [0.2.8-2](https://github.com/inaka/elvis_core/tree/0.2.8-2) (2016-03-07)
+
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.2.8...0.2.8-2)
 
 **Merged pull requests:**
@@ -194,6 +224,7 @@
 - \[Fix \#347\] Remove unused application [\#37](https://github.com/inaka/elvis_core/pull/37) ([harenson](https://github.com/harenson))
 
 ## [0.2.8](https://github.com/inaka/elvis_core/tree/0.2.8) (2016-03-07)
+
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.2.7...0.2.8)
 
 **Merged pull requests:**
@@ -203,6 +234,7 @@
 - \[Fix \#41\] rebar3 support [\#33](https://github.com/inaka/elvis_core/pull/33) ([Euen](https://github.com/Euen))
 
 ## [0.2.7](https://github.com/inaka/elvis_core/tree/0.2.7) (2016-01-22)
+
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.2.6...0.2.7)
 
 **Merged pull requests:**
@@ -211,6 +243,7 @@
 - \[Closes \#335\] Update katana to 0.2.22 [\#31](https://github.com/inaka/elvis_core/pull/31) ([jfacorro](https://github.com/jfacorro))
 
 ## [0.2.6](https://github.com/inaka/elvis_core/tree/0.2.6) (2016-01-21)
+
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.2.6-alpha2...0.2.6)
 
 **Merged pull requests:**
@@ -231,6 +264,9 @@
 - \[\#300\] Updated for Hexer Hex.pm app [\#16](https://github.com/inaka/elvis_core/pull/16) ([davecaos](https://github.com/davecaos))
 
 ## [0.2.6-alpha2](https://github.com/inaka/elvis_core/tree/0.2.6-alpha2) (2015-12-23)
+
+[Full Changelog](https://github.com/inaka/elvis_core/compare/8fe81e68eadc791b3f465f5c8c6b8481b6e31cc4...0.2.6-alpha2)
+
 **Merged pull requests:**
 
 - \[Closes inaka/elvis\#317\] Update deps to avoid compiler warnings [\#15](https://github.com/inaka/elvis_core/pull/15) ([jfacorro](https://github.com/jfacorro))
@@ -245,4 +281,4 @@
 
 
 
-\* *This Change Log was automatically generated by [github_changelog_generator](https://github.com/skywinder/Github-Changelog-Generator)*
+\* *This Changelog was automatically generated by [github_changelog_generator](https://github.com/github-changelog-generator/github-changelog-generator)*
