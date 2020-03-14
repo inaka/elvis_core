@@ -40,7 +40,7 @@ Once this is done you can run the style rules in the following ways.
 #### Load configuration from a file
 
 ```erlang
-ElvisConfig = elvis_core:from_file("elvis.config").
+ElvisConfig = elvis_config:from_file("elvis.config").
 elvis_core:rock(ElvisConfig).
 %%+ # src/elvis_core.erl [OK]
 %%+ # src/elvis_result.erl [OK]
