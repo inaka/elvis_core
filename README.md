@@ -118,7 +118,7 @@ An `elvis.config` configuration file should look like this:
       }
       %% output_format (optional): how to format the output.
       %% Possible values are 'plain', 'colors' or 'parsable' (default='colors').
-    , {output_format, colors},
+    , {output_format, colors}
       %% verbose (optional): when 'true' more information will
       %% be printed (default=false).
     , {verbose, true}
