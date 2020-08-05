@@ -148,15 +148,15 @@ verify_git_for_deps_rebar(_Config) ->
     Filename = "rebar.config.fail",
     {ok, File} = elvis_test_utils:find_file(SrcDirs, Filename),
 
-    [_, _, _, _, _, _] = elvis_project:git_for_deps_rebar(ElvisConfig, File, #{}),
+    [_, _, _, _, _, _, _] = elvis_project:git_for_deps_rebar(ElvisConfig, File, #{}),
 
     RuleConfig =  #{ignore => [getopt]},
-    [_, _, _, _] = elvis_project:git_for_deps_rebar(ElvisConfig, File, RuleConfig),
+    [_, _, _, _, _] = elvis_project:git_for_deps_rebar(ElvisConfig, File, RuleConfig),
 
     RuleConfig1 =  #{ignore => [getopt, lager]},
-    [_, _] = elvis_project:git_for_deps_rebar(ElvisConfig, File, RuleConfig1),
+    [_, _, _] = elvis_project:git_for_deps_rebar(ElvisConfig, File, RuleConfig1),
 
-    RuleConfig2 =  #{ignore => [meck], regex => "git@.*"},
+    RuleConfig2 =  #{ignore => [meck, jsx], regex => "git@.*"},
     [_, _, _, _, _, _, _, _] =
         elvis_project:git_for_deps_rebar(ElvisConfig, File, RuleConfig2).
 
@@ -168,16 +168,16 @@ verify_protocol_for_deps_rebar(_Config) ->
     Filename = "rebar.config.fail",
     {ok, File} = elvis_test_utils:find_file(SrcDirs, Filename),
 
-    [_, _, _, _, _, _] = elvis_project:protocol_for_deps_rebar(ElvisConfig, File, #{}),
+    [_, _, _, _, _, _, _] = elvis_project:protocol_for_deps_rebar(ElvisConfig, File, #{}),
 
-    RuleConfig =  #{ignore => [getopt]},
+    RuleConfig =  #{ignore => [getopt, jsx]},
     [_, _, _, _] = elvis_project:protocol_for_deps_rebar(ElvisConfig, File, RuleConfig),
 
     RuleConfig1 =  #{ignore => [getopt, lager]},
-    [_, _] = elvis_project:protocol_for_deps_rebar(ElvisConfig, File, RuleConfig1),
+    [_, _, _] = elvis_project:protocol_for_deps_rebar(ElvisConfig, File, RuleConfig1),
 
     RuleConfig2 =  #{ignore => [meck], regex => "git@.*"},
-    [_, _, _, _, _, _, _, _] =
+    [_, _, _, _, _, _, _, _, _] =
         elvis_project:protocol_for_deps_rebar(ElvisConfig, File, RuleConfig2).
 
 -spec verify_hex_dep_rebar(config()) -> any().

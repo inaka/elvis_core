@@ -4,5 +4,6 @@
   {uuid, "1.7.0", {pkg, uuid_erl}},
   {meck, "0.8.2", {git, "https://github.com/basho/meck.git", {tag, "0.8.2"}}},
   {jiffy, {git, "https://github.com/davisp/jiffy.git"}},
-  recon
+  recon,
+  {jsx, {raw, {git, "https://github.com/talentdeficit.git", {branch, "develop"}}}}
  ]}.
