@@ -28,6 +28,7 @@
   {jiffy, "0.*", {git, "git@github.com:davisp/jiffy.git"}},
   {ibrowse, "4.*", {git, "https://github.com/cmullaparthi/ibrowse.git", "v4.1.1"}},
   {aleppo, "0.*", {git, "https://github.com/inaka/aleppo.git", "master"}},
+  {jsx, {raw, {git, "git@github.com:talentdeficit.git", {branch, "develop"}}}},
 
   {lager, {git, "git://github.com/basho/lager.git", "2.0.0"}},
   {getopt, {git, "git@github.com:jcomellas/getopt.git", {branch, "master"}}},
@@ -35,7 +36,8 @@
   {jiffy, {git, "https://github.com/davisp/jiffy.git", "0.11.3"}},
   {jiffy, {git, "git@github.com:davisp/jiffy.git"}},
   {ibrowse, {git, "https://github.com/cmullaparthi/ibrowse.git", "v4.1.1"}},
-  {aleppo, {git, "https://github.com/inaka/aleppo.git", "master"}}
+  {aleppo, {git, "https://github.com/inaka/aleppo.git", "master"}},
+  {jsx, {raw, {git, "https://github.com/talentdeficit.git", {branch, "master"}}}}
  ]
 }.
 {escript_name, "elvis"}.

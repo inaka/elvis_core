@@ -157,6 +157,8 @@ is_rebar_master_dep({_AppName, {_SCM, _Location, "master"}}) ->
     true;
 is_rebar_master_dep({_AppName, {_SCM, _Location, {branch, "master"}}}) ->
     true;
+is_rebar_master_dep({AppName, {raw, DepResourceSpecification}}) ->
+    is_rebar_master_dep({AppName, DepResourceSpecification});
 %% Rebar2
 is_rebar_master_dep({_AppName, _Vsn, {_SCM, _Location, "master"}}) ->
     true;
@@ -182,6 +184,8 @@ is_rebar_not_git_dep({_AppName, {pkg, _OtherName}}, _Regex) ->
     false;
 is_rebar_not_git_dep({_AppName, {_SCM, Url, _Branch}}, Regex) ->
     nomatch == re:run(Url, Regex, []);
+is_rebar_not_git_dep({AppName, {raw,  DepResourceSpecification}}, Regex) ->
+    is_rebar_not_git_dep({AppName, DepResourceSpecification}, Regex);
 is_rebar_not_git_dep({_AppName, {_SCM, Url}}, Regex) ->
     nomatch == re:run(Url, Regex, []);
 is_rebar_not_git_dep({_AppName, _Vsn, {_SCM, Url}}, Regex) ->
