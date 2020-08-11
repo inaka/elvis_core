@@ -1,11 +1,22 @@
 # Changelog
 
-## [0.6.0](https://github.com/inaka/elvis_core/tree/0.6.0)
+## [0.6.1](https://github.com/inaka/elvis_core/tree/0.6.1)
+
+[Full Changelog](https://github.com/inaka/elvis_core/compare/0.6.0...0.6.1)
+
+**Merged pull requests:**
+
+- Allow use of rebar\_raw\_resource in rebar3 -oriented projects [\#122](https://github.com/inaka/elvis_core/pull/122) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+- Excess comma removed from example config [\#121](https://github.com/inaka/elvis_core/pull/121) ([roman-mazhut](https://github.com/roman-mazhut))
+- Fix module name in README.md [\#120](https://github.com/inaka/elvis_core/pull/120) ([robertoaloi](https://github.com/robertoaloi))
+
+## [0.6.0](https://github.com/inaka/elvis_core/tree/0.6.0) (2020-02-28)
 
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.5.0...0.6.0)
 
 **Merged pull requests:**
 
+- Prepare release 0.6.0 [\#119](https://github.com/inaka/elvis_core/pull/119) ([jfacorro](https://github.com/jfacorro))
 - Allow {Module, Function} ignores in function\_naming\_convention/3 [\#118](https://github.com/inaka/elvis_core/pull/118) ([onno-vos-dev](https://github.com/onno-vos-dev))
 - \[inaka/elvis\#425\] Update README after renaming the application [\#117](https://github.com/inaka/elvis_core/pull/117) ([jfacorro](https://github.com/jfacorro))
 - \[inaka/elvis\#425\] Rename application to elvis\_core [\#116](https://github.com/inaka/elvis_core/pull/116) ([jfacorro](https://github.com/jfacorro))
@@ -230,7 +241,6 @@
 **Merged pull requests:**
 
 - \[Fix \#345\] Bump version to 0.2.8 [\#36](https://github.com/inaka/elvis_core/pull/36) ([harenson](https://github.com/harenson))
-- \[\#29\] More ignore [\#34](https://github.com/inaka/elvis_core/pull/34) ([Euen](https://github.com/Euen))
 - \[Fix \#41\] rebar3 support [\#33](https://github.com/inaka/elvis_core/pull/33) ([Euen](https://github.com/Euen))
 
 ## [0.2.7](https://github.com/inaka/elvis_core/tree/0.2.7) (2016-01-22)
@@ -248,6 +258,7 @@
 
 **Merged pull requests:**
 
+- \[\#29\] More ignore [\#34](https://github.com/inaka/elvis_core/pull/34) ([Euen](https://github.com/Euen))
 - \[inaka/elvis\#334\] Update katana [\#30](https://github.com/inaka/elvis_core/pull/30) ([jfacorro](https://github.com/jfacorro))
 - update IGNORE\_DEPS in makefile [\#28](https://github.com/inaka/elvis_core/pull/28) ([Euen](https://github.com/Euen))
 - \[Fix inaka/elvis\#332\] update katana version [\#27](https://github.com/inaka/elvis_core/pull/27) ([Euen](https://github.com/Euen))
