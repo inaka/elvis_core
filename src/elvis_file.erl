@@ -103,7 +103,9 @@ filter_files(Files, Dirs, Filter, IgnoreList) ->
                 not lists:any(IsIgnored, IgnoreList)
         end,
     Found = lists:flatmap(FlatmapFun, Regexes),
-    lists:filter(IgnoreFun, Found).
+    % File src/sub/file.erl will match both src/ and src/sub/ folders. We can't have that!
+    FoundUnique = lists:usort(Found),
+    lists:filter(IgnoreFun, FoundUnique).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
