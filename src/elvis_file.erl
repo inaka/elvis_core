@@ -81,7 +81,7 @@ filter_files(Files, Dirs, Filter, IgnoreList) ->
     AppendFilter = fun(Dir) ->
                          case Dir of
                              "." -> Filter;
-                             Dir -> Dir ++ "/" ++ Filter
+                             Dir -> reduce_stars(Dir ++ "/" ++ Filter)
                          end
                    end,
     FullFilters = lists:map(AppendFilter, Dirs),
@@ -129,6 +129,9 @@ escape_all_chars(Glob) -> re:replace(Glob, ".", "[&]", [global]).
 replace_stars(Glob) -> re:replace(Glob, "[[][*][]]", ".*", [global]).
 
 replace_questions(Glob) -> re:replace(Glob, "[[][?][]]", ".", [global]).
+
+reduce_stars(DirAndFilter) ->
+    re:replace(DirAndFilter, "/\\*+/", "/", [global, {return, list}]).
 
 -spec find_encoding(Content::binary()) ->
   atom().
