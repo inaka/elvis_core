@@ -313,7 +313,7 @@ is_punctuation_token(Node) ->
                     nesting_level_config()) ->
     [elvis_result:item()].
 nesting_level(Config, Target, RuleConfig) ->
-    Level = maps:get(level, RuleConfig, 3),
+    Level = maps:get(level, RuleConfig, 4),
     IgnoreModules = maps:get(ignore, RuleConfig, []),
 
     {Root, _} = elvis_file:parse_tree(Config, Target),

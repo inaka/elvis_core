@@ -13,7 +13,7 @@ rules(erl_files) ->
     , operator_spaces
     , #{rules => [{right, ","}, {right, "++"}, {left, "++"}]}
     }
-  , {elvis_style, nesting_level, #{level => 3}}
+  , {elvis_style, nesting_level, #{level => 4}}
   , {elvis_style, god_modules, #{limit => 25}}
   , {elvis_style, no_if_expression}
   , {elvis_style, invalid_dynamic_call, #{ignore => [elvis]}}
