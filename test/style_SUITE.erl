@@ -83,26 +83,26 @@ verify_function_naming_convention(_Config) ->
     ElvisConfig = elvis_test_utils:config(),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
-    RuleConfig = #{regex => "^([a-z][a-z0-9]*_?)*$"},
-
+    % pass
     PathPass = "pass_function_naming_convention.erl",
     {ok, FilePass} = elvis_test_utils:find_file(SrcDirs, PathPass),
-    [] =
-        elvis_style:function_naming_convention(ElvisConfig, FilePass, RuleConfig),
 
-    PathFail = "fail_function_naming_convention.erl",
-    {ok, FileFail} = elvis_test_utils:find_file(SrcDirs, PathFail),
-    [_CamelCaseError, _ALL_CAPSError, _InitialCapError,
-     _HyphenError, _PredError, _EmailError] =
-      elvis_style:function_naming_convention(ElvisConfig, FileFail, RuleConfig),
+
+    RuleConfig = #{regex => "^([a-z][a-z0-9]*_?)*$"},
+    [] = elvis_style:function_naming_convention(ElvisConfig, FilePass, RuleConfig),
 
     RuleConfig2 = #{regex => "^([a-z][a-z0-9]*_?)*$",
                     ignore => [fail_function_naming_convention]
                    },
+    [] = elvis_style:function_naming_convention(ElvisConfig, FilePass, RuleConfig2),
 
+    % fail
+    PathFail = "fail_function_naming_convention.erl",
     {ok, FileFail} = elvis_test_utils:find_file(SrcDirs, PathFail),
-    [] =
-        elvis_style:function_naming_convention(ElvisConfig, FilePass, RuleConfig2),
+
+    [_CamelCaseError, _ALL_CAPSError, _InitialCapError,
+     _HyphenError, _PredError, _EmailError] =
+      elvis_style:function_naming_convention(ElvisConfig, FileFail, RuleConfig),
 
     RuleConfig3 = #{regex => "^([a-z][a-z0-9]*_?)*$",
                     ignore => [ {fail_function_naming_convention, camelCase}
@@ -114,6 +114,10 @@ verify_function_naming_convention(_Config) ->
                    },
     [_EmailError] = elvis_style:function_naming_convention(ElvisConfig, FileFail, RuleConfig3),
 
+    % ignored
+    PathIgnored = "fail_function_naming_convention_ignored_function.erl",
+    {ok, FileIgnored} = elvis_test_utils:find_file(SrcDirs, PathIgnored),
+
     RuleConfig4 = #{regex => "^([a-z][a-z0-9]*_?)*$",
                     ignore => [ {fail_function_naming_convention, camelCase}
                               , {fail_function_naming_convention, 'ALL_CAPS'}
@@ -123,10 +127,7 @@ verify_function_naming_convention(_Config) ->
                               , {fail_function_naming_convention, user@location}
                               ]
                    },
-    [] = elvis_style:function_naming_convention(ElvisConfig, FilePass, RuleConfig3),
-    IgnoredFail = "fail_function_naming_convention_ignored_function.erl",
-    {ok, FileFail} = elvis_test_utils:find_file(SrcDirs, PathFail),
-    [_EmailError] = elvis_style:function_naming_convention(ElvisConfig, FileFail, RuleConfig3).
+    [_AnError] = elvis_style:function_naming_convention(ElvisConfig, FileIgnored, RuleConfig4).
 
 -spec verify_variable_naming_convention(config()) -> any().
 verify_variable_naming_convention(_Config) ->
