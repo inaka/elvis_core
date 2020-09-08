@@ -1,4 +1,4 @@
--module(pass_state_record_and_type_gen_statem).
+-module(fail_state_record_and_type_gen_statem_state).
 
 -dialyzer(no_behaviours).
 
@@ -6,17 +6,22 @@
 
 -export([
          init/1,
-         handle_event/4
+         handle_event/4,
+         callback_mode/0
         ]).
 
--record(state, {}).
+-record(state1, {}).
 
--type state1() :: #state{}.
+-type state() :: #state1{}.
 
 -spec init(term()) -> state().
 init(_Args) ->
-    #state{}.
+    #state1{}.
 
--spec handle_event(term(), term(), state1(), term()) -> {next_state, state1(), term()}.
-handle_call(_EventType, _EventContent, State, Data) ->
+-spec handle_event(term(), term(), state(), term()) -> {next_state, state(), term()}.
+handle_event(_EventType, _EventContent, State, Data) ->
     {next_state, State, Data}.
+
+-spec callback_mode() -> handle_event_function.
+callback_mode() ->
+    handle_event_function.
