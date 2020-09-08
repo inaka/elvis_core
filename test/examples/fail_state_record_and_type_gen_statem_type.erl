@@ -18,5 +18,5 @@ init(_Args) ->
     #state1{}.
 
 -spec handle_event(term(), term(), state1(), term()) -> {next_state, state1(), term()}.
-handle_call(_EventType, _EventContent, State, Data) ->
+handle_event(_EventType, _EventContent, State, Data) ->
     {next_state, State, Data}.
