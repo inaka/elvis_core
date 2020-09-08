@@ -1101,6 +1101,7 @@ is_otp_module(Root) ->
     OtpSet = sets:from_list([gen_server,
                              gen_event,
                              gen_fsm,
+                             gen_statem,
                              supervisor_bridge
                             ]),
     IsBehaviorAttr = fun(Node) -> behavior == ktn_code:type(Node) end,
