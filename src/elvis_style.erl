@@ -659,12 +659,7 @@ no_call(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 no_debug_call(Config, Target, RuleConfig) ->
     DefaultFns = [{ct, pal},
-                  {ct, print, 1},
-                  {ct, print, 2},
-                  {ct, print, 3},
-                  {ct, print, 4},
-                  {ct, print, 5},
-                  {ct, print, 5},
+                  {ct, print},
                   {io, format, 1},
                   {io, format, 2}
                  ],
