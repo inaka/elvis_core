@@ -252,7 +252,9 @@ verify_macro_names_rule(_Config) ->
 
     [] = elvis_style:macro_names(ElvisConfig, Path, #{ regex => "^[A-Za-z_ \-]+$" }),
 
-    [_, _, _, _, _] = elvis_style:macro_names(ElvisConfig, Path, #{ regex => "^POTENTIAL_BAD-NAME$" }).
+    [_, _, _, _, _] = elvis_style:macro_names(ElvisConfig, Path, #{ regex => "^POTENTIAL_BAD-NAME$" }),
+
+    [] = elvis_style:macro_names(ElvisConfig, Path, #{ ignore => [fail_macro_names] }).
 
 -spec verify_macro_module_names(config()) -> any().
 verify_macro_module_names(_Config) ->
