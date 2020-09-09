@@ -880,8 +880,8 @@ check_no_trailing_whitespace(Line, Num, RuleConfig) ->
 -spec check_macro_names(binary(), integer(), ConfigRegex :: {ok, string()} | error) ->
     no_result | {ok, elvis_result:item()}.
 check_macro_names(Line, Num, ConfigRegex) ->
-    {ok, ReCompiled} = re:compile("^ *[-]define *[(] *([']([^']*)[']|[^,( ]+)"),
-    case re:run(Line, ReCompiled, [{capture, [1], list}]) of
+    {ok, Regex} = re:compile("^ *[-]define *[(] *([']([^']*)[']|[^,( ]+)"),
+    case re:run(Line, Regex, [{capture, [1], list}]) of
         nomatch ->
             no_result;
         {match, [MacroName]} when ConfigRegex =:= error ->
