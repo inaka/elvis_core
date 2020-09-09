@@ -434,13 +434,25 @@ verify_state_record_and_type(_Config) ->
     {ok, FilePass} = elvis_test_utils:find_file(SrcDirs, PathPass),
     [] = elvis_style:state_record_and_type(ElvisConfig, FilePass, #{}),
 
+    PathPassGenStateM = "pass_state_record_and_type_gen_statem.erl",
+    {ok, FilePassGenStateM} = elvis_test_utils:find_file(SrcDirs, PathPassGenStateM),
+    [] = elvis_style:state_record_and_type(ElvisConfig, FilePassGenStateM, #{}),
+
     PathFail = "fail_state_record_and_type.erl",
     {ok, FileFail} = elvis_test_utils:find_file(SrcDirs, PathFail),
     [_] = elvis_style:state_record_and_type(ElvisConfig, FileFail, #{}),
 
     PathFail1 = "fail_state_type.erl",
     {ok, FileFail1} = elvis_test_utils:find_file(SrcDirs, PathFail1),
-    [_] = elvis_style:state_record_and_type(ElvisConfig, FileFail1, #{}).
+    [_] = elvis_style:state_record_and_type(ElvisConfig, FileFail1, #{}),
+
+    PathFailGenStateMType = "fail_state_record_and_type_gen_statem_type.erl",
+    {ok, FileFailGenStateMType} = elvis_test_utils:find_file(SrcDirs, PathFailGenStateMType),
+    [_] = elvis_style:state_record_and_type(ElvisConfig, FileFailGenStateMType, #{}),
+
+    PathPassGenStateMState = "fail_state_record_and_type_gen_statem_state.erl",
+    {ok, FilePassGenStateMState} = elvis_test_utils:find_file(SrcDirs, PathPassGenStateMState),
+    [_] = elvis_style:state_record_and_type(ElvisConfig, FilePassGenStateMState, #{}).
 
 -spec verify_no_spec_with_records(config()) -> any().
 verify_no_spec_with_records(_Config) ->
