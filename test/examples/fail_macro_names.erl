@@ -5,6 +5,7 @@
 -define(wtf_NAME,   "(yuno)").
 -define(GOOD_NAME(Arg), "(megusta)").
 -define(GOOD_NAME_TOO (Arg), "(megusta)").
+-define(  'POTENTIAL_BAD-NAME'  , nomegusta).
 
 -export([
          define/1,
