@@ -246,13 +246,15 @@ verify_macro_names_rule(_Config) ->
     File = "fail_macro_names.erl",
     {ok, Path} = elvis_test_utils:find_file(SrcDirs, File),
 
-    [_, _] = elvis_style:macro_names(ElvisConfig, Path, #{}),
+    [_, _, _] = elvis_style:macro_names(ElvisConfig, Path, #{}),
 
-    [_] = elvis_style:macro_names(ElvisConfig, Path, #{ regex => "^[A-Za-z_ ]+$" }),
+    [_, _] = elvis_style:macro_names(ElvisConfig, Path, #{ regex => "^[A-Za-z_ ]+$" }),
 
-    [] = elvis_style:macro_names(ElvisConfig, Path, #{ regex => "^[A-Za-z_ \-]+$" }),
+    [_] = elvis_style:macro_names(ElvisConfig, Path, #{ regex => "^[A-Za-z_ \-]+$" }),
 
-    [_, _, _, _, _] = elvis_style:macro_names(ElvisConfig, Path, #{ regex => "^POTENTIAL_BAD-NAME$" }),
+    [] = elvis_style:macro_names(ElvisConfig, Path, #{ regex => "^[A-Za-z_, \-]+$" }),
+
+    [_, _, _, _, _, _] = elvis_style:macro_names(ElvisConfig, Path, #{ regex => "^POTENTIAL_BAD-NAME$" }),
 
     [] = elvis_style:macro_names(ElvisConfig, Path, #{ ignore => [fail_macro_names] }).
 
