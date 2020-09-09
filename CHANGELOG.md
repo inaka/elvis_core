@@ -1,11 +1,24 @@
 # Changelog
 
-## [0.6.1](https://github.com/inaka/elvis_core/tree/0.6.1)
+## [0.7.0](https://github.com/inaka/elvis_core/tree/0.7.0) (2020-09-09)
+
+[Full Changelog](https://github.com/inaka/elvis_core/compare/0.6.1...0.7.0)
+
+**Merged pull requests:**
+
+- Simplify by removal of seemingly unused rules no\_seqbind and no\_useless\_seqbind [\#129](https://github.com/inaka/elvis_core/pull/129) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+- Make sure gen\_statem follows the same rule as gen\_server [\#128](https://github.com/inaka/elvis_core/pull/128) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+- More visible defaults \(part 2\) [\#127](https://github.com/inaka/elvis_core/pull/127) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+- New default nesting level [\#125](https://github.com/inaka/elvis_core/pull/125) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+- Prevent sub-folder files from being analyzed twice [\#124](https://github.com/inaka/elvis_core/pull/124) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+
+## [0.6.1](https://github.com/inaka/elvis_core/tree/0.6.1) (2020-08-11)
 
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.6.0...0.6.1)
 
 **Merged pull requests:**
 
+- Update changelog [\#123](https://github.com/inaka/elvis_core/pull/123) ([jfacorro](https://github.com/jfacorro))
 - Allow use of rebar\_raw\_resource in rebar3 -oriented projects [\#122](https://github.com/inaka/elvis_core/pull/122) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
 - Excess comma removed from example config [\#121](https://github.com/inaka/elvis_core/pull/121) ([roman-mazhut](https://github.com/roman-mazhut))
 - Fix module name in README.md [\#120](https://github.com/inaka/elvis_core/pull/120) ([robertoaloi](https://github.com/robertoaloi))
@@ -241,6 +254,7 @@
 **Merged pull requests:**
 
 - \[Fix \#345\] Bump version to 0.2.8 [\#36](https://github.com/inaka/elvis_core/pull/36) ([harenson](https://github.com/harenson))
+- \[\#29\] More ignore [\#34](https://github.com/inaka/elvis_core/pull/34) ([Euen](https://github.com/Euen))
 - \[Fix \#41\] rebar3 support [\#33](https://github.com/inaka/elvis_core/pull/33) ([Euen](https://github.com/Euen))
 
 ## [0.2.7](https://github.com/inaka/elvis_core/tree/0.2.7) (2016-01-22)
@@ -258,7 +272,6 @@
 
 **Merged pull requests:**
 
-- \[\#29\] More ignore [\#34](https://github.com/inaka/elvis_core/pull/34) ([Euen](https://github.com/Euen))
 - \[inaka/elvis\#334\] Update katana [\#30](https://github.com/inaka/elvis_core/pull/30) ([jfacorro](https://github.com/jfacorro))
 - update IGNORE\_DEPS in makefile [\#28](https://github.com/inaka/elvis_core/pull/28) ([Euen](https://github.com/Euen))
 - \[Fix inaka/elvis\#332\] update katana version [\#27](https://github.com/inaka/elvis_core/pull/27) ([Euen](https://github.com/Euen))
