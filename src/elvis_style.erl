@@ -25,7 +25,8 @@
          no_call/3,
          no_debug_call/3,
          no_common_caveats_call/3,
-         no_nested_try_catch/3
+         no_nested_try_catch/3,
+         atom_naming_convention/3
         ]).
 
 -define(LINE_LENGTH_MSG, "Line ~p is too long: ~s.").
@@ -122,6 +123,10 @@
 
 -define(NO_NESTED_TRY_CATCH,
         "Nested try...catch block starting at line ~p.").
+
+-define(ATOM_NAMING_CONVENTION_MSG,
+        "Atom ~p on line ~p does not respect the format "
+        "defined by the regular expression '~p'.").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Rules
@@ -721,9 +726,54 @@ no_nested_try_catch(Config, Target, RuleConfig) ->
          true -> []
     end.
 
+-type atom_naming_convention_config() :: #{ regex => string(),
+                                            ignore => [module()]
+                                          }.
+
+-spec atom_naming_convention(elvis_config:config(),
+                             elvis_file:file(),
+                             atom_naming_convention_config()) ->
+    [elvis_result:item()].
+atom_naming_convention(Config, Target, RuleConfig) ->
+    {Root, _File} = elvis_file:parse_tree(Config, Target),
+    ModuleName = elvis_code:module_name(Root),
+    IgnoreModules = maps:get(ignore, RuleConfig, []),
+    case lists:member(ModuleName, IgnoreModules) of
+        false ->
+            Regex = maps:find(regex, RuleConfig),
+            AtomNodes = elvis_code:find(fun is_atom_node/1, Root, #{traverse => all, mode => node}),
+            check_atom_names(Regex, AtomNodes, []);
+        true ->
+            []
+    end.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+check_atom_names(error = _Regex, _AtomNodes, _Acc) ->
+    [];
+check_atom_names({ok, _Regex}, [] = _AtomNodes, Acc) ->
+    Acc;
+check_atom_names({ok, Regex}, [AtomNode | RemainingAtomNodes], AccIn) ->
+    AtomName0 = ktn_code:attr(text, AtomNode),
+    AtomName = string:strip(AtomName0, both, $'),
+    {ok, RE} = re:compile(Regex),
+    AccOut
+        = case re:run(_Subject = AtomName, RE) of
+              nomatch ->
+                  Msg = ?ATOM_NAMING_CONVENTION_MSG,
+                  {Line, _} = ktn_code:attr(location, AtomNode),
+                  Info = [AtomName0, Line, Regex],
+                  Result = elvis_result:new(item, Msg, Info),
+                  AccIn ++ [Result];
+              {match, _Captured} ->
+                  AccIn
+          end,
+    check_atom_names({ok, Regex}, RemainingAtomNodes, AccOut).
+
+is_atom_node(MaybeAtom) ->
+    ktn_code:type(MaybeAtom) =:= atom.
 
 %% Variables name
 check_variables_name(_Regex, []) -> [];

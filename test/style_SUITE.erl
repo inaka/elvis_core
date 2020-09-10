@@ -35,6 +35,7 @@
          verify_no_common_caveats_call/1,
          verify_no_call/1,
          verify_no_nested_try_catch/1,
+         verify_atom_naming_convention/1,
          %% Non-rule
          results_are_ordered_by_line/1
         ]).
@@ -679,6 +680,34 @@ verify_no_nested_try_catch(_Config) ->
 
     [] = elvis_style:no_nested_try_catch(ElvisConfig, File,
                                          #{ignore => [Module]}).
+
+-spec verify_atom_naming_convention(config()) -> any().
+verify_atom_naming_convention(_Config) ->
+    ElvisConfig = elvis_test_utils:config(),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+
+    BaseRegex = "^([a-z][a-z0-9_]+)$",
+
+    % pass
+
+    PassModule = pass_atom_naming_convention,
+    PassPath = atom_to_list(PassModule) ++ ".erl",
+    {ok, PassFile} = elvis_test_utils:find_file(SrcDirs, PassPath),
+
+    [] = elvis_style:atom_naming_convention(ElvisConfig, PassFile, #{ regex => BaseRegex }),
+
+    % fail
+
+    FailModule = fail_atom_naming_convention,
+    FailPath = atom_to_list(FailModule) ++ ".erl",
+    {ok, FailFile} = elvis_test_utils:find_file(SrcDirs, FailPath),
+
+    [_,_,_,_] = elvis_style:atom_naming_convention(ElvisConfig, FailFile, #{ regex => BaseRegex }),
+    [_,_] = elvis_style:atom_naming_convention(ElvisConfig, FailFile, #{ regex => "^([a-zA-Z_]+)$" }),
+    [_] = elvis_style:atom_naming_convention(ElvisConfig, FailFile, #{ regex => "^([a-zA-Z\-_]+)$" }),
+    [] = elvis_style:atom_naming_convention(ElvisConfig, FailFile, #{ regex => "^([0-9]?[a-zA-Z\-_]+)$" }),
+    [] = elvis_style:atom_naming_convention(ElvisConfig, FailFile, #{ regex => BaseRegex,
+                                                                      ignore => [fail_atom_naming_convention] }).
 
 -spec results_are_ordered_by_line(config()) -> true.
 results_are_ordered_by_line(_Config) ->
