@@ -892,6 +892,7 @@ check_macro_names(Regexp, [MacroNode | RemainingMacroNodes], ResultsIn) ->
           end,
     check_macro_names(Regexp, RemainingMacroNodes, ResultsOut).
 
+-dialyzer({no_match, is_macro_define_node/1}).
 is_macro_define_node(MaybeMacro) ->
     case ktn_code:type(MaybeMacro) of
         {atom, [_, _], define} ->
