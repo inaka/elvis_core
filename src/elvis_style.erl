@@ -259,7 +259,8 @@ macro_names(Config, Target, RuleConfig) ->
     case lists:member(ModuleName, IgnoreModules) of
         false ->
             Regexp = maps:get(regex, RuleConfig, "^([A-Z][A-Z_0-9]+)$"),
-            MacroNodes = elvis_code:find(fun is_macro_define_node/1, Root, #{traverse => all, mode => node}),
+            MacroNodes = elvis_code:find(fun is_macro_define_node/1, Root,
+                                         #{traverse => all, mode => node}),
             check_macro_names(Regexp, MacroNodes, _ResultsIn = []);
         true->
             []
@@ -695,7 +696,8 @@ no_common_caveats_call(Config, Target, RuleConfig) ->
                   {timer, send_interval, 3},
                   {erlang, size, 1}
                  ],
-    no_call_common(Config, Target, RuleConfig, caveat_functions, DefaultFns, ?NO_COMMON_CAVEATS_CALL_MSG).
+    no_call_common(Config, Target, RuleConfig, caveat_functions, DefaultFns,
+                   ?NO_COMMON_CAVEATS_CALL_MSG).
 
 -spec node_line_limits(ktn_code:tree_node())->
     {Min :: integer(), Max :: integer()}.
@@ -906,7 +908,8 @@ macro_name_from_node(MacroNode) ->
     MacroAsAtom
         = case lists:keyfind(_KeyVar = var, _N = 1, MacroNodeValue) of
               false ->
-                  {atom, _Text, MacroAsAtom0} = lists:keyfind(_KeyAtom = atom, _N = 1, MacroNodeValue),
+                  {atom, _Text, MacroAsAtom0}
+                      = lists:keyfind(_KeyAtom = atom, _N = 1, MacroNodeValue),
                   MacroAsAtom0;
               {var, _Text, MacroAsAtom0} ->
                   MacroAsAtom0
