@@ -246,7 +246,7 @@ verify_macro_names_rule(_Config) ->
     File = "fail_macro_names.erl",
     {ok, Path} = elvis_test_utils:find_file(SrcDirs, File),
 
-    [_, _, _] = elvis_style:macro_names(ElvisConfig, Path, #{}),
+    [_, _, _, _] = elvis_style:macro_names(ElvisConfig, Path, #{}),
 
     [_, _] = elvis_style:macro_names(ElvisConfig, Path, #{ regex => "^[A-Za-z_ ]+$" }),
 

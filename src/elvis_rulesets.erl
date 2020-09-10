@@ -7,7 +7,7 @@ rules(erl_files) ->
   [ {elvis_style, line_length, #{limit => 100, skip_comments => false}}
   , {elvis_style, no_tabs}
   , {elvis_style, no_trailing_whitespace, #{ignore_empty_lines => false}}
-  , {elvis_style, macro_names, #{ignore => []}}
+  , {elvis_style, macro_names, #{regex => "^([A-Z][A-Z_0-9]+)$", ignore => []}}
   , {elvis_style, macro_module_names}
   , { elvis_style
     , operator_spaces

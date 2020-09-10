@@ -37,9 +37,6 @@
 -define(NO_TRAILING_WHITESPACE_MSG,
         "Line ~b has ~b trailing whitespace characters.").
 
--define(INVALID_MACRO_NAME_MSG,
-        "Invalid macro name ~s on line ~p. Use UPPER_CASE.").
-
 -define(INVALID_MACRO_NAME_REGEX_MSG,
         "The macro named ~p on line ~p does not respect the format "
         "defined by the regular expression '~p'.").
@@ -256,13 +253,13 @@ no_trailing_whitespace(_Config, Target, RuleConfig) ->
                   macro_names_config()) ->
     [elvis_result:item()].
 macro_names(Config, Target, RuleConfig) ->
-    {Src, _} = elvis_file:src(Target),
     IgnoreModules = maps:get(ignore, RuleConfig, []),
-    Regex = maps:find(regex, RuleConfig),
     {Root, _File} = elvis_file:parse_tree(Config, Target),
     ModuleName = elvis_code:module_name(Root),
     case lists:member(ModuleName, IgnoreModules) of
         false ->
+            {Src, _} = elvis_file:src(Target),
+            Regex = maps:get(regex, RuleConfig, "^([A-Z][A-Z_0-9]+)$"),
             elvis_utils:check_lines(Src, fun check_macro_names/3, Regex);
         true->
             []
@@ -877,45 +874,28 @@ check_no_trailing_whitespace(Line, Num, RuleConfig) ->
 
 %% Macro Names
 
--spec check_macro_names(binary(), integer(), ConfigRegex :: {ok, string()} | error) ->
+-spec check_macro_names(binary(), integer(), ConfigRegex :: string()) ->
     no_result | {ok, elvis_result:item()}.
 check_macro_names(Line, Num, ConfigRegex) ->
     {ok, Regex} = re:compile("^ *[-]define *[(] *([']([^']*)[']|[^,( ]+)"),
     case re:run(Line, Regex, [{capture, [1], list}]) of
         nomatch ->
             no_result;
-        {match, [MacroName]} when ConfigRegex =:= error ->
-            case string:to_upper(MacroName) of
-                MacroName ->
-                    no_result;
-                _ ->
-                    Msg = ?INVALID_MACRO_NAME_MSG,
-                    Result = elvis_result:new(item, Msg, [MacroName, Num], Num),
-                    {ok, Result}
-            end;
         {match, [MacroName]} ->
-            {ok, Regexp} = ConfigRegex,
             Subject = string:strip(MacroName, both, $'),
-            {ok, RE} = re:compile(Regexp),
-            Options = [{capture, all, list}, global],
-            ReRunRes = re:run(Subject, RE, Options),
-            check_macro_name_regex(ReRunRes, {Subject, Num, Regexp})
+            {ok, RE} = re:compile(ConfigRegex),
+            ReRunRes = re:run(Subject, RE),
+            check_macro_name_regex(ReRunRes, {Subject, Num, ConfigRegex})
     end.
 
 -spec check_macro_name_regex(ReRunRes :: {match, Captured :: [{integer(), integer()}]} | nomatch,
-                             {MacroName :: list(), LineNum :: integer(), Regexp :: string()}) ->
+                             {MacroName :: list(), LineNum :: integer(), ConfigRegex :: string()}) ->
     no_result | {ok, elvis_result:item()}.
-check_macro_name_regex({match, Captured} = _ReRunRes, {MacroName, LineNum, Regexp}) ->
-    MatchesCompletely = lists:flatten(Captured) =:= MacroName,
-    case MatchesCompletely of
-        true ->
-            no_result;
-        false ->
-            check_macro_name_regex(nomatch, {MacroName, LineNum, Regexp})
-    end;
-check_macro_name_regex(nomatch = _ReRunRes, {MacroName, LineNum, Regex}) ->
+check_macro_name_regex({match, _} = _ReRunRes, {_MacroName, _LineNum, _ConfigRegex}) ->
+    no_result;
+check_macro_name_regex(nomatch = _ReRunRes, {MacroName, LineNum, ConfigRegex}) ->
     Msg = ?INVALID_MACRO_NAME_REGEX_MSG,
-    Info = [MacroName, LineNum, Regex],
+    Info = [MacroName, LineNum, ConfigRegex],
     Result = elvis_result:new(item, Msg, Info, LineNum),
     {ok, Result}.
 
