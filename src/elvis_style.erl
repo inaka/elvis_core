@@ -258,9 +258,9 @@ macro_names(Config, Target, RuleConfig) ->
     ModuleName = elvis_code:module_name(Root),
     case lists:member(ModuleName, IgnoreModules) of
         false ->
-            {Src, _} = elvis_file:src(Target),
-            Regex = maps:get(regex, RuleConfig, "^([A-Z][A-Z_0-9]+)$"),
-            elvis_utils:check_lines(Src, fun check_macro_names/3, Regex);
+            Regexp = maps:get(regex, RuleConfig, "^([A-Z][A-Z_0-9]+)$"),
+            MacroNodes = elvis_code:find(fun is_macro_define_node/1, Root, #{traverse => all, mode => node}),
+            check_macro_names(Regexp, MacroNodes, _ResultsIn = []);
         true->
             []
     end.
@@ -874,30 +874,45 @@ check_no_trailing_whitespace(Line, Num, RuleConfig) ->
 
 %% Macro Names
 
--spec check_macro_names(binary(), integer(), ConfigRegex :: string()) ->
-    no_result | {ok, elvis_result:item()}.
-check_macro_names(Line, Num, ConfigRegex) ->
-    {ok, Regex} = re:compile("^ *[-]define *[(] *([']([^']*)[']|[^,( ]+)"),
-    case re:run(Line, Regex, [{capture, [1], list}]) of
-        nomatch ->
-            no_result;
-        {match, [MacroName]} ->
-            Subject = string:strip(MacroName, both, $'),
-            {ok, RE} = re:compile(ConfigRegex),
-            ReRunRes = re:run(Subject, RE),
-            check_macro_name_regex(ReRunRes, {Subject, Num, ConfigRegex})
+check_macro_names(_Regexp, [] = _MacroNodes, ResultsIn) ->
+    ResultsIn;
+check_macro_names(Regexp, [MacroNode | RemainingMacroNodes], ResultsIn) ->
+    {ok, RE} = re:compile(Regexp),
+    {MacroNameStripped, MacroNameOriginal} = macro_name_from_node(MacroNode),
+    ResultsOut
+        = case re:run(_Subject = MacroNameStripped, RE) of
+              nomatch ->
+                  Msg = ?INVALID_MACRO_NAME_REGEX_MSG,
+                  {Line, _} = ktn_code:attr(location, MacroNode),
+                  Info = [MacroNameOriginal, Line, Regexp],
+                  Result = elvis_result:new(item, Msg, Info),
+                  ResultsIn ++ [Result];
+              {match, _Captured} ->
+                  ResultsIn
+          end,
+    check_macro_names(Regexp, RemainingMacroNodes, ResultsOut).
+
+is_macro_define_node(MaybeMacro) ->
+    case ktn_code:type(MaybeMacro) of
+        {atom, [_, _], define} ->
+            true;
+        _ ->
+            false
     end.
 
--spec check_macro_name_regex(ReRunRes :: {match, Captured :: [{integer(), integer()}]} | nomatch,
-                             {MacroName :: list(), LineNum :: integer(), ConfigRegex :: string()}) ->
-    no_result | {ok, elvis_result:item()}.
-check_macro_name_regex({match, _} = _ReRunRes, {_MacroName, _LineNum, _ConfigRegex}) ->
-    no_result;
-check_macro_name_regex(nomatch = _ReRunRes, {MacroName, LineNum, ConfigRegex}) ->
-    Msg = ?INVALID_MACRO_NAME_REGEX_MSG,
-    Info = [MacroName, LineNum, ConfigRegex],
-    Result = elvis_result:new(item, Msg, Info, LineNum),
-    {ok, Result}.
+macro_name_from_node(MacroNode) ->
+    MacroNodeValue = ktn_code:attr(value, MacroNode),
+    MacroAsAtom
+        = case lists:keyfind(_KeyVar = var, _N = 1, MacroNodeValue) of
+              false ->
+                  {atom, _Text, MacroAsAtom0} = lists:keyfind(_KeyAtom = atom, _N = 1, MacroNodeValue),
+                  MacroAsAtom0;
+              {var, _Text, MacroAsAtom0} ->
+                  MacroAsAtom0
+          end,
+    MacroNameOriginal = atom_to_list(MacroAsAtom),
+    MacroNameStripped = string:strip(MacroNameOriginal, both, $'),
+    {MacroNameStripped, MacroNameOriginal}.
 
 %% Macro in Function Call as Module or Function Name
 
