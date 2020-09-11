@@ -702,12 +702,24 @@ verify_atom_naming_convention(_Config) ->
     FailPath = atom_to_list(FailModule) ++ ".erl",
     {ok, FailFile} = elvis_test_utils:find_file(SrcDirs, FailPath),
 
-    [_,_,_,_] = elvis_style:atom_naming_convention(ElvisConfig, FailFile, #{ regex => BaseRegex }),
-    [_,_] = elvis_style:atom_naming_convention(ElvisConfig, FailFile, #{ regex => "^([a-zA-Z_]+)$" }),
-    [_] = elvis_style:atom_naming_convention(ElvisConfig, FailFile, #{ regex => "^([a-zA-Z\-_]+)$" }),
+    [_,_,_,_] = elvis_style:atom_naming_convention(ElvisConfig, FailFile, #{ regex => BaseRegex,
+                                                                             enclosed_atoms => same }),
+    [_,_] = elvis_style:atom_naming_convention(ElvisConfig, FailFile, #{ regex => "^([a-zA-Z_]+)$",
+                                                                         enclosed_atoms => same }),
+    [_] = elvis_style:atom_naming_convention(ElvisConfig, FailFile, #{ regex => "^([a-zA-Z\-_]+)$",
+                                                                       enclosed_atoms => same }),
     [] = elvis_style:atom_naming_convention(ElvisConfig, FailFile, #{ regex => "^([0-9]?[a-zA-Z\-_]+)$" }),
     [] = elvis_style:atom_naming_convention(ElvisConfig, FailFile, #{ regex => BaseRegex,
-                                                                      ignore => [fail_atom_naming_convention] }).
+                                                                      ignore => [fail_atom_naming_convention] }),
+    [_, _, _, _] = elvis_style:atom_naming_convention(ElvisConfig, FailFile, #{ regex => BaseRegex,
+                                                                                enclosed_atoms => same }),
+    KeepRegex = "^([a-zA-Z0-9_]+)$",
+    [_,_] = elvis_style:atom_naming_convention(ElvisConfig, FailFile, #{ regex => KeepRegex,
+                                                                         enclosed_atoms => "^([a-z][a-z0-9A-Z_]*)$" }),
+    [_] = elvis_style:atom_naming_convention(ElvisConfig, FailFile, #{ regex => KeepRegex,
+                                                                       enclosed_atoms => "^([a-z][\-a-z0-9A-Z_]*)$" }),
+    [] = elvis_style:atom_naming_convention(ElvisConfig, FailFile, #{ regex => KeepRegex,
+                                                                      enclosed_atoms => "^([0-9a-z][\-a-z0-9A-Z_]*)$" }).
 
 -spec results_are_ordered_by_line(config()) -> true.
 results_are_ordered_by_line(_Config) ->

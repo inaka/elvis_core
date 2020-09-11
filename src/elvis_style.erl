@@ -727,6 +727,7 @@ no_nested_try_catch(Config, Target, RuleConfig) ->
     end.
 
 -type atom_naming_convention_config() :: #{ regex => string(),
+                                            enclosed_atoms => same | string(),
                                             ignore => [module()]
                                           }.
 
@@ -741,8 +742,10 @@ atom_naming_convention(Config, Target, RuleConfig) ->
     case lists:member(ModuleName, IgnoreModules) of
         false ->
             Regex = maps:get(regex, RuleConfig, "^([a-z][a-z0-9]*_?)*(_SUITE)?$"),
+            RegexEnclosed
+                = enclosed_atoms_regex_or_same(maps:get(enclosed_atoms, RuleConfig, ".*"), Regex),
             AtomNodes = elvis_code:find(fun is_atom_node/1, Root, #{traverse => all, mode => node}),
-            check_atom_names(Regex, AtomNodes, []);
+            check_atom_names(Regex, RegexEnclosed, AtomNodes, []);
         true ->
             []
     end.
@@ -751,12 +754,18 @@ atom_naming_convention(Config, Target, RuleConfig) ->
 %% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-check_atom_names(_Regex, [] = _AtomNodes, Acc) ->
+enclosed_atoms_regex_or_same(same, Regex) ->
+    Regex;
+enclosed_atoms_regex_or_same(RegexEnclosed, _Regex) ->
+    RegexEnclosed.
+
+check_atom_names(_Regex, _RegexEnclosed, [] = _AtomNodes, Acc) ->
     Acc;
-check_atom_names(Regex, [AtomNode | RemainingAtomNodes], AccIn) ->
+check_atom_names(Regex, RegexEnclosed, [AtomNode | RemainingAtomNodes], AccIn) ->
     AtomName0 = ktn_code:attr(text, AtomNode),
     AtomName = string:strip(AtomName0, both, $'),
-    {ok, RE} = re:compile(Regex),
+    IsEnclosed = is_enclosed_atom(AtomName0, AtomName),
+    RE = re_compile_for_atom_type(IsEnclosed, Regex, RegexEnclosed),
     AccOut
         = case re:run(_Subject = AtomName, RE) of
               nomatch ->
@@ -768,10 +777,20 @@ check_atom_names(Regex, [AtomNode | RemainingAtomNodes], AccIn) ->
               {match, _Captured} ->
                   AccIn
           end,
-    check_atom_names(Regex, RemainingAtomNodes, AccOut).
+    check_atom_names(Regex, RegexEnclosed, RemainingAtomNodes, AccOut).
+
+re_compile_for_atom_type(false = _IsEnclosed, Regex, _RegexEnclosed) ->
+    {ok, RE} = re:compile(Regex),
+    RE;
+re_compile_for_atom_type(true = _IsEnclosed, _Regex, RegexEnclosed) ->
+    {ok, RE} = re:compile(RegexEnclosed),
+    RE.
 
 is_atom_node(MaybeAtom) ->
     ktn_code:type(MaybeAtom) =:= atom.
+
+is_enclosed_atom(AtomName0, AtomName) ->
+    AtomName0 =:= lists:flatten([$', AtomName, $']).
 
 %% Variables name
 check_variables_name(_Regex, []) -> [];
