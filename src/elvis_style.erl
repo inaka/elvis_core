@@ -768,10 +768,16 @@ check_atom_names(Regex, RegexEnclosed, [AtomNode | RemainingAtomNodes], AccIn) -
     RE = re_compile_for_atom_type(IsEnclosed, Regex, RegexEnclosed),
     AccOut
         = case re:run(_Subject = AtomName, RE) of
-              nomatch ->
+              nomatch when not(IsEnclosed)->
                   Msg = ?ATOM_NAMING_CONVENTION_MSG,
                   {Line, _} = ktn_code:attr(location, AtomNode),
                   Info = [AtomName0, Line, Regex],
+                  Result = elvis_result:new(item, Msg, Info),
+                  AccIn ++ [Result];
+              nomatch when IsEnclosed->
+                  Msg = ?ATOM_NAMING_CONVENTION_MSG,
+                  {Line, _} = ktn_code:attr(location, AtomNode),
+                  Info = [AtomName0, Line, RegexEnclosed],
                   Result = elvis_result:new(item, Msg, Info),
                   AccIn ++ [Result];
               {match, _Captured} ->
