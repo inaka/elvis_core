@@ -763,7 +763,7 @@ check_atom_names(_Regex, _RegexEnclosed, [] = _AtomNodes, Acc) ->
     Acc;
 check_atom_names(Regex, RegexEnclosed, [AtomNode | RemainingAtomNodes], AccIn) ->
     AtomName0 = ktn_code:attr(text, AtomNode),
-    AtomName = string:strip(AtomName0, both, $'),
+    AtomName = string_strip_one(AtomName0, "'"),
     IsEnclosed = is_enclosed_atom(AtomName0, AtomName),
     RE = re_compile_for_atom_type(IsEnclosed, Regex, RegexEnclosed),
     AccOut
@@ -778,6 +778,11 @@ check_atom_names(Regex, RegexEnclosed, [AtomNode | RemainingAtomNodes], AccIn) -
                   AccIn
           end,
     check_atom_names(Regex, RegexEnclosed, RemainingAtomNodes, AccOut).
+
+string_strip_one(Str0, Char) ->
+    StrR = string:replace(Str0, Char, "", trailing),
+    StrL = string:replace(StrR, Char, "", leading),
+    StrL.
 
 re_compile_for_atom_type(false = _IsEnclosed, Regex, _RegexEnclosed) ->
     {ok, RE} = re:compile(Regex),
