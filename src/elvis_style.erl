@@ -25,7 +25,8 @@
          no_call/3,
          no_debug_call/3,
          no_common_caveats_call/3,
-         no_nested_try_catch/3
+         no_nested_try_catch/3,
+         atom_naming_convention/3
         ]).
 
 -define(LINE_LENGTH_MSG, "Line ~p is too long: ~s.").
@@ -122,6 +123,10 @@
 
 -define(NO_NESTED_TRY_CATCH,
         "Nested try...catch block starting at line ~p.").
+
+-define(ATOM_NAMING_CONVENTION_MSG,
+        "Atom ~p on line ~p does not respect the format "
+        "defined by the regular expression '~p'.").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Rules
@@ -721,9 +726,82 @@ no_nested_try_catch(Config, Target, RuleConfig) ->
          true -> []
     end.
 
+-type atom_naming_convention_config() :: #{ regex => string(),
+                                            enclosed_atoms => same | string(),
+                                            ignore => [module()]
+                                          }.
+
+-spec atom_naming_convention(elvis_config:config(),
+                             elvis_file:file(),
+                             atom_naming_convention_config()) ->
+    [elvis_result:item()].
+atom_naming_convention(Config, Target, RuleConfig) ->
+    {Root, _File} = elvis_file:parse_tree(Config, Target),
+    ModuleName = elvis_code:module_name(Root),
+    IgnoreModules = maps:get(ignore, RuleConfig, []),
+    case lists:member(ModuleName, IgnoreModules) of
+        false ->
+            Regex = maps:get(regex, RuleConfig, "^([a-z][a-z0-9]*_?)*(_SUITE)?$"),
+            RegexEnclosed
+                = enclosed_atoms_regex_or_same(maps:get(enclosed_atoms, RuleConfig, ".*"), Regex),
+            AtomNodes = elvis_code:find(fun is_atom_node/1, Root, #{traverse => all, mode => node}),
+            check_atom_names(Regex, RegexEnclosed, AtomNodes, []);
+        true ->
+            []
+    end.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+enclosed_atoms_regex_or_same(same, Regex) ->
+    Regex;
+enclosed_atoms_regex_or_same(RegexEnclosed, _Regex) ->
+    RegexEnclosed.
+
+check_atom_names(_Regex, _RegexEnclosed, [] = _AtomNodes, Acc) ->
+    Acc;
+check_atom_names(Regex, RegexEnclosed, [AtomNode | RemainingAtomNodes], AccIn) ->
+    AtomName0 = ktn_code:attr(text, AtomNode),
+    {IsEnclosed, AtomName} = string_strip_enclosed(AtomName0),
+    RE = re_compile_for_atom_type(IsEnclosed, Regex, RegexEnclosed),
+    AccOut
+        = case re:run(_Subject = AtomName, RE) of
+              nomatch when not(IsEnclosed)->
+                  Msg = ?ATOM_NAMING_CONVENTION_MSG,
+                  {Line, _} = ktn_code:attr(location, AtomNode),
+                  Info = [AtomName0, Line, Regex],
+                  Result = elvis_result:new(item, Msg, Info),
+                  AccIn ++ [Result];
+              nomatch when IsEnclosed->
+                  Msg = ?ATOM_NAMING_CONVENTION_MSG,
+                  {Line, _} = ktn_code:attr(location, AtomNode),
+                  Info = [AtomName0, Line, RegexEnclosed],
+                  Result = elvis_result:new(item, Msg, Info),
+                  AccIn ++ [Result];
+              {match, _Captured} ->
+                  AccIn
+          end,
+    check_atom_names(Regex, RegexEnclosed, RemainingAtomNodes, AccOut).
+
+string_strip_enclosed([$' | Rest]) ->
+  [$' | Reversed] = lists:reverse(Rest),
+  IsEnclosed = true,
+  EnclosedAtomName = lists:reverse(Reversed),
+  {IsEnclosed, EnclosedAtomName};
+string_strip_enclosed(NonEnclosedAtomName) ->
+  IsEnclosed = false,
+  {IsEnclosed, NonEnclosedAtomName}.
+
+re_compile_for_atom_type(false = _IsEnclosed, Regex, _RegexEnclosed) ->
+    {ok, RE} = re:compile(Regex),
+    RE;
+re_compile_for_atom_type(true = _IsEnclosed, _Regex, RegexEnclosed) ->
+    {ok, RE} = re:compile(RegexEnclosed),
+    RE.
+
+is_atom_node(MaybeAtom) ->
+    ktn_code:type(MaybeAtom) =:= atom.
 
 %% Variables name
 check_variables_name(_Regex, []) -> [];

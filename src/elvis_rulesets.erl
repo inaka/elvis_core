@@ -36,6 +36,9 @@ rules(erl_files) ->
     , #{regex => "^_?([A-Z][0-9a-zA-Z]*)$", ignore => []}
     }
   , {elvis_style, no_nested_try_catch, #{ignore => []}}
+  , {elvis_style, atom_naming_convention, #{regex => "^([a-z][a-z0-9]*_?)*(_SUITE)?$",
+                                            enclosed_atoms => ".*",
+                                            ignore => []}}
   ];
 rules(makefiles) ->
   [ {elvis_project, no_deps_master_erlang_mk, #{ignore => []}}
