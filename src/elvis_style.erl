@@ -905,18 +905,19 @@ is_macro_define_node(MaybeMacro) ->
 
 macro_name_from_node(MacroNode) ->
     MacroNodeValue = ktn_code:attr(value, MacroNode),
-    MacroAsAtom
-        = case lists:keyfind(_KeyVar = var, _N = 1, MacroNodeValue) of
-              false ->
-                  {atom, _Text, MacroAsAtom0}
-                      = lists:keyfind(_KeyAtom = atom, _N = 1, MacroNodeValue),
-                  MacroAsAtom0;
-              {var, _Text, MacroAsAtom0} ->
-                  MacroAsAtom0
-          end,
+    MacroAsAtom = macro_as_atom(false, [var, atom, call], MacroNodeValue),
     MacroNameOriginal = atom_to_list(MacroAsAtom),
     MacroNameStripped = string:strip(MacroNameOriginal, both, $'),
     {MacroNameStripped, MacroNameOriginal}.
+
+macro_as_atom({var, _Text, MacroAsAtom}, _Types, _MacroNodeValue) ->
+    MacroAsAtom;
+macro_as_atom({atom, _Text, MacroAsAtom}, _Types, _MacroNodeValue) ->
+    MacroAsAtom;
+macro_as_atom({call, _Text, {var, _Text, MacroAsAtom}, _VarArg}, _Types, _MacroNodeValue) ->
+    MacroAsAtom;
+macro_as_atom(false, [Type | OtherTypes], MacroNodeValue) ->
+    macro_as_atom(lists:keyfind(Type, _N = 1, MacroNodeValue), OtherTypes, MacroNodeValue).
 
 %% Macro in Function Call as Module or Function Name
 
