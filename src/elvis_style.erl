@@ -740,7 +740,7 @@ atom_naming_convention(Config, Target, RuleConfig) ->
     IgnoreModules = maps:get(ignore, RuleConfig, []),
     case lists:member(ModuleName, IgnoreModules) of
         false ->
-            Regex = maps:find(regex, RuleConfig),
+            Regex = maps:get(regex, RuleConfig, "^([a-z][a-z0-9]*_?)*(_SUITE)?$"),
             AtomNodes = elvis_code:find(fun is_atom_node/1, Root, #{traverse => all, mode => node}),
             check_atom_names(Regex, AtomNodes, []);
         true ->
@@ -751,11 +751,9 @@ atom_naming_convention(Config, Target, RuleConfig) ->
 %% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-check_atom_names(error = _Regex, _AtomNodes, _Acc) ->
-    [];
-check_atom_names({ok, _Regex}, [] = _AtomNodes, Acc) ->
+check_atom_names(_Regex, [] = _AtomNodes, Acc) ->
     Acc;
-check_atom_names({ok, Regex}, [AtomNode | RemainingAtomNodes], AccIn) ->
+check_atom_names(Regex, [AtomNode | RemainingAtomNodes], AccIn) ->
     AtomName0 = ktn_code:attr(text, AtomNode),
     AtomName = string:strip(AtomName0, both, $'),
     {ok, RE} = re:compile(Regex),
@@ -770,7 +768,7 @@ check_atom_names({ok, Regex}, [AtomNode | RemainingAtomNodes], AccIn) ->
               {match, _Captured} ->
                   AccIn
           end,
-    check_atom_names({ok, Regex}, RemainingAtomNodes, AccOut).
+    check_atom_names(Regex, RemainingAtomNodes, AccOut).
 
 is_atom_node(MaybeAtom) ->
     ktn_code:type(MaybeAtom) =:= atom.
