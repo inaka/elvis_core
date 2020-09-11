@@ -763,8 +763,7 @@ check_atom_names(_Regex, _RegexEnclosed, [] = _AtomNodes, Acc) ->
     Acc;
 check_atom_names(Regex, RegexEnclosed, [AtomNode | RemainingAtomNodes], AccIn) ->
     AtomName0 = ktn_code:attr(text, AtomNode),
-    AtomName = string_strip_one(AtomName0, "'"),
-    IsEnclosed = is_enclosed_atom(AtomName0, AtomName),
+    {IsEnclosed, AtomName} = string_strip_enclosed(AtomName0),
     RE = re_compile_for_atom_type(IsEnclosed, Regex, RegexEnclosed),
     AccOut
         = case re:run(_Subject = AtomName, RE) of
@@ -785,10 +784,14 @@ check_atom_names(Regex, RegexEnclosed, [AtomNode | RemainingAtomNodes], AccIn) -
           end,
     check_atom_names(Regex, RegexEnclosed, RemainingAtomNodes, AccOut).
 
-string_strip_one(Str0, Char) ->
-    StrR = string:replace(Str0, Char, "", trailing),
-    StrL = string:replace(StrR, Char, "", leading),
-    StrL.
+string_strip_enclosed([$' | Rest]) ->
+  [$' | Reversed] = lists:reverse(Rest),
+  IsEnclosed = true,
+  EnclosedAtomName = lists:reverse(Reversed),
+  {IsEnclosed, EnclosedAtomName};
+string_strip_enclosed(NonEnclosedAtomName) ->
+  IsEnclosed = false,
+  {IsEnclosed, NonEnclosedAtomName}.
 
 re_compile_for_atom_type(false = _IsEnclosed, Regex, _RegexEnclosed) ->
     {ok, RE} = re:compile(Regex),
@@ -799,9 +802,6 @@ re_compile_for_atom_type(true = _IsEnclosed, _Regex, RegexEnclosed) ->
 
 is_atom_node(MaybeAtom) ->
     ktn_code:type(MaybeAtom) =:= atom.
-
-is_enclosed_atom(AtomName0, AtomName) ->
-    AtomName0 =:= lists:flatten([$', AtomName, $']).
 
 %% Variables name
 check_variables_name(_Regex, []) -> [];
