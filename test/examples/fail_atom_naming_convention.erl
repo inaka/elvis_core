@@ -6,4 +6,10 @@ for_test() ->
     this_is_not_an_OK_atom,
     'and_neither-is_this',
     'or_THIS',
-    '1_of_us_is_wrong'.
+    '1_of_us_is_wrong',
+    '\' this nasty atom\'',
+    '\'',
+    '\'\'',
+    '\'startswithbacktick',
+    'backtick\'inside',
+    'backtick at the end\''.
