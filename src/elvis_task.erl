@@ -15,7 +15,7 @@
                  JoinItemList :: list(),
                  Concurrency :: non_neg_integer()) ->
                         {ok, FinalAcc :: term()} | {error, term()}.
-chunk_fold({M,F} = FunWork, FunAcc, InitialAcc, ExtraArgs, List, ChunkSize)
+chunk_fold({M, F} = FunWork, FunAcc, InitialAcc, ExtraArgs, List, ChunkSize)
  when is_atom(M), is_atom(F),
       is_function(FunAcc, 2),
       is_list(ExtraArgs), is_list(List),
@@ -26,7 +26,7 @@ chunk_fold({M,F} = FunWork, FunAcc, InitialAcc, ExtraArgs, List, ChunkSize)
                               _MaxW = ChunkSize, _RemainW = ChunkSize,
                               InitialAcc, []),
         {ok, Term}
-    catch throw:{T,E} ->
+    catch throw:{T, E} ->
             {error, {T, E}}
     end.
 
@@ -54,7 +54,7 @@ start_worker(FunWork, ExtraArgs, Arg) ->
     Key.
 
 -spec do_work(pid(), {module(), atom()}, list(), term()) -> no_return().
-do_work(Parent, {M,F}, ExtraArgs, Arg) ->
+do_work(Parent, {M, F}, ExtraArgs, Arg) ->
     try erlang:apply(M, F, [Arg | ExtraArgs]) of
         {ok, Results} ->
             exit({Parent, {ok, Results}});
@@ -62,7 +62,7 @@ do_work(Parent, {M,F}, ExtraArgs, Arg) ->
             Error = {error, {badreturn, Unexpected}},
             exit({Parent, {error, Error}})
     catch T:E ->
-            exit({Parent, {error, {T,E}}})
+            exit({Parent, {error, {T, E}}})
     end.
 
 gather_all_results(AccF, AccR, Remain) ->
@@ -90,7 +90,7 @@ accumulate(AccF, AccR, Res, AccG) ->
         AccR1
     catch T:E ->
             _ = cleanup(AccG),
-            throw({T,E})
+            throw({T, E})
     end.
 
 cleanup(AccG) ->
@@ -107,9 +107,9 @@ gather(Timeout, AccG) ->
             case Res of
                 {ok, Res0} ->
                     {AccG1, Res0};
-                {error, {T,E}} ->
+                {error, {T, E}} ->
                     _ = cleanup(AccG1),
-                    throw({T,E})
+                    throw({T, E})
             end
     after Timeout ->
             timeout

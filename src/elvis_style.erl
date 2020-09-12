@@ -38,8 +38,9 @@
 -define(NO_TRAILING_WHITESPACE_MSG,
         "Line ~b has ~b trailing whitespace characters.").
 
--define(INVALID_MACRO_NAME_MSG,
-        "Invalid macro name ~s on line ~p. Use UPPER_CASE.").
+-define(INVALID_MACRO_NAME_REGEX_MSG,
+        "The macro named ~p on line ~p does not respect the format "
+        "defined by the regular expression '~p'.").
 
 -define(MACRO_AS_MODULE_NAME_MSG,
         "Don't use macros (like ~s on line ~p) as module names.").
@@ -248,13 +249,27 @@ no_trailing_whitespace(_Config, Target, RuleConfig) ->
     elvis_utils:check_lines(Src, fun check_no_trailing_whitespace/3,
                             RuleConfig).
 
+-type macro_names_config() :: #{regex => string(),
+                                ignore => [module()]
+                               }.
+
 -spec macro_names(elvis_config:config(),
                   elvis_file:file(),
-                  empty_rule_config()) ->
+                  macro_names_config()) ->
     [elvis_result:item()].
-macro_names(_Config, Target, _RuleConfig) ->
-    {Src, _} = elvis_file:src(Target),
-    elvis_utils:check_lines(Src, fun check_macro_names/3, []).
+macro_names(Config, Target, RuleConfig) ->
+    IgnoreModules = maps:get(ignore, RuleConfig, []),
+    {Root, _File} = elvis_file:parse_tree(Config, Target),
+    ModuleName = elvis_code:module_name(Root),
+    case lists:member(ModuleName, IgnoreModules) of
+        false ->
+            Regexp = maps:get(regex, RuleConfig, "^([A-Z][A-Z_0-9]+)$"),
+            MacroNodes = elvis_code:find(fun is_macro_define_node/1, Root,
+                                         #{traverse => all, mode => node}),
+            check_macro_names(Regexp, MacroNodes, _ResultsIn = []);
+        true->
+            []
+    end.
 
 -spec macro_module_names(elvis_config:config(),
                          elvis_file:file(),
@@ -686,7 +701,8 @@ no_common_caveats_call(Config, Target, RuleConfig) ->
                   {timer, send_interval, 3},
                   {erlang, size, 1}
                  ],
-    no_call_common(Config, Target, RuleConfig, caveat_functions, DefaultFns, ?NO_COMMON_CAVEATS_CALL_MSG).
+    no_call_common(Config, Target, RuleConfig, caveat_functions, DefaultFns,
+                   ?NO_COMMON_CAVEATS_CALL_MSG).
 
 -spec node_line_limits(ktn_code:tree_node())->
     {Min :: integer(), Max :: integer()}.
@@ -938,23 +954,48 @@ check_no_trailing_whitespace(Line, Num, RuleConfig) ->
 
 %% Macro Names
 
--spec check_macro_names(binary(), integer(), [term()]) ->
-    no_result | {ok, elvis_result:item()}.
-check_macro_names(Line, Num, _Args) ->
-    {ok, Regex} = re:compile("^ *[-]define *[(]([^,(]+)"),
-    case re:run(Line, Regex, [{capture, all_but_first, list}]) of
-        nomatch ->
-            no_result;
-        {match, [MacroName]} ->
-            case string:to_upper(MacroName) of
-                MacroName ->
-                    no_result;
-                _ ->
-                    Msg = ?INVALID_MACRO_NAME_MSG,
-                    Result = elvis_result:new(item, Msg, [MacroName, Num], Num),
-                    {ok, Result}
-            end
+check_macro_names(_Regexp, [] = _MacroNodes, ResultsIn) ->
+    ResultsIn;
+check_macro_names(Regexp, [MacroNode | RemainingMacroNodes], ResultsIn) ->
+    {ok, RE} = re:compile(Regexp),
+    {MacroNameStripped, MacroNameOriginal} = macro_name_from_node(MacroNode),
+    ResultsOut
+        = case re:run(_Subject = MacroNameStripped, RE) of
+              nomatch ->
+                  Msg = ?INVALID_MACRO_NAME_REGEX_MSG,
+                  {Line, _} = ktn_code:attr(location, MacroNode),
+                  Info = [MacroNameOriginal, Line, Regexp],
+                  Result = elvis_result:new(item, Msg, Info),
+                  ResultsIn ++ [Result];
+              {match, _Captured} ->
+                  ResultsIn
+          end,
+    check_macro_names(Regexp, RemainingMacroNodes, ResultsOut).
+
+-dialyzer({no_match, is_macro_define_node/1}).
+is_macro_define_node(MaybeMacro) ->
+    case ktn_code:type(MaybeMacro) of
+        {atom, [_, _], define} ->
+            true;
+        _ ->
+            false
     end.
+
+macro_name_from_node(MacroNode) ->
+    MacroNodeValue = ktn_code:attr(value, MacroNode),
+    MacroAsAtom = macro_as_atom(false, [var, atom, call], MacroNodeValue),
+    MacroNameOriginal = atom_to_list(MacroAsAtom),
+    MacroNameStripped = string:strip(MacroNameOriginal, both, $'),
+    {MacroNameStripped, MacroNameOriginal}.
+
+macro_as_atom({var, _Text, MacroAsAtom}, _Types, _MacroNodeValue) ->
+    MacroAsAtom;
+macro_as_atom({atom, _Text, MacroAsAtom}, _Types, _MacroNodeValue) ->
+    MacroAsAtom;
+macro_as_atom({call, _Text, {var, _Text, MacroAsAtom}, _VarArg}, _Types, _MacroNodeValue) ->
+    MacroAsAtom;
+macro_as_atom(false, [Type | OtherTypes], MacroNodeValue) ->
+    macro_as_atom(lists:keyfind(Type, _N = 1, MacroNodeValue), OtherTypes, MacroNodeValue).
 
 %% Macro in Function Call as Module or Function Name
 
