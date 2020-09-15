@@ -1140,7 +1140,7 @@ check_nesting_level(ParentNode, [MaxLevel]) ->
 -spec check_invalid_dynamic_calls(ktn_code:tree_node()) ->
     [elvis_result:item()].
 check_invalid_dynamic_calls(Root) ->
-    case elvis_code:find(fun is_dynamic_call/1, Root) of
+    case elvis_code:find(fun is_dynamic_call/1, Root, #{ traverse => all }) of
         [] -> [];
         InvalidCalls ->
             ResultFun = result_node_line_fun(?INVALID_DYNAMIC_CALL_MSG),
