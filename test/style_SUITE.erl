@@ -371,10 +371,13 @@ verify_invalid_dynamic_call(_Config) ->
     PathFail = "fail_invalid_dynamic_call.erl",
     {ok, FileFail} = elvis_test_utils:find_file(SrcDirs, PathFail),
     [
-     #{line_num := 18},
-     #{line_num := 30},
-     #{line_num := 31},
-     #{line_num := 39}
+     #{line_num := 21},
+     #{line_num := 33},
+     #{line_num := 34},
+     #{line_num := 42},
+     #{line_num := 50},
+     #{line_num := 61},
+     #{line_num := 68}
     ] = elvis_style:invalid_dynamic_call(ElvisConfig, FileFail, #{}),
 
     RuleConfig = #{ignore => [fail_invalid_dynamic_call]},

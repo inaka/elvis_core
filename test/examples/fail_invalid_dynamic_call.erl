@@ -9,7 +9,10 @@
          dynamic_module_name_call/0,
          dynamic_function_name_call/0,
          another_dynamic_module_name_call/0,
-         dynamic_module_name_call_in_case/0
+         dynamic_module_name_call_in_case/0,
+         dynamic_module_name_call_in_try_of/0,
+         dynamic_module_name_call_in_try_catch/0,
+         dynamic_module_name_call_in_catch/0
         ]).
 
 dynamic_module_name_call() ->
@@ -39,3 +42,27 @@ dynamic_module_name_call_in_case() ->
             Module:call_to_function();
         2 -> ok
     end.
+
+dynamic_module_name_call_in_try_of() ->
+    normal:call(),
+    another_normal:call(),
+    Module = yam,
+    try Module:call_to_function() of
+        a -> ok
+    catch _:_ ->
+        ok
+    end.
+
+dynamic_module_name_call_in_try_catch() ->
+    normal:call(),
+    another_normal:call(),
+    Module = yamm,
+    try
+        Module:call_to_function()
+    catch _:_ ->
+        ok
+    end.
+
+dynamic_module_name_call_in_catch() ->
+    Module = yammm,
+    catch Module:call_to_function().
