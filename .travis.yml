@@ -1,17 +1,16 @@
-sudo: false
 language: erlang
+
+os:
+  - linux
+
 otp_release:
-  - 23.0
-  - 22.3
-  - 21.3
-  - 20.3
-  - 19.3
-before_install:
-  - ./ci before_install "${PWD:?}"/rebar3
-install:
-  - ./ci install "${PWD:?}"/rebar3
+   - 19.3
+   - 20.3
+   - 21.3
+   - 22.3
+   - 23.0
+
 script:
-  - ./ci script "${PWD:?}"/rebar3
-cache:
-  directories:
-    - .plt
+  - rebar3 --version
+  - erl -version
+  - rebar3 test
