@@ -1,6 +1,7 @@
 -module(elvis_style).
 
 -export([
+         default/1,
          function_naming_convention/3,
          variable_naming_convention/3,
          line_length/3,
@@ -130,6 +131,168 @@
         "defined by the regular expression '~p'.").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Default values
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+-spec default(Rule :: atom(), OptionName :: atom()) -> DefaultOptionValue :: term().
+default(line_length, limit) -> 100;
+default(line_length, skip_comments) -> false;
+default(no_trailing_whitespace, ignore_empty_lines) -> false;
+default(macro_names, ignore) -> [];
+default(macro_names, regex) -> "^([A-Z][A-Z_0-9]+)$";
+default(atom_naming_convention, ignore) -> [];
+default(atom_naming_convention, regex) -> "^([a-z][a-z0-9]*_?)*(_SUITE)?$";
+default(atom_naming_convention, enclosed_atoms) -> ".*";
+default(operator_spaces, rules) -> [{right, ","}, {right, "++"}, {left, "++"}];
+default(nesting_level, level) -> 4;
+default(nesting_level, ignore) -> [];
+default(god_modules, limit) -> 25;
+default(god_modules, ignore) -> [];
+default(no_nested_try_catch, ignore) -> [];
+default(invalid_dynamic_call, ignore) -> [];
+default(used_ignored_variable, ignore) -> [];
+default(function_naming_convention, regex) -> "^([a-z][a-z0-9]*_?)*(_SUITE)?$";
+default(function_naming_convention, ignore) -> [];
+default(variable_naming_convention, regex) -> "^_?([A-Z][0-9a-zA-Z]*)$";
+default(variable_naming_convention, ignore) -> [];
+default(module_naming_convention, regex) -> "^([a-z][a-z0-9]*_?)*(_SUITE)?$";
+default(module_naming_convention, ignore) -> [];
+default(dont_repeat_yourself, min_complexity) -> 10;
+default(dont_repeat_yourself, ignore) -> [];
+default(max_module_length, max_length) -> 500;
+default(max_module_length, ignore) -> [];
+default(max_module_length, count_comments) -> false;
+default(max_module_length, count_whitespace) -> false;
+default(max_function_length, max_length) -> 30;
+default(max_function_length, count_comments) -> false;
+default(max_function_length, count_whitespace) -> false;
+default(max_function_length, ignore_functions) -> [];
+default(no_call, ignore) -> [];
+default(no_call, no_call_functions) -> [];
+default(no_debug_call, ignore) -> [];
+default(no_debug_call, debug_functions) -> [ {ct, pal}
+                                           , {ct, print}
+                                           , {io, format, 1}
+                                           , {io, format, 2}];
+default(no_common_caveats_call, ignore) -> [];
+default(no_common_caveats_call, caveat_functions) -> [ {timer, send_after, 2}
+                                                     , {timer, send_after, 3}
+                                                     , {timer, send_interval, 2}
+                                                     , {timer, send_interval, 3}
+                                                     , {erlang, size, 1}].
+
+-spec default(Rule :: atom()) -> DefaultRuleConfig :: term().
+default(line_length) ->
+    #{ limit => default(line_length, limit)
+     , skip_comments => default(line_length, skip_comments)
+     };
+
+default(no_tabs) ->
+    #{};
+
+default(no_trailing_whitespace) ->
+    #{ ignore_empty_lines => default(no_trailing_whitespace, ignore_empty_lines)
+     };
+
+default(macro_names) ->
+    #{ ignore => default(macro_names, ignore)
+     , regex => default(macro_names, regex)
+     };
+
+default(macro_module_names) ->
+    #{};
+
+default(operator_spaces) ->
+    #{ rules => default(operator_spaces, rules)
+     };
+
+default(nesting_level) ->
+    #{ level => default(nesting_level, level)
+     , ignore => default(nesting_level, ignore)
+     };
+
+default(god_modules) ->
+    #{ limit => default(god_modules, limit)
+     , ignore => default(god_modules, ignore)
+     };
+
+default(no_if_expression) ->
+    #{};
+
+default(no_nested_try_catch) ->
+    #{ ignore => default(no_nested_try_catch, ignore)
+     };
+
+default(invalid_dynamic_call) ->
+    #{ ignore => default(invalid_dynamic_call, ignore)
+     };
+
+default(used_ignored_variable) ->
+    #{ ignore => default(used_ignored_variable, ignore)
+     };
+
+default(no_behavior_info) ->
+    #{};
+
+default(function_naming_convention) ->
+    #{ regex => default(function_naming_convention, regex)
+     , ignore => default(function_naming_convention, ignore)
+     };
+
+default(variable_naming_convention) ->
+    #{ regex => default(variable_naming_convention, regex)
+     , ignore => default(variable_naming_convention, ignore)
+     };
+
+default(module_naming_convention) ->
+    #{ regex => default(module_naming_convention, regex)
+     , ignore => default(module_naming_convention, ignore)
+     };
+
+default(state_record_and_type) ->
+    #{};
+
+default(no_spec_with_records) ->
+    #{};
+
+default(dont_repeat_yourself) ->
+    #{ min_complexity => default(dont_repeat_yourself, min_complexity)
+     , ignore => default(dont_repeat_yourself, ignore)
+     };
+
+default(max_module_length) ->
+    #{ max_length => default(max_module_length, max_length)
+     , ignore => default(max_module_length, ignore)
+     , count_comments => default(max_module_length, count_comments)
+     , count_whitespace => default(max_module_length, count_whitespace)
+     };
+
+default(max_function_length) ->
+    #{ max_length => default(max_function_length, max_length)
+     , count_comments => default(max_function_length, count_comments)
+     , count_whitespace => default(max_function_length, count_whitespace)
+     , ignore_functions => default(max_function_length, ignore_functions)
+     };
+
+default(no_call) ->
+    #{ ignore => default(no_call, ignore)
+     , no_call_functions => default(no_call, no_call_functions)
+     };
+
+default(no_debug_call) ->
+    #{ ignore => default(no_debug_call, ignore)
+     , debug_functions => default(no_debug_call, debug_functions)
+     };
+
+default(no_common_caveats_call) ->
+    #{ ignore => default(no_common_caveats_call, ignore)
+     , caveat_functions => default(no_common_caveats_call, caveat_functions)
+     };
+
+default(atom_naming_convention) ->
+    #{}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Rules
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -155,8 +318,8 @@
                                  function_naming_convention_config()) ->
     [elvis_result:item()].
 function_naming_convention(Config, Target, RuleConfig) ->
-    Regex = maps:get(regex, RuleConfig, ".*"),
-    Ignores = maps:get(ignore, RuleConfig, []),
+    Regex = option(regex, RuleConfig, function_naming_convention),
+    Ignores = option(ignore, RuleConfig, function_naming_convention),
     {Root, _} = elvis_file:parse_tree(Config, Target),
     ModuleName = elvis_code:module_name(Root),
     IgnoredFuns = lists:filtermap(
@@ -194,8 +357,8 @@ errors_for_function_names(Regex, [FunctionName | RemainingFuncNames]) ->
                                  variable_naming_convention_config()) ->
     [elvis_result:item()].
 variable_naming_convention(Config, Target, RuleConfig) ->
-    IgnoreModules = maps:get(ignore, RuleConfig, []),
-    Regex = maps:get(regex, RuleConfig, ".*"),
+    IgnoreModules = option(ignore, RuleConfig, variable_naming_convention),
+    Regex = option(regex, RuleConfig, variable_naming_convention),
     {Root, _} = elvis_file:parse_tree(Config, Target),
     ModuleName = elvis_code:module_name(Root),
     case lists:member(ModuleName, IgnoreModules) of
@@ -218,8 +381,8 @@ variable_naming_convention(Config, Target, RuleConfig) ->
                   line_length_config()) ->
     [elvis_result:item()].
 line_length(_Config, Target, RuleConfig) ->
-    Limit = maps:get(limit, RuleConfig, 80),
-    SkipComments = maps:get(skip_comments, RuleConfig, false),
+    Limit = option(limit, RuleConfig, line_length),
+    SkipComments = option(skip_comments, RuleConfig, line_length),
     {Src, #{encoding := Encoding}} = elvis_file:src(Target),
     Args = [Limit, SkipComments, Encoding],
     elvis_utils:check_lines(Src, fun check_line_length/3, Args).
@@ -258,12 +421,12 @@ no_trailing_whitespace(_Config, Target, RuleConfig) ->
                   macro_names_config()) ->
     [elvis_result:item()].
 macro_names(Config, Target, RuleConfig) ->
-    IgnoreModules = maps:get(ignore, RuleConfig, []),
+    IgnoreModules = option(ignore, RuleConfig, macro_names),
     {Root, _File} = elvis_file:parse_tree(Config, Target),
     ModuleName = elvis_code:module_name(Root),
     case lists:member(ModuleName, IgnoreModules) of
         false ->
-            Regexp = maps:get(regex, RuleConfig, "^([A-Z][A-Z_0-9]+)$"),
+            Regexp = option(regex, RuleConfig, macro_names),
             MacroNodes = elvis_code:find(fun is_macro_define_node/1, Root,
                                          #{traverse => all, mode => node}),
             check_macro_names(Regexp, MacroNodes, _ResultsIn = []);
@@ -288,7 +451,7 @@ macro_module_names(Config, Target, _RuleConfig) ->
                       operator_spaces_config()) ->
     [elvis_result:item()].
 operator_spaces(Config, Target, RuleConfig) ->
-    Rules = maps:get(rules, RuleConfig, []),
+    Rules = option(rules, RuleConfig, operator_spaces),
     {Src, #{encoding := Encoding}} = elvis_file:src(Target),
     {Root, _} = elvis_file:parse_tree(Config, Target),
 
@@ -325,8 +488,8 @@ is_punctuation_token(Node) ->
                     nesting_level_config()) ->
     [elvis_result:item()].
 nesting_level(Config, Target, RuleConfig) ->
-    Level = maps:get(level, RuleConfig, 4),
-    IgnoreModules = maps:get(ignore, RuleConfig, []),
+    Level = option(level, RuleConfig, nesting_level),
+    IgnoreModules = option(ignore, RuleConfig, nesting_level),
 
     {Root, _} = elvis_file:parse_tree(Config, Target),
     ModuleName = elvis_code:module_name(Root),
@@ -346,8 +509,8 @@ nesting_level(Config, Target, RuleConfig) ->
                   god_modules_config()) ->
     [elvis_result:item()].
 god_modules(Config, Target, RuleConfig) ->
-    Limit = maps:get(limit, RuleConfig, 25),
-    IgnoreModules = maps:get(ignore, RuleConfig, []),
+    Limit = option(limit, RuleConfig, god_modules),
+    IgnoreModules = option(ignore, RuleConfig, god_modules),
 
     {Root, _} = elvis_file:parse_tree(Config, Target),
     ModuleName = elvis_code:module_name(Root),
@@ -389,7 +552,7 @@ no_if_expression(Config, Target, _RuleConfig) ->
                            invalid_dynamic_call_config()) ->
     [elvis_result:item()].
 invalid_dynamic_call(Config, Target, RuleConfig) ->
-    IgnoreModules = maps:get(ignore, RuleConfig, []),
+    IgnoreModules = option(ignore, RuleConfig, invalid_dynamic_call),
     {Root, _} = elvis_file:parse_tree(Config, Target),
     ModuleName = elvis_code:module_name(Root),
 
@@ -412,7 +575,7 @@ invalid_dynamic_call(Config, Target, RuleConfig) ->
                             used_ignored_variable_config()) ->
     [elvis_result:item()].
 used_ignored_variable(Config, Target, RuleConfig) ->
-    IgnoreModules = maps:get(ignore, RuleConfig, []),
+    IgnoreModules = option(ignore, RuleConfig, used_ignored_variable),
     {Root, _} = elvis_file:parse_tree(Config, Target),
     ResultFun = result_node_line_col_fun(?USED_IGNORED_VAR_MSG),
     ModuleName = elvis_code:module_name(Root),
@@ -466,8 +629,8 @@ no_behavior_info(Config, Target, _RuleConfig) ->
                                module_naming_convention_config()) ->
     [elvis_result:item()].
 module_naming_convention(Config, Target, RuleConfig) ->
-    Regex = maps:get(regex, RuleConfig, ".*"),
-    IgnoreModules = maps:get(ignore, RuleConfig, []),
+    Regex = option(regex, RuleConfig, module_naming_convention),
+    IgnoreModules = option(ignore, RuleConfig, module_naming_convention),
 
     {Root, _} = elvis_file:parse_tree(Config, Target),
     ModuleName = elvis_code:module_name(Root),
@@ -531,8 +694,8 @@ no_spec_with_records(Config, Target, _RuleConfig) ->
                            dont_repeat_yourself_config()) ->
     [elvis_result:item()].
 dont_repeat_yourself(Config, Target, RuleConfig) ->
-    MinComplexity = maps:get(min_complexity, RuleConfig, 5),
-    IgnoreModules = maps:get(ignore, RuleConfig, []),
+    MinComplexity = option(min_complexity, RuleConfig, dont_repeat_yourself),
+    IgnoreModules = option(ignore, RuleConfig, dont_repeat_yourself),
 
     {Root, _} = elvis_file:parse_tree(Config, Target),
     ModuleName = elvis_code:module_name(Root),
@@ -566,10 +729,10 @@ dont_repeat_yourself(Config, Target, RuleConfig) ->
                         max_module_length_config()) ->
     [elvis_result:item()].
 max_module_length(Config, Target, RuleConfig) ->
-    MaxLength = maps:get(max_length, RuleConfig, 500),
-    IgnoreModules = maps:get(ignore, RuleConfig, []),
-    CountComments = maps:get(count_comments, RuleConfig, false),
-    CountWhitespace = maps:get(count_whitespace, RuleConfig, false),
+    MaxLength = option(max_length, RuleConfig, max_module_length),
+    IgnoreModules = option(ignore, RuleConfig, max_module_length),
+    CountComments = option(count_comments, RuleConfig, max_module_length),
+    CountWhitespace = option(count_whitespace, RuleConfig, max_module_length),
 
     {Root, _} = elvis_file:parse_tree(Config, Target),
     {Src, _} = elvis_file:src(Target),
@@ -604,10 +767,10 @@ max_module_length(Config, Target, RuleConfig) ->
                           max_function_length_config()) ->
     [elvis_result:item()].
 max_function_length(Config, Target, RuleConfig) ->
-    IgnoreFunctions = maps:get(ignore_functions, RuleConfig, []),
-    MaxLength = maps:get(max_length, RuleConfig, 30),
-    CountComments = maps:get(count_comments, RuleConfig, false),
-    CountWhitespace = maps:get(count_whitespace, RuleConfig, false),
+    IgnoreFunctions = option(ignore_functions, RuleConfig, max_function_length),
+    MaxLength = option(max_length, RuleConfig, max_function_length),
+    CountComments = option(count_comments, RuleConfig, max_function_length),
+    CountWhitespace = option(count_whitespace, RuleConfig, max_function_length),
 
     {Root, _} = elvis_file:parse_tree(Config, Target),
     {Src, _} = elvis_file:src(Target),
@@ -666,8 +829,8 @@ max_function_length(Config, Target, RuleConfig) ->
               no_call_config()) ->
     [elvis_result:item()].
 no_call(Config, Target, RuleConfig) ->
-    DefaultFns = [],
-    no_call_common(Config, Target, RuleConfig, no_call_functions, DefaultFns, ?NO_CALL_MSG).
+    DefaultFns = option(no_call_functions, RuleConfig, no_call),
+    no_call_common(Config, Target, RuleConfig, no_call, DefaultFns, ?NO_CALL_MSG).
 
 
 -type no_debug_call_config() :: #{debug_functions => [function_spec()],
@@ -678,12 +841,8 @@ no_call(Config, Target, RuleConfig) ->
                     no_debug_call_config()) ->
     [elvis_result:item()].
 no_debug_call(Config, Target, RuleConfig) ->
-    DefaultFns = [{ct, pal},
-                  {ct, print},
-                  {io, format, 1},
-                  {io, format, 2}
-                 ],
-    no_call_common(Config, Target, RuleConfig, debug_functions, DefaultFns, ?NO_DEBUG_CALL_MSG).
+    DefaultFns = option(debug_functions, RuleConfig, no_debug_call),
+    no_call_common(Config, Target, RuleConfig, no_debug_call, DefaultFns, ?NO_DEBUG_CALL_MSG).
 
 
 -type no_common_caveats_call_config() :: #{caveat_functions => [function_spec()],
@@ -695,13 +854,8 @@ no_debug_call(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 
 no_common_caveats_call(Config, Target, RuleConfig) ->
-    DefaultFns = [{timer, send_after, 2},
-                  {timer, send_after, 3},
-                  {timer, send_interval, 2},
-                  {timer, send_interval, 3},
-                  {erlang, size, 1}
-                 ],
-    no_call_common(Config, Target, RuleConfig, caveat_functions, DefaultFns,
+    DefaultFns = option(caveat_functions, RuleConfig, no_common_caveats_call),
+    no_call_common(Config, Target, RuleConfig, no_common_caveats_call, DefaultFns,
                    ?NO_COMMON_CAVEATS_CALL_MSG).
 
 -spec node_line_limits(ktn_code:tree_node())->
@@ -729,7 +883,7 @@ node_line_limits(FunctionNode) ->
     [elvis_result:item()].
 no_nested_try_catch(Config, Target, RuleConfig) ->
     {Root, _} = elvis_file:parse_tree(Config, Target),
-    IgnoreModules = maps:get(ignore, RuleConfig, []),
+    IgnoreModules = option(ignore, RuleConfig, no_nested_try_catch),
     case lists:member(elvis_code:module_name(Root), IgnoreModules) of
         false -> Predicate = fun(Node) -> ktn_code:type(Node) == 'try' end,
                  ResultFun = result_node_line_fun(?NO_NESTED_TRY_CATCH),
@@ -754,12 +908,12 @@ no_nested_try_catch(Config, Target, RuleConfig) ->
 atom_naming_convention(Config, Target, RuleConfig) ->
     {Root, _File} = elvis_file:parse_tree(Config, Target),
     ModuleName = elvis_code:module_name(Root),
-    IgnoreModules = maps:get(ignore, RuleConfig, []),
+    IgnoreModules = option(ignore, RuleConfig, atom_naming_convention),
     case lists:member(ModuleName, IgnoreModules) of
         false ->
-            Regex = maps:get(regex, RuleConfig, "^([a-z][a-z0-9]*_?)*(_SUITE)?$"),
+            Regex = option(regex, RuleConfig, atom_naming_convention),
             RegexEnclosed
-                = enclosed_atoms_regex_or_same(maps:get(enclosed_atoms, RuleConfig, ".*"), Regex),
+                = enclosed_atoms_regex_or_same(option(enclosed_atoms, RuleConfig, atom_naming_convention), Regex),
             AtomNodes = elvis_code:find(fun is_atom_node/1, Root, #{traverse => all, mode => node}),
             check_atom_names(Regex, RegexEnclosed, AtomNodes, []);
         true ->
@@ -935,11 +1089,12 @@ check_no_spaces(Line, Num, _Args) ->
 -spec check_no_trailing_whitespace(binary(), integer(), map()) ->
     no_result | {ok, elvis_result:item()}.
 check_no_trailing_whitespace(Line, Num, RuleConfig) ->
+    IgnoreEmptyLines = option(ignore_empty_lines, RuleConfig, no_trailing_whitespace),
     Regex =
-        case RuleConfig of
+        case IgnoreEmptyLines of
             %% Lookbehind assertion: http://erlang.org/doc/man/re.html#sect17
-            #{ignore_empty_lines := true} -> "(?<=\\S)\\s+$";
-            _AnythingElse                 -> "\\s+$"
+            true -> "(?<=\\S)\\s+$";
+            false -> "\\s+$"
         end,
 
     case re:run(Line, Regex) of
@@ -1359,11 +1514,10 @@ is_children(Parent, Node) ->
                      string()
                     ) ->
     [elvis_result:item()].
-no_call_common(Config, Target, RuleConfig, ConfigKey, DefaultNoCallFns, Msg) ->
-    IgnoreModules = maps:get(ignore, RuleConfig, []),
+no_call_common(Config, Target, RuleConfig, Rule, NoCallFuns, Msg) ->
+    IgnoreModules = option(ignore, RuleConfig, Rule),
     {Root, _} = elvis_file:parse_tree(Config, Target),
     ModuleName = elvis_code:module_name(Root),
-    NoCallFuns = maps:get(ConfigKey, RuleConfig, DefaultNoCallFns),
 
     case lists:member(ModuleName, IgnoreModules) of
         false ->
@@ -1413,3 +1567,15 @@ check_nested_try_catchs(ResultFun, TryExp) ->
                              false
                     end,
                     elvis_code:find(Predicate, TryExp)).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Internal Function Definitions
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+-spec option(OptionName, RuleConfig, Rule) -> OptionValue
+      when OptionName :: atom(),
+           RuleConfig :: map(),
+           Rule :: atom(),
+           OptionValue :: term().
+option(OptionName, RuleConfig, Rule) ->
+    maps:get(OptionName, RuleConfig, default(Rule, OptionName)).
