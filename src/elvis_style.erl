@@ -1546,4 +1546,14 @@ check_nested_try_catchs(ResultFun, TryExp) ->
            Rule :: atom(),
            OptionValue :: term().
 option(OptionName, RuleConfig, Rule) ->
-    maps:get(OptionName, RuleConfig, maps:get(OptionName, default(Rule))).
+    maybe_default_option(maps:get(OptionName, RuleConfig, undefined), OptionName, Rule).
+
+-spec maybe_default_option(UserDefinedOptionValue, OptionName, Rule) -> OptionValue
+      when UserDefinedOptionValue :: undefined | term(),
+           OptionName :: atom(),
+           Rule :: atom(),
+           OptionValue :: term().
+maybe_default_option(undefined = _UserDefinedOptionValue, OptionName, Rule) ->
+    maps:get(OptionName, default(Rule));
+maybe_default_option(UserDefinedOptionValue, _OptionName, _Rule) ->
+    UserDefinedOptionValue.
