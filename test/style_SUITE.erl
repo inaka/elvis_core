@@ -277,7 +277,7 @@ verify_operator_spaces(_Config) ->
     File = "fail_operator_spaces.erl",
     {ok, Path} = elvis_test_utils:find_file(SrcDirs, File),
 
-    [] = elvis_style:operator_spaces(ElvisConfig, Path, #{}),
+    [] = elvis_style:operator_spaces(ElvisConfig, Path, #{rules=>[]}),
 
     RuleConfig = #{rules => [{right, ","}]},
     [_, _, _] = elvis_style:operator_spaces(ElvisConfig, Path, RuleConfig),
@@ -307,7 +307,7 @@ verify_operator_spaces_latin1(_Config) ->
     File = "fail_operator_spaces_latin1.erl",
     {ok, Path} = elvis_test_utils:find_file(SrcDirs, File),
 
-    [] = elvis_style:operator_spaces(ElvisConfig, Path, #{}),
+    [] = elvis_style:operator_spaces(ElvisConfig, Path, #{rules => []}),
 
     AppendOptions = #{rules => [{right, "++"}, {left, "++"}]},
     [_, _] = elvis_style:operator_spaces(ElvisConfig, Path, AppendOptions).

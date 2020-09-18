@@ -1,6 +1,7 @@
 -module(elvis_project).
 
 -export([
+         default/1,
          no_deps_master_erlang_mk/3,
          no_deps_master_rebar/3,
          protocol_for_deps_erlang_mk/3,
@@ -25,6 +26,32 @@
         "new format is.").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Default values
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+-spec default(Rule :: atom()) -> DefaultRuleConfig :: term().
+default(no_deps_master_erlang_mk) ->
+    #{ ignore => []
+     };
+
+default(protocol_for_deps_erlang_mk) ->
+    #{ ignore => [],
+       regex => "(https://.*|[0-9]+([.][0-9]+)*)"
+     };
+
+default(no_deps_master_rebar) ->
+    #{ ignore => []
+     };
+
+default(protocol_for_deps_rebar) ->
+    #{ ignore => [],
+       regex => "(https://.*|[0-9]+([.][0-9]+)*)"
+     };
+
+default(old_configuration_format) ->
+    #{}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Rules
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -46,8 +73,8 @@ git_for_deps_erlang_mk(Config, Target, RuleConfig) ->
                              protocol_for_deps_erlang_mk_config()) ->
     [elvis_result:item()].
 protocol_for_deps_erlang_mk(_Config, Target, RuleConfig) ->
-    IgnoreDeps = maps:get(ignore, RuleConfig, []),
-    Regex = maps:get(regex, RuleConfig, "(https://.*|[0-9]+([.][0-9]+)*)"),
+    IgnoreDeps = option(ignore, RuleConfig, protocol_for_deps_erlang_mk),
+    Regex = option(regex, RuleConfig, protocol_for_deps_erlang_mk),
     Deps = get_erlang_mk_deps(Target),
     BadDeps = lists:filter(fun(Dep) -> is_erlang_mk_not_git_dep(Dep, Regex) end,
                            Deps),
@@ -73,8 +100,8 @@ git_for_deps_rebar(Config, Target, RuleConfig) ->
                          protocol_for_deps_rebar_config()) ->
     [elvis_result:item()].
 protocol_for_deps_rebar(_Config, Target, RuleConfig) ->
-    IgnoreDeps = maps:get(ignore, RuleConfig, []),
-    Regex = maps:get(regex, RuleConfig, "(https://.*|[0-9]+([.][0-9]+)*)"),
+    IgnoreDeps = option(ignore, RuleConfig, protocol_for_deps_rebar),
+    Regex = option(regex, RuleConfig, protocol_for_deps_rebar),
     Deps = get_rebar_deps(Target),
     NoHexDeps = lists:filter(fun(Dep) -> not is_rebar_hex_dep(Dep) end,
                              Deps),
@@ -92,7 +119,7 @@ protocol_for_deps_rebar(_Config, Target, RuleConfig) ->
                                no_deps_master_erlang_mk_config()) ->
     [elvis_result:item()].
 no_deps_master_erlang_mk(_Config, Target, RuleConfig) ->
-    IgnoreDeps = maps:get(ignore, RuleConfig, []),
+    IgnoreDeps = option(ignore, RuleConfig, no_deps_master_erlang_mk),
     Deps = get_erlang_mk_deps(Target),
     BadDeps = lists:filter(fun is_erlang_mk_master_dep/1, Deps),
     lists:flatmap(
@@ -107,7 +134,7 @@ no_deps_master_erlang_mk(_Config, Target, RuleConfig) ->
                            no_deps_master_rebar_config()) ->
     [elvis_result:item()].
 no_deps_master_rebar(_Config, Target, RuleConfig) ->
-    IgnoreDeps = maps:get(ignore, RuleConfig, []),
+    IgnoreDeps = option(ignore, RuleConfig, no_deps_master_rebar),
     Deps = get_rebar_deps(Target),
     BadDeps = lists:filter(fun is_rebar_master_dep/1, Deps),
     lists:flatmap(
@@ -282,3 +309,25 @@ exists_old_rule(#{rules := Rules}) ->
              end,
     lists:filter(Filter, Rules) /= [];
 exists_old_rule(_) -> false.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Internal Function Definitions
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+-spec option(OptionName, RuleConfig, Rule) -> OptionValue
+      when OptionName :: atom(),
+           RuleConfig :: map(),
+           Rule :: atom(),
+           OptionValue :: term().
+option(OptionName, RuleConfig, Rule) ->
+    maybe_default_option(maps:get(OptionName, RuleConfig, undefined), OptionName, Rule).
+
+-spec maybe_default_option(UserDefinedOptionValue, OptionName, Rule) -> OptionValue
+      when UserDefinedOptionValue :: undefined | term(),
+           OptionName :: atom(),
+           Rule :: atom(),
+           OptionValue :: term().
+maybe_default_option(undefined = _UserDefinedOptionValue, OptionName, Rule) ->
+    maps:get(OptionName, default(Rule));
+maybe_default_option(UserDefinedOptionValue, _OptionName, _Rule) ->
+    UserDefinedOptionValue.
