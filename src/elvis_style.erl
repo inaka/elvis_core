@@ -134,119 +134,72 @@
 %% Default values
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec default(Rule :: atom(), OptionName :: atom()) -> DefaultOptionValue :: term().
-default(line_length, limit) -> 100;
-default(line_length, skip_comments) -> false;
-default(no_trailing_whitespace, ignore_empty_lines) -> false;
-default(macro_names, ignore) -> [];
-default(macro_names, regex) -> "^([A-Z][A-Z_0-9]+)$";
-default(atom_naming_convention, ignore) -> [];
-default(atom_naming_convention, regex) -> "^([a-z][a-z0-9]*_?)*(_SUITE)?$";
-default(atom_naming_convention, enclosed_atoms) -> ".*";
-default(operator_spaces, rules) -> [{right, ","}, {right, "++"}, {left, "++"}];
-default(nesting_level, level) -> 4;
-default(nesting_level, ignore) -> [];
-default(god_modules, limit) -> 25;
-default(god_modules, ignore) -> [];
-default(no_nested_try_catch, ignore) -> [];
-default(invalid_dynamic_call, ignore) -> [];
-default(used_ignored_variable, ignore) -> [];
-default(function_naming_convention, regex) -> "^([a-z][a-z0-9]*_?)*(_SUITE)?$";
-default(function_naming_convention, ignore) -> [];
-default(variable_naming_convention, regex) -> "^_?([A-Z][0-9a-zA-Z]*)$";
-default(variable_naming_convention, ignore) -> [];
-default(module_naming_convention, regex) -> "^([a-z][a-z0-9]*_?)*(_SUITE)?$";
-default(module_naming_convention, ignore) -> [];
-default(dont_repeat_yourself, min_complexity) -> 10;
-default(dont_repeat_yourself, ignore) -> [];
-default(max_module_length, max_length) -> 500;
-default(max_module_length, ignore) -> [];
-default(max_module_length, count_comments) -> false;
-default(max_module_length, count_whitespace) -> false;
-default(max_function_length, max_length) -> 30;
-default(max_function_length, count_comments) -> false;
-default(max_function_length, count_whitespace) -> false;
-default(max_function_length, ignore_functions) -> [];
-default(no_call, ignore) -> [];
-default(no_call, no_call_functions) -> [];
-default(no_debug_call, ignore) -> [];
-default(no_debug_call, debug_functions) -> [ {ct, pal}
-                                           , {ct, print}
-                                           , {io, format, 1}
-                                           , {io, format, 2}];
-default(no_common_caveats_call, ignore) -> [];
-default(no_common_caveats_call, caveat_functions) -> [ {timer, send_after, 2}
-                                                     , {timer, send_after, 3}
-                                                     , {timer, send_interval, 2}
-                                                     , {timer, send_interval, 3}
-                                                     , {erlang, size, 1}].
-
 -spec default(Rule :: atom()) -> DefaultRuleConfig :: term().
 default(line_length) ->
-    #{ limit => default(line_length, limit)
-     , skip_comments => default(line_length, skip_comments)
+    #{ limit => 100
+     , skip_comments => false
      };
 
 default(no_tabs) ->
     #{};
 
 default(no_trailing_whitespace) ->
-    #{ ignore_empty_lines => default(no_trailing_whitespace, ignore_empty_lines)
+    #{ ignore_empty_lines => false
      };
 
 default(macro_names) ->
-    #{ ignore => default(macro_names, ignore)
-     , regex => default(macro_names, regex)
+    #{ ignore => []
+     , regex => "^([A-Z][A-Z_0-9]+)$"
      };
 
 default(macro_module_names) ->
     #{};
 
 default(operator_spaces) ->
-    #{ rules => default(operator_spaces, rules)
+    #{ rules => [{right, ","}, {right, "++"}, {left, "++"}]
      };
 
 default(nesting_level) ->
-    #{ level => default(nesting_level, level)
-     , ignore => default(nesting_level, ignore)
+    #{ level => 4
+     , ignore => []
      };
 
 default(god_modules) ->
-    #{ limit => default(god_modules, limit)
-     , ignore => default(god_modules, ignore)
+    #{ limit => 25
+     , ignore => []
      };
 
 default(no_if_expression) ->
     #{};
 
 default(no_nested_try_catch) ->
-    #{ ignore => default(no_nested_try_catch, ignore)
+    #{ ignore => []
      };
 
 default(invalid_dynamic_call) ->
-    #{ ignore => default(invalid_dynamic_call, ignore)
+    #{ ignore => []
      };
 
 default(used_ignored_variable) ->
-    #{ ignore => default(used_ignored_variable, ignore)
+    #{ ignore => []
      };
 
 default(no_behavior_info) ->
     #{};
 
 default(function_naming_convention) ->
-    #{ regex => default(function_naming_convention, regex)
-     , ignore => default(function_naming_convention, ignore)
+    #{ regex => "^([a-z][a-z0-9]*_?)*(_SUITE)?$"
+     , ignore => []
      };
 
 default(variable_naming_convention) ->
-    #{ regex => default(variable_naming_convention, regex)
-     , ignore => default(variable_naming_convention, ignore)
+    #{ regex => "^_?([A-Z][0-9a-zA-Z]*)$"
+     , ignore => []
      };
 
 default(module_naming_convention) ->
-    #{ regex => default(module_naming_convention, regex)
-     , ignore => default(module_naming_convention, ignore)
+    #{ regex => "^([a-z][a-z0-9]*_?)*(_SUITE)?$"
+     , ignore => []
      };
 
 default(state_record_and_type) ->
@@ -256,41 +209,50 @@ default(no_spec_with_records) ->
     #{};
 
 default(dont_repeat_yourself) ->
-    #{ min_complexity => default(dont_repeat_yourself, min_complexity)
-     , ignore => default(dont_repeat_yourself, ignore)
+    #{ min_complexity => 10
+     , ignore => []
      };
 
 default(max_module_length) ->
-    #{ max_length => default(max_module_length, max_length)
-     , ignore => default(max_module_length, ignore)
-     , count_comments => default(max_module_length, count_comments)
-     , count_whitespace => default(max_module_length, count_whitespace)
+    #{ max_length => 500
+     , ignore => []
+     , count_comments => false
+     , count_whitespace => false
      };
 
 default(max_function_length) ->
-    #{ max_length => default(max_function_length, max_length)
-     , count_comments => default(max_function_length, count_comments)
-     , count_whitespace => default(max_function_length, count_whitespace)
-     , ignore_functions => default(max_function_length, ignore_functions)
+    #{ max_length => 30
+     , count_comments => false
+     , count_whitespace => false
+     , ignore_functions => []
      };
 
 default(no_call) ->
-    #{ ignore => default(no_call, ignore)
-     , no_call_functions => default(no_call, no_call_functions)
+    #{ ignore => []
+     , no_call_functions => []
      };
 
 default(no_debug_call) ->
-    #{ ignore => default(no_debug_call, ignore)
-     , debug_functions => default(no_debug_call, debug_functions)
+    #{ ignore => []
+     , debug_functions => [ {ct, pal}
+                          , {ct, print}
+                          , {io, format, 1}
+                          , {io, format, 2}]
      };
 
 default(no_common_caveats_call) ->
-    #{ ignore => default(no_common_caveats_call, ignore)
-     , caveat_functions => default(no_common_caveats_call, caveat_functions)
+    #{ ignore => []
+     , caveat_functions => [ {timer, send_after, 2}
+                           , {timer, send_after, 3}
+                           , {timer, send_interval, 2}
+                           , {timer, send_interval, 3}
+                           , {erlang, size, 1}]
      };
 
 default(atom_naming_convention) ->
-    #{}.
+    #{ ignore => []
+     , regex => "^([a-z][a-z0-9]*_?)*(_SUITE)?$"
+     , enclosed_atoms => ".*" }.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Rules
@@ -1578,4 +1540,4 @@ check_nested_try_catchs(ResultFun, TryExp) ->
            Rule :: atom(),
            OptionValue :: term().
 option(OptionName, RuleConfig, Rule) ->
-    maps:get(OptionName, RuleConfig, default(Rule, OptionName)).
+    maps:get(OptionName, RuleConfig, maps:get(OptionName, default(Rule))).
