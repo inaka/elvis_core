@@ -318,8 +318,8 @@ default(atom_naming_convention) ->
                                  function_naming_convention_config()) ->
     [elvis_result:item()].
 function_naming_convention(Config, Target, RuleConfig) ->
-    Regex = option(regex, RuleConfig, function_naming_convention),
-    Ignores = option(ignore, RuleConfig, function_naming_convention),
+    Regex = option(regex, RuleConfig, ?FUNCTION_NAME),
+    Ignores = option(ignore, RuleConfig, ?FUNCTION_NAME),
     {Root, _} = elvis_file:parse_tree(Config, Target),
     ModuleName = elvis_code:module_name(Root),
     IgnoredFuns = lists:filtermap(
@@ -357,8 +357,8 @@ errors_for_function_names(Regex, [FunctionName | RemainingFuncNames]) ->
                                  variable_naming_convention_config()) ->
     [elvis_result:item()].
 variable_naming_convention(Config, Target, RuleConfig) ->
-    IgnoreModules = option(ignore, RuleConfig, variable_naming_convention),
-    Regex = option(regex, RuleConfig, variable_naming_convention),
+    IgnoreModules = option(ignore, RuleConfig, ?FUNCTION_NAME),
+    Regex = option(regex, RuleConfig, ?FUNCTION_NAME),
     {Root, _} = elvis_file:parse_tree(Config, Target),
     ModuleName = elvis_code:module_name(Root),
     case lists:member(ModuleName, IgnoreModules) of
@@ -381,8 +381,8 @@ variable_naming_convention(Config, Target, RuleConfig) ->
                   line_length_config()) ->
     [elvis_result:item()].
 line_length(_Config, Target, RuleConfig) ->
-    Limit = option(limit, RuleConfig, line_length),
-    SkipComments = option(skip_comments, RuleConfig, line_length),
+    Limit = option(limit, RuleConfig, ?FUNCTION_NAME),
+    SkipComments = option(skip_comments, RuleConfig, ?FUNCTION_NAME),
     {Src, #{encoding := Encoding}} = elvis_file:src(Target),
     Args = [Limit, SkipComments, Encoding],
     elvis_utils:check_lines(Src, fun check_line_length/3, Args).
@@ -409,7 +409,11 @@ no_spaces(_Config, Target, _RuleConfig) ->
     [elvis_result:item()].
 no_trailing_whitespace(_Config, Target, RuleConfig) ->
     {Src, _} = elvis_file:src(Target),
-    elvis_utils:check_lines(Src, fun check_no_trailing_whitespace/3,
+    IgnoreEmptyLines = option(ignore_empty_lines, RuleConfig, ?FUNCTION_NAME),
+    elvis_utils:check_lines(Src,
+                            fun(Src1, Fun, _Args) ->
+                                check_no_trailing_whitespace(Src1, Fun, IgnoreEmptyLines)
+                            end,
                             RuleConfig).
 
 -type macro_names_config() :: #{regex => string(),
@@ -421,12 +425,12 @@ no_trailing_whitespace(_Config, Target, RuleConfig) ->
                   macro_names_config()) ->
     [elvis_result:item()].
 macro_names(Config, Target, RuleConfig) ->
-    IgnoreModules = option(ignore, RuleConfig, macro_names),
+    IgnoreModules = option(ignore, RuleConfig, ?FUNCTION_NAME),
     {Root, _File} = elvis_file:parse_tree(Config, Target),
     ModuleName = elvis_code:module_name(Root),
     case lists:member(ModuleName, IgnoreModules) of
         false ->
-            Regexp = option(regex, RuleConfig, macro_names),
+            Regexp = option(regex, RuleConfig, ?FUNCTION_NAME),
             MacroNodes = elvis_code:find(fun is_macro_define_node/1, Root,
                                          #{traverse => all, mode => node}),
             check_macro_names(Regexp, MacroNodes, _ResultsIn = []);
@@ -451,7 +455,7 @@ macro_module_names(Config, Target, _RuleConfig) ->
                       operator_spaces_config()) ->
     [elvis_result:item()].
 operator_spaces(Config, Target, RuleConfig) ->
-    Rules = option(rules, RuleConfig, operator_spaces),
+    Rules = option(rules, RuleConfig, ?FUNCTION_NAME),
     {Src, #{encoding := Encoding}} = elvis_file:src(Target),
     {Root, _} = elvis_file:parse_tree(Config, Target),
 
@@ -488,8 +492,8 @@ is_punctuation_token(Node) ->
                     nesting_level_config()) ->
     [elvis_result:item()].
 nesting_level(Config, Target, RuleConfig) ->
-    Level = option(level, RuleConfig, nesting_level),
-    IgnoreModules = option(ignore, RuleConfig, nesting_level),
+    Level = option(level, RuleConfig, ?FUNCTION_NAME),
+    IgnoreModules = option(ignore, RuleConfig, ?FUNCTION_NAME),
 
     {Root, _} = elvis_file:parse_tree(Config, Target),
     ModuleName = elvis_code:module_name(Root),
@@ -509,8 +513,8 @@ nesting_level(Config, Target, RuleConfig) ->
                   god_modules_config()) ->
     [elvis_result:item()].
 god_modules(Config, Target, RuleConfig) ->
-    Limit = option(limit, RuleConfig, god_modules),
-    IgnoreModules = option(ignore, RuleConfig, god_modules),
+    Limit = option(limit, RuleConfig, ?FUNCTION_NAME),
+    IgnoreModules = option(ignore, RuleConfig, ?FUNCTION_NAME),
 
     {Root, _} = elvis_file:parse_tree(Config, Target),
     ModuleName = elvis_code:module_name(Root),
@@ -552,7 +556,7 @@ no_if_expression(Config, Target, _RuleConfig) ->
                            invalid_dynamic_call_config()) ->
     [elvis_result:item()].
 invalid_dynamic_call(Config, Target, RuleConfig) ->
-    IgnoreModules = option(ignore, RuleConfig, invalid_dynamic_call),
+    IgnoreModules = option(ignore, RuleConfig, ?FUNCTION_NAME),
     {Root, _} = elvis_file:parse_tree(Config, Target),
     ModuleName = elvis_code:module_name(Root),
 
@@ -575,7 +579,7 @@ invalid_dynamic_call(Config, Target, RuleConfig) ->
                             used_ignored_variable_config()) ->
     [elvis_result:item()].
 used_ignored_variable(Config, Target, RuleConfig) ->
-    IgnoreModules = option(ignore, RuleConfig, used_ignored_variable),
+    IgnoreModules = option(ignore, RuleConfig, ?FUNCTION_NAME),
     {Root, _} = elvis_file:parse_tree(Config, Target),
     ResultFun = result_node_line_col_fun(?USED_IGNORED_VAR_MSG),
     ModuleName = elvis_code:module_name(Root),
@@ -629,8 +633,8 @@ no_behavior_info(Config, Target, _RuleConfig) ->
                                module_naming_convention_config()) ->
     [elvis_result:item()].
 module_naming_convention(Config, Target, RuleConfig) ->
-    Regex = option(regex, RuleConfig, module_naming_convention),
-    IgnoreModules = option(ignore, RuleConfig, module_naming_convention),
+    Regex = option(regex, RuleConfig, ?FUNCTION_NAME),
+    IgnoreModules = option(ignore, RuleConfig, ?FUNCTION_NAME),
 
     {Root, _} = elvis_file:parse_tree(Config, Target),
     ModuleName = elvis_code:module_name(Root),
@@ -694,8 +698,8 @@ no_spec_with_records(Config, Target, _RuleConfig) ->
                            dont_repeat_yourself_config()) ->
     [elvis_result:item()].
 dont_repeat_yourself(Config, Target, RuleConfig) ->
-    MinComplexity = option(min_complexity, RuleConfig, dont_repeat_yourself),
-    IgnoreModules = option(ignore, RuleConfig, dont_repeat_yourself),
+    MinComplexity = option(min_complexity, RuleConfig, ?FUNCTION_NAME),
+    IgnoreModules = option(ignore, RuleConfig, ?FUNCTION_NAME),
 
     {Root, _} = elvis_file:parse_tree(Config, Target),
     ModuleName = elvis_code:module_name(Root),
@@ -729,10 +733,10 @@ dont_repeat_yourself(Config, Target, RuleConfig) ->
                         max_module_length_config()) ->
     [elvis_result:item()].
 max_module_length(Config, Target, RuleConfig) ->
-    MaxLength = option(max_length, RuleConfig, max_module_length),
-    IgnoreModules = option(ignore, RuleConfig, max_module_length),
-    CountComments = option(count_comments, RuleConfig, max_module_length),
-    CountWhitespace = option(count_whitespace, RuleConfig, max_module_length),
+    MaxLength = option(max_length, RuleConfig, ?FUNCTION_NAME),
+    IgnoreModules = option(ignore, RuleConfig, ?FUNCTION_NAME),
+    CountComments = option(count_comments, RuleConfig, ?FUNCTION_NAME),
+    CountWhitespace = option(count_whitespace, RuleConfig, ?FUNCTION_NAME),
 
     {Root, _} = elvis_file:parse_tree(Config, Target),
     {Src, _} = elvis_file:src(Target),
@@ -767,10 +771,10 @@ max_module_length(Config, Target, RuleConfig) ->
                           max_function_length_config()) ->
     [elvis_result:item()].
 max_function_length(Config, Target, RuleConfig) ->
-    IgnoreFunctions = option(ignore_functions, RuleConfig, max_function_length),
-    MaxLength = option(max_length, RuleConfig, max_function_length),
-    CountComments = option(count_comments, RuleConfig, max_function_length),
-    CountWhitespace = option(count_whitespace, RuleConfig, max_function_length),
+    IgnoreFunctions = option(ignore_functions, RuleConfig, ?FUNCTION_NAME),
+    MaxLength = option(max_length, RuleConfig, ?FUNCTION_NAME),
+    CountComments = option(count_comments, RuleConfig, ?FUNCTION_NAME),
+    CountWhitespace = option(count_whitespace, RuleConfig, ?FUNCTION_NAME),
 
     {Root, _} = elvis_file:parse_tree(Config, Target),
     {Src, _} = elvis_file:src(Target),
@@ -829,8 +833,9 @@ max_function_length(Config, Target, RuleConfig) ->
               no_call_config()) ->
     [elvis_result:item()].
 no_call(Config, Target, RuleConfig) ->
-    DefaultFns = option(no_call_functions, RuleConfig, no_call),
-    no_call_common(Config, Target, RuleConfig, no_call, DefaultFns, ?NO_CALL_MSG).
+    DefaultFns = option(no_call_functions, RuleConfig, ?FUNCTION_NAME),
+    IgnoreModules = option(ignore, RuleConfig, ?FUNCTION_NAME),
+    no_call_common(Config, Target, IgnoreModules, DefaultFns, ?NO_CALL_MSG).
 
 
 -type no_debug_call_config() :: #{debug_functions => [function_spec()],
@@ -841,8 +846,9 @@ no_call(Config, Target, RuleConfig) ->
                     no_debug_call_config()) ->
     [elvis_result:item()].
 no_debug_call(Config, Target, RuleConfig) ->
-    DefaultFns = option(debug_functions, RuleConfig, no_debug_call),
-    no_call_common(Config, Target, RuleConfig, no_debug_call, DefaultFns, ?NO_DEBUG_CALL_MSG).
+    DefaultFns = option(debug_functions, RuleConfig, ?FUNCTION_NAME),
+    IgnoreModules = option(ignore, RuleConfig, ?FUNCTION_NAME),
+    no_call_common(Config, Target, IgnoreModules, DefaultFns, ?NO_DEBUG_CALL_MSG).
 
 
 -type no_common_caveats_call_config() :: #{caveat_functions => [function_spec()],
@@ -854,9 +860,9 @@ no_debug_call(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 
 no_common_caveats_call(Config, Target, RuleConfig) ->
-    DefaultFns = option(caveat_functions, RuleConfig, no_common_caveats_call),
-    no_call_common(Config, Target, RuleConfig, no_common_caveats_call, DefaultFns,
-                   ?NO_COMMON_CAVEATS_CALL_MSG).
+    DefaultFns = option(caveat_functions, RuleConfig, ?FUNCTION_NAME),
+    IgnoreModules = option(ignore, RuleConfig, ?FUNCTION_NAME),
+    no_call_common(Config, Target, IgnoreModules, DefaultFns, ?NO_COMMON_CAVEATS_CALL_MSG).
 
 -spec node_line_limits(ktn_code:tree_node())->
     {Min :: integer(), Max :: integer()}.
@@ -883,7 +889,7 @@ node_line_limits(FunctionNode) ->
     [elvis_result:item()].
 no_nested_try_catch(Config, Target, RuleConfig) ->
     {Root, _} = elvis_file:parse_tree(Config, Target),
-    IgnoreModules = option(ignore, RuleConfig, no_nested_try_catch),
+    IgnoreModules = option(ignore, RuleConfig, ?FUNCTION_NAME),
     case lists:member(elvis_code:module_name(Root), IgnoreModules) of
         false -> Predicate = fun(Node) -> ktn_code:type(Node) == 'try' end,
                  ResultFun = result_node_line_fun(?NO_NESTED_TRY_CATCH),
@@ -908,12 +914,12 @@ no_nested_try_catch(Config, Target, RuleConfig) ->
 atom_naming_convention(Config, Target, RuleConfig) ->
     {Root, _File} = elvis_file:parse_tree(Config, Target),
     ModuleName = elvis_code:module_name(Root),
-    IgnoreModules = option(ignore, RuleConfig, atom_naming_convention),
+    IgnoreModules = option(ignore, RuleConfig, ?FUNCTION_NAME),
     case lists:member(ModuleName, IgnoreModules) of
         false ->
-            Regex = option(regex, RuleConfig, atom_naming_convention),
+            Regex = option(regex, RuleConfig, ?FUNCTION_NAME),
             RegexEnclosed
-                = enclosed_atoms_regex_or_same(option(enclosed_atoms, RuleConfig, atom_naming_convention), Regex),
+                = enclosed_atoms_regex_or_same(option(enclosed_atoms, RuleConfig, ?FUNCTION_NAME), Regex),
             AtomNodes = elvis_code:find(fun is_atom_node/1, Root, #{traverse => all, mode => node}),
             check_atom_names(Regex, RegexEnclosed, AtomNodes, []);
         true ->
@@ -1086,10 +1092,9 @@ check_no_spaces(Line, Num, _Args) ->
 
 %% No Trailing Whitespace
 
--spec check_no_trailing_whitespace(binary(), integer(), map()) ->
+-spec check_no_trailing_whitespace(binary(), integer(), boolean()) ->
     no_result | {ok, elvis_result:item()}.
-check_no_trailing_whitespace(Line, Num, RuleConfig) ->
-    IgnoreEmptyLines = option(ignore_empty_lines, RuleConfig, no_trailing_whitespace),
+check_no_trailing_whitespace(Line, Num, IgnoreEmptyLines) ->
     Regex =
         case IgnoreEmptyLines of
             %% Lookbehind assertion: http://erlang.org/doc/man/re.html#sect17
@@ -1503,19 +1508,14 @@ is_children(Parent, Node) ->
     [] =/= zipper:filter(fun(Child) -> Child == Node end, Zipper).
 
 %% No call
--type no_call_configs() :: no_call_config()
-                         | no_debug_call_config()
-                         | no_common_caveats_call_config().
 -spec no_call_common(elvis_config:config(),
                      elvis_file:file(),
-                     no_call_configs(),
-                     atom(),
+                     [module()],
                      [function_spec()],
                      string()
                     ) ->
     [elvis_result:item()].
-no_call_common(Config, Target, RuleConfig, Rule, NoCallFuns, Msg) ->
-    IgnoreModules = option(ignore, RuleConfig, Rule),
+no_call_common(Config, Target, IgnoreModules, NoCallFuns, Msg) ->
     {Root, _} = elvis_file:parse_tree(Config, Target),
     ModuleName = elvis_code:module_name(Root),
 
