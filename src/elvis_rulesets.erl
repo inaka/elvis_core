@@ -31,13 +31,26 @@ rules(erl_files) ->
         , atom_naming_convention
         ]);
 rules(makefiles) ->
-  [ {elvis_project, no_deps_master_erlang_mk, #{ignore => []}}
-  , {elvis_project, protocol_for_deps_erlang_mk, #{ignore => []}}
-  ];
+    lists:map(
+        fun (Rule) ->
+            {elvis_project, Rule, elvis_project:default(Rule)}
+        end,
+        [ no_deps_master_erlang_mk
+        , protocol_for_deps_erlang_mk
+        ]);
 rules(rebar_config) ->
-  [ {elvis_project, no_deps_master_rebar, #{ignore => []}}
-  , {elvis_project, protocol_for_deps_rebar, #{ignore => []}}
-  ];
+    lists:map(
+        fun (Rule) ->
+            {elvis_project, Rule, elvis_project:default(Rule)}
+        end,
+        [ no_deps_master_rebar
+        , protocol_for_deps_rebar
+        ]);
 rules(elvis_config) ->
-  [{elvis_project, old_configuration_format}];
+    lists:map(
+        fun (Rule) ->
+            {elvis_project, Rule, elvis_project:default(Rule)}
+        end,
+        [ old_configuration_format
+        ]);
 rules(_Group) -> [].
