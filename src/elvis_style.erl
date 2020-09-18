@@ -156,7 +156,10 @@ default(macro_module_names) ->
     #{};
 
 default(operator_spaces) ->
-    #{ rules => [{right, ","}, {right, "++"}, {left, "++"}]
+    #{ rules => [ {right, ","}
+                , {right, "++"}
+                , {left, "++"}
+                ]
      };
 
 default(nesting_level) ->
@@ -237,7 +240,8 @@ default(no_debug_call) ->
      , debug_functions => [ {ct, pal}
                           , {ct, print}
                           , {io, format, 1}
-                          , {io, format, 2}]
+                          , {io, format, 2}
+                          ]
      };
 
 default(no_common_caveats_call) ->
@@ -246,13 +250,15 @@ default(no_common_caveats_call) ->
                            , {timer, send_after, 3}
                            , {timer, send_interval, 2}
                            , {timer, send_interval, 3}
-                           , {erlang, size, 1}]
+                           , {erlang, size, 1}
+                           ]
      };
 
 default(atom_naming_convention) ->
     #{ ignore => []
      , regex => "^([a-z][a-z0-9]*_?)*(_SUITE)?$"
-     , enclosed_atoms => ".*" }.
+     , enclosed_atoms => ".*"
+     }.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Rules

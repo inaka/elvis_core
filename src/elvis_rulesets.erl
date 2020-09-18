@@ -28,7 +28,8 @@ rules(erl_files) ->
         , no_debug_call
         , variable_naming_convention
         , no_nested_try_catch
-        , atom_naming_convention ]);
+        , atom_naming_convention
+        ]);
 rules(makefiles) ->
   [ {elvis_project, no_deps_master_erlang_mk, #{ignore => []}}
   , {elvis_project, protocol_for_deps_erlang_mk, #{ignore => []}}
