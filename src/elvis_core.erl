@@ -126,8 +126,50 @@ apply_rules_and_print(Config, File) ->
 apply_rules(Config, File) ->
     Rules = elvis_config:rules(Config),
     Acc = {[], Config, File},
-    {RulesResults, _, _} = lists:foldl(fun apply_rule/2, Acc, Rules),
+    {ParseTree, _} = elvis_file:parse_tree(Config, File),
+    {RulesResults, _, _} = lists:foldl(fun apply_rule/2, Acc,
+                                       merge_rules(Rules, {file, ParseTree})),
     elvis_result:new(file, File, RulesResults).
+
+merge_rules(ElvisConfigRules, {file, ParseTree}) ->
+    ElvisAttrs = elvis_code:find(fun is_elvis_attr/1, ParseTree,
+                                 #{ traverse => content, mode => node }),
+    ElvisAttrRules = elvis_attr_rules(ElvisAttrs),
+    merge_rules(ElvisAttrRules, ElvisConfigRules);
+merge_rules(ElvisAttrRules, undefined = _ElvisConfigRules) ->
+    ElvisAttrRules;
+merge_rules(undefined = _ElvisAttrRules, ElvisConfigRules) ->
+    ElvisConfigRules;
+merge_rules(ElvisAttrRules, ElvisConfigRules) ->
+    lists:filter(
+        fun (ElvisConfigRule) ->
+            not(lists:any(
+                    fun (ElvisAttrRule) ->
+                        {erlang:element(1, ElvisAttrRule), erlang:element(2, ElvisAttrRule)}
+                            =:=
+                        {erlang:element(1, ElvisConfigRule), erlang:element(2, ElvisConfigRule)}
+                    end,
+                    ElvisAttrRules))
+        end,
+        ElvisConfigRules) ++ ElvisAttrRules.
+
+is_elvis_attr(Node) ->
+    ktn_code:type(Node) =:= elvis.
+
+elvis_attr_rules([] = _ElvisAttrs) ->
+    undefined;
+elvis_attr_rules(ElvisAttrs) ->
+    lists:foldl(
+        fun (ElvisAttr, ModuleLevelRules) ->
+            ModuleLevelRules ++ try_attr_rules(ktn_code:attr(value, ElvisAttr))
+        end,
+        [],
+        ElvisAttrs).
+
+try_attr_rules(ModuleLevelRules) when is_map(ModuleLevelRules) ->
+    maps:get(module, ModuleLevelRules, []);
+try_attr_rules(_ModuleLevelRules) ->
+    [].
 
 apply_rule({Module, Function}, {Result, Config, File}) ->
     apply_rule({Module, Function, #{}}, {Result, Config, File});
