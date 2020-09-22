@@ -11,6 +11,9 @@
 %% for internal use only
 -export([do_rock/2]).
 
+%% for eating what we cook
+-export([main/1]).
+
 -type source_filename() :: nonempty_string().
 -type target() :: source_filename() | module().
 
@@ -101,6 +104,12 @@ load_file_data(Config, File) ->
             elvis_utils:error_prn(Msg, [Reason, Path]),
             File
     end.
+
+%% @private
+-spec main([]) -> ok.
+main([]) ->
+    ok = application:load(elvis_core),
+    rock(elvis_config:from_file("elvis.config")).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Private

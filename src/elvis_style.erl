@@ -887,7 +887,10 @@ atom_naming_convention(Config, Target, RuleConfig) ->
         false ->
             Regex = option(regex, RuleConfig, atom_naming_convention),
             RegexEnclosed
-                = enclosed_atoms_regex_or_same(option(enclosed_atoms, RuleConfig, atom_naming_convention), Regex),
+                = enclosed_atoms_regex_or_same(option(enclosed_atoms,
+                                                      RuleConfig,
+                                                      atom_naming_convention),
+                                               Regex),
             AtomNodes = elvis_code:find(fun is_atom_node/1, Root, #{traverse => all, mode => node}),
             check_atom_names(Regex, RegexEnclosed, AtomNodes, []);
         true ->
