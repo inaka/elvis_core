@@ -141,17 +141,7 @@ merge_rules(ElvisAttrRules, undefined = _ElvisConfigRules) ->
 merge_rules(undefined = _ElvisAttrRules, ElvisConfigRules) ->
     ElvisConfigRules;
 merge_rules(ElvisAttrRules, ElvisConfigRules) ->
-    lists:filter(
-        fun (ElvisConfigRule) ->
-            not(lists:any(
-                    fun (ElvisAttrRule) ->
-                        {erlang:element(1, ElvisAttrRule), erlang:element(2, ElvisAttrRule)}
-                            =:=
-                        {erlang:element(1, ElvisConfigRule), erlang:element(2, ElvisConfigRule)}
-                    end,
-                    ElvisAttrRules))
-        end,
-        ElvisConfigRules) ++ ElvisAttrRules.
+    elvis_config:merge_rules(ElvisAttrRules, ElvisConfigRules).
 
 is_elvis_attr(Node) ->
     ktn_code:type(Node) =:= elvis.
@@ -161,15 +151,10 @@ elvis_attr_rules([] = _ElvisAttrs) ->
 elvis_attr_rules(ElvisAttrs) ->
     lists:foldl(
         fun (ElvisAttr, ModuleLevelRules) ->
-            ModuleLevelRules ++ try_attr_rules(ktn_code:attr(value, ElvisAttr))
+            ModuleLevelRules ++ ktn_code:attr(value, ElvisAttr)
         end,
         [],
         ElvisAttrs).
-
-try_attr_rules(ModuleLevelRules) when is_map(ModuleLevelRules) ->
-    maps:get(module, ModuleLevelRules, []);
-try_attr_rules(_ModuleLevelRules) ->
-    [].
 
 apply_rule({Module, Function}, {Result, Config, File}) ->
     apply_rule({Module, Function, #{}}, {Result, Config, File});

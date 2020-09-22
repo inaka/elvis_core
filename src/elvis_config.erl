@@ -14,6 +14,8 @@
         , resolve_files/1
         , resolve_files/2
         , apply_to_files/2
+          %% Rules
+        , merge_rules/2
         ]).
 
 -export_type([config/0]).
