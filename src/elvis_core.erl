@@ -106,7 +106,7 @@ load_file_data(Config, File) ->
     end.
 
 %% @private
--spec main([]) -> ok.
+-spec main([]) -> ok | {fail, [elvis_result:file()]}.
 main([]) ->
     ok = application:load(elvis_core),
     rock(elvis_config:from_file("elvis.config")).
