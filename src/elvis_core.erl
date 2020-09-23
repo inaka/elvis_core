@@ -11,7 +11,7 @@
 %% for internal use only
 -export([do_rock/2]).
 
-%% for eating what we cook
+%% for eating our own dogfood
 -export([main/1]).
 
 -type source_filename() :: nonempty_string().
