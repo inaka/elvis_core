@@ -158,7 +158,7 @@ is_elvis_attr(Node) ->
 elvis_attr_rules([] = _ElvisAttrs) ->
     undefined;
 elvis_attr_rules(ElvisAttrs) ->
-    [ktn_code:attr(value, ElvisAttr) || ElvisAttr <- ElvisAttrs].
+    [Rule || ElvisAttr <- ElvisAttrs, Rule <- ktn_code:attr(value, ElvisAttr)].
 
 apply_rule({Module, Function}, {Result, Config, File}) ->
     apply_rule({Module, Function, #{}}, {Result, Config, File});
