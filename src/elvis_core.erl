@@ -158,12 +158,7 @@ is_elvis_attr(Node) ->
 elvis_attr_rules([] = _ElvisAttrs) ->
     undefined;
 elvis_attr_rules(ElvisAttrs) ->
-    lists:foldl(
-        fun (ElvisAttr, ModuleLevelRules) ->
-            ModuleLevelRules ++ ktn_code:attr(value, ElvisAttr)
-        end,
-        [],
-        ElvisAttrs).
+    [ktn_code:attr(value, ElvisAttr) || ElvisAttr <- ElvisAttrs].
 
 apply_rule({Module, Function}, {Result, Config, File}) ->
     apply_rule({Module, Function, #{}}, {Result, Config, File});
