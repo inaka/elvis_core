@@ -118,15 +118,15 @@ filter(_RuleGroup = #{filter := Filter}) ->
 filter(#{}) ->
     ?DEFAULT_FILTER.
 
--spec files(RuleGroup::config() | map()) -> [elvis_file:file()] | undefined.
+-spec files(RuleGroup::config() | map()) -> [elvis_file:file()].
 files(RuleGroup) when is_list(RuleGroup) ->
     lists:map(fun files/1, RuleGroup);
 files(_RuleGroup = #{files := Files}) ->
     Files;
 files(#{}) ->
-    undefined.
+    [].
 
--spec rules(Rules::config() | map()) -> [string()] | undefined.
+-spec rules(Rules::config() | map()) -> list().
 rules(Rules) when is_list(Rules) ->
     lists:map(fun rules/1, Rules);
 rules(#{rules := UserRules, ruleset := RuleSet}) ->
@@ -136,7 +136,7 @@ rules(#{rules := Rules}) -> Rules;
 rules(#{ruleset := RuleSet}) ->
     elvis_rulesets:rules(RuleSet);
 rules(#{}) ->
-    undefined.
+    [].
 
 %% @doc Takes a configuration and a list of files, filtering some
 %%      of them according to the 'filter' key, or if not specified
