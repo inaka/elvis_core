@@ -1,10 +1,10 @@
 -module(pass_no_debug_call_elvis_attr).
 -export([fail/0]).
 
+-elvis([{elvis_style, no_debug_call, #{debug_functions => [{ct, log}]}}]).
+
 -ignore_xref({cthr, pal, 1}).
 -ignore_xref({cthr, pal, 2}).
-
--elvis([{elvis_style, no_debug_call, #{debug_functions => [{ct, log}]}}]).
 
 -spec fail() -> any().
 fail() ->

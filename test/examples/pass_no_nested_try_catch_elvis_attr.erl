@@ -1,9 +1,9 @@
 -module(pass_no_nested_try_catch_elvis_attr).
 
--ignore_xref({maybe, throw, 1}).
--ignore_xref({a_function, that_deals, 2}).
-
 -dialyzer({nowarn_function, bad2/0}).
+
+-ignore_xref([{maybe, throw, 1}]).
+-ignore_xref([{a_function, that_deals, 2}]).
 
 -export([
          bad1/0,

@@ -1,16 +1,17 @@
 -module(pass_no_spaces_elvis_attr).
 
--ignore_xref({x, fail, 1}).
--ignore_xref({x, this_line, 2}).
--ignore_xref({x, this_line, 3}).
 -elvis([{elvis_style, no_spaces, disable}]).
 -elvis([{elvis_style, no_tabs, disable}]).
--ignore_xref({x, this_line_should, 3}).
--ignore_xref({x, this_line_should, 1}).
--ignore_xref({x, this_line_is_good, 0}).
--ignore_xref({x, this_line_is_wrong, 0}).
 
 -export([one/0, two/0, three/0, four/0, five/0]).
+
+-ignore_xref([{x, this_line_is_good, 0}]).
+-ignore_xref([{x, this_line_is_wrong, 0}]).
+-ignore_xref([{x, this_line, 2}]).
+-ignore_xref([{x, this_line, 3}]).
+-ignore_xref([{x, fail, 1}]).
+-ignore_xref([{x, this_line_should, 1}]).
+-ignore_xref([{x, this_line_should, 3}]).
 
 one() ->
   not_ok. %%This lines has a spaces

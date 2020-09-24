@@ -1,13 +1,19 @@
 -module(pass_invalid_dynamic_call_elvis_attr).
 
--ignore_xref({normal, call, 0}).
--ignore_xref({another_normal, call, 0}).
-
 -elvis([{elvis_style, invalid_dynamic_call, disable}]).
 -elvis([{elvis_style, line_length, #{limit => 100}}]).
 -elvis([{elvis_style, atom_naming_convention, #{regex => "^([a-z][a-z0-9]*_?_?)*(_SUITE)?$"}}]).
 
 -dialyzer(no_match).
+
+-ignore_xref({normal, call, 0}).
+-ignore_xref({a_module, call, 0}).
+-ignore_xref({a_module, a_function, 0}).
+-ignore_xref({another_normal, call, 0}).
+-ignore_xref({another_normal, call_to__another_function, 0}).
+-ignore_xref({yam, call_to_function, 0}).
+-ignore_xref({yamm, call_to_function, 0}).
+-ignore_xref({yammm, call_to_function, 0}).
 
 -export([
          dynamic_module_name_call/0,

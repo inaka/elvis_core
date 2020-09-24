@@ -1,11 +1,11 @@
 -module(pass_line_length_elvis_attr).
 
--ignore_xref({model, random_ant_state, 1}).
-
 -elvis([{elvis_style, line_length, #{limit => 189}}]).
 -elvis([{elvis_style, no_debug_call, disable}]).
 -elvis([{elvis_style, function_naming_convention, #{regex => "^function_[0-9]+$"}}]).
 -elvis([{elvis_style, macro_module_names, disable}]).
+
+-ignore_xref([{model, random_ant_state, 1}]).
 
 -export([
          function_1/0,
