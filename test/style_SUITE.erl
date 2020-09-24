@@ -36,6 +36,32 @@
          verify_no_call/1,
          verify_no_nested_try_catch/1,
          verify_atom_naming_convention/1,
+         %% -elvis attribute
+         verify_elvis_attr_atom_naming_convention/1,
+         verify_elvis_attr_dont_repeat_yourself/1,
+         verify_elvis_attr_function_naming_convention/1,
+         verify_elvis_attr_god_modules/1,
+         verify_elvis_attr_invalid_dynamic_call/1,
+         verify_elvis_attr_line_length/1,
+         verify_elvis_attr_macro_module_names/1,
+         verify_elvis_attr_macro_names/1,
+         verify_elvis_attr_max_function_length/1,
+         verify_elvis_attr_max_module_length/1,
+         verify_elvis_attr_module_naming_convention/1,
+         verify_elvis_attr_nesting_level/1,
+         verify_elvis_attr_no_behavior_info/1,
+         verify_elvis_attr_no_call/1,
+         verify_elvis_attr_no_debug_call/1,
+         verify_elvis_attr_no_if_expression/1,
+         verify_elvis_attr_no_nested_try_catch/1,
+         verify_elvis_attr_no_spaces/1,
+         verify_elvis_attr_no_spec_with_records/1,
+         verify_elvis_attr_no_tabs/1,
+         verify_elvis_attr_no_trailing_whitespace/1,
+         verify_elvis_attr_operator_spaces/1,
+         verify_elvis_attr_state_record_and_type/1,
+         verify_elvis_attr_used_ignored_variable/1,
+         verify_elvis_attr_variable_naming_convention/1,
          %% Non-rule
          results_are_ordered_by_line/1
         ]).
@@ -758,9 +784,212 @@ results_are_ordered_by_line(_Config) ->
     {fail, Results} = elvis_core:rock(ElvisConfig),
     true = lists:all(fun(X) -> X end, is_item_line_sort(Results)).
 
+-spec verify_elvis_attr_atom_naming_convention(config()) -> true.
+verify_elvis_attr_atom_naming_convention(_Config) ->
+    ElvisConfig = elvis_test_utils:config(erl_files),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+
+    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_atom_naming_convention_elvis_attr.erl"),
+    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+
+-spec verify_elvis_attr_dont_repeat_yourself(config()) -> true.
+verify_elvis_attr_dont_repeat_yourself(_Config) ->
+    ElvisConfig = elvis_test_utils:config(erl_files),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+
+    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_dont_repeat_yourself_elvis_attr.erl"),
+    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+
+-spec verify_elvis_attr_function_naming_convention(config()) -> true.
+verify_elvis_attr_function_naming_convention(_Config) ->
+    ElvisConfig = elvis_test_utils:config(erl_files),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+
+    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_function_naming_convention_elvis_attr.erl"),
+    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+
+-spec verify_elvis_attr_god_modules(config()) -> true.
+verify_elvis_attr_god_modules(_Config) ->
+    ElvisConfig = elvis_test_utils:config(erl_files),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+
+    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_god_modules_elvis_attr.erl"),
+    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+
+-spec verify_elvis_attr_invalid_dynamic_call(config()) -> true.
+verify_elvis_attr_invalid_dynamic_call(_Config) ->
+    ElvisConfig = elvis_test_utils:config(erl_files),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+
+    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_invalid_dynamic_call_elvis_attr.erl"),
+    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+
+-spec verify_elvis_attr_line_length(config()) -> true.
+verify_elvis_attr_line_length(_Config) ->
+    ElvisConfig = elvis_test_utils:config(erl_files),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+
+    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_line_length_elvis_attr.erl"),
+    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+
+-spec verify_elvis_attr_macro_module_names(config()) -> true.
+verify_elvis_attr_macro_module_names(_Config) ->
+    ElvisConfig = elvis_test_utils:config(erl_files),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+
+    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_macro_module_names_elvis_attr.erl"),
+    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+
+-spec verify_elvis_attr_macro_names(config()) -> true.
+verify_elvis_attr_macro_names(_Config) ->
+    ElvisConfig = elvis_test_utils:config(erl_files),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+
+    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_macro_names_elvis_attr.erl"),
+    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+
+-spec verify_elvis_attr_max_function_length(config()) -> true.
+verify_elvis_attr_max_function_length(_Config) ->
+    ElvisConfig = elvis_test_utils:config(erl_files),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+
+    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_max_function_length_elvis_attr.erl"),
+    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+
+-spec verify_elvis_attr_max_module_length(config()) -> true.
+verify_elvis_attr_max_module_length(_Config) ->
+    ElvisConfig = elvis_test_utils:config(erl_files),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+
+    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_max_module_length_elvis_attr.erl"),
+    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+
+-spec verify_elvis_attr_module_naming_convention(config()) -> true.
+verify_elvis_attr_module_naming_convention(_Config) ->
+    ElvisConfig = elvis_test_utils:config(erl_files),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+
+    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_module_naming-convention_elvis_attr.erl"),
+    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+
+-spec verify_elvis_attr_nesting_level(config()) -> true.
+verify_elvis_attr_nesting_level(_Config) ->
+    ElvisConfig = elvis_test_utils:config(erl_files),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+
+    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_nesting_level_elvis_attr.erl"),
+    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+
+-spec verify_elvis_attr_no_behavior_info(config()) -> true.
+verify_elvis_attr_no_behavior_info(_Config) ->
+    ElvisConfig = elvis_test_utils:config(erl_files),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+
+    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_no_behavior_info_elvis_attr.erl"),
+    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+
+-spec verify_elvis_attr_no_call(config()) -> true.
+verify_elvis_attr_no_call(_Config) ->
+    ElvisConfig = elvis_test_utils:config(erl_files),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+
+    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_no_call_elvis_attr.erl"),
+    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+
+-spec verify_elvis_attr_no_debug_call(config()) -> true.
+verify_elvis_attr_no_debug_call(_Config) ->
+    ElvisConfig = elvis_test_utils:config(erl_files),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+
+    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_no_debug_call_elvis_attr.erl"),
+    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+
+-spec verify_elvis_attr_no_if_expression(config()) -> true.
+verify_elvis_attr_no_if_expression(_Config) ->
+    ElvisConfig = elvis_test_utils:config(erl_files),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_no_if_expression_elvis_attr.erl"),
+    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+
+-spec verify_elvis_attr_no_nested_try_catch(config()) -> true.
+verify_elvis_attr_no_nested_try_catch(_Config) ->
+    ElvisConfig = elvis_test_utils:config(erl_files),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+
+    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_no_nested_try_catch_elvis_attr.erl"),
+    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+
+-spec verify_elvis_attr_no_spaces(config()) -> true.
+verify_elvis_attr_no_spaces(_Config) ->
+    ElvisConfig = elvis_test_utils:config(erl_files),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+
+    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_no_spaces_elvis_attr.erl"),
+    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+
+-spec verify_elvis_attr_no_spec_with_records(config()) -> true.
+verify_elvis_attr_no_spec_with_records(_Config) ->
+    ElvisConfig = elvis_test_utils:config(erl_files),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+
+    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_no_spec_with_records_elvis_attr.erl"),
+    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+
+-spec verify_elvis_attr_no_tabs(config()) -> true.
+verify_elvis_attr_no_tabs(_Config) ->
+    ElvisConfig = elvis_test_utils:config(erl_files),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+
+    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_no_tabs_elvis_attr.erl"),
+    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+
+-spec verify_elvis_attr_no_trailing_whitespace(config()) -> true.
+verify_elvis_attr_no_trailing_whitespace(_Config) ->
+    ElvisConfig = elvis_test_utils:config(erl_files),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+
+    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_no_trailing_whitespace_elvis_attr.erl"),
+    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+
+-spec verify_elvis_attr_operator_spaces(config()) -> true.
+verify_elvis_attr_operator_spaces(_Config) ->
+    ElvisConfig = elvis_test_utils:config(erl_files),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+
+    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_operator_spaces_elvis_attr.erl"),
+    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+
+-spec verify_elvis_attr_state_record_and_type(config()) -> true.
+verify_elvis_attr_state_record_and_type(_Config) ->
+    ElvisConfig = elvis_test_utils:config(erl_files),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+
+    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_state_record_and_type_elvis_attr.erl"),
+    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+
+-spec verify_elvis_attr_used_ignored_variable(config()) -> true.
+verify_elvis_attr_used_ignored_variable(_Config) ->
+    ElvisConfig = elvis_test_utils:config(erl_files),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+
+    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_used_ignored_variable_elvis_attr.erl"),
+    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+
+-spec verify_elvis_attr_variable_naming_convention(config()) -> true.
+verify_elvis_attr_variable_naming_convention(_Config) ->
+    ElvisConfig = elvis_test_utils:config(erl_files),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+
+    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_variable_naming_convention_elvis_attr.erl"),
+    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+verify_elvis_attr_do_rock_results({ok, #{ rules := RuleResults }}) ->
+    [[] = Items || #{ items := Items } <- RuleResults],
+    true.
 
 -spec is_item_line_sort([elvis_result:file()]) -> [boolean()].
 is_item_line_sort(Result) ->

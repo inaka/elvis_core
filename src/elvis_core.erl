@@ -137,18 +137,14 @@ apply_rules(Config, File) ->
     Acc = {[], Config, File},
     {ParseTree, _} = elvis_file:parse_tree(Config, File),
     {RulesResults, _, _} = lists:foldl(fun apply_rule/2, Acc,
-                                       merge_rules(Rules, {file, ParseTree})),
+                                       merge_rules({file, ParseTree}, lists:flatten(Rules))),
     elvis_result:new(file, File, RulesResults).
 
-merge_rules(ElvisConfigRules, {file, ParseTree}) ->
+merge_rules({file, ParseTree}, ElvisConfigRules) ->
     ElvisAttrs = elvis_code:find(fun is_elvis_attr/1, ParseTree,
                                  #{ traverse => content, mode => node }),
     ElvisAttrRules = elvis_attr_rules(ElvisAttrs),
     merge_rules(ElvisAttrRules, ElvisConfigRules);
-merge_rules(ElvisAttrRules, undefined = _ElvisConfigRules) ->
-    ElvisAttrRules;
-merge_rules(undefined = _ElvisAttrRules, ElvisConfigRules) ->
-    ElvisConfigRules;
 merge_rules(ElvisAttrRules, ElvisConfigRules) ->
     elvis_config:merge_rules(ElvisAttrRules, ElvisConfigRules).
 
@@ -156,7 +152,7 @@ is_elvis_attr(Node) ->
     ktn_code:type(Node) =:= elvis.
 
 elvis_attr_rules([] = _ElvisAttrs) ->
-    undefined;
+    [];
 elvis_attr_rules(ElvisAttrs) ->
     [Rule || ElvisAttr <- ElvisAttrs, Rule <- ktn_code:attr(value, ElvisAttr)].
 
