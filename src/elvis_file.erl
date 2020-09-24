@@ -60,7 +60,7 @@ parse_tree(_Config, File) ->
     throw({invalid_file, File}).
 
 %% @doc Loads and adds all related file data.
--spec load_file_data(map(), file()) -> file().
+-spec load_file_data(elvis_config:config() | map(), file()) -> file().
 load_file_data(Config, File0 = #{path := _Path}) ->
     {_, File1} = src(File0),
     {_, File2} = parse_tree(Config, File1),

@@ -126,7 +126,7 @@ files(_RuleGroup = #{files := Files}) ->
 files(#{}) ->
     [].
 
--spec rules(Rules::config() | map()) -> list().
+-spec rules(Rules::config() | map()) -> [elvis_core:rule()].
 rules(Rules) when is_list(Rules) ->
     lists:map(fun rules/1, Rules);
 rules(#{rules := UserRules, ruleset := RuleSet}) ->
@@ -190,7 +190,7 @@ ignore_to_regexp(A) when is_atom(A) ->
     "/" ++ atom_to_list(A) ++ "\\.erl$".
 
 %% @doc Merge user rules (override) with elvis default rules.
--spec merge_rules(UserRules::list(), DefaultRules::list()) -> list().
+-spec merge_rules(UserRules::list(), DefaultRules::list()) -> [elvis_core:rule()].
 merge_rules(UserRules, DefaultRules) ->
     UnduplicatedRules =
         % Drops repeated rules
@@ -216,7 +216,7 @@ merge_rules(UserRules, DefaultRules) ->
         ),
     UnduplicatedRules ++ OverrideRules.
 
--spec is_rule_override(FileName::atom(), RuleName::atom(), UserRules::list()) ->
+-spec is_rule_override(FileName::atom(), RuleName::atom(), UserRules::[elvis_core:rule()]) ->
     boolean().
 is_rule_override(FileName, RuleName, UserRules) ->
     lists:any(
