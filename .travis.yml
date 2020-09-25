@@ -14,3 +14,5 @@ script:
   - rebar3 --version
   - erl -version
   - rebar3 test
+  - rebar3 escriptize
+  - _build/default/bin/elvis_core

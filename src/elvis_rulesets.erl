@@ -2,7 +2,7 @@
 
 -export([rules/1]).
 
--spec rules(Group::atom()) -> list().
+-spec rules(Group::atom()) -> [elvis_core:rule()].
 rules(erl_files) ->
     lists:map(
         fun (Rule) ->
