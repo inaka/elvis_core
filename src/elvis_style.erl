@@ -136,117 +136,94 @@
 
 -spec default(Rule :: atom()) -> DefaultRuleConfig :: term().
 default(line_length) ->
-    #{ ignore => []
-     , limit => 100
+    #{ limit => 100
      , skip_comments => false
      };
 
 default(no_tabs) ->
-    #{ ignore => []
-     };
+    #{};
 
 default(no_trailing_whitespace) ->
-    #{ ignore => []
-     , ignore_empty_lines => false
+    #{ ignore_empty_lines => false
      };
 
 default(macro_names) ->
-    #{ ignore => []
-     , regex => "^([A-Z][A-Z_0-9]+)$"
+    #{ regex => "^([A-Z][A-Z_0-9]+)$"
      };
 
 default(macro_module_names) ->
-    #{ ignore => []
-     };
+    #{};
 
 default(operator_spaces) ->
-    #{ ignore => []
-     , rules => [ {right, ","}
+    #{ rules => [ {right, ","}
                 , {right, "++"}
                 , {left, "++"}
                 ]
      };
 
 default(nesting_level) ->
-    #{ ignore => []
-     , level => 4
+    #{ level => 4
      };
 
 default(god_modules) ->
-    #{ ignore => []
-     , limit => 25
+    #{ limit => 25
      };
 
 default(no_if_expression) ->
-    #{ ignore => []
-     };
+    #{};
 
 default(no_nested_try_catch) ->
-    #{ ignore => []
-     };
+    #{};
 
 default(invalid_dynamic_call) ->
-    #{ ignore => []
-     };
+    #{};
 
 default(used_ignored_variable) ->
-    #{ ignore => []
-     };
+    #{};
 
 default(no_behavior_info) ->
-    #{ ignore => []
-     };
+    #{};
 
 default(function_naming_convention) ->
-    #{ ignore => []
-     , regex => "^([a-z][a-z0-9]*_?)*(_SUITE)?$"
+    #{ regex => "^([a-z][a-z0-9]*_?)*(_SUITE)?$"
      };
 
 default(variable_naming_convention) ->
-    #{ ignore => []
-     , regex => "^_?([A-Z][0-9a-zA-Z]*)$"
+    #{ regex => "^_?([A-Z][0-9a-zA-Z]*)$"
      };
 
 default(module_naming_convention) ->
-    #{ ignore => []
-     , regex => "^([a-z][a-z0-9]*_?)*(_SUITE)?$"
+    #{ regex => "^([a-z][a-z0-9]*_?)*(_SUITE)?$"
      };
 
 default(state_record_and_type) ->
-    #{ ignore => []
-     };
+    #{};
 
 default(no_spec_with_records) ->
-    #{ ignore => []
-     };
+    #{};
 
 default(dont_repeat_yourself) ->
-    #{ ignore => []
-     , min_complexity => 10
+    #{ min_complexity => 10
      };
 
 default(max_module_length) ->
-    #{ ignore => []
-     , max_length => 500
+    #{ max_length => 500
      , count_comments => false
      , count_whitespace => false
      };
 
 default(max_function_length) ->
-    #{ ignore => []
-     , max_length => 30
+    #{ max_length => 30
      , count_comments => false
      , count_whitespace => false
      };
 
 default(no_call) ->
-    #{ ignore => []
-     , no_call_functions => []
+    #{ no_call_functions => []
      };
 
 default(no_debug_call) ->
-    #{ ignore => []
-     , debug_functions => [ {ct, pal}
+    #{ debug_functions => [ {ct, pal}
                           , {ct, print}
                           , {io, format, 1}
                           , {io, format, 2}
@@ -254,8 +231,7 @@ default(no_debug_call) ->
      };
 
 default(no_common_caveats_call) ->
-    #{ ignore => []
-     , caveat_functions => [ {timer, send_after, 2}
+    #{ caveat_functions => [ {timer, send_after, 2}
                            , {timer, send_after, 3}
                            , {timer, send_interval, 2}
                            , {timer, send_interval, 3}
@@ -264,8 +240,7 @@ default(no_common_caveats_call) ->
      };
 
 default(atom_naming_convention) ->
-    #{ ignore => []
-     , regex => "^([a-z][a-z0-9]*_?)*(_SUITE)?$"
+    #{ regex => "^([a-z][a-z0-9]*_?)*(_SUITE)?$"
      , enclosed_atoms => ".*"
      }.
 
@@ -273,7 +248,8 @@ default(atom_naming_convention) ->
 %% Rules
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--type empty_rule_config() :: #{}.
+-type empty_rule_config() :: #{ ignore => []
+                              }.
 -type ignorable() :: module() | {module(), atom()} | {module(), atom(), arity()}.
 
 -type max_function_length_config() :: #{ ignore => [ignorable()]
@@ -385,7 +361,7 @@ no_spaces(_Config, Target, _RuleConfig) ->
 
 -spec no_trailing_whitespace(Config::elvis_config:config(),
                              Target::elvis_file:file(),
-                             RuleConfig::map()) ->
+                             empty_rule_config()) ->
     [elvis_result:item()].
 no_trailing_whitespace(_Config, Target, RuleConfig) ->
     {Src, _} = elvis_file:src(Target),
@@ -533,12 +509,9 @@ no_if_expression(Config, Target, _RuleConfig) ->
             lists:map(ResultFun, IfExprs)
     end.
 
--type invalid_dynamic_call_config() :: #{ ignore => [ignorable()]
-                                        }.
-
 -spec invalid_dynamic_call(elvis_config:config(),
                            elvis_file:file(),
-                           invalid_dynamic_call_config()) ->
+                           empty_rule_config()) ->
     [elvis_result:item()].
 invalid_dynamic_call(Config, Target, RuleConfig) ->
     IgnoreModules = option(ignore, RuleConfig, invalid_dynamic_call),
@@ -557,12 +530,9 @@ invalid_dynamic_call(Config, Target, RuleConfig) ->
         true -> []
     end.
 
--type used_ignored_variable_config() :: #{ ignore => [ignorable()]
-                                         }.
-
 -spec used_ignored_variable(elvis_config:config(),
                             elvis_file:file(),
-                            used_ignored_variable_config()) ->
+                            empty_rule_config()) ->
     [elvis_result:item()].
 used_ignored_variable(Config, Target, RuleConfig) ->
     IgnoreModules = option(ignore, RuleConfig, used_ignored_variable),
@@ -867,12 +837,9 @@ node_line_limits(FunctionNode) ->
     [Min | _] = LineNums, % Min = first function's line
     {Min, Max}.
 
--type no_nested_try_catch_config() :: #{ ignore => [ignorable()]
-                                       }.
-
 -spec no_nested_try_catch(elvis_config:config(),
                           elvis_file:file(),
-                          no_nested_try_catch_config()) ->
+                          empty_rule_config()) ->
     [elvis_result:item()].
 no_nested_try_catch(Config, Target, RuleConfig) ->
     {Root, _} = elvis_file:parse_tree(Config, Target),
@@ -1575,6 +1542,8 @@ option(OptionName, RuleConfig, Rule) ->
            OptionName :: atom(),
            Rule :: atom(),
            OptionValue :: term().
+maybe_default_option(undefined = _UserDefinedOptionValue, ignore, _Rule) ->
+    [];
 maybe_default_option(undefined = _UserDefinedOptionValue, OptionName, Rule) ->
     maps:get(OptionName, default(Rule));
 maybe_default_option(UserDefinedOptionValue, _OptionName, _Rule) ->
