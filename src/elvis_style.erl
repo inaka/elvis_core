@@ -136,15 +136,18 @@
 
 -spec default(Rule :: atom()) -> DefaultRuleConfig :: term().
 default(line_length) ->
-    #{ limit => 100
+    #{ ignore => []
+     , limit => 100
      , skip_comments => false
      };
 
 default(no_tabs) ->
-    #{};
+    #{ ignore => []
+     };
 
 default(no_trailing_whitespace) ->
-    #{ ignore_empty_lines => false
+    #{ ignore => []
+     , ignore_empty_lines => false
      };
 
 default(macro_names) ->
@@ -153,27 +156,30 @@ default(macro_names) ->
      };
 
 default(macro_module_names) ->
-    #{};
+    #{ ignore => []
+     };
 
 default(operator_spaces) ->
-    #{ rules => [ {right, ","}
+    #{ ignore => []
+     , rules => [ {right, ","}
                 , {right, "++"}
                 , {left, "++"}
                 ]
      };
 
 default(nesting_level) ->
-    #{ level => 4
-     , ignore => []
+    #{ ignore => []
+     , level => 4
      };
 
 default(god_modules) ->
-    #{ limit => 25
-     , ignore => []
+    #{ ignore => []
+     , limit => 25
      };
 
 default(no_if_expression) ->
-    #{};
+    #{ ignore => []
+     , };
 
 default(no_nested_try_catch) ->
     #{ ignore => []
@@ -188,43 +194,47 @@ default(used_ignored_variable) ->
      };
 
 default(no_behavior_info) ->
-    #{};
+    #{ ignore => []
+     , };
 
 default(function_naming_convention) ->
-    #{ regex => "^([a-z][a-z0-9]*_?)*(_SUITE)?$"
-     , ignore => []
+    #{ ignore => []
+     , regex => "^([a-z][a-z0-9]*_?)*(_SUITE)?$"
      };
 
 default(variable_naming_convention) ->
-    #{ regex => "^_?([A-Z][0-9a-zA-Z]*)$"
-     , ignore => []
+    #{ ignore => []
+     , regex => "^_?([A-Z][0-9a-zA-Z]*)$"
      };
 
 default(module_naming_convention) ->
-    #{ regex => "^([a-z][a-z0-9]*_?)*(_SUITE)?$"
-     , ignore => []
+    #{ ignore => []
+     , regex => "^([a-z][a-z0-9]*_?)*(_SUITE)?$"
      };
 
 default(state_record_and_type) ->
-    #{};
+    #{ ignore => []
+     };
 
 default(no_spec_with_records) ->
-    #{};
+    #{ ignore => []
+     };
 
 default(dont_repeat_yourself) ->
-    #{ min_complexity => 10
-     , ignore => []
+    #{ ignore => []
+     , min_complexity => 10
      };
 
 default(max_module_length) ->
-    #{ max_length => 500
-     , ignore => []
+    #{ ignore => []
+     , max_length => 500
      , count_comments => false
      , count_whitespace => false
      };
 
 default(max_function_length) ->
-    #{ max_length => 30
+    #{ ignore => []
+     , max_length => 30
      , count_comments => false
      , count_whitespace => false
      , ignore_functions => []
@@ -266,19 +276,21 @@ default(atom_naming_convention) ->
 
 -type empty_rule_config() :: #{}.
 
--type max_function_length_config() :: #{ignore_functions => [function_spec()],
-                                        max_length => non_neg_integer(),
-                                        count_comments => boolean(),
-                                        count_whitespace => boolean()}.
+-type max_function_length_config() :: #{ ignore => [],
+                                       , max_length => non_neg_integer(),
+                                       , count_comments => boolean(),
+                                       , count_whitespace => boolean()
+                                       }.
 
--type max_module_length_config() :: #{count_comments => boolean(),
-                                      count_whitespace => boolean(),
-                                      ignore => [atom()],
-                                      max_length => integer()}.
+-type max_module_length_config() :: #{ ignore => [],
+                                     , count_comments => boolean(),
+                                     , count_whitespace => boolean(),
+                                     , max_length => integer()
+                                     }.
 
 -type function_naming_convention_spec() :: module() | {module(), atom()}.
--type function_naming_convention_config() :: #{regex => string(),
-                                               ignore => [function_naming_convention_spec()]
+-type function_naming_convention_config() :: #{ ignore => [],
+                                              , regex => string(),
                                               }.
 
 -spec function_naming_convention(elvis_config:config(),
@@ -317,8 +329,8 @@ errors_for_function_names(Regex, [FunctionName | RemainingFuncNames]) ->
         {match, _} -> errors_for_function_names(Regex, RemainingFuncNames)
     end.
 
--type variable_naming_convention_config() :: #{regex => string(),
-                                               ignore => [module()]
+-type variable_naming_convention_config() :: #{ ignore => []
+                                              , regex => string(),
                                               }.
 -spec variable_naming_convention(elvis_config:config(),
                                  elvis_file:file(),
@@ -338,8 +350,9 @@ variable_naming_convention(Config, Target, RuleConfig) ->
         true -> []
     end.
 
--type line_length_config() :: #{limit => integer(),
-                                skip_comments => false | any | whole_line
+-type line_length_config() :: #{ ignore => []
+                               , limit => integer()
+                               , skip_comments => false | any | whole_line
                                }.
 
 %% @doc Target can be either a filename or the
@@ -384,8 +397,8 @@ no_trailing_whitespace(_Config, Target, RuleConfig) ->
                             end,
                             RuleConfig).
 
--type macro_names_config() :: #{regex => string(),
-                                ignore => [module()]
+-type macro_names_config() :: #{ ignore => []
+                               , regex => string(),
                                }.
 
 -spec macro_names(elvis_config:config(),
@@ -415,7 +428,9 @@ macro_module_names(Config, Target, _RuleConfig) ->
     {Root, _} = elvis_file:parse_tree(Config, Target),
     elvis_utils:check_lines(Src, fun check_macro_module_names/3, [Root]).
 
--type operator_spaces_config() :: #{rules => [{right|left, string()}]}.
+-type operator_spaces_config() :: #{ ignore => []
+                                   , rules => [{right | left, string()}]
+                                   }.
 -define(PUNCTUATION_SYMBOLS, [',', ';', 'dot', '->', ':', '::']).
 
 -spec operator_spaces(elvis_config:config(),
@@ -452,8 +467,9 @@ is_punctuation_token(Node) ->
     Type = ktn_code:type(Node),
     lists:member(Type, ?PUNCTUATION_SYMBOLS).
 
--type nesting_level_config() :: #{level => integer(),
-                                  ignore => [atom()]}.
+-type nesting_level_config() :: #{ ignore => []
+                                 , level => integer()
+                                 }.
 
 -spec nesting_level(elvis_config:config(),
                     elvis_file:file(),
@@ -473,8 +489,9 @@ nesting_level(Config, Target, RuleConfig) ->
             []
     end.
 
--type god_modules_config() :: #{limit => integer(),
-                                ignore => [atom()]}.
+-type god_modules_config() :: #{ ignore => []
+                               , limit => integer()
+                               }.
 
 -spec god_modules(elvis_config:config(),
                   elvis_file:file(),
@@ -517,7 +534,8 @@ no_if_expression(Config, Target, _RuleConfig) ->
             lists:map(ResultFun, IfExprs)
     end.
 
--type invalid_dynamic_call_config() :: #{ignore => [module()]}.
+-type invalid_dynamic_call_config() :: #{ ignore => []
+                                        }.
 
 -spec invalid_dynamic_call(elvis_config:config(),
                            elvis_file:file(),
@@ -540,7 +558,8 @@ invalid_dynamic_call(Config, Target, RuleConfig) ->
         true -> []
     end.
 
--type used_ignored_variable_config() :: #{ignore => [module()]}.
+-type used_ignored_variable_config() :: #{ ignore => []
+                                         }.
 
 -spec used_ignored_variable(elvis_config:config(),
                             elvis_file:file(),
@@ -592,8 +611,8 @@ no_behavior_info(Config, Target, _RuleConfig) ->
             lists:map(ResultFun, BehaviorInfos)
     end.
 
--type module_naming_convention_config() :: #{regex => string(),
-                                             ignore => [module()]
+-type module_naming_convention_config() :: #{ ignore => []
+                                            , regex => string()
                                             }.
 
 -spec module_naming_convention(elvis_config:config(),
@@ -657,8 +676,8 @@ no_spec_with_records(Config, Target, _RuleConfig) ->
             lists:map(ResultFun, SpecNodes)
     end.
 
--type dont_repeat_yourself_config() :: #{min_complexity => non_neg_integer(),
-                                         ignore => [module()]
+-type dont_repeat_yourself_config() :: #{ ignore => []
+                                        , min_complexity => non_neg_integer(),
                                         }.
 
 -spec dont_repeat_yourself(elvis_config:config(),
@@ -793,8 +812,8 @@ max_function_length(Config, Target, RuleConfig) ->
 -type function_spec() :: {module(), atom(), non_neg_integer()}
                        | {module(), atom()}.
 
--type no_call_config() :: #{no_call_functions => [function_spec()],
-                            ignore => [module()]
+-type no_call_config() :: #{ ignore => []
+                           , no_call_functions => [function_spec()],
                            }.
 -spec no_call(elvis_config:config(),
               elvis_file:file(),
@@ -806,8 +825,8 @@ no_call(Config, Target, RuleConfig) ->
     no_call_common(Config, Target, IgnoreModules, DefaultFns, ?NO_CALL_MSG).
 
 
--type no_debug_call_config() :: #{debug_functions => [function_spec()],
-                                  ignore => [module()]
+-type no_debug_call_config() :: #{ ignore => []
+                                 , debug_functions => [function_spec()]
                                  }.
 -spec no_debug_call(elvis_config:config(),
                     elvis_file:file(),
@@ -819,8 +838,8 @@ no_debug_call(Config, Target, RuleConfig) ->
     no_call_common(Config, Target, IgnoreModules, DefaultFns, ?NO_DEBUG_CALL_MSG).
 
 
--type no_common_caveats_call_config() :: #{caveat_functions => [function_spec()],
-                                           ignore => [module()]
+-type no_common_caveats_call_config() :: #{ ignore => []
+                                          , caveat_functions => [function_spec()]
                                           }.
 -spec no_common_caveats_call(elvis_config:config(),
                              elvis_file:file(),
@@ -849,7 +868,8 @@ node_line_limits(FunctionNode) ->
     [Min | _] = LineNums, % Min = first function's line
     {Min, Max}.
 
--type no_nested_try_catch_config() :: #{ignore => [module()]}.
+-type no_nested_try_catch_config() :: #{ ignore => [module()]
+                                       }.
 
 -spec no_nested_try_catch(elvis_config:config(),
                           elvis_file:file(),
@@ -870,9 +890,9 @@ no_nested_try_catch(Config, Target, RuleConfig) ->
          true -> []
     end.
 
--type atom_naming_convention_config() :: #{ regex => string(),
-                                            enclosed_atoms => same | string(),
-                                            ignore => [module()]
+-type atom_naming_convention_config() :: #{ ignore => []
+                                          , regex => string()
+                                          , enclosed_atoms => same | string()
                                           }.
 
 -spec atom_naming_convention(elvis_config:config(),
