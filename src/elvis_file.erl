@@ -4,6 +4,7 @@
          src/1,
          path/1,
          parse_tree/2,
+         parse_tree/3,
          load_file_data/2,
 
          find_files/2,
@@ -46,17 +47,23 @@ path(File) ->
 %% @doc Add the root node of the parse tree to the file data.
 -spec parse_tree(elvis_config:config() | map(), file()) ->
   {ktn_code:tree_node(), file()}.
-parse_tree(_Config, File = #{parse_tree := ParseTree}) ->
+parse_tree(Config, Target) ->
+    parse_tree(Config, Target, _RuleConfig = #{}).
+
+%% @doc Add the root node of the parse tree to the file data, with filtering.
+-spec parse_tree(elvis_config:config() | map(), file(), map()) ->
+  {ktn_code:tree_node(), file()}.
+parse_tree(_Config, File = #{parse_tree := ParseTree}, RuleConfig) ->
     {ParseTree, File};
-parse_tree(Config, File = #{path := Path, content := Content}) ->
+parse_tree(Config, File = #{path := Path, content := Content}, RuleConfig) ->
     Ext = filename:extension(Path),
     ExtStr = elvis_utils:to_str(Ext),
     ParseTree = resolve_parse_tree(ExtStr, Content),
-    parse_tree(Config, File#{parse_tree => ParseTree});
-parse_tree(Config, File0 = #{path := _Path}) ->
+    parse_tree(Config, File#{parse_tree => ParseTree}, RuleConfig);
+parse_tree(Config, File0 = #{path := _Path}, RuleConfig) ->
     {_, File} = src(File0),
-    parse_tree(Config, File);
-parse_tree(_Config, File) ->
+    parse_tree(Config, File, RuleConfig);
+parse_tree(_Config, File, RuleConfig) ->
     throw({invalid_file, File}).
 
 %% @doc Loads and adds all related file data.
