@@ -633,7 +633,7 @@ verify_max_function_length(_Config) ->
     [] = elvis_style:max_function_length(ElvisConfig, FileFail, RuleConfig10),
 
     IgnoredFunctions = [{ModuleFail, f15}, {ModuleFail, f10, 1}],
-    RuleConfig11 = RuleConfig5#{ignore_functions => IgnoredFunctions},
+    RuleConfig11 = RuleConfig5#{ignore => IgnoredFunctions},
     [] = elvis_style:max_function_length(ElvisConfig, FileFail, RuleConfig11),
 
     {comment, ""}.

@@ -248,7 +248,7 @@ default(atom_naming_convention) ->
 %% Rules
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--type empty_rule_config() :: #{ ignore => []
+-type empty_rule_config() :: #{ ignore => [ignorable()]
                               }.
 -type ignorable() :: module() | {module(), atom()} | {module(), atom(), arity()}.
 
@@ -339,9 +339,12 @@ no_spaces(_Config, Target, _RuleConfig) ->
     {Src, _} = elvis_file:src(Target),
     elvis_utils:check_lines(Src, fun check_no_spaces/3, []).
 
+-type no_trailing_whitespace_config() :: #{ ignore_empty_lines => boolean()
+                                          }.
+
 -spec no_trailing_whitespace(Config::elvis_config:config(),
                              Target::elvis_file:file(),
-                             empty_rule_config()) ->
+                             no_trailing_whitespace_config()) ->
     [elvis_result:item()].
 no_trailing_whitespace(_Config, Target, RuleConfig) ->
     {Src, _} = elvis_file:src(Target),
@@ -537,18 +540,23 @@ no_behavior_info(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 module_naming_convention(Config, Target, RuleConfig) ->
     Regex = option(regex, RuleConfig, module_naming_convention),
+    IgnoreModules = option(ignore, RuleConfig, module_naming_convention),
 
     {Root, _} = elvis_file:parse_tree(Config, Target, RuleConfig),
     ModuleName = elvis_code:module_name(Root),
 
-    ModuleNameStr = atom_to_list(ModuleName),
-    case re:run(ModuleNameStr, Regex) of
-        nomatch ->
-            Msg = ?MODULE_NAMING_CONVENTION_MSG,
-            Info = [ModuleNameStr, Regex],
-            Result = elvis_result:new(item, Msg, Info, 1),
-            [Result];
-        {match, _} -> []
+    case lists:member(ModuleName, IgnoreModules) of
+        false ->
+            ModuleNameStr = atom_to_list(ModuleName),
+            case re:run(ModuleNameStr, Regex) of
+                nomatch ->
+                    Msg = ?MODULE_NAMING_CONVENTION_MSG,
+                    Info = [ModuleNameStr, Regex],
+                    Result = elvis_result:new(item, Msg, Info, 1),
+                    [Result];
+                {match, _} -> []
+            end;
+        true -> []
     end.
 
 -spec state_record_and_type(elvis_config:config(),
@@ -1436,6 +1444,8 @@ check_nested_try_catchs(ResultFun, TryExp) ->
            RuleConfig :: map(),
            Rule :: atom(),
            OptionValue :: term().
+option(ignore = OptionName, RuleConfig, _Rule) ->
+    maps:get(OptionName, RuleConfig, []);
 option(OptionName, RuleConfig, Rule) ->
     maybe_default_option(maps:get(OptionName, RuleConfig, undefined), OptionName, Rule).
 
