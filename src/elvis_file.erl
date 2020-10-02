@@ -53,17 +53,20 @@ parse_tree(Config, Target) ->
 %% @doc Add the root node of the parse tree to the file data, with filtering.
 -spec parse_tree(elvis_config:config() | map(), file(), map()) ->
   {ktn_code:tree_node(), file()}.
-parse_tree(_Config, File = #{parse_tree := ParseTree}, RuleConfig) ->
+parse_tree(_Config, File = #{parse_tree := ParseTree}, _RuleConfig) ->
     {ParseTree, File};
 parse_tree(Config, File = #{path := Path, content := Content}, RuleConfig) ->
     Ext = filename:extension(Path),
     ExtStr = elvis_utils:to_str(Ext),
-    ParseTree = resolve_parse_tree(ExtStr, Content),
+    Mod = list_to_atom(filename:basename(Path, ".erl")),
+    Ignore = maps:get(ignore, RuleConfig, []),
+    ModIsIgnored = lists:member(Mod, Ignore),
+    ParseTree = resolve_parse_tree(ModIsIgnored, ExtStr, Content, Mod, Ignore),
     parse_tree(Config, File#{parse_tree => ParseTree}, RuleConfig);
 parse_tree(Config, File0 = #{path := _Path}, RuleConfig) ->
     {_, File} = src(File0),
     parse_tree(Config, File, RuleConfig);
-parse_tree(_Config, File, RuleConfig) ->
+parse_tree(_Config, File, _RuleConfig) ->
     throw({invalid_file, File}).
 
 %% @doc Loads and adds all related file data.
@@ -118,11 +121,32 @@ filter_files(Files, Dirs, Filter, IgnoreList) ->
 %% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec resolve_parse_tree(string(), binary()) ->
+-spec resolve_parse_tree(boolean(), string(), binary(), module(), list()) ->
     undefined | ktn_code:tree_node().
-resolve_parse_tree(".erl", Content) ->
-    ktn_code:parse_tree(Content);
-resolve_parse_tree( _, _) ->
+resolve_parse_tree(false = _ModIsIgnored, ".erl", Content, Mod, Ignore) ->
+    Tree = ktn_code:parse_tree(Content),
+    TreeContent = maps:get(content, Tree, []),
+    FilteredTreeContent =
+        lists:filter(fun (#{ type := function
+                           , attrs := #{ name := FunName
+                                       , arity := FunArity
+                                       }
+                           }) ->
+                             not(lists:member({Mod, FunName}, Ignore)
+                                 orelse lists:member({Mod, FunName, FunArity}, Ignore));
+                         (_) -> true
+        end,
+        TreeContent),
+    Tree#{ content => FilteredTreeContent };
+resolve_parse_tree(true = _ModIsIgnored, ".erl", _Content, Mod, _Ignore) ->
+    #{ type => root
+     , attrs => #{ tokens => []
+                 }
+     , content => [#{ attrs => #{ location => {1, 2}
+                                , text => atom_to_list(Mod), value => Mod }
+                                , type => module }]
+     };
+resolve_parse_tree(_, _, _, _, _) ->
     undefined.
 
 -spec glob_to_regex(iodata()) -> iodata().
