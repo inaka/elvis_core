@@ -139,6 +139,9 @@ resolve_parse_tree(false = _ModIsIgnored, ".erl", Content, Mod, Ignore) ->
         TreeContent),
     Tree#{ content => FilteredTreeContent };
 resolve_parse_tree(true = _ModIsIgnored, ".erl", _Content, Mod, _Ignore) ->
+    % We emulate the minimal tree for an empty module, here, so that we don't have to
+    % go changing the rest of the application's behavior, already quite tightly coupled with
+    % this function's result.
     #{ type => root
      , attrs => #{ tokens => []
                  }
