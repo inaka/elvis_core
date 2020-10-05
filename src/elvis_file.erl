@@ -8,7 +8,8 @@
          load_file_data/2,
 
          find_files/2,
-         filter_files/4
+         filter_files/4,
+         module/1
         ]).
 
 -export_type([file/0]).
@@ -58,10 +59,9 @@ parse_tree(_Config, File = #{parse_tree := ParseTree}, _RuleConfig) ->
 parse_tree(Config, File = #{path := Path, content := Content}, RuleConfig) ->
     Ext = filename:extension(Path),
     ExtStr = elvis_utils:to_str(Ext),
-    Mod = list_to_atom(filename:basename(Path, ".erl")),
+    Mod = module(File),
     Ignore = maps:get(ignore, RuleConfig, []),
-    ModIsIgnored = lists:member(Mod, Ignore),
-    ParseTree = resolve_parse_tree(ModIsIgnored, ExtStr, Content, Mod, Ignore),
+    ParseTree = resolve_parse_tree(ExtStr, Content, Mod, Ignore),
     parse_tree(Config, File#{parse_tree => ParseTree}, RuleConfig);
 parse_tree(Config, File0 = #{path := _Path}, RuleConfig) ->
     {_, File} = src(File0),
@@ -117,13 +117,18 @@ filter_files(Files, Dirs, Filter, IgnoreList) ->
     FoundUnique = lists:usort(Found),
     lists:filter(IgnoreFun, FoundUnique).
 
+%% @doc Return module name corresponding to a given .erl file
+-spec module(file()) -> module().
+module(#{ path := Path }) ->
+    list_to_atom(filename:basename(Path, ".erl")).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec resolve_parse_tree(boolean(), string(), binary(), module(), list()) ->
+-spec resolve_parse_tree(string(), binary(), module(), list()) ->
     undefined | ktn_code:tree_node().
-resolve_parse_tree(false = _ModIsIgnored, ".erl", Content, Mod, Ignore) ->
+resolve_parse_tree(".erl", Content, Mod, Ignore) ->
     Tree = ktn_code:parse_tree(Content),
     TreeContent = maps:get(content, Tree, []),
     FilteredTreeContent =
@@ -138,18 +143,7 @@ resolve_parse_tree(false = _ModIsIgnored, ".erl", Content, Mod, Ignore) ->
         end,
         TreeContent),
     Tree#{ content => FilteredTreeContent };
-resolve_parse_tree(true = _ModIsIgnored, ".erl", _Content, Mod, _Ignore) ->
-    % We emulate the minimal tree for an empty module, here, so that we don't have to
-    % go changing the rest of the application's behavior, already quite tightly coupled with
-    % this function's result.
-    #{ type => root
-     , attrs => #{ tokens => []
-                 }
-     , content => [#{ attrs => #{ location => {1, 2}
-                                , text => atom_to_list(Mod), value => Mod }
-                                , type => module }]
-     };
-resolve_parse_tree(_, _, _, _, _) ->
+resolve_parse_tree(_, _, _, _) ->
     undefined.
 
 -spec glob_to_regex(iodata()) -> iodata().
