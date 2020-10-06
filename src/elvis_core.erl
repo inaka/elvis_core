@@ -13,7 +13,9 @@
 
 %% for eating our own dogfood
 -export([main/1]).
+-ifdef(TEST).
 -export([apply_rule/2]).
+-endif.
 
 -type source_filename() :: nonempty_string().
 -type target() :: source_filename() | module().
