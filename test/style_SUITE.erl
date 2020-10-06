@@ -186,20 +186,20 @@ verify_line_length_rule(_Config) ->
     File = "fail_line_length.erl",
     {ok, Path} = elvis_test_utils:find_file(SrcDirs, File),
 
-    Result = elvis_style:line_length(ElvisConfig, Path, #{limit => 100}),
+    Result = elvis_text_style:line_length(ElvisConfig, Path, #{limit => 100}),
     8 = length(Result),
     #{info := Info, message := Msg} = lists:nth(7, Result),
     <<"Line 34 is too long:     gb_trees:from_orddict(", _/binary>> =
         list_to_binary(io_lib:format(Msg, Info)),
 
-    WholeLineResult = elvis_style:line_length(ElvisConfig, Path,
-                                              #{limit => 100,
-                                                skip_comments => whole_line}),
+    WholeLineResult = elvis_text_style:line_length(ElvisConfig, Path,
+                                                   #{limit => 100,
+                                                     skip_comments => whole_line}),
     6 = length(WholeLineResult),
 
-    AnyResult = elvis_style:line_length(ElvisConfig, Path,
-                                        #{limit => 100,
-                                          skip_comments => any}),
+    AnyResult = elvis_text_style:line_length(ElvisConfig, Path,
+                                             #{limit => 100,
+                                               skip_comments => any}),
     6 = length(AnyResult).
 
 -spec verify_line_length_rule_latin1(config()) -> any().
@@ -210,7 +210,7 @@ verify_line_length_rule_latin1(_Config) ->
     File = "fail_line_length_latin1.erl",
     {ok, Path} = elvis_test_utils:find_file(SrcDirs, File),
 
-    Result = elvis_style:line_length(ElvisConfig, Path, #{limit => 100}),
+    Result = elvis_text_style:line_length(ElvisConfig, Path, #{limit => 100}),
     1 = length(Result),
     #{info := Info, message := Msg} = lists:nth(1, Result),
     <<"Line 13 is too long:", _/binary>> = list_to_binary(io_lib:format(Msg, Info)).
@@ -223,7 +223,7 @@ verify_unicode_line_length_rule(_Config) ->
     Pass = "pass_unicode_comments.erl",
     {ok, Path} = elvis_test_utils:find_file(SrcDirs, Pass),
 
-    Result = elvis_style:line_length(ElvisConfig, Path, #{limit => 100}),
+    Result = elvis_text_style:line_length(ElvisConfig, Path, #{limit => 100}),
     0 = length(Result).
 
 -spec verify_no_tabs_rule(config()) -> any().
@@ -234,7 +234,7 @@ verify_no_tabs_rule(_Config) ->
     File = "fail_no_tabs.erl",
     {ok, Path} = elvis_test_utils:find_file(SrcDirs, File),
 
-    [_, _] = elvis_style:no_tabs(ElvisConfig, Path, #{}).
+    [_, _] = elvis_text_style:no_tabs(ElvisConfig, Path, #{}).
 
 -spec verify_no_spaces_rule(config()) -> any().
 verify_no_spaces_rule(_Config) ->
@@ -244,7 +244,7 @@ verify_no_spaces_rule(_Config) ->
     File = "fail_no_spaces.erl",
     {ok, Path} = elvis_test_utils:find_file(SrcDirs, File),
 
-    [_, _, _, _, _, _] = elvis_style:no_spaces(ElvisConfig, Path, #{}).
+    [_, _, _, _, _, _] = elvis_text_style:no_spaces(ElvisConfig, Path, #{}).
 
 -spec verify_no_trailing_whitespace_rule(config()) -> any().
 verify_no_trailing_whitespace_rule(_Config) ->
@@ -261,7 +261,7 @@ verify_no_trailing_whitespace_rule(_Config) ->
     do_verify_no_trailing_whitespace(Path, ElvisConfig, #{}, 4).
 
 do_verify_no_trailing_whitespace(Path, Config, RuleConfig, ExpectedNumItems) ->
-    Items = elvis_style:no_trailing_whitespace(Config, Path, RuleConfig),
+    Items = elvis_text_style:no_trailing_whitespace(Config, Path, RuleConfig),
     length(Items) == ExpectedNumItems orelse
         ct:fail("Expected ~b error items. Got: ~p", [ExpectedNumItems, Items]).
 

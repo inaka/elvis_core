@@ -2,7 +2,7 @@
 
 -export([one/0, two/0, three/0, four/0]).
 
--elvis([{elvis_style, no_tabs, disable}]).
+-elvis([{elvis_text_style, no_tabs, disable}]).
 
 one() ->
 	not_ok. %%This lines has a tab

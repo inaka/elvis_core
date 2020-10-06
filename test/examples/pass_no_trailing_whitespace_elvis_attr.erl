@@ -2,8 +2,8 @@
 
 -export([one/0, two/0, three/0, four/0, five/0]).
 
--elvis([{elvis_style, no_trailing_whitespace, disable}]).
--elvis([{elvis_style, no_tabs, disable}]).
+-elvis([{elvis_text_style, no_trailing_whitespace, disable}]).
+-elvis([{elvis_text_style, no_tabs, disable}]).
 
 one() ->
     %% Following line ends with a tab

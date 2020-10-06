@@ -4,7 +4,7 @@
 
 -elvis([{elvis_style, atom_naming_convention, #{ regex => "^[a-zA-Z\_]+$",
                                                  enclosed_atoms => "^[a-zA-Z\_0-9' \-\\\\]+$" }},
-        {elvis_style, line_length, #{limit => 100}}]).
+        {elvis_text_style, line_length, #{limit => 100}}]).
 
 for_test() ->
     this_is_not_an_OK_atom,
