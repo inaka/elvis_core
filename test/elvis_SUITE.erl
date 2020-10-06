@@ -255,6 +255,7 @@ rock_with_rule_groups(_Config) ->
     % rule_group in the config.
     RulesGroupConfig =
         [#{dirs => ["src"], filter => "*.erl", ruleset => erl_files},
+         #{dirs => ["_build/test/lib/elvis_core/ebin"], filter => "*.beam", ruleset => beam_files},
          #{dirs => ["."], filter => "Makefile", ruleset => makefiles},
          #{dirs => ["."], filter => "rebar.config", ruleset => rebar_config},
          #{dirs => ["."], filter => "elvis.config", ruleset => elvis_config}],

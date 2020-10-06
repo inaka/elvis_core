@@ -2,8 +2,11 @@
 
 -export([
          all/0,
+         groups/0,
          init_per_suite/1,
-         end_per_suite/1
+         end_per_suite/1,
+         init_per_group/2,
+         end_per_group/2
         ]).
 
 -export([
@@ -70,9 +73,12 @@
         [
          module_info,
          all,
+         groups,
          test,
          init_per_suite,
-         end_per_suite
+         end_per_suite,
+         init_per_group,
+         end_per_group
         ]).
 
 -type config() :: [{atom(), term()}].
@@ -84,7 +90,31 @@
 -spec all() -> [atom()].
 all() ->
     Exports = ?MODULE:module_info(exports),
-    [F || {F, _} <- Exports, not lists:member(F, ?EXCLUDED_FUNS)].
+    [F || {F, _} <- Exports, not lists:member(F, ?EXCLUDED_FUNS)] ++
+    [{group, beam_files}].
+
+-spec groups() -> [{beam_files, [sequence], [atom()]}].
+groups() -> [
+    {beam_files, [sequence], [
+         verify_function_naming_convention
+       , verify_variable_naming_convention
+       , verify_nesting_level
+       , verify_god_modules
+       , verify_no_if_expression
+       , verify_invalid_dynamic_call
+       , verify_used_ignored_variable
+       , verify_no_behavior_info
+       , verify_module_naming_convention
+       , verify_state_record_and_type
+       , verify_no_spec_with_records
+       , verify_dont_repeat_yourself
+       , verify_no_debug_call
+       , verify_no_common_caveats_call
+       , verify_no_call
+       , verify_no_nested_try_catch
+       , verify_atom_naming_convention
+    ]}
+].
 
 -spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
@@ -96,6 +126,16 @@ end_per_suite(Config) ->
     ok = application:stop(elvis_core),
     Config.
 
+-spec init_per_group(atom(), config()) -> config().
+init_per_group(beam_files = Group, Config) ->
+    [{test_file_ext, "beam"}, {group, Group} | Config];
+init_per_group(_Group, Config) ->
+    Config.
+
+-spec end_per_group(atom(), config()) -> config().
+end_per_group(_Group, Config) ->
+    proplists:delete(test_file_ext, proplists:delete(group, Config)).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Test Cases
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -104,30 +144,27 @@ end_per_suite(Config) ->
 %%% Rules
 
 -spec verify_function_naming_convention(config()) -> any().
-verify_function_naming_convention(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
+verify_function_naming_convention(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     % pass
-    PathPass = "pass_function_naming_convention.erl",
-    {ok, FilePass} = elvis_test_utils:find_file(SrcDirs, PathPass),
+    PathPass = "pass_function_naming_convention." ++ Ext,
 
 
     RuleConfig = #{regex => "^([a-z][a-z0-9]*_?)*$"},
-    [] = elvis_style:function_naming_convention(ElvisConfig, FilePass, RuleConfig),
+    [] = elvis_core_apply_rule(Config, elvis_style, function_naming_convention, RuleConfig, PathPass),
 
     RuleConfig2 = #{regex => "^([a-z][a-z0-9]*_?)*$",
                     ignore => [fail_function_naming_convention]
                    },
-    [] = elvis_style:function_naming_convention(ElvisConfig, FilePass, RuleConfig2),
+    [] = elvis_core_apply_rule(Config, elvis_style, function_naming_convention, RuleConfig2, PathPass),
 
     % fail
-    PathFail = "fail_function_naming_convention.erl",
-    {ok, FileFail} = elvis_test_utils:find_file(SrcDirs, PathFail),
+    PathFail = "fail_function_naming_convention." ++ Ext,
 
     [_CamelCaseError, _ALL_CAPSError, _InitialCapError,
      _HyphenError, _PredError, _EmailError] =
-      elvis_style:function_naming_convention(ElvisConfig, FileFail, RuleConfig),
+      elvis_core_apply_rule(Config, elvis_style, function_naming_convention, RuleConfig, PathFail),
 
     RuleConfig3 = #{regex => "^([a-z][a-z0-9]*_?)*$",
                     ignore => [ {fail_function_naming_convention, camelCase}
@@ -137,11 +174,10 @@ verify_function_naming_convention(_Config) ->
                               , {fail_function_naming_convention, 'no_predicates?'}
                               ]
                    },
-    [_EmailError] = elvis_style:function_naming_convention(ElvisConfig, FileFail, RuleConfig3),
+    [_EmailError] = elvis_core_apply_rule(Config, elvis_style, function_naming_convention, RuleConfig3, PathFail),
 
     % ignored
-    PathIgnored = "fail_function_naming_convention_ignored_function.erl",
-    {ok, FileIgnored} = elvis_test_utils:find_file(SrcDirs, PathIgnored),
+    PathIgnored = "fail_function_naming_convention_ignored_function." ++ Ext,
 
     RuleConfig4 = #{regex => "^([a-z][a-z0-9]*_?)*$",
                     ignore => [ {fail_function_naming_convention, camelCase}
@@ -152,166 +188,141 @@ verify_function_naming_convention(_Config) ->
                               , {fail_function_naming_convention, user@location}
                               ]
                    },
-    [_AnError] = elvis_style:function_naming_convention(ElvisConfig, FileIgnored, RuleConfig4).
+    [_AnError] = elvis_core_apply_rule(Config, elvis_style, function_naming_convention, RuleConfig4, PathIgnored).
 
 -spec verify_variable_naming_convention(config()) -> any().
-verify_variable_naming_convention(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
+verify_variable_naming_convention(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     RuleConfig = #{regex => "^_?([A-Z][0-9a-zA-Z]*)$"},
 
-    PathPass = "pass_variable_naming_convention.erl",
-    {ok, FilePass} = elvis_test_utils:find_file(SrcDirs, PathPass),
-    [] = elvis_style:variable_naming_convention(ElvisConfig,
-                                                FilePass,
-                                                RuleConfig),
+    PathPass = "pass_variable_naming_convention." ++ Ext,
+    [] = elvis_core_apply_rule(Config, elvis_style, variable_naming_convention, RuleConfig, PathPass),
 
-    PathFail = "fail_variable_naming_convention.erl",
-    {ok, FileFail} = elvis_test_utils:find_file(SrcDirs, PathFail),
+    PathFail = "fail_variable_naming_convention." ++ Ext,
     [_AtSign,
      _Underline_Word_Separator,
      _Bad_Ignored_Variable,
      _AtSignAgain,
      _Underline_Word_SeparatorAgain] =
-        elvis_style:variable_naming_convention(ElvisConfig,
-                                               FileFail,
-                                               RuleConfig).
+        elvis_core_apply_rule(Config, elvis_style, variable_naming_convention, RuleConfig, PathFail).
 
 -spec verify_line_length_rule(config()) -> any().
-verify_line_length_rule(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
+verify_line_length_rule(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    File = "fail_line_length.erl",
-    {ok, Path} = elvis_test_utils:find_file(SrcDirs, File),
+    Path = "fail_line_length." ++ Ext,
 
-    Result = elvis_text_style:line_length(ElvisConfig, Path, #{limit => 100}),
+    Result = elvis_core_apply_rule(Config, elvis_text_style, line_length, #{limit => 100}, Path),
     8 = length(Result),
     #{info := Info, message := Msg} = lists:nth(7, Result),
     <<"Line 34 is too long:     gb_trees:from_orddict(", _/binary>> =
         list_to_binary(io_lib:format(Msg, Info)),
 
-    WholeLineResult = elvis_text_style:line_length(ElvisConfig, Path,
-                                                   #{limit => 100,
-                                                     skip_comments => whole_line}),
+    WholeLineResult = elvis_core_apply_rule(Config, elvis_text_style, line_length, #{limit => 100, skip_comments => whole_line}, Path),
     6 = length(WholeLineResult),
 
-    AnyResult = elvis_text_style:line_length(ElvisConfig, Path,
-                                             #{limit => 100,
-                                               skip_comments => any}),
+    AnyResult = elvis_core_apply_rule(Config, elvis_text_style, line_length, #{limit => 100, skip_comments => any}, Path),
     6 = length(AnyResult).
 
 -spec verify_line_length_rule_latin1(config()) -> any().
-verify_line_length_rule_latin1(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
+verify_line_length_rule_latin1(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    File = "fail_line_length_latin1.erl",
-    {ok, Path} = elvis_test_utils:find_file(SrcDirs, File),
+    Path = "fail_line_length_latin1." ++ Ext,
 
-    Result = elvis_text_style:line_length(ElvisConfig, Path, #{limit => 100}),
+    Result = elvis_core_apply_rule(Config, elvis_text_style, line_length, #{limit => 100}, Path),
     1 = length(Result),
     #{info := Info, message := Msg} = lists:nth(1, Result),
     <<"Line 13 is too long:", _/binary>> = list_to_binary(io_lib:format(Msg, Info)).
 
 -spec verify_unicode_line_length_rule(config()) -> any().
-verify_unicode_line_length_rule(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
+verify_unicode_line_length_rule(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    Pass = "pass_unicode_comments.erl",
-    {ok, Path} = elvis_test_utils:find_file(SrcDirs, Pass),
+    Path = "pass_unicode_comments." ++ Ext,
 
-    Result = elvis_text_style:line_length(ElvisConfig, Path, #{limit => 100}),
+    Result = elvis_core_apply_rule(Config, elvis_text_style, line_length, #{limit => 100}, Path),
     0 = length(Result).
 
 -spec verify_no_tabs_rule(config()) -> any().
-verify_no_tabs_rule(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
+verify_no_tabs_rule(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    File = "fail_no_tabs.erl",
-    {ok, Path} = elvis_test_utils:find_file(SrcDirs, File),
+    Path = "fail_no_tabs." ++ Ext,
 
-    [_, _] = elvis_text_style:no_tabs(ElvisConfig, Path, #{}).
+    [_, _] = elvis_core_apply_rule(Config, elvis_text_style, no_tabs, #{}, Path).
 
 -spec verify_no_spaces_rule(config()) -> any().
-verify_no_spaces_rule(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
+verify_no_spaces_rule(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    File = "fail_no_spaces.erl",
-    {ok, Path} = elvis_test_utils:find_file(SrcDirs, File),
+    Path = "fail_no_spaces." ++ Ext,
 
-    [_, _, _, _, _, _] = elvis_text_style:no_spaces(ElvisConfig, Path, #{}).
+    [_, _, _, _, _, _] = elvis_core_apply_rule(Config, elvis_text_style, no_spaces, #{}, Path).
 
 -spec verify_no_trailing_whitespace_rule(config()) -> any().
-verify_no_trailing_whitespace_rule(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
+verify_no_trailing_whitespace_rule(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    File = "fail_no_trailing_whitespace.erl",
-    {ok, Path} = elvis_test_utils:find_file(SrcDirs, File),
+    Path = "fail_no_trailing_whitespace." ++ Ext,
 
-    do_verify_no_trailing_whitespace(Path, ElvisConfig,
+    do_verify_no_trailing_whitespace(Path, Config,
                                      #{ignore_empty_lines => true}, 3),
-    do_verify_no_trailing_whitespace(Path, ElvisConfig,
+    do_verify_no_trailing_whitespace(Path, Config,
                                      #{ignore_empty_lines => false}, 4),
-    do_verify_no_trailing_whitespace(Path, ElvisConfig, #{}, 4).
+    do_verify_no_trailing_whitespace(Path, Config, #{}, 4).
 
 do_verify_no_trailing_whitespace(Path, Config, RuleConfig, ExpectedNumItems) ->
-    Items = elvis_text_style:no_trailing_whitespace(Config, Path, RuleConfig),
+    Items = elvis_core_apply_rule(Config, elvis_text_style, no_trailing_whitespace, RuleConfig, Path),
     length(Items) == ExpectedNumItems orelse
         ct:fail("Expected ~b error items. Got: ~p", [ExpectedNumItems, Items]).
 
 -spec verify_macro_names_rule(config()) -> any().
-verify_macro_names_rule(_Config) ->
-    File = "fail_macro_names.erl",
+verify_macro_names_rule(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    [_, _, _, _] = elvis_core_apply_rule(elvis_style, macro_names, #{}, File),
+    Path = "fail_macro_names." ++ Ext,
 
-    [_, _] = elvis_core_apply_rule(elvis_style, macro_names, #{ regex => "^[A-Za-z_ ]+$" }, File),
+    [_, _, _, _] = elvis_core_apply_rule(Config, elvis_style, macro_names, #{}, Path),
 
-    [_] = elvis_core_apply_rule(elvis_style, macro_names, #{ regex => "^[A-Za-z_ \-]+$" }, File),
+    [_, _] = elvis_core_apply_rule(Config, elvis_style, macro_names, #{ regex => "^[A-Za-z_ ]+$" }, Path),
 
-    [] = elvis_core_apply_rule(elvis_style, macro_names, #{ regex => "^[A-Za-z_, \-]+$" }, File),
+    [_] = elvis_core_apply_rule(Config, elvis_style, macro_names, #{ regex => "^[A-Za-z_ \-]+$" }, Path),
 
-    [_, _, _, _, _, _] = elvis_core_apply_rule(elvis_style, macro_names, #{ regex => "^POTENTIAL_BAD-NAME$" }, File),
+    [] = elvis_core_apply_rule(Config, elvis_style, macro_names, #{ regex => "^[A-Za-z_, \-]+$" }, Path),
 
-    [] = elvis_core_apply_rule(elvis_style, macro_names, #{ ignore => [fail_macro_names] }, File).
+    [_, _, _, _, _, _] = elvis_core_apply_rule(Config, elvis_style, macro_names, #{ regex => "^POTENTIAL_BAD-NAME$" }, Path),
+
+    [] = elvis_core_apply_rule(Config, elvis_style, macro_names, #{ ignore => [fail_macro_names] }, Path).
 
 -spec verify_macro_module_names(config()) -> any().
-verify_macro_module_names(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
+verify_macro_module_names(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    File = "fail_macro_module_names.erl",
-    {ok, Path} = elvis_test_utils:find_file(SrcDirs, File),
+    Path = "fail_macro_module_names." ++ Ext,
 
-    [_, _, _, _] = elvis_style:macro_module_names(ElvisConfig, Path, #{}).
+    [_, _, _, _] = elvis_core_apply_rule(Config, elvis_style, macro_module_names, #{}, Path).
 
 -spec verify_operator_spaces(config()) -> any().
-verify_operator_spaces(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
+verify_operator_spaces(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    File = "fail_operator_spaces.erl",
-    {ok, Path} = elvis_test_utils:find_file(SrcDirs, File),
+    Path = "fail_operator_spaces." ++ Ext,
 
-    [] = elvis_style:operator_spaces(ElvisConfig, Path, #{rules=>[]}),
+    [] = elvis_core_apply_rule(Config, elvis_style, operator_spaces, #{rules=>[]}, Path),
 
     RuleConfig = #{rules => [{right, ","}]},
-    [_, _, _] = elvis_style:operator_spaces(ElvisConfig, Path, RuleConfig),
+    [_, _, _] = elvis_core_apply_rule(Config, elvis_style, operator_spaces, RuleConfig, Path),
 
     AppendOptions = #{rules => [{right, "++"}, {left, "++"}]},
-    [_] = elvis_style:operator_spaces(ElvisConfig, Path, AppendOptions),
+    [_] = elvis_core_apply_rule(Config, elvis_style, operator_spaces, AppendOptions, Path),
 
     SumOperation = #{rules => [{right, "+"}, {left, "+"}]},
-    [_, _] = elvis_style:operator_spaces(ElvisConfig, Path, SumOperation),
+    [_, _] = elvis_core_apply_rule(Config, elvis_style, operator_spaces, SumOperation, Path),
 
     MinusOperation = #{rules => [{right, "-"}, {left, "-"}]},
-    [] = elvis_style:operator_spaces(ElvisConfig, Path, MinusOperation),
+    [] = elvis_core_apply_rule(Config, elvis_style, operator_spaces, MinusOperation, Path),
 
     AllOptions = #{rules => [{right, ","},
                              {right, "++"},
@@ -319,355 +330,401 @@ verify_operator_spaces(_Config) ->
                              {right, "+"},
                              {left, "+"}]},
     [_, _, _, _, _, _] =
-        elvis_style:operator_spaces(ElvisConfig, Path, AllOptions).
+        elvis_core_apply_rule(Config, elvis_style, operator_spaces, AllOptions, Path).
 
 -spec verify_operator_spaces_latin1(config()) -> any().
-verify_operator_spaces_latin1(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
+verify_operator_spaces_latin1(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    File = "fail_operator_spaces_latin1.erl",
-    {ok, Path} = elvis_test_utils:find_file(SrcDirs, File),
+    Path = "fail_operator_spaces_latin1." ++ Ext,
 
-    [] = elvis_style:operator_spaces(ElvisConfig, Path, #{rules => []}),
+    [] = elvis_core_apply_rule(Config, elvis_style, operator_spaces, #{rules => []}, Path),
 
     AppendOptions = #{rules => [{right, "++"}, {left, "++"}]},
-    [_, _] = elvis_style:operator_spaces(ElvisConfig, Path, AppendOptions).
+    [_, _] = elvis_core_apply_rule(Config, elvis_style, operator_spaces, AppendOptions, Path).
 
 
 -spec verify_nesting_level(config()) -> any().
-verify_nesting_level(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
+verify_nesting_level(Config) ->
+    Group = proplists:get_value(group, Config, erl_files),
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    Path = "fail_nesting_level.erl",
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, Path),
+    Path = "fail_nesting_level." ++ Ext,
 
-    [ #{line_num := 11}
-    , #{line_num := 18}
-    , #{line_num := 30}
-    , #{line_num := 45}
-    , #{line_num := 78}
-    , #{line_num := 120}
-    , #{line_num := 166}
-    , #{line_num := 182}
-    ] = elvis_style:nesting_level(ElvisConfig, File, #{level => 3}),
-    [] = elvis_style:nesting_level( ElvisConfig
-                                  , File
-                                  , #{ignore => [fail_nesting_level]}).
+    _ = case Group of
+        beam_files ->
+            [ #{line_num := 9}
+            , #{line_num := 12}
+            , #{line_num := 23}
+            , #{line_num := 39}
+            , #{line_num := 69}
+            , #{line_num := 108}
+            , #{line_num := 153}
+            , #{line_num := 170}
+            ] = elvis_core_apply_rule(Config, elvis_style, nesting_level, #{level => 3}, Path);
+        erl_files ->
+            [ #{line_num := 11}
+            , #{line_num := 18}
+            , #{line_num := 30}
+            , #{line_num := 45}
+            , #{line_num := 78}
+            , #{line_num := 120}
+            , #{line_num := 166}
+            , #{line_num := 182}
+            ] = elvis_core_apply_rule(Config, elvis_style, nesting_level, #{level => 3}, Path)
+    end,
+    [] = elvis_core_apply_rule(Config, elvis_style, nesting_level, #{ignore => [fail_nesting_level]}, Path).
 
 -spec verify_god_modules(config()) -> any().
-verify_god_modules(_Config) ->
-    Path = "fail_god_modules.erl",
+verify_god_modules(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    [_] = elvis_core_apply_rule(elvis_style, god_modules, #{limit => 25}, Path),
+    Path = "fail_god_modules." ++ Ext,
+    [_] = elvis_core_apply_rule(Config, elvis_style, god_modules, #{limit => 25}, Path),
 
     RuleConfig = #{limit => 25, ignore => [fail_god_modules]},
-    [] = elvis_core_apply_rule(elvis_style, god_modules, RuleConfig, Path).
+    [] = elvis_core_apply_rule(Config, elvis_style, god_modules, RuleConfig, Path).
 
 -spec verify_no_if_expression(config()) -> any().
-verify_no_if_expression(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
+verify_no_if_expression(Config) ->
+    Group = proplists:get_value(group, Config, erl_files),
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    Path = "fail_no_if_expression.erl",
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, Path),
-    [
-     #{line_num := 11},
-     #{line_num := 22},
-     #{line_num := 31}
-    ] = elvis_style:no_if_expression(ElvisConfig, File, #{}).
+    Path = "fail_no_if_expression." ++ Ext,
+    _ = case Group of
+        beam_files ->
+            [
+             #{line_num := 8},
+             #{line_num := 18},
+             #{line_num := 26}
+            ] = elvis_core_apply_rule(Config, elvis_style, no_if_expression, #{}, Path);
+        erl_files ->
+            [
+             #{line_num := 11},
+             #{line_num := 22},
+             #{line_num := 31}
+            ] = elvis_core_apply_rule(Config, elvis_style, no_if_expression, #{}, Path)
+    end.
 
 -spec verify_invalid_dynamic_call(config()) -> any().
-verify_invalid_dynamic_call(_Config) ->
-    PathPass = "pass_invalid_dynamic_call.erl",
+verify_invalid_dynamic_call(Config) ->
+    Group = proplists:get_value(group, Config, erl_files),
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    [] = elvis_core_apply_rule(elvis_style, invalid_dynamic_call, #{}, PathPass),
+    PathPass = "pass_invalid_dynamic_call." ++ Ext,
+    [] = elvis_core_apply_rule(Config, elvis_style, invalid_dynamic_call, #{}, PathPass),
 
-    PathFail = "fail_invalid_dynamic_call.erl",
-    [
-     #{line_num := 21},
-     #{line_num := 33},
-     #{line_num := 34},
-     #{line_num := 42},
-     #{line_num := 50},
-     #{line_num := 61},
-     #{line_num := 68}
-    ] = elvis_core_apply_rule(elvis_style, invalid_dynamic_call, #{}, PathFail),
+    PathFail = "fail_invalid_dynamic_call." ++ Ext,
+    _ = case Group of
+        beam_files ->
+            [
+             #{line_num := 18},
+             #{line_num := 30},
+             #{line_num := 31},
+             #{line_num := 37},
+             #{line_num := 45},
+             #{line_num := 55},
+             #{line_num := 58}
+            ] = elvis_core_apply_rule(Config, elvis_style, invalid_dynamic_call, #{}, PathFail);
+        erl_files ->
+            [
+             #{line_num := 21},
+             #{line_num := 33},
+             #{line_num := 34},
+             #{line_num := 42},
+             #{line_num := 50},
+             #{line_num := 61},
+             #{line_num := 68}
+            ] = elvis_core_apply_rule(Config, elvis_style, invalid_dynamic_call, #{}, PathFail)
+    end,
 
     RuleConfig = #{ignore => [fail_invalid_dynamic_call]},
-    [] = elvis_core_apply_rule(elvis_style, invalid_dynamic_call, RuleConfig, PathFail).
+    [] = elvis_core_apply_rule(Config, elvis_style, invalid_dynamic_call, RuleConfig, PathFail).
 
 -spec verify_used_ignored_variable(config()) -> any().
-verify_used_ignored_variable(_Config) ->
-    Path = "fail_used_ignored_variable.erl",
-    [
-     #{line_num := 10},
-     #{line_num := 13},
-     #{line_num := 17},
-     #{line_num := 17}
-    ] = elvis_core_apply_rule(elvis_style, used_ignored_variable, #{}, Path),
-    [] = elvis_core_apply_rule(elvis_style, used_ignored_variable, #{ignore => [fail_used_ignored_variable]}, Path).
+verify_used_ignored_variable(Config) ->
+    Group = proplists:get_value(group, Config, erl_files),
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    Path = "fail_used_ignored_variable." ++ Ext,
+    _ = case Group of
+        beam_files ->
+            [
+             #{line_num := 8},
+             #{line_num := 8},
+             #{line_num := 11},
+             #{line_num := 11}
+            ] = elvis_core_apply_rule(Config, elvis_style, used_ignored_variable, #{}, Path);
+        erl_files ->
+            [
+             #{line_num := 10},
+             #{line_num := 13},
+             #{line_num := 17},
+             #{line_num := 17}
+            ] = elvis_core_apply_rule(Config, elvis_style, used_ignored_variable, #{}, Path)
+    end,
+    [] = elvis_core_apply_rule(Config, elvis_style, used_ignored_variable, #{ignore => [fail_used_ignored_variable]}, Path).
 
 -spec verify_no_behavior_info(config()) -> any().
-verify_no_behavior_info(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
+verify_no_behavior_info(Config) ->
+    Group = proplists:get_value(group, Config, erl_files),
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    Path = "fail_no_behavior_info.erl",
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, Path),
-    [
-     #{line_num := 14},
-     #{line_num := 17}
-    ] = elvis_style:no_behavior_info(ElvisConfig, File, #{}).
+    Path = "fail_no_behavior_info." ++ Ext,
+    _ = case Group of
+        beam_files ->
+            [
+             #{line_num := 7},
+             #{line_num := 10}
+            ] = elvis_core_apply_rule(Config, elvis_style, no_behavior_info, #{}, Path);
+        erl_files ->
+            [
+             #{line_num := 14},
+             #{line_num := 17}
+            ] = elvis_core_apply_rule(Config, elvis_style, no_behavior_info, #{}, Path)
+    end.
 
 -spec verify_module_naming_convention(config()) -> any().
-verify_module_naming_convention(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
+verify_module_naming_convention(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     RuleConfig = #{regex => "^([a-z][a-z0-9]*_?)*$",
                    ignore => []},
 
-    PathPass = "pass_module_naming_convention.erl",
-    {ok, FilePass} = elvis_test_utils:find_file(SrcDirs, PathPass),
+    PathPass = "pass_module_naming_convention." ++ Ext,
     [] =
-        elvis_style:module_naming_convention(ElvisConfig, FilePass, RuleConfig),
+        elvis_core_apply_rule(Config, elvis_style, module_naming_convention, RuleConfig, PathPass),
 
-    PathFail = "fail_module_naming_1_convention_1.erl",
-    {ok, FileFail} = elvis_test_utils:find_file(SrcDirs, PathFail),
+    PathFail = "fail_module_naming_1_convention_1." ++ Ext,
     [_] =
-        elvis_style:module_naming_convention(ElvisConfig, FileFail, RuleConfig),
+        elvis_core_apply_rule(Config, elvis_style, module_naming_convention, RuleConfig, PathFail),
 
     RuleConfigIgnore =
         RuleConfig#{ignore => [fail_module_naming_1_convention_1]},
-    [] = elvis_style:module_naming_convention(
-            ElvisConfig, FileFail, RuleConfigIgnore
-         ).
+    [] = elvis_core_apply_rule(Config, elvis_style, module_naming_convention, RuleConfigIgnore, PathFail).
 
 
 -spec verify_state_record_and_type(config()) -> any().
-verify_state_record_and_type(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
+verify_state_record_and_type(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    PathPass = "pass_state_record_and_type.erl",
-    {ok, FilePass} = elvis_test_utils:find_file(SrcDirs, PathPass),
-    [] = elvis_style:state_record_and_type(ElvisConfig, FilePass, #{}),
+    PathPass = "pass_state_record_and_type." ++ Ext,
+    [] = elvis_core_apply_rule(Config, elvis_style, state_record_and_type, #{}, PathPass),
 
-    PathPassGenStateM = "pass_state_record_and_type_gen_statem.erl",
-    {ok, FilePassGenStateM} = elvis_test_utils:find_file(SrcDirs, PathPassGenStateM),
-    [] = elvis_style:state_record_and_type(ElvisConfig, FilePassGenStateM, #{}),
+    PathPassGenStateM = "pass_state_record_and_type_gen_statem." ++ Ext,
+    [] = elvis_core_apply_rule(Config, elvis_style, state_record_and_type, #{}, PathPassGenStateM),
 
-    PathFail = "fail_state_record_and_type.erl",
-    {ok, FileFail} = elvis_test_utils:find_file(SrcDirs, PathFail),
-    [_] = elvis_style:state_record_and_type(ElvisConfig, FileFail, #{}),
+    PathFail = "fail_state_record_and_type." ++ Ext,
+    [_] = elvis_core_apply_rule(Config, elvis_style, state_record_and_type, #{}, PathFail),
 
-    PathFail1 = "fail_state_type.erl",
-    {ok, FileFail1} = elvis_test_utils:find_file(SrcDirs, PathFail1),
-    [_] = elvis_style:state_record_and_type(ElvisConfig, FileFail1, #{}),
+    PathFail1 = "fail_state_type." ++ Ext,
+    [_] = elvis_core_apply_rule(Config, elvis_style, state_record_and_type, #{}, PathFail1),
 
-    PathBehaviourFail = "fail_state_record_and_type_behaviour.erl",
-    {ok, FileBehaviourFail} = elvis_test_utils:find_file(SrcDirs, PathBehaviourFail),
-    [_] = elvis_style:state_record_and_type(ElvisConfig, FileBehaviourFail, #{}),
+    PathBehaviourFail = "fail_state_record_and_type_behaviour." ++ Ext,
+    [_] = elvis_core_apply_rule(Config, elvis_style, state_record_and_type, #{}, PathBehaviourFail),
 
-    PathFailGenStateMType = "fail_state_record_and_type_gen_statem_type.erl",
-    {ok, FileFailGenStateMType} = elvis_test_utils:find_file(SrcDirs, PathFailGenStateMType),
-    [_] = elvis_style:state_record_and_type(ElvisConfig, FileFailGenStateMType, #{}),
+    PathFailGenStateMType = "fail_state_record_and_type_gen_statem_type." ++ Ext,
+    [_] = elvis_core_apply_rule(Config, elvis_style, state_record_and_type, #{}, PathFailGenStateMType),
 
-    PathPassGenStateMState = "fail_state_record_and_type_gen_statem_state.erl",
-    {ok, FilePassGenStateMState} = elvis_test_utils:find_file(SrcDirs, PathPassGenStateMState),
-    [_] = elvis_style:state_record_and_type(ElvisConfig, FilePassGenStateMState, #{}).
+    PathPassGenStateMState = "fail_state_record_and_type_gen_statem_state." ++ Ext,
+    [_] = elvis_core_apply_rule(Config, elvis_style, state_record_and_type, #{}, PathPassGenStateMState).
 
 -spec verify_no_spec_with_records(config()) -> any().
-verify_no_spec_with_records(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
+verify_no_spec_with_records(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    PathFail = "fail_no_spec_with_records.erl",
-    {ok, FileFail} = elvis_test_utils:find_file(SrcDirs, PathFail),
-    [_, _, _] = elvis_style:no_spec_with_records(ElvisConfig, FileFail, #{}),
+    PathFail = "fail_no_spec_with_records." ++ Ext,
+    [_, _, _] = elvis_core_apply_rule(Config, elvis_style, no_spec_with_records, #{}, PathFail),
 
-    PathPass = "pass_no_spec_with_records.erl",
-    {ok, FilePass} = elvis_test_utils:find_file(SrcDirs, PathPass),
-    [] = elvis_style:no_spec_with_records(ElvisConfig, FilePass, #{}).
+    PathPass = "pass_no_spec_with_records." ++ Ext,
+    [] = elvis_core_apply_rule(Config, elvis_style, no_spec_with_records, #{}, PathPass).
 
 -spec verify_dont_repeat_yourself(config()) -> any().
-verify_dont_repeat_yourself(_Config) ->
-    PathFail = "fail_dont_repeat_yourself.erl",
+verify_dont_repeat_yourself(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PathFail = "fail_dont_repeat_yourself." ++ Ext,
     RuleConfig5 = #{min_complexity => 5},
-    Res1 = elvis_core_apply_rule(elvis_style, dont_repeat_yourself, RuleConfig5, PathFail),
+    Res1 = elvis_core_apply_rule(Config, elvis_style, dont_repeat_yourself, RuleConfig5, PathFail),
     2 = length(Res1),
 
     RuleConfig9 = #{min_complexity => 9},
-    Res2 = elvis_core_apply_rule(elvis_style, dont_repeat_yourself, RuleConfig9, PathFail),
+    Res2 = elvis_core_apply_rule(Config, elvis_style, dont_repeat_yourself, RuleConfig9, PathFail),
     1 = length(Res2),
 
     IgnoreRule = #{ignore => [fail_dont_repeat_yourself]},
-    [] = elvis_core_apply_rule(elvis_style, dont_repeat_yourself, IgnoreRule, PathFail),
+    [] = elvis_core_apply_rule(Config, elvis_style, dont_repeat_yourself, IgnoreRule, PathFail),
 
-    PathPass = "pass_dont_repeat_yourself.erl",
-    [] = elvis_core_apply_rule(elvis_style, dont_repeat_yourself, RuleConfig5, PathPass).
+    PathPass = "pass_dont_repeat_yourself." ++ Ext,
+    [] = elvis_core_apply_rule(Config, elvis_style, dont_repeat_yourself, RuleConfig5, PathPass).
 
 -spec verify_max_module_length(config()) -> any().
-verify_max_module_length(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-    PathFail = "fail_max_module_length.erl",
-    {ok, FileFail} = elvis_test_utils:find_file(SrcDirs, PathFail),
+verify_max_module_length(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PathFail = "fail_max_module_length." ++ Ext,
 
     CountAllRuleConfig = #{count_comments => true, count_whitespace => true},
 
     ct:comment("Count whitespace and comment lines"),
     RuleConfig = CountAllRuleConfig#{max_length => 10},
 
-    [_] = elvis_style:max_module_length(ElvisConfig, FileFail, RuleConfig),
+    [_] = elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig, PathFail),
 
     RuleConfig1 = CountAllRuleConfig#{max_length => 14},
-    [_] = elvis_style:max_module_length(ElvisConfig, FileFail, RuleConfig1),
+    [_] = elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig1, PathFail),
 
     RuleConfig2 = CountAllRuleConfig#{max_length => 15},
-    [] = elvis_style:max_module_length(ElvisConfig, FileFail, RuleConfig2),
+    [] = elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig2, PathFail),
 
     ct:comment("Don't count whitespace lines"),
     WhitespaceRuleConfig = CountAllRuleConfig#{count_whitespace => false},
 
     RuleConfig3 = WhitespaceRuleConfig#{max_length => 3},
-    [_] = elvis_style:max_module_length(ElvisConfig, FileFail, RuleConfig3),
+    [_] = elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig3, PathFail),
 
     RuleConfig4 = WhitespaceRuleConfig#{max_length => 4},
-    [_] = elvis_style:max_module_length(ElvisConfig, FileFail, RuleConfig4),
+    [_] = elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig4, PathFail),
 
     RuleConfig5 = WhitespaceRuleConfig#{max_length => 5},
-    [] = elvis_style:max_module_length(ElvisConfig, FileFail, RuleConfig5),
+    [] = elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig5, PathFail),
 
     ct:comment("Don't count comment or whitespace lines"),
     NoCountRuleConfig = WhitespaceRuleConfig#{count_comments => false},
 
     RuleConfig6 = NoCountRuleConfig#{max_length => 1},
-    [_] = elvis_style:max_module_length(ElvisConfig, FileFail, RuleConfig6),
+    [_] = elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig6, PathFail),
 
     RuleConfig7 = NoCountRuleConfig#{max_length => 2},
-    [_] = elvis_style:max_module_length(ElvisConfig, FileFail, RuleConfig7),
+    [_] = elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig7, PathFail),
 
     RuleConfig8 = NoCountRuleConfig#{max_length => 3},
-    [] = elvis_style:max_module_length(ElvisConfig, FileFail, RuleConfig8),
+    [] = elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig8, PathFail),
 
     {comment, ""}.
 
 -spec verify_max_function_length(config()) -> any().
-verify_max_function_length(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
+verify_max_function_length(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    PathFail = "fail_max_function_length.erl",
+    PathFail = "fail_max_function_length." ++ Ext,
     ModuleFail = fail_max_function_length,
 
-    {ok, FileFail} = elvis_test_utils:find_file(SrcDirs, PathFail),
 
     CountAllRuleConfig = #{count_comments => true, count_whitespace => true},
 
     ct:comment("Count whitespace and comment lines"),
     RuleConfig = CountAllRuleConfig#{max_length => 4},
     [_, _, _] =
-        elvis_style:max_function_length(ElvisConfig, FileFail, RuleConfig),
+        elvis_core_apply_rule(Config, elvis_style, max_function_length, RuleConfig, PathFail),
 
     RuleConfig1 = CountAllRuleConfig#{max_length => 9},
     [_, _] =
-        elvis_style:max_function_length(ElvisConfig, FileFail, RuleConfig1),
+        elvis_core_apply_rule(Config, elvis_style, max_function_length, RuleConfig1, PathFail),
 
     RuleConfig2 = CountAllRuleConfig#{max_length => 14},
-    [_] = elvis_style:max_function_length(ElvisConfig, FileFail, RuleConfig2),
+    [_] = elvis_core_apply_rule(Config, elvis_style, max_function_length, RuleConfig2, PathFail),
 
     RuleConfig3 = CountAllRuleConfig#{max_length => 15},
-    [] = elvis_style:max_function_length(ElvisConfig, FileFail, RuleConfig3),
+    [] = elvis_core_apply_rule(Config, elvis_style, max_function_length, RuleConfig3, PathFail),
 
     ct:comment("Don't count whitespace lines"),
     WhitespaceRuleConfig = CountAllRuleConfig#{count_whitespace => false},
 
     RuleConfig4 = WhitespaceRuleConfig#{max_length => 3},
     [_, _, _] =
-        elvis_style:max_function_length(ElvisConfig, FileFail, RuleConfig4),
+        elvis_core_apply_rule(Config, elvis_style, max_function_length, RuleConfig4, PathFail),
 
     RuleConfig5 = WhitespaceRuleConfig#{max_length => 7},
     [_, _] =
-        elvis_style:max_function_length(ElvisConfig, FileFail, RuleConfig5),
+        elvis_core_apply_rule(Config, elvis_style, max_function_length, RuleConfig5, PathFail),
 
     RuleConfig6 = WhitespaceRuleConfig#{max_length => 8},
-    [_] = elvis_style:max_function_length(ElvisConfig, FileFail, RuleConfig6),
+    [_] = elvis_core_apply_rule(Config, elvis_style, max_function_length, RuleConfig6, PathFail),
 
     RuleConfig7 = WhitespaceRuleConfig#{max_length => 11},
-    [_] = elvis_style:max_function_length(ElvisConfig, FileFail, RuleConfig7),
+    [_] = elvis_core_apply_rule(Config, elvis_style, max_function_length, RuleConfig7, PathFail),
 
     RuleConfig8 = WhitespaceRuleConfig#{max_length => 12},
-    [] = elvis_style:max_function_length(ElvisConfig, FileFail, RuleConfig8),
+    [] = elvis_core_apply_rule(Config, elvis_style, max_function_length, RuleConfig8, PathFail),
 
     ct:comment("Don't count comment or whitespace lines"),
     NoCountRuleConfig = WhitespaceRuleConfig#{count_comments => false},
 
     RuleConfig9 = NoCountRuleConfig#{max_length => 1},
     [_, _, _] =
-        elvis_style:max_function_length(ElvisConfig, FileFail, RuleConfig9),
+        elvis_core_apply_rule(Config, elvis_style, max_function_length, RuleConfig9, PathFail),
 
     RuleConfig10 = NoCountRuleConfig#{max_length => 2},
-    [] = elvis_style:max_function_length(ElvisConfig, FileFail, RuleConfig10),
+    [] = elvis_core_apply_rule(Config, elvis_style, max_function_length, RuleConfig10, PathFail),
 
     IgnoredFunctions = [{ModuleFail, f15}, {ModuleFail, f10, 1}],
     RuleConfig11 = RuleConfig5#{ignore => IgnoredFunctions},
-    [] = elvis_style:max_function_length(ElvisConfig, FileFail, RuleConfig11),
+    [] = elvis_core_apply_rule(Config, elvis_style, max_function_length, RuleConfig11, PathFail),
 
     {comment, ""}.
 
 -spec verify_no_debug_call(config()) -> any().
-verify_no_debug_call(_Config) ->
-    PathFail = "fail_no_debug_call.erl",
+verify_no_debug_call(Config) ->
+    Group = proplists:get_value(group, Config, erl_files),
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    [_, _, _, _, _, _] = elvis_core_apply_rule(elvis_style, no_debug_call, #{}, PathFail),
+    PathFail = "fail_no_debug_call." ++ Ext,
+
+    PathFail = "fail_no_debug_call." ++ Ext,
+
+    _ = case Group of
+        beam_files -> % io:format is preprocessed
+            [_, _, _, _] = elvis_core_apply_rule(Config, elvis_style, no_debug_call, #{}, PathFail);
+        erl_files ->
+            [_, _, _, _, _, _] = elvis_core_apply_rule(Config, elvis_style, no_debug_call, #{}, PathFail)
+    end,
 
     RuleConfig = #{ignore => [fail_no_debug_call]},
-    [] = elvis_core_apply_rule(elvis_style, no_debug_call, RuleConfig, PathFail),
+    [] = elvis_core_apply_rule(Config, elvis_style, no_debug_call, RuleConfig, PathFail),
 
     RuleConfig2 = #{debug_functions => [{ct, pal, 2}]},
-    [_] = elvis_core_apply_rule(elvis_style, no_debug_call, RuleConfig2, PathFail),
+    _ = case Group of
+        beam_files -> % ct:pal is preprocessed
+            [] = elvis_core_apply_rule(Config, elvis_style, no_debug_call, RuleConfig2, PathFail);
+        erl_files ->
+            [_] = elvis_core_apply_rule(Config, elvis_style, no_debug_call, RuleConfig2, PathFail)
+    end,
 
     RuleConfig3 = #{debug_functions => [{ct, pal}]},
-    [_, _] = elvis_core_apply_rule(elvis_style, no_debug_call, RuleConfig3, PathFail),
+    _ = case Group of
+        beam_files -> % ct:pal is preprocessed
+            [] = elvis_core_apply_rule(Config, elvis_style, no_debug_call, RuleConfig3, PathFail);
+        erl_files ->
+            [_, _] = elvis_core_apply_rule(Config, elvis_style, no_debug_call, RuleConfig3, PathFail)
+    end,
 
     RuleConfig4 = #{debug_functions => [{io, format}]},
-    [_, _, _] =
-        elvis_core_apply_rule(elvis_style, no_debug_call, RuleConfig4, PathFail),
+    [_, _, _] = elvis_core_apply_rule(Config, elvis_style, no_debug_call, RuleConfig4, PathFail),
 
     RuleConfig5 = #{debug_functions => [{ct, print}]},
-    [_, _] = elvis_core_apply_rule(elvis_style, no_debug_call, RuleConfig5, PathFail).
+    [_, _] = elvis_core_apply_rule(Config, elvis_style, no_debug_call, RuleConfig5, PathFail).
 
 %% We test no_call and no_common_caveats_call by building the equivalent config and make sure that
 %% other than defaults, they behave the same
 -spec verify_no_common_caveats_call(config()) -> any().
-verify_no_common_caveats_call(_Config) ->
-    verify_no_call_flavours(no_common_caveats_call,
-                            fun (File, RuleConfig) ->
-                                elvis_core_apply_rule(elvis_style, no_common_caveats_call, RuleConfig, File)
-                            end,
-                            caveat_functions,
-                            6).
+verify_no_common_caveats_call(Config) ->
+    verify_no_call_flavours(Config, no_common_caveats_call, caveat_functions, 6).
 
 -spec verify_no_call(config()) -> any().
-verify_no_call(_Config) ->
-    verify_no_call_flavours(no_call,
-                            fun (File, RuleConfig) ->
-                                elvis_core_apply_rule(elvis_style, no_call, RuleConfig, File)
-                            end,
-                            no_call_functions,
-                            0).
+verify_no_call(Config) ->
+    verify_no_call_flavours(Config, no_call, no_call_functions, 0).
 
--spec verify_no_call_flavours(atom(), fun(), atom(), non_neg_integer()) -> any().
-verify_no_call_flavours(RuleName, RuleFun, RuleConfigMapKey, ExpectedDefaultRuleMatchCount) ->
-    PathFail = "fail_no_call_classes.erl",
+-spec verify_no_call_flavours(any(), atom(), atom(), non_neg_integer()) -> any().
+verify_no_call_flavours(Config, RuleName, RuleConfigMapKey, ExpectedDefaultRuleMatchCount) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    assert_length(ExpectedDefaultRuleMatchCount, RuleFun(PathFail, #{}), RuleName),
+    PathFail = "fail_no_call_classes." ++ Ext,
+
+    assert_length(ExpectedDefaultRuleMatchCount, elvis_core_apply_rule(Config, elvis_style, RuleName, #{}, PathFail), RuleName),
 
     RuleConfig = #{ignore => [fail_no_call_classes]},
-    assert_length(0, RuleFun(PathFail, RuleConfig), RuleName),
+    assert_length(0, elvis_core_apply_rule(Config, elvis_style, RuleName, RuleConfig, PathFail), RuleName),
 
     RuleMatchTuples = [{{timer, send_after, 2}, 1},
                        {{timer, send_after, 3}, 1},
@@ -679,75 +736,94 @@ verify_no_call_flavours(RuleName, RuleFun, RuleConfigMapKey, ExpectedDefaultRule
 
     lists:foreach(fun({FunSpec, ExpectedCount}) ->
                       ThisRuleConfig = maps:from_list([{RuleConfigMapKey, [FunSpec]}]),
-                      Result = RuleFun(PathFail, ThisRuleConfig),
+                      Result = elvis_core_apply_rule(Config, elvis_style, RuleName, ThisRuleConfig, PathFail),
                       assert_length(ExpectedCount, Result, RuleName)
                   end,
                   RuleMatchTuples).
 
 -spec verify_no_nested_try_catch(config()) -> any().
-verify_no_nested_try_catch(_Config) ->
-    Module = fail_no_nested_try_catch,
-    Path   = atom_to_list(Module) ++ ".erl",
-    [
-     #{line_num := 18},
-     #{line_num := 33},
-     #{line_num := 40}
-    ] = elvis_core_apply_rule(elvis_style, no_nested_try_catch, #{}, Path),
+verify_no_nested_try_catch(Config) ->
+    Group = proplists:get_value(group, Config, erl_files),
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    [] = elvis_core_apply_rule(elvis_style, no_nested_try_catch, #{ ignore => [Module] }, Path).
+    Module = fail_no_nested_try_catch,
+    Path   = atom_to_list(Module) ++ "." ++ Ext,
+    _ = case Group of
+        beam_files ->
+            [
+             #{line_num := 13},
+             #{line_num := 22},
+             #{line_num := 25}
+            ] = elvis_core_apply_rule(Config, elvis_style, no_nested_try_catch, #{}, Path);
+        erl_files ->
+            [
+             #{line_num := 18},
+             #{line_num := 33},
+             #{line_num := 40}
+            ] = elvis_core_apply_rule(Config, elvis_style, no_nested_try_catch, #{}, Path)
+    end,
+
+    [] = elvis_core_apply_rule(Config, elvis_style, no_nested_try_catch, #{ ignore => [Module] }, Path).
 
 -spec verify_atom_naming_convention(config()) -> any().
-verify_atom_naming_convention(_Config) ->
+verify_atom_naming_convention(Config) ->
+    Group = proplists:get_value(group, Config, erl_files),
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
     BaseRegex = "^([a-z][a-z0-9_]+)$",
 
     % pass
 
     PassModule = pass_atom_naming_convention,
-    PassPath = atom_to_list(PassModule) ++ ".erl",
+    PassPath = atom_to_list(PassModule) ++ "." ++ Ext,
 
-    [] = elvis_core_apply_rule(elvis_style, atom_naming_convention, #{ regex => BaseRegex }, PassPath),
+    [] = elvis_core_apply_rule(Config, elvis_style, atom_naming_convention, #{ regex => BaseRegex }, PassPath),
 
     % fail
 
     FailModule = fail_atom_naming_convention,
-    FailPath = atom_to_list(FailModule) ++ ".erl",
+    FailPath = atom_to_list(FailModule) ++ "." ++ Ext,
 
     [_,_,_,_,_,_,_,_,_,_]
-        = elvis_core_apply_rule(elvis_style, atom_naming_convention, #{ regex => BaseRegex,
+        = elvis_core_apply_rule(Config, elvis_style, atom_naming_convention, #{ regex => BaseRegex,
                                                                         enclosed_atoms => same }, FailPath),
     [_,_,_,_,_,_,_,_]
-        = elvis_core_apply_rule(elvis_style, atom_naming_convention, #{ regex => "^([a-zA-Z_]+)$",
+        = elvis_core_apply_rule(Config, elvis_style, atom_naming_convention, #{ regex => "^([a-zA-Z_]+)$",
                                                                         enclosed_atoms => same }, FailPath),
     [_,_]
-        = elvis_core_apply_rule(elvis_style, atom_naming_convention, #{ regex => "^([a-zA-Z_' \\\\]+)$",
+        = elvis_core_apply_rule(Config, elvis_style, atom_naming_convention, #{ regex => "^([a-zA-Z_' \\\\]+)$",
                                                                         enclosed_atoms => same }, FailPath),
     [_,_,_,_,_,_,_]
-        = elvis_core_apply_rule(elvis_style, atom_naming_convention, #{ regex => "^([a-zA-Z\-_]+)$",
+        = elvis_core_apply_rule(Config, elvis_style, atom_naming_convention, #{ regex => "^([a-zA-Z\-_]+)$",
                                                                         enclosed_atoms => same }, FailPath),
     [_]
-        = elvis_core_apply_rule(elvis_style, atom_naming_convention, #{ regex => "^([a-zA-Z\-_' \\\\]+)$",
+        = elvis_core_apply_rule(Config, elvis_style, atom_naming_convention, #{ regex => "^([a-zA-Z\-_' \\\\]+)$",
                                                                         enclosed_atoms => same }, FailPath),
     []
-        = elvis_core_apply_rule(elvis_style, atom_naming_convention, #{ regex => "^([0-9]?[a-zA-Z\-_]+)$" }, FailPath),
+        = elvis_core_apply_rule(Config, elvis_style, atom_naming_convention, #{ regex => "^([0-9]?[a-zA-Z\-_]+)$" }, FailPath),
     []
-        = elvis_core_apply_rule(elvis_style, atom_naming_convention, #{ regex => BaseRegex,
+        = elvis_core_apply_rule(Config, elvis_style, atom_naming_convention, #{ regex => BaseRegex,
                                                                         ignore => [FailModule] }, FailPath),
     KeepRegex = "^([a-zA-Z0-9_]+)$",
     [_,_,_,_,_,_,_,_]
-        = elvis_core_apply_rule(elvis_style, atom_naming_convention, #{ regex => KeepRegex,
+        = elvis_core_apply_rule(Config, elvis_style, atom_naming_convention, #{ regex => KeepRegex,
                                                                         enclosed_atoms => "^([a-z][a-z0-9A-Z_]*)$" }, FailPath),
     [_,_,_,_,_,_]
-        = elvis_core_apply_rule(elvis_style, atom_naming_convention, #{ regex => KeepRegex,
+        = elvis_core_apply_rule(Config, elvis_style, atom_naming_convention, #{ regex => KeepRegex,
                                                                         enclosed_atoms => "^([a-z][a-z0-9A-Z_' \\\\]*)$" }, FailPath),
     [_,_,_,_,_,_,_]
-        = elvis_core_apply_rule(elvis_style, atom_naming_convention, #{ regex => KeepRegex,
+        = elvis_core_apply_rule(Config, elvis_style, atom_naming_convention, #{ regex => KeepRegex,
                                                                         enclosed_atoms => "^([a-z][\-a-z0-9A-Z_]*)$" }, FailPath),
     [_,_,_,_]
-        = elvis_core_apply_rule(elvis_style, atom_naming_convention, #{ regex => KeepRegex,
-                                                                        enclosed_atoms => "^([0-9a-z][\-a-z0-9A-Z_' \\\\]*)$" }, FailPath),
-    [_,_,_,_,_]
-        = elvis_core_apply_rule(elvis_style, atom_naming_convention, #{ regex => KeepRegex,
-                                                                        enclosed_atoms => "^([\\\\][\-a-z0-9A-Z_' \\\\]*)$" }, FailPath).
+        = elvis_core_apply_rule(Config, elvis_style, atom_naming_convention, #{ regex => KeepRegex, enclosed_atoms => "^([0-9a-z][\-a-z0-9A-Z_' \\\\]*)$" }, FailPath),
+    _ = case Group of
+        beam_files -> % 'or_THIS' getting stripped of enclosing '
+            [_,_,_,_]
+                = elvis_core_apply_rule(Config, elvis_style, atom_naming_convention, #{ regex => KeepRegex, enclosed_atoms => "^([\\\\][\-a-z0-9A-Z_' \\\\]*)$" }, FailPath);
+        erl_files ->
+            [_,_,_,_,_]
+                = elvis_core_apply_rule(Config, elvis_style, atom_naming_convention, #{ regex => KeepRegex, enclosed_atoms => "^([\\\\][\-a-z0-9A-Z_' \\\\]*)$" }, FailPath)
+    end.
 
 -spec results_are_ordered_by_line(config()) -> true.
 results_are_ordered_by_line(_Config) ->
@@ -756,217 +832,125 @@ results_are_ordered_by_line(_Config) ->
     true = lists:all(fun(X) -> X end, is_item_line_sort(Results)).
 
 -spec verify_elvis_attr_atom_naming_convention(config()) -> true.
-verify_elvis_attr_atom_naming_convention(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_atom_naming_convention_elvis_attr.erl"),
-    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+verify_elvis_attr_atom_naming_convention(Config) ->
+    verify_elvis_attr(Config, "pass_atom_naming_convention_elvis_attr").
 
 -spec verify_elvis_attr_dont_repeat_yourself(config()) -> true.
-verify_elvis_attr_dont_repeat_yourself(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_dont_repeat_yourself_elvis_attr.erl"),
-    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+verify_elvis_attr_dont_repeat_yourself(Config) ->
+    verify_elvis_attr(Config, "pass_dont_repeat_yourself_elvis_attr").
 
 -spec verify_elvis_attr_function_naming_convention(config()) -> true.
-verify_elvis_attr_function_naming_convention(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_function_naming_convention_elvis_attr.erl"),
-    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+verify_elvis_attr_function_naming_convention(Config) ->
+    verify_elvis_attr(Config, "pass_function_naming_convention_elvis_attr").
 
 -spec verify_elvis_attr_god_modules(config()) -> true.
-verify_elvis_attr_god_modules(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_god_modules_elvis_attr.erl"),
-    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+verify_elvis_attr_god_modules(Config) ->
+    verify_elvis_attr(Config, "pass_god_modules_elvis_attr").
 
 -spec verify_elvis_attr_invalid_dynamic_call(config()) -> true.
-verify_elvis_attr_invalid_dynamic_call(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_invalid_dynamic_call_elvis_attr.erl"),
-    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+verify_elvis_attr_invalid_dynamic_call(Config) ->
+    verify_elvis_attr(Config, "pass_invalid_dynamic_call_elvis_attr").
 
 -spec verify_elvis_attr_line_length(config()) -> true.
-verify_elvis_attr_line_length(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_line_length_elvis_attr.erl"),
-    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+verify_elvis_attr_line_length(Config) ->
+    verify_elvis_attr(Config, "pass_line_length_elvis_attr").
 
 -spec verify_elvis_attr_macro_module_names(config()) -> true.
-verify_elvis_attr_macro_module_names(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_macro_module_names_elvis_attr.erl"),
-    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+verify_elvis_attr_macro_module_names(Config) ->
+    verify_elvis_attr(Config, "pass_macro_module_names_elvis_attr").
 
 -spec verify_elvis_attr_macro_names(config()) -> true.
-verify_elvis_attr_macro_names(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_macro_names_elvis_attr.erl"),
-    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+verify_elvis_attr_macro_names(Config) ->
+    verify_elvis_attr(Config, "pass_macro_names_elvis_attr").
 
 -spec verify_elvis_attr_max_function_length(config()) -> true.
-verify_elvis_attr_max_function_length(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_max_function_length_elvis_attr.erl"),
-    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+verify_elvis_attr_max_function_length(Config) ->
+    verify_elvis_attr(Config, "pass_max_function_length_elvis_attr").
 
 -spec verify_elvis_attr_max_module_length(config()) -> true.
-verify_elvis_attr_max_module_length(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_max_module_length_elvis_attr.erl"),
-    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+verify_elvis_attr_max_module_length(Config) ->
+    verify_elvis_attr(Config, "pass_max_module_length_elvis_attr").
 
 -spec verify_elvis_attr_module_naming_convention(config()) -> true.
-verify_elvis_attr_module_naming_convention(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_module_naming-convention_elvis_attr.erl"),
-    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+verify_elvis_attr_module_naming_convention(Config) ->
+    verify_elvis_attr(Config, "pass_module_naming-convention_elvis_attr").
 
 -spec verify_elvis_attr_nesting_level(config()) -> true.
-verify_elvis_attr_nesting_level(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_nesting_level_elvis_attr.erl"),
-    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+verify_elvis_attr_nesting_level(Config) ->
+    verify_elvis_attr(Config, "pass_nesting_level_elvis_attr").
 
 -spec verify_elvis_attr_no_behavior_info(config()) -> true.
-verify_elvis_attr_no_behavior_info(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_no_behavior_info_elvis_attr.erl"),
-    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+verify_elvis_attr_no_behavior_info(Config) ->
+    verify_elvis_attr(Config, "pass_no_behavior_info_elvis_attr").
 
 -spec verify_elvis_attr_no_call(config()) -> true.
-verify_elvis_attr_no_call(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_no_call_elvis_attr.erl"),
-    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+verify_elvis_attr_no_call(Config) ->
+    verify_elvis_attr(Config, "pass_no_call_elvis_attr").
 
 -spec verify_elvis_attr_no_debug_call(config()) -> true.
-verify_elvis_attr_no_debug_call(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_no_debug_call_elvis_attr.erl"),
-    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+verify_elvis_attr_no_debug_call(Config) ->
+    verify_elvis_attr(Config, "pass_no_debug_call_elvis_attr").
 
 -spec verify_elvis_attr_no_if_expression(config()) -> true.
-verify_elvis_attr_no_if_expression(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_no_if_expression_elvis_attr.erl"),
-    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+verify_elvis_attr_no_if_expression(Config) ->
+    verify_elvis_attr(Config, "pass_no_if_expression_elvis_attr").
 
 -spec verify_elvis_attr_no_nested_try_catch(config()) -> true.
-verify_elvis_attr_no_nested_try_catch(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_no_nested_try_catch_elvis_attr.erl"),
-    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+verify_elvis_attr_no_nested_try_catch(Config) ->
+    verify_elvis_attr(Config, "pass_no_nested_try_catch_elvis_attr").
 
 -spec verify_elvis_attr_no_spaces(config()) -> true.
-verify_elvis_attr_no_spaces(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_no_spaces_elvis_attr.erl"),
-    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+verify_elvis_attr_no_spaces(Config) ->
+    verify_elvis_attr(Config, "pass_no_spaces_elvis_attr").
 
 -spec verify_elvis_attr_no_spec_with_records(config()) -> true.
-verify_elvis_attr_no_spec_with_records(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_no_spec_with_records_elvis_attr.erl"),
-    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+verify_elvis_attr_no_spec_with_records(Config) ->
+    verify_elvis_attr(Config, "pass_no_spec_with_records_elvis_attr").
 
 -spec verify_elvis_attr_no_tabs(config()) -> true.
-verify_elvis_attr_no_tabs(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_no_tabs_elvis_attr.erl"),
-    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+verify_elvis_attr_no_tabs(Config) ->
+    verify_elvis_attr(Config, "pass_no_tabs_elvis_attr").
 
 -spec verify_elvis_attr_no_trailing_whitespace(config()) -> true.
-verify_elvis_attr_no_trailing_whitespace(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_no_trailing_whitespace_elvis_attr.erl"),
-    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+verify_elvis_attr_no_trailing_whitespace(Config) ->
+    verify_elvis_attr(Config, "pass_no_trailing_whitespace_elvis_attr").
 
 -spec verify_elvis_attr_operator_spaces(config()) -> true.
-verify_elvis_attr_operator_spaces(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_operator_spaces_elvis_attr.erl"),
-    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+verify_elvis_attr_operator_spaces(Config) ->
+    verify_elvis_attr(Config, "pass_operator_spaces_elvis_attr").
 
 -spec verify_elvis_attr_state_record_and_type(config()) -> true.
-verify_elvis_attr_state_record_and_type(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_state_record_and_type_elvis_attr.erl"),
-    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+verify_elvis_attr_state_record_and_type(Config) ->
+    verify_elvis_attr(Config, "pass_state_record_and_type_elvis_attr").
 
 -spec verify_elvis_attr_used_ignored_variable(config()) -> true.
-verify_elvis_attr_used_ignored_variable(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_used_ignored_variable_elvis_attr.erl"),
-    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+verify_elvis_attr_used_ignored_variable(Config) ->
+    verify_elvis_attr(Config, "pass_used_ignored_variable_elvis_attr").
 
 -spec verify_elvis_attr_variable_naming_convention(config()) -> true.
-verify_elvis_attr_variable_naming_convention(_Config) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, "pass_variable_naming_convention_elvis_attr.erl"),
-    verify_elvis_attr_do_rock_results(elvis_core:do_rock(File, ElvisConfig)).
+verify_elvis_attr_variable_naming_convention(Config) ->
+    verify_elvis_attr(Config, "pass_variable_naming_convention_elvis_attr").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-elvis_core_apply_rule(Module, Function, RuleConfig, Filename) ->
-    ElvisConfig = elvis_test_utils:config(erl_files),
+elvis_core_apply_rule(Config, Module, Function, RuleConfig, Filename) ->
+    ElvisConfig = elvis_test_utils:config(proplists:get_value(group, Config, erl_files)),
     SrcDirs = elvis_config:dirs(ElvisConfig),
     {ok, File} = elvis_test_utils:find_file(SrcDirs, Filename),
     {[RulesResults], _, _} = elvis_core:apply_rule({Module, Function, RuleConfig},
                                                    {[], ElvisConfig, File}),
     maps:get(items, RulesResults, []).
 
-verify_elvis_attr_do_rock_results({ok, #{ rules := RuleResults }}) ->
+verify_elvis_attr(Config, FilenameNoExt) ->
+    ElvisConfig = elvis_test_utils:config(proplists:get_value(group, Config, erl_files)),
+    SrcDirs = elvis_config:dirs(ElvisConfig),
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    {ok, File} = elvis_test_utils:find_file(SrcDirs, FilenameNoExt ++ "." ++ Ext),
+
+    {ok, #{ rules := RuleResults }} = elvis_core:do_rock(File, ElvisConfig),
     [[] = Items || #{ items := Items } <- RuleResults],
     true.
 
