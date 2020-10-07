@@ -8,15 +8,15 @@ since these are incremental.
 This file's format is influenced by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and
 [Make a README](https://www.makeareadme.com/).
 
-## Going from `0.7.0` to `1.0.0`
+## Going from `0.x` to `1.x`
 
 ### Update
 
-- your `ignore` option (from rule `max_function_length`) to also contain the content of
+- your `ignore` option, from rule `max_function_length`, to also contain the content of
 `ignore_functions`
-- your rule config. files (e.g. `elvis.config`), by moving `elvis_style` to `elvis_text_style` for
-the following rules: `line_length`, `no_tabs`, and `no_trailing_whitespace`
+- your rule configuration files (e.g. `elvis.config`), by moving `elvis_style` to
+`elvis_text_style` for the following rules: `line_length`, `no_tabs`, and `no_trailing_whitespace`
 
 ### Delete
 
-- option `ignore_functions` from rule `max_function_length`
+- option `ignore_functions`, from rule `max_function_length`
