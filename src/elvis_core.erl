@@ -13,6 +13,9 @@
 
 %% for eating our own dogfood
 -export([main/1]).
+-ifdef(TEST).
+-export([apply_rule/2]).
+-endif.
 
 -type source_filename() :: nonempty_string().
 -type target() :: source_filename() | module().
@@ -158,6 +161,14 @@ elvis_attr_rules([] = _ElvisAttrs) ->
 elvis_attr_rules(ElvisAttrs) ->
     [Rule || ElvisAttr <- ElvisAttrs, Rule <- ktn_code:attr(value, ElvisAttr)].
 
+-spec apply_rule({Mod, Fun} | {Mod, Fun, RuleCfg}, {Results, ElvisCfg, File}) -> Result
+      when Mod :: module(),
+           Fun :: atom(),
+           RuleCfg :: map(),
+           Results :: [elvis_result:rule()],
+           ElvisCfg :: elvis_config:config(),
+           File :: elvis_file:file(),
+           Result :: {Results, ElvisCfg, File}.
 apply_rule({Module, Function}, {Result, Config, File}) ->
     apply_rule({Module, Function, #{}}, {Result, Config, File});
 apply_rule({Module, Function, ConfigArgs}, {Result, Config, File}) ->
@@ -168,18 +179,28 @@ apply_rule({Module, Function, ConfigArgs}, {Result, Config, File}) ->
             _:function_clause ->
                 throw({invalid_config, disable_without_ruleset})
         end,
-    RuleResult = try
-                    Results = Module:Function(Config, File, ConfigMap),
+    RuleResult =
+        try
+            AnalyzedModule = elvis_file:module(File),
+            Ignores = maps:get(ignore, ConfigMap, []),
+            case lists:member(AnalyzedModule, Ignores) of
+                false ->
+                    FilteredConfigMap
+                        = ConfigMap#{ ignore => lists:delete(AnalyzedModule, Ignores) },
+                    Results = Module:Function(Config, File, FilteredConfigMap),
                     SortFun = fun(#{line_num := L1}, #{line_num := L2}) ->
-                                  L1 =< L2
-                              end,
+                        L1 =< L2
+                    end,
                     SortResults = lists:sort(SortFun, Results),
-                    elvis_result:new(rule, Function, SortResults)
-                 catch
-                     _:Reason ->
-                         Msg = "'~p' while applying rule '~p'.",
-                         elvis_result:new(error, Msg, [Reason, Function])
-                 end,
+                    elvis_result:new(rule, Function, SortResults);
+                true ->
+                    elvis_result:new(rule, Function, [])
+            end
+        catch
+            _:Reason ->
+                Msg = "'~p' while applying rule '~p'.",
+                elvis_result:new(error, Msg, [Reason, Function])
+        end,
     {[RuleResult | Result], Config, File}.
 
 

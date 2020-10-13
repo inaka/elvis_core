@@ -5,7 +5,7 @@
 -export([bad_names_inside/0]).
 
 -elvis([{elvis_style, function_naming_convention, #{regex => "^[a-z\_A-Z'\-\?@]+$"}}]).
--elvis([{elvis_style, line_length, #{limit => 88}}]).
+-elvis([{elvis_text_style, line_length, #{limit => 88}}]).
 -elvis([{elvis_style, atom_naming_convention, #{regex => ".*"}}]).
 
 %% Function names must use only lowercase characters.

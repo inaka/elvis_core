@@ -265,7 +265,7 @@ rock_with_rule_groups(_Config) ->
     % Override default elvis_core rules without ruleset should fail.
     OverrideFailConfig =
         [#{dirs => ["src"],
-           rules => [{elvis_style, line_length, #{limit => 90}},
+           rules => [{elvis_text_style, line_length, #{limit => 90}},
                      {elvis_style, state_record_and_type, disable}]}],
     ok = try
            _ = elvis_core:rock(OverrideFailConfig),
@@ -278,8 +278,8 @@ rock_with_rule_groups(_Config) ->
         [#{dirs => ["src"],
            filter => "*.erl",
            ruleset => erl_files,
-           rules => [{elvis_style, line_length, #{limit => 90}}, % I like 90 chars per line.
-                     {elvis_style, no_tabs, disable}]}, % I like tabs so disable this rule.
+           rules => [{elvis_text_style, line_length, #{limit => 90}}, % I like 90 chars per line.
+                     {elvis_text_style, no_tabs, disable}]}, % I like tabs so disable this rule.
          #{dirs => ["."],
            filter => "Makefile",
            ruleset => makefiles,

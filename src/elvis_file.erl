@@ -4,10 +4,12 @@
          src/1,
          path/1,
          parse_tree/2,
+         parse_tree/3,
          load_file_data/2,
 
          find_files/2,
-         filter_files/4
+         filter_files/4,
+         module/1
         ]).
 
 -export_type([file/0]).
@@ -46,17 +48,25 @@ path(File) ->
 %% @doc Add the root node of the parse tree to the file data.
 -spec parse_tree(elvis_config:config() | map(), file()) ->
   {ktn_code:tree_node(), file()}.
-parse_tree(_Config, File = #{parse_tree := ParseTree}) ->
+parse_tree(Config, Target) ->
+    parse_tree(Config, Target, _RuleConfig = #{}).
+
+%% @doc Add the root node of the parse tree to the file data, with filtering.
+-spec parse_tree(elvis_config:config() | map(), file(), map()) ->
+  {ktn_code:tree_node(), file()}.
+parse_tree(_Config, File = #{parse_tree := ParseTree}, _RuleConfig) ->
     {ParseTree, File};
-parse_tree(Config, File = #{path := Path, content := Content}) ->
+parse_tree(Config, File = #{path := Path, content := Content}, RuleConfig) ->
     Ext = filename:extension(Path),
     ExtStr = elvis_utils:to_str(Ext),
-    ParseTree = resolve_parse_tree(ExtStr, Content),
-    parse_tree(Config, File#{parse_tree => ParseTree});
-parse_tree(Config, File0 = #{path := _Path}) ->
+    Mod = module(File),
+    Ignore = maps:get(ignore, RuleConfig, []),
+    ParseTree = resolve_parse_tree(ExtStr, Content, Mod, Ignore),
+    parse_tree(Config, File#{parse_tree => ParseTree}, RuleConfig);
+parse_tree(Config, File0 = #{path := _Path}, RuleConfig) ->
     {_, File} = src(File0),
-    parse_tree(Config, File);
-parse_tree(_Config, File) ->
+    parse_tree(Config, File, RuleConfig);
+parse_tree(_Config, File, _RuleConfig) ->
     throw({invalid_file, File}).
 
 %% @doc Loads and adds all related file data.
@@ -107,15 +117,33 @@ filter_files(Files, Dirs, Filter, IgnoreList) ->
     FoundUnique = lists:usort(Found),
     lists:filter(IgnoreFun, FoundUnique).
 
+%% @doc Return module name corresponding to a given .erl file
+-spec module(file()) -> module().
+module(#{ path := Path }) ->
+    list_to_atom(filename:basename(Path, ".erl")).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec resolve_parse_tree(string(), binary()) ->
+-spec resolve_parse_tree(string(), binary(), module(), list()) ->
     undefined | ktn_code:tree_node().
-resolve_parse_tree(".erl", Content) ->
-    ktn_code:parse_tree(Content);
-resolve_parse_tree( _, _) ->
+resolve_parse_tree(".erl", Content, Mod, Ignore) ->
+    Tree = ktn_code:parse_tree(Content),
+    TreeContent = maps:get(content, Tree, []),
+    FilteredTreeContent =
+        lists:filter(fun (#{ type := function
+                           , attrs := #{ name := FunName
+                                       , arity := FunArity
+                                       }
+                           }) ->
+                             not(lists:member({Mod, FunName}, Ignore)
+                                 orelse lists:member({Mod, FunName, FunArity}, Ignore));
+                         (_) -> true
+        end,
+        TreeContent),
+    Tree#{ content => FilteredTreeContent };
+resolve_parse_tree(_, _, _, _) ->
     undefined.
 
 -spec glob_to_regex(iodata()) -> iodata().
