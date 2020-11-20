@@ -1102,7 +1102,11 @@ is_otp_module(Root) ->
                              gen_statem,
                              supervisor_bridge
                             ]),
-    IsBehaviorAttr = fun(Node) -> behavior == ktn_code:type(Node) end,
+    IsBehaviorAttr =
+        fun(Node) ->
+            behavior == ktn_code:type(Node) orelse
+            behaviour == ktn_code:type(Node)
+        end,
     case elvis_code:find(IsBehaviorAttr, Root) of
         [] ->
             false;
