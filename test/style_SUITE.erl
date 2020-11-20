@@ -467,6 +467,10 @@ verify_state_record_and_type(_Config) ->
     {ok, FileFail1} = elvis_test_utils:find_file(SrcDirs, PathFail1),
     [_] = elvis_style:state_record_and_type(ElvisConfig, FileFail1, #{}),
 
+    PathBehaviourFail = "fail_state_record_and_type_behaviour.erl",
+    {ok, FileBehaviourFail} = elvis_test_utils:find_file(SrcDirs, PathBehaviourFail),
+    [_] = elvis_style:state_record_and_type(ElvisConfig, FileBehaviourFail, #{}),
+
     PathFailGenStateMType = "fail_state_record_and_type_gen_statem_type.erl",
     {ok, FileFailGenStateMType} = elvis_test_utils:find_file(SrcDirs, PathFailGenStateMType),
     [_] = elvis_style:state_record_and_type(ElvisConfig, FileFailGenStateMType, #{}),
