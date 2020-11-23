@@ -1,11 +1,27 @@
 # Changelog
 
+## [1.0.0](https://github.com/inaka/elvis_core/tree/1.0.0) (2020-11-23)
+
+[Full Changelog](https://github.com/inaka/elvis_core/compare/0.7.0...1.0.0)
+
+**Merged pull requests:**
+
+- Accept British spelling for behaviour. [\#139](https://github.com/inaka/elvis_core/pull/139) ([NAR](https://github.com/NAR))
+- Feature option ignore in all rules [\#137](https://github.com/inaka/elvis_core/pull/137) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+- Allow module-level configuration via attribute `-elvis\(\_\)` [\#136](https://github.com/inaka/elvis_core/pull/136) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+- Decrease chance of error and improve maintenance [\#135](https://github.com/inaka/elvis_core/pull/135) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+- Complete removal of `seqbind` references [\#134](https://github.com/inaka/elvis_core/pull/134) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+- Catch invalid dynamic call inside `try ... of`. [\#133](https://github.com/inaka/elvis_core/pull/133) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+- Add new rule `atom\_naming\_convention` [\#132](https://github.com/inaka/elvis_core/pull/132) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+- Add options `regex` and `ignore` to rule `macro\_names` [\#131](https://github.com/inaka/elvis_core/pull/131) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+
 ## [0.7.0](https://github.com/inaka/elvis_core/tree/0.7.0) (2020-09-09)
 
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.6.1...0.7.0)
 
 **Merged pull requests:**
 
+- Bump Version to 0.7.0 [\#130](https://github.com/inaka/elvis_core/pull/130) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
 - Simplify by removal of seemingly unused rules no\_seqbind and no\_useless\_seqbind [\#129](https://github.com/inaka/elvis_core/pull/129) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
 - Make sure gen\_statem follows the same rule as gen\_server [\#128](https://github.com/inaka/elvis_core/pull/128) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
 - More visible defaults \(part 2\) [\#127](https://github.com/inaka/elvis_core/pull/127) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
