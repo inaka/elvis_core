@@ -1,6 +1,14 @@
 -module(elvis_rulesets).
 
--export([rules/1]).
+-export([rules/1,
+         register_ruleset/2]).
+
+-define(RULESET_TABLE, elvis_custom_rulesets).
+
+-spec register_ruleset(Name :: atom(), Rules :: list()) -> true.
+register_ruleset(Name, Rules) ->
+    Tid = ensure_table(?RULESET_TABLE),
+    true = ets:insert(Tid, {Name, Rules}).
 
 -spec rules(Group::atom()) -> [elvis_core:rule()].
 rules(erl_files) ->
@@ -53,4 +61,17 @@ rules(elvis_config) ->
         end,
         [ old_configuration_format
         ]);
-rules(_Group) -> [].
+rules(Group) ->
+    try ets:lookup_element(?RULESET_TABLE, Group, 2) of
+        Rules -> Rules
+    catch
+        error:badarg -> []
+    end.
+
+ensure_table(Name) ->
+    case ets:info(Name) of
+        undefined ->
+            ets:new(Name, [set, named_table, {keypos, 1}]);
+        _Info ->
+            Name
+    end.

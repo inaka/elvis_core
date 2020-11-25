@@ -49,6 +49,8 @@ from_file(Path) ->
 -spec load(atom(), term()) -> config().
 load(Key, AppConfig) ->
     ElvisConfig = proplists:get_value(Key, AppConfig, []),
+    Rulesets = proplists:get_value(rulesets, ElvisConfig, #{}),
+    register_rulesets(Rulesets),
     Config =  proplists:get_value(config, ElvisConfig, []),
     ensure_config_list(Config).
 
@@ -56,6 +58,11 @@ ensure_config_list(Config) when is_map(Config) ->
     [Config];
 ensure_config_list(Config) ->
     Config.
+
+register_rulesets(Rulesets) ->
+    lists:foreach(fun({Name, Rules}) ->
+                          elvis_rulesets:register_ruleset(Name, Rules)
+                  end, maps:to_list(Rulesets)).
 
 -spec validate(Config::config()) -> ok.
 validate([]) ->
