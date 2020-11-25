@@ -50,7 +50,7 @@ from_file(Path) ->
 load(Key, AppConfig) ->
     ElvisConfig = proplists:get_value(Key, AppConfig, []),
     Rulesets = proplists:get_value(rulesets, ElvisConfig, #{}),
-    register_rulesets(Rulesets),
+    elvis_rulesets:set_rulesets(Rulesets),
     Config =  proplists:get_value(config, ElvisConfig, []),
     ensure_config_list(Config).
 
@@ -58,11 +58,6 @@ ensure_config_list(Config) when is_map(Config) ->
     [Config];
 ensure_config_list(Config) ->
     Config.
-
-register_rulesets(Rulesets) ->
-    lists:foreach(fun({Name, Rules}) ->
-                          elvis_rulesets:register_ruleset(Name, Rules)
-                  end, maps:to_list(Rulesets)).
 
 -spec validate(Config::config()) -> ok.
 validate([]) ->
@@ -133,7 +128,8 @@ files(_RuleGroup = #{files := Files}) ->
 files(#{}) ->
     [].
 
--spec rules(Rules::config() | map()) -> [elvis_core:rule()].
+-spec rules(Rules::config()) -> [[elvis_core:rule()]];
+           (map()) -> [elvis_core:rule()].
 rules(Rules) when is_list(Rules) ->
     lists:map(fun rules/1, Rules);
 rules(#{rules := UserRules, ruleset := RuleSet}) ->

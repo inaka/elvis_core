@@ -1,14 +1,14 @@
 -module(elvis_rulesets).
 
 -export([rules/1,
-         register_ruleset/2]).
+         set_rulesets/1]).
 
--define(RULESET_TABLE, elvis_custom_rulesets).
-
--spec register_ruleset(Name :: atom(), Rules :: list()) -> true.
-register_ruleset(Name, Rules) ->
-    Tid = ensure_table(?RULESET_TABLE),
-    true = ets:insert(Tid, {Name, Rules}).
+-spec set_rulesets(#{atom() => list()}) -> ok.
+set_rulesets(Rulesets) ->
+    Tid = ensure_clean_table(),
+    lists:foreach(fun({Name, Rules}) ->
+                          true = ets:insert(Tid, {Name, Rules})
+                  end, maps:to_list(Rulesets)).
 
 -spec rules(Group::atom()) -> [elvis_core:rule()].
 rules(erl_files) ->
@@ -62,16 +62,16 @@ rules(elvis_config) ->
         [ old_configuration_format
         ]);
 rules(Group) ->
-    try ets:lookup_element(?RULESET_TABLE, Group, 2) of
-        Rules -> Rules
+    try ets:lookup_element(?MODULE, Group, 2)
     catch
         error:badarg -> []
     end.
 
-ensure_table(Name) ->
-    case ets:info(Name) of
+ensure_clean_table() ->
+    case ets:info(?MODULE) of
         undefined ->
-            ets:new(Name, [set, named_table, {keypos, 1}]);
-        _Info ->
-            Name
+            ets:new(?MODULE, [set, named_table, {keypos, 1}]);
+        _ ->
+            true = ets:delete_all_objects(?MODULE),
+            ?MODULE
     end.
