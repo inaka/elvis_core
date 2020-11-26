@@ -49,6 +49,8 @@ from_file(Path) ->
 -spec load(atom(), term()) -> config().
 load(Key, AppConfig) ->
     ElvisConfig = proplists:get_value(Key, AppConfig, []),
+    Rulesets = proplists:get_value(rulesets, ElvisConfig, #{}),
+    elvis_rulesets:set_rulesets(Rulesets),
     Config =  proplists:get_value(config, ElvisConfig, []),
     ensure_config_list(Config).
 
@@ -126,7 +128,8 @@ files(_RuleGroup = #{files := Files}) ->
 files(#{}) ->
     [].
 
--spec rules(Rules::config() | map()) -> [elvis_core:rule()].
+-spec rules(Rules::config()) -> [[elvis_core:rule()]];
+           (map()) -> [elvis_core:rule()].
 rules(Rules) when is_list(Rules) ->
     lists:map(fun rules/1, Rules);
 rules(#{rules := UserRules, ruleset := RuleSet}) ->

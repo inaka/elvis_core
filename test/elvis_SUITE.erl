@@ -27,6 +27,7 @@
          rock_this_skipping_files/1,
          rock_this_not_skipping_files/1,
          %% Util & Config
+         custom_ruleset/1,
          throw_configuration/1,
          find_file_and_check_src/1,
          find_file_with_ignore/1,
@@ -319,6 +320,19 @@ rock_this_not_skipping_files(_Config) ->
 
 %%%%%%%%%%%%%%%
 %%% Utils
+
+-spec custom_ruleset(config()) -> any().
+custom_ruleset(_Config) ->
+    ConfigPath = "../../config/elvis-test-custom-ruleset.config",
+    ElvisConfig = elvis_config:from_file(ConfigPath),
+    [[{elvis_style, no_tabs}]] = elvis_config:rules(ElvisConfig),
+
+    %% read unknown ruleset configuration to ensure rulesets from
+    %% previous load do not stick around
+    ConfigPathMissing = "../../config/elvis-test-unknown-ruleset.config",
+    ElvisConfigMissing = elvis_config:from_file(ConfigPathMissing),
+    [[]] = elvis_config:rules(ElvisConfigMissing),
+    ok.
 
 -spec throw_configuration(config()) -> any().
 throw_configuration(_Config) ->
