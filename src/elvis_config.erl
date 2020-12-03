@@ -22,7 +22,7 @@
 -export_type([configs/0]).
 
 -type config() :: map().
--type configs() :: [config()] | config().
+-type configs() :: [config()].
 
 -define(DEFAULT_FILTER, "*.erl").
 
@@ -98,7 +98,7 @@ do_normalize(Config = #{src_dirs := Dirs}) ->
 do_normalize(Config) ->
     Config.
 
--spec dirs(Config::configs() | map()) -> [string()].
+-spec dirs(Config::configs() | config()) -> [string()].
 dirs(Config) when is_list(Config) ->
     lists:flatmap(fun dirs/1, Config);
 dirs(_RuleGroup = #{dirs := Dirs}) ->
@@ -106,7 +106,7 @@ dirs(_RuleGroup = #{dirs := Dirs}) ->
 dirs(#{}) ->
     [].
 
--spec ignore(configs() | map()) -> [string()].
+-spec ignore(configs() | config()) -> [string()].
 ignore(Config) when is_list(Config) ->
     lists:flatmap(fun ignore/1, Config);
 ignore(_RuleGroup = #{ignore := Ignore}) ->
@@ -114,7 +114,7 @@ ignore(_RuleGroup = #{ignore := Ignore}) ->
 ignore(#{}) ->
     [].
 
--spec filter(configs() | map()) -> [string()].
+-spec filter(configs() | config()) -> [string()].
 filter(Config) when is_list(Config) ->
     lists:flatmap(fun filter/1, Config);
 filter(_RuleGroup = #{filter := Filter}) ->
@@ -122,7 +122,7 @@ filter(_RuleGroup = #{filter := Filter}) ->
 filter(#{}) ->
     ?DEFAULT_FILTER.
 
--spec files(RuleGroup::configs() | map()) -> [elvis_file:file()].
+-spec files(RuleGroup::configs() | config()) -> [elvis_file:file()].
 files(RuleGroup) when is_list(RuleGroup) ->
     lists:map(fun files/1, RuleGroup);
 files(_RuleGroup = #{files := Files}) ->
@@ -130,8 +130,7 @@ files(_RuleGroup = #{files := Files}) ->
 files(#{}) ->
     [].
 
--spec rules(Rules::configs()) -> [[elvis_core:rule()]];
-           (map()) -> [elvis_core:rule()].
+-spec rules(Rules::configs() | config()) -> [elvis_core:rule()].
 rules(Rules) when is_list(Rules) ->
     lists:map(fun rules/1, Rules);
 rules(#{rules := UserRules, ruleset := RuleSet}) ->
@@ -148,8 +147,8 @@ rules(#{}) ->
 %%      uses '*.erl'.
 %% @end
 %% resolve_files/2 with a configs() type is used in elvis project
--spec resolve_files(Config::configs() | map(), Files::[elvis_file:file()]) ->
-    configs() | map().
+-spec resolve_files(Config::configs() | config(), Files::[elvis_file:file()]) ->
+    configs() | config().
 resolve_files(Config, Files) when is_list(Config) ->
     Fun = fun(RuleGroup) -> resolve_files(RuleGroup, Files) end,
     lists:map(Fun, Config);

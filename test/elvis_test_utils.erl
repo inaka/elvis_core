@@ -9,7 +9,7 @@
 config() ->
   application:get_env(elvis_core, config, []).
 
--spec config(Ruleset :: atom()) -> elvis_config:configs().
+-spec config(Ruleset :: atom()) -> elvis_config:config().
 config(Ruleset) ->
   RulesetCfgs = application:get_env(elvis_core, config, []),
   [Config] = [Cfg || #{ruleset := R} = Cfg <- RulesetCfgs, R =:= Ruleset],

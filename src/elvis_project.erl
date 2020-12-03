@@ -59,7 +59,7 @@ default(old_configuration_format) ->
                                                 regex => string()}.
 
 %% Deprecated
--spec git_for_deps_erlang_mk(elvis_config:configs(),
+-spec git_for_deps_erlang_mk(elvis_config:config(),
                              elvis_file:file(),
                              protocol_for_deps_erlang_mk_config()) ->
     [elvis_result:item()].
@@ -68,7 +68,7 @@ git_for_deps_erlang_mk(Config, Target, RuleConfig) ->
                           "'protocol_for_deps_erlang_mk'."),
     protocol_for_deps_erlang_mk(Config, Target, RuleConfig).
 
--spec protocol_for_deps_erlang_mk(elvis_config:configs(),
+-spec protocol_for_deps_erlang_mk(elvis_config:config(),
                              elvis_file:file(),
                              protocol_for_deps_erlang_mk_config()) ->
     [elvis_result:item()].
@@ -86,7 +86,7 @@ protocol_for_deps_erlang_mk(_Config, Target, RuleConfig) ->
 -type protocol_for_deps_rebar_config() :: #{ignore => [module()],
                                             regex => string()}.
 
--spec git_for_deps_rebar(elvis_config:configs(),
+-spec git_for_deps_rebar(elvis_config:config(),
                          elvis_file:file(),
                          protocol_for_deps_rebar_config()) ->
     [elvis_result:item()].
@@ -95,7 +95,7 @@ git_for_deps_rebar(Config, Target, RuleConfig) ->
                           "'protocol_for_deps_rebar'."),
     protocol_for_deps_rebar(Config, Target, RuleConfig).
 
--spec protocol_for_deps_rebar(elvis_config:configs(),
+-spec protocol_for_deps_rebar(elvis_config:config(),
                          elvis_file:file(),
                          protocol_for_deps_rebar_config()) ->
     [elvis_result:item()].
@@ -114,7 +114,7 @@ protocol_for_deps_rebar(_Config, Target, RuleConfig) ->
 
 -type no_deps_master_erlang_mk_config() :: #{ignore => [module()]}.
 
--spec no_deps_master_erlang_mk(elvis_config:configs(),
+-spec no_deps_master_erlang_mk(elvis_config:config(),
                                elvis_file:file(),
                                no_deps_master_erlang_mk_config()) ->
     [elvis_result:item()].
@@ -129,7 +129,7 @@ no_deps_master_erlang_mk(_Config, Target, RuleConfig) ->
 
 -type no_deps_master_rebar_config() :: #{ignore => [module()]}.
 
--spec no_deps_master_rebar(elvis_config:configs(),
+-spec no_deps_master_rebar(elvis_config:config(),
                            elvis_file:file(),
                            no_deps_master_rebar_config()) ->
     [elvis_result:item()].
@@ -144,7 +144,7 @@ no_deps_master_rebar(_Config, Target, RuleConfig) ->
 
 -type empty_rule_config() :: #{}.
 
--spec old_configuration_format(elvis_config:configs(),
+-spec old_configuration_format(elvis_config:config(),
                                elvis_file:file(),
                                empty_rule_config()) ->
     [elvis_result:item()].
