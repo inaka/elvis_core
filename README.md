@@ -157,8 +157,8 @@ also you like to use tabs instead of spaces, so you need to override `erl_files`
 ```erlang
 #{dirs => ["src"],
   filter => "*.erl",
-  rules => [{elvis_style, line_length, #{limit => 90}}, %% change default line_length limit from 100 to 90
-            {elvis_style, no_tabs, disable}], %% disable no_tabs rule
+  rules => [{elvis_text_style, line_length, #{limit => 90}}, %% change default line_length limit from 100 to 90
+            {elvis_text_style, no_tabs, disable}], %% disable no_tabs rule
   ruleset => erl_files
 },
 ```
