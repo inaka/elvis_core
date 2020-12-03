@@ -16,14 +16,49 @@ rules(erl_files) ->
         fun ({Mod, Rule}) ->
             {Mod, Rule, Mod:default(Rule)}
         end,
-        code_rules()
+        [ line_length
+        , no_tabs
+        , no_trailing_whitespace
+        , macro_names
+        , macro_module_names
+        , operator_spaces
+        , nesting_level
+        , god_modules
+        , no_if_expression
+        , invalid_dynamic_call
+        , used_ignored_variable
+        , no_behavior_info
+        , module_naming_convention
+        , function_naming_convention
+        , state_record_and_type
+        , no_spec_with_records
+        , dont_repeat_yourself
+        , no_debug_call
+        , variable_naming_convention
+        , no_nested_try_catch
+        , atom_naming_convention
+        ]
     );
 rules(beam_files) ->
     lists:map(
         fun (Rule) ->
             {elvis_style, Rule, elvis_style:default(Rule)}
         end,
-        code_rules()
+        [ nesting_level
+        , god_modules
+        , no_if_expression
+        , invalid_dynamic_call
+        , used_ignored_variable
+        , module_naming_convention
+        , function_naming_convention
+        , state_record_and_type
+        , no_spec_with_records
+        , dont_repeat_yourself
+        , no_debug_call
+        , variable_naming_convention
+        , no_nested_try_catch
+        , atom_naming_convention
+        ]
     );
 rules(makefiles) ->
     lists:map(
@@ -62,28 +97,3 @@ ensure_clean_table() ->
             true = ets:delete_all_objects(?MODULE),
             ?MODULE
     end.
-
-
-code_rules() -> [
-    line_length
-  , no_tabs
-  , no_trailing_whitespace
-  , macro_names
-  , macro_module_names
-  , operator_spaces
-  , nesting_level
-  , god_modules
-  , no_if_expression
-  , invalid_dynamic_call
-  , used_ignored_variable
-  , no_behavior_info
-  , module_naming_convention
-  , function_naming_convention
-  , state_record_and_type
-  , no_spec_with_records
-  , dont_repeat_yourself
-  , no_debug_call
-  , variable_naming_convention
-  , no_nested_try_catch
-  , atom_naming_convention
-].
