@@ -193,7 +193,7 @@ get_abstract_parse_tree(BeamPath, Mod, Ignore) ->
     resolve_parse_tree(".erl", AbstractSrc, Mod, Ignore).
 
 -spec get_abstract_source(BeamPath) -> Res when
-    BeamPath :: beam_lib:beam(),
+    BeamPath :: file:filename() | binary(),
     Res :: string().
 get_abstract_source(BeamPath) ->
     {ok, Src} = ktn_code:beam_to_string(BeamPath),

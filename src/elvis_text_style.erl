@@ -38,7 +38,7 @@ default(no_trailing_whitespace) ->
 %% Rules
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--type line_length_config() :: #{ ignore => [elvis_config:ignorable()]
+-type line_length_config() :: #{ ignore => [elvis_style:ignorable()]
                                , limit => integer()
                                , skip_comments => false | any | whole_line
                                }.
@@ -56,23 +56,17 @@ line_length(_Config, Target, RuleConfig) ->
     Args = [Limit, SkipComments, Encoding],
     elvis_utils:check_lines(Src, fun check_line_length/3, Args).
 
--type no_tabs_config() :: #{ ignore => [module()]
-                           }.
-
 -spec no_tabs(elvis_config:config(),
               elvis_file:file(),
-              no_tabs_config()) ->
+              elvis_style:empty_rule_config()) ->
     [elvis_result:item()].
 no_tabs(_Config, Target, _RuleConfig) ->
     {Src, _} = elvis_file:src(Target),
     elvis_utils:check_lines(Src, fun check_no_tabs/3, []).
 
--type no_spaces_config() :: #{ ignore => [module()]
-                             }.
-
 -spec no_spaces(elvis_config:config(),
                 elvis_file:file(),
-                no_spaces_config()) ->
+                elvis_style:empty_rule_config()) ->
     [elvis_result:item()].
 no_spaces(_Config, Target, _RuleConfig) ->
     {Src, _} = elvis_file:src(Target),
