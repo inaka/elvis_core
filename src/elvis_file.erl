@@ -46,13 +46,13 @@ path(File) ->
     throw({invalid_file, File}).
 
 %% @doc Add the root node of the parse tree to the file data.
--spec parse_tree(elvis_config:config() | map(), file()) ->
+-spec parse_tree(elvis_config:configs() | map(), file()) ->
   {ktn_code:tree_node(), file()}.
 parse_tree(Config, Target) ->
     parse_tree(Config, Target, _RuleConfig = #{}).
 
 %% @doc Add the root node of the parse tree to the file data, with filtering.
--spec parse_tree(elvis_config:config() | map(), file(), map()) ->
+-spec parse_tree(elvis_config:configs() | map(), file(), map()) ->
   {ktn_code:tree_node(), file()}.
 parse_tree(_Config, File = #{parse_tree := ParseTree}, _RuleConfig) ->
     {ParseTree, File};
@@ -71,7 +71,7 @@ parse_tree(_Config, File, _RuleConfig) ->
     throw({invalid_file, File}).
 
 %% @doc Loads and adds all related file data.
--spec load_file_data(elvis_config:config() | map(), file()) -> file().
+-spec load_file_data(elvis_config:configs() | map(), file()) -> file().
 load_file_data(Config, File0 = #{path := _Path}) ->
     {_, File1} = src(File0),
     {_, File2} = parse_tree(Config, File1),
@@ -171,7 +171,7 @@ find_encoding(Content) ->
     end.
 
 -spec maybe_add_abstract_parse_tree(Config, File, Mod, Ignore) -> Res when
-      Config :: elvis_config:config() | map(),
+      Config :: elvis_config:configs() | map(),
       File :: file(),
       Mod :: module(),
       Ignore :: [elvis_style:ignorable()],

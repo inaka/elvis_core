@@ -36,14 +36,14 @@ start() ->
 
 %%% Rock Command
 
--spec rock(elvis_config:config()) -> ok | {fail, [elvis_result:file()]}.
+-spec rock(elvis_config:configs()) -> ok | {fail, [elvis_result:file()]}.
 rock(Config) ->
     ok = elvis_config:validate(Config),
     NewConfig = elvis_config:normalize(Config),
     Results = lists:map(fun do_parallel_rock/1, NewConfig),
     lists:foldl(fun combine_results/2, ok, Results).
 
--spec rock_this(target(), elvis_config:config()) ->
+-spec rock_this(target(), elvis_config:configs()) ->
     ok | {fail, [elvis_result:file() | elvis_result:rule()]}.
 rock_this(Module, Config) when is_atom(Module) ->
     ModuleInfo = Module:module_info(compile),
@@ -92,14 +92,14 @@ do_parallel_rock(Config0) ->
                               [], [Config], Files, Parallel),
     elvis_result_status(Results).
 
--spec do_rock(elvis_file:file(), elvis_config:config() | map()) -> {ok, elvis_result:file()}.
+-spec do_rock(elvis_file:file(), elvis_config:configs() | map()) -> {ok, elvis_result:file()}.
 do_rock(File, Config) ->
     LoadedFile = load_file_data(Config, File),
     Results = apply_rules(Config, LoadedFile),
     {ok, Results}.
 
 %% @private
--spec load_file_data(elvis_config:config() | map(), elvis_file:file()) -> elvis_file:file().
+-spec load_file_data(elvis_config:configs() | map(), elvis_file:file()) -> elvis_file:file().
 load_file_data(Config, File) ->
     Path = elvis_file:path(File),
     elvis_utils:info("Loading ~s", [Path]),
@@ -137,7 +137,7 @@ apply_rules_and_print(Config, File) ->
     elvis_result:print_results(Results),
     Results.
 
--spec apply_rules(elvis_config:config() | map(), File::elvis_file:file()) ->
+-spec apply_rules(elvis_config:configs() | map(), File::elvis_file:file()) ->
     elvis_result:file().
 apply_rules(Config, File) ->
     Rules = elvis_config:rules(Config),
@@ -166,7 +166,7 @@ elvis_attr_rules(ElvisAttrs) ->
            Fun :: atom(),
            RuleCfg :: map(),
            Results :: [elvis_result:rule()],
-           ElvisCfg :: elvis_config:config(),
+           ElvisCfg :: elvis_config:configs(),
            File :: elvis_file:file(),
            Result :: {Results, ElvisCfg, File}.
 apply_rule({Module, Function}, {Result, Config, File}) ->
