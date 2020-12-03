@@ -6,13 +6,13 @@
 -dialyzer(no_match).
 
 %% Used so that the line positions don't change for tests.
--compile([export_all]).
+-compile([export_all, nowarn_export_all]).
 
 exceed_with_five_levels() ->
     case 1 of
         1 -> case 2 of
                  2 -> case 3 of
-                          3 -> case 3 of
+                          3 -> case 4 of
                                    4 -> four
                                end
                       end
