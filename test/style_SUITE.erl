@@ -418,13 +418,13 @@ verify_invalid_dynamic_call(Config) ->
     _ = case Group of
         beam_files ->
             [
-             #{line_num := 18},
-             #{line_num := 30},
-             #{line_num := 31},
-             #{line_num := 37},
-             #{line_num := 45},
-             #{line_num := 55},
-             #{line_num := 58}
+             #{line_num := 20},
+             #{line_num := 32},
+             #{line_num := 33},
+             #{line_num := 41},
+             #{line_num := 49},
+             #{line_num := 59},
+             #{line_num := 63}
             ] = elvis_core_apply_rule(Config, elvis_style, invalid_dynamic_call, #{}, PathFail);
         erl_files ->
             [
@@ -450,10 +450,10 @@ verify_used_ignored_variable(Config) ->
     _ = case Group of
         beam_files ->
             [
-             #{line_num := 8},
-             #{line_num := 8},
+             #{line_num := 10},
              #{line_num := 11},
-             #{line_num := 11}
+             #{line_num := 14},
+             #{line_num := 14}
             ] = elvis_core_apply_rule(Config, elvis_style, used_ignored_variable, #{}, Path);
         erl_files ->
             [
