@@ -1239,7 +1239,7 @@ is_children(Parent, Node) ->
 -spec no_call_common(elvis_config:config(),
                      elvis_file:file(),
                      [function_spec()],
-                     map()
+                     string()
                     ) ->
     [elvis_result:item()].
 no_call_common(Config, Target, NoCallFuns, Msg) ->
