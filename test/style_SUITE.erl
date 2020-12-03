@@ -105,7 +105,7 @@ end_per_suite(Config) ->
 
 -spec verify_function_naming_convention(config()) -> any().
 verify_function_naming_convention(_Config) ->
-    ElvisConfig = elvis_test_utils:config(),
+    ElvisConfig = elvis_test_utils:config(erl_files),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     % pass
@@ -156,7 +156,7 @@ verify_function_naming_convention(_Config) ->
 
 -spec verify_variable_naming_convention(config()) -> any().
 verify_variable_naming_convention(_Config) ->
-    ElvisConfig = elvis_test_utils:config(),
+    ElvisConfig = elvis_test_utils:config(erl_files),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     RuleConfig = #{regex => "^_?([A-Z][0-9a-zA-Z]*)$"},
@@ -180,7 +180,7 @@ verify_variable_naming_convention(_Config) ->
 
 -spec verify_line_length_rule(config()) -> any().
 verify_line_length_rule(_Config) ->
-    ElvisConfig = elvis_test_utils:config(),
+    ElvisConfig = elvis_test_utils:config(erl_files),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     File = "fail_line_length.erl",
@@ -204,7 +204,7 @@ verify_line_length_rule(_Config) ->
 
 -spec verify_line_length_rule_latin1(config()) -> any().
 verify_line_length_rule_latin1(_Config) ->
-    ElvisConfig = elvis_test_utils:config(),
+    ElvisConfig = elvis_test_utils:config(erl_files),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     File = "fail_line_length_latin1.erl",
@@ -217,7 +217,7 @@ verify_line_length_rule_latin1(_Config) ->
 
 -spec verify_unicode_line_length_rule(config()) -> any().
 verify_unicode_line_length_rule(_Config) ->
-    ElvisConfig = elvis_test_utils:config(),
+    ElvisConfig = elvis_test_utils:config(erl_files),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     Pass = "pass_unicode_comments.erl",
@@ -228,7 +228,7 @@ verify_unicode_line_length_rule(_Config) ->
 
 -spec verify_no_tabs_rule(config()) -> any().
 verify_no_tabs_rule(_Config) ->
-    ElvisConfig = elvis_test_utils:config(),
+    ElvisConfig = elvis_test_utils:config(erl_files),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     File = "fail_no_tabs.erl",
@@ -238,7 +238,7 @@ verify_no_tabs_rule(_Config) ->
 
 -spec verify_no_spaces_rule(config()) -> any().
 verify_no_spaces_rule(_Config) ->
-    ElvisConfig = elvis_test_utils:config(),
+    ElvisConfig = elvis_test_utils:config(erl_files),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     File = "fail_no_spaces.erl",
@@ -248,7 +248,7 @@ verify_no_spaces_rule(_Config) ->
 
 -spec verify_no_trailing_whitespace_rule(config()) -> any().
 verify_no_trailing_whitespace_rule(_Config) ->
-    ElvisConfig = elvis_test_utils:config(),
+    ElvisConfig = elvis_test_utils:config(erl_files),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     File = "fail_no_trailing_whitespace.erl",
@@ -283,7 +283,7 @@ verify_macro_names_rule(_Config) ->
 
 -spec verify_macro_module_names(config()) -> any().
 verify_macro_module_names(_Config) ->
-    ElvisConfig = elvis_test_utils:config(),
+    ElvisConfig = elvis_test_utils:config(erl_files),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     File = "fail_macro_module_names.erl",
@@ -293,7 +293,7 @@ verify_macro_module_names(_Config) ->
 
 -spec verify_operator_spaces(config()) -> any().
 verify_operator_spaces(_Config) ->
-    ElvisConfig = elvis_test_utils:config(),
+    ElvisConfig = elvis_test_utils:config(erl_files),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     File = "fail_operator_spaces.erl",
@@ -323,7 +323,7 @@ verify_operator_spaces(_Config) ->
 
 -spec verify_operator_spaces_latin1(config()) -> any().
 verify_operator_spaces_latin1(_Config) ->
-    ElvisConfig = elvis_test_utils:config(),
+    ElvisConfig = elvis_test_utils:config(erl_files),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     File = "fail_operator_spaces_latin1.erl",
@@ -337,7 +337,7 @@ verify_operator_spaces_latin1(_Config) ->
 
 -spec verify_nesting_level(config()) -> any().
 verify_nesting_level(_Config) ->
-    ElvisConfig = elvis_test_utils:config(),
+    ElvisConfig = elvis_test_utils:config(erl_files),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     Path = "fail_nesting_level.erl",
@@ -367,7 +367,7 @@ verify_god_modules(_Config) ->
 
 -spec verify_no_if_expression(config()) -> any().
 verify_no_if_expression(_Config) ->
-    ElvisConfig = elvis_test_utils:config(),
+    ElvisConfig = elvis_test_utils:config(erl_files),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     Path = "fail_no_if_expression.erl",
@@ -411,7 +411,7 @@ verify_used_ignored_variable(_Config) ->
 
 -spec verify_no_behavior_info(config()) -> any().
 verify_no_behavior_info(_Config) ->
-    ElvisConfig = elvis_test_utils:config(),
+    ElvisConfig = elvis_test_utils:config(erl_files),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     Path = "fail_no_behavior_info.erl",
@@ -423,7 +423,7 @@ verify_no_behavior_info(_Config) ->
 
 -spec verify_module_naming_convention(config()) -> any().
 verify_module_naming_convention(_Config) ->
-    ElvisConfig = elvis_test_utils:config(),
+    ElvisConfig = elvis_test_utils:config(erl_files),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     RuleConfig = #{regex => "^([a-z][a-z0-9]*_?)*$",
@@ -448,7 +448,7 @@ verify_module_naming_convention(_Config) ->
 
 -spec verify_state_record_and_type(config()) -> any().
 verify_state_record_and_type(_Config) ->
-    ElvisConfig = elvis_test_utils:config(),
+    ElvisConfig = elvis_test_utils:config(erl_files),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     PathPass = "pass_state_record_and_type.erl",
@@ -481,7 +481,7 @@ verify_state_record_and_type(_Config) ->
 
 -spec verify_no_spec_with_records(config()) -> any().
 verify_no_spec_with_records(_Config) ->
-    ElvisConfig = elvis_test_utils:config(),
+    ElvisConfig = elvis_test_utils:config(erl_files),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     PathFail = "fail_no_spec_with_records.erl",
@@ -511,7 +511,7 @@ verify_dont_repeat_yourself(_Config) ->
 
 -spec verify_max_module_length(config()) -> any().
 verify_max_module_length(_Config) ->
-    ElvisConfig = elvis_test_utils:config(),
+    ElvisConfig = elvis_test_utils:config(erl_files),
     SrcDirs = elvis_config:dirs(ElvisConfig),
     PathFail = "fail_max_module_length.erl",
     {ok, FileFail} = elvis_test_utils:find_file(SrcDirs, PathFail),
@@ -557,7 +557,7 @@ verify_max_module_length(_Config) ->
 
 -spec verify_max_function_length(config()) -> any().
 verify_max_function_length(_Config) ->
-    ElvisConfig = elvis_test_utils:config(),
+    ElvisConfig = elvis_test_utils:config(erl_files),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     PathFail = "fail_max_function_length.erl",

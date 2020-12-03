@@ -1313,14 +1313,14 @@ maybe_default_option(UserDefinedOptionValue, _OptionName, _Rule) ->
     UserDefinedOptionValue.
 
 -spec get_root(Config, Target) -> Res when
-      Config :: elvis_config:config() | map(),
+      Config :: elvis_config:config(),
       Target :: elvis_file:file(),
       Res :: ktn_code:tree_node().
 get_root(Config, Target) ->
-    case maps:get(ruleset, Config) of
+    {Root0, File0} = elvis_file:parse_tree(Config, Target),
+    case maps:get(ruleset, Config, undefined) of
         beam_files ->
-            maps:get(abstract_parse_tree, Target);
+            maps:get(abstract_parse_tree, File0);
         _ ->
-            {Root0, _} = elvis_file:parse_tree(Config, Target),
             Root0
     end.

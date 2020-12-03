@@ -20,7 +20,7 @@
 
 -export_type([config/0]).
 
--type config() :: [map()].
+-type config() :: [map()] | map().
 
 -define(DEFAULT_FILTER, "*.erl").
 
