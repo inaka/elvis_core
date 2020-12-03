@@ -259,7 +259,7 @@ default(atom_naming_convention) ->
     [elvis_result:item()].
 function_naming_convention(Config, Target, RuleConfig) ->
     Regex = option(regex, RuleConfig, function_naming_convention),
-    {Root, _} = elvis_file:parse_tree(Config, Target, RuleConfig),
+    Root = get_root(Config, Target),
     FunctionNames0 = elvis_code:function_names(Root),
     errors_for_function_names(Regex, FunctionNames0).
 
@@ -284,7 +284,7 @@ errors_for_function_names(Regex, [FunctionName | RemainingFuncNames]) ->
     [elvis_result:item()].
 variable_naming_convention(Config, Target, RuleConfig) ->
     Regex = option(regex, RuleConfig, variable_naming_convention),
-    {Root, _} = elvis_file:parse_tree(Config, Target, RuleConfig),
+    Root = get_root(Config, Target),
     Vars =
         elvis_code:find(
             fun is_var/1, Root, #{traverse => all, mode => zipper}),
@@ -299,7 +299,7 @@ variable_naming_convention(Config, Target, RuleConfig) ->
                   macro_names_config()) ->
     [elvis_result:item()].
 macro_names(Config, Target, RuleConfig) ->
-    {Root, _File} = elvis_file:parse_tree(Config, Target, RuleConfig),
+    Root = get_root(Config, Target),
     Regexp = option(regex, RuleConfig, macro_names),
     MacroNodes = elvis_code:find(fun is_macro_define_node/1, Root,
                                  #{traverse => all, mode => node}),
@@ -309,9 +309,9 @@ macro_names(Config, Target, RuleConfig) ->
                          elvis_file:file(),
                          empty_rule_config()) ->
     [elvis_result:item()].
-macro_module_names(Config, Target, RuleConfig) ->
+macro_module_names(Config, Target, _RuleConfig) ->
     {Src, _} = elvis_file:src(Target),
-    {Root, _} = elvis_file:parse_tree(Config, Target, RuleConfig),
+    Root = get_root(Config, Target),
     elvis_utils:check_lines(Src, fun check_macro_module_names/3, [Root]).
 
 -type operator_spaces_config() :: #{ ignore => [elvis_config:ignorable()]
@@ -326,7 +326,7 @@ macro_module_names(Config, Target, RuleConfig) ->
 operator_spaces(Config, Target, RuleConfig) ->
     Rules = option(rules, RuleConfig, operator_spaces),
     {Src, #{encoding := Encoding}} = elvis_file:src(Target),
-    {Root, _} = elvis_file:parse_tree(Config, Target, RuleConfig),
+    Root = get_root(Config, Target),
 
     Zipper = elvis_code:code_zipper(Root),
     OpNodes = zipper:filter(fun is_operator_node/1, Zipper),
@@ -364,7 +364,7 @@ is_punctuation_token(Node) ->
 nesting_level(Config, Target, RuleConfig) ->
     Level = option(level, RuleConfig, nesting_level),
 
-    {Root, _} = elvis_file:parse_tree(Config, Target, RuleConfig),
+    Root = get_root(Config, Target),
 
     elvis_utils:check_nodes(Root, fun check_nesting_level/2, [Level]).
 
@@ -379,7 +379,7 @@ nesting_level(Config, Target, RuleConfig) ->
 god_modules(Config, Target, RuleConfig) ->
     Limit = option(limit, RuleConfig, god_modules),
 
-    {Root, _} = elvis_file:parse_tree(Config, Target, RuleConfig),
+    Root = get_root(Config, Target),
 
     Exported = elvis_code:exported_functions(Root),
     case length(Exported) of
@@ -395,8 +395,8 @@ god_modules(Config, Target, RuleConfig) ->
                        elvis_file:file(),
                        empty_rule_config()) ->
     [elvis_result:item()].
-no_if_expression(Config, Target, RuleConfig) ->
-    {Root, _} = elvis_file:parse_tree(Config, Target, RuleConfig),
+no_if_expression(Config, Target, _RuleConfig) ->
+    Root = get_root(Config, Target),
     Predicate = fun(Node) -> ktn_code:type(Node) == 'if' end,
     ResultFun = result_node_line_fun(?NO_IF_EXPRESSION_MSG),
     case elvis_code:find(Predicate, Root) of
@@ -425,8 +425,8 @@ invalid_dynamic_call(Config, Target, _RuleConfig) ->
                             elvis_file:file(),
                             empty_rule_config()) ->
     [elvis_result:item()].
-used_ignored_variable(Config, Target, RuleConfig) ->
-    {Root, _} = elvis_file:parse_tree(Config, Target, RuleConfig),
+used_ignored_variable(Config, Target, _RuleConfig) ->
+    Root = get_root(Config, Target),
     ResultFun = result_node_line_col_fun(?USED_IGNORED_VAR_MSG),
 
     case elvis_code:find(fun is_ignored_var/1, Root, #{mode => zipper}) of
@@ -440,8 +440,8 @@ used_ignored_variable(Config, Target, RuleConfig) ->
                        elvis_file:file(),
                        empty_rule_config()) ->
     [elvis_result:item()].
-no_behavior_info(Config, Target, RuleConfig) ->
-    {Root, _} = elvis_file:parse_tree(Config, Target, RuleConfig),
+no_behavior_info(Config, Target, _RuleConfig) ->
+    Root = get_root(Config, Target),
     Children = ktn_code:content(Root),
 
     FilterFun =
@@ -477,7 +477,7 @@ module_naming_convention(Config, Target, RuleConfig) ->
     Regex = option(regex, RuleConfig, module_naming_convention),
     IgnoreModules = option(ignore, RuleConfig, module_naming_convention),
 
-    {Root, _} = elvis_file:parse_tree(Config, Target, RuleConfig),
+    Root = get_root(Config, Target),
     ModuleName = elvis_code:module_name(Root),
 
     case lists:member(ModuleName, IgnoreModules) of
@@ -498,8 +498,8 @@ module_naming_convention(Config, Target, RuleConfig) ->
                             elvis_file:file(),
                             empty_rule_config()) ->
     [elvis_result:item()].
-state_record_and_type(Config, Target, RuleConfig) ->
-    {Root, _} = elvis_file:parse_tree(Config, Target, RuleConfig),
+state_record_and_type(Config, Target, _RuleConfig) ->
+    Root = get_root(Config, Target),
     case is_otp_module(Root) of
         true ->
             case {has_state_record(Root), has_state_type(Root)} of
@@ -521,8 +521,8 @@ state_record_and_type(Config, Target, RuleConfig) ->
                            elvis_file:file(),
                            empty_rule_config()) ->
     [elvis_result:item()].
-no_spec_with_records(Config, Target, RuleConfig) ->
-    {Root, _} = elvis_file:parse_tree(Config, Target, RuleConfig),
+no_spec_with_records(Config, Target, _RuleConfig) ->
+    Root = get_root(Config, Target),
     case elvis_code:find(fun spec_includes_record/1, Root) of
         [] -> [];
         SpecNodes ->
@@ -541,7 +541,7 @@ no_spec_with_records(Config, Target, RuleConfig) ->
 dont_repeat_yourself(Config, Target, RuleConfig) ->
     MinComplexity = option(min_complexity, RuleConfig, dont_repeat_yourself),
 
-    {Root, _} = elvis_file:parse_tree(Config, Target, RuleConfig),
+    Root = get_root(Config, Target),
 
     Nodes = find_repeated_nodes(Root, MinComplexity),
 
@@ -571,7 +571,7 @@ max_module_length(Config, Target, RuleConfig) ->
     CountComments = option(count_comments, RuleConfig, max_module_length),
     CountWhitespace = option(count_whitespace, RuleConfig, max_module_length),
 
-    {Root, _} = elvis_file:parse_tree(Config, Target, RuleConfig),
+    Root = get_root(Config, Target),
     {Src, _} = elvis_file:src(Target),
 
 
@@ -607,7 +607,7 @@ max_function_length(Config, Target, RuleConfig) ->
     CountComments = option(count_comments, RuleConfig, max_function_length),
     CountWhitespace = option(count_whitespace, RuleConfig, max_function_length),
 
-    {Root, _} = elvis_file:parse_tree(Config, Target, RuleConfig),
+    Root = get_root(Config, Target),
     {Src, _} = elvis_file:src(Target),
     Lines = binary:split(Src, <<"\n">>, [global, trim]),
 
@@ -702,8 +702,8 @@ node_line_limits(FunctionNode) ->
                           elvis_file:file(),
                           empty_rule_config()) ->
     [elvis_result:item()].
-no_nested_try_catch(Config, Target, RuleConfig) ->
-    {Root, _} = elvis_file:parse_tree(Config, Target, RuleConfig),
+no_nested_try_catch(Config, Target, _RuleConfig) ->
+    Root = get_root(Config, Target),
     Predicate = fun(Node) -> ktn_code:type(Node) == 'try' end,
     ResultFun = result_node_line_fun(?NO_NESTED_TRY_CATCH),
     case elvis_code:find(Predicate, Root) of
@@ -723,7 +723,7 @@ no_nested_try_catch(Config, Target, RuleConfig) ->
                              atom_naming_convention_config()) ->
     [elvis_result:item()].
 atom_naming_convention(Config, Target, RuleConfig) ->
-    {Root, _File} = elvis_file:parse_tree(Config, Target, RuleConfig),
+    Root = get_root(Config, Target),
     Regex = option(regex, RuleConfig, atom_naming_convention),
     RegexEnclosed
         = enclosed_atoms_regex_or_same(option(enclosed_atoms,
