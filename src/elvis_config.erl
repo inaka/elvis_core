@@ -130,7 +130,8 @@ files(_RuleGroup = #{files := Files}) ->
 files(#{}) ->
     [].
 
--spec rules(Rules::configs() | config()) -> [elvis_core:rule()].
+-spec rules(RulesL::configs()) -> [[elvis_core:rule()]];
+           (Rules::config())  -> [elvis_core:rule()].
 rules(Rules) when is_list(Rules) ->
     lists:map(fun rules/1, Rules);
 rules(#{rules := UserRules, ruleset := RuleSet}) ->

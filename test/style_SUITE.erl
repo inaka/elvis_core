@@ -959,7 +959,7 @@ verify_elvis_attr_variable_naming_convention(_Config) ->
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 elvis_core_apply_rule(Module, Function, RuleConfig, Filename) ->
-    ElvisConfig = elvis_test_utils:config(),
+    ElvisConfig = elvis_test_utils:config(erl_files),
     SrcDirs = elvis_config:dirs(ElvisConfig),
     {ok, File} = elvis_test_utils:find_file(SrcDirs, Filename),
     {[RulesResults], _, _} = elvis_core:apply_rule({Module, Function, RuleConfig},

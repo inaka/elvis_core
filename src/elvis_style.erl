@@ -259,7 +259,7 @@ default(atom_naming_convention) ->
     [elvis_result:item()].
 function_naming_convention(Config, Target, RuleConfig) ->
     Regex = option(regex, RuleConfig, function_naming_convention),
-    Root = get_root(Config, Target),
+    Root = get_root(Config, Target, RuleConfig),
     FunctionNames0 = elvis_code:function_names(Root),
     errors_for_function_names(Regex, FunctionNames0).
 
@@ -284,7 +284,7 @@ errors_for_function_names(Regex, [FunctionName | RemainingFuncNames]) ->
     [elvis_result:item()].
 variable_naming_convention(Config, Target, RuleConfig) ->
     Regex = option(regex, RuleConfig, variable_naming_convention),
-    Root = get_root(Config, Target),
+    Root = get_root(Config, Target, RuleConfig),
     Vars =
         elvis_code:find(
             fun is_var/1, Root, #{traverse => all, mode => zipper}),
@@ -299,7 +299,7 @@ variable_naming_convention(Config, Target, RuleConfig) ->
                   macro_names_config()) ->
     [elvis_result:item()].
 macro_names(Config, Target, RuleConfig) ->
-    Root = get_root(Config, Target),
+    Root = get_root(Config, Target, RuleConfig),
     Regexp = option(regex, RuleConfig, macro_names),
     MacroNodes = elvis_code:find(fun is_macro_define_node/1, Root,
                                  #{traverse => all, mode => node}),
@@ -309,9 +309,9 @@ macro_names(Config, Target, RuleConfig) ->
                          elvis_file:file(),
                          empty_rule_config()) ->
     [elvis_result:item()].
-macro_module_names(Config, Target, _RuleConfig) ->
+macro_module_names(Config, Target, RuleConfig) ->
     {Src, _} = elvis_file:src(Target),
-    Root = get_root(Config, Target),
+    Root = get_root(Config, Target, RuleConfig),
     elvis_utils:check_lines(Src, fun check_macro_module_names/3, [Root]).
 
 -type operator_spaces_config() :: #{ ignore => [elvis_config:ignorable()]
@@ -326,7 +326,7 @@ macro_module_names(Config, Target, _RuleConfig) ->
 operator_spaces(Config, Target, RuleConfig) ->
     Rules = option(rules, RuleConfig, operator_spaces),
     {Src, #{encoding := Encoding}} = elvis_file:src(Target),
-    Root = get_root(Config, Target),
+    Root = get_root(Config, Target, RuleConfig),
 
     Zipper = elvis_code:code_zipper(Root),
     OpNodes = zipper:filter(fun is_operator_node/1, Zipper),
@@ -364,7 +364,7 @@ is_punctuation_token(Node) ->
 nesting_level(Config, Target, RuleConfig) ->
     Level = option(level, RuleConfig, nesting_level),
 
-    Root = get_root(Config, Target),
+    Root = get_root(Config, Target, RuleConfig),
 
     elvis_utils:check_nodes(Root, fun check_nesting_level/2, [Level]).
 
@@ -379,7 +379,7 @@ nesting_level(Config, Target, RuleConfig) ->
 god_modules(Config, Target, RuleConfig) ->
     Limit = option(limit, RuleConfig, god_modules),
 
-    Root = get_root(Config, Target),
+    Root = get_root(Config, Target, RuleConfig),
 
     Exported = elvis_code:exported_functions(Root),
     case length(Exported) of
@@ -395,8 +395,8 @@ god_modules(Config, Target, RuleConfig) ->
                        elvis_file:file(),
                        empty_rule_config()) ->
     [elvis_result:item()].
-no_if_expression(Config, Target, _RuleConfig) ->
-    Root = get_root(Config, Target),
+no_if_expression(Config, Target, RuleConfig) ->
+    Root = get_root(Config, Target, RuleConfig),
     Predicate = fun(Node) -> ktn_code:type(Node) == 'if' end,
     ResultFun = result_node_line_fun(?NO_IF_EXPRESSION_MSG),
     case elvis_code:find(Predicate, Root) of
@@ -410,8 +410,8 @@ no_if_expression(Config, Target, _RuleConfig) ->
                            elvis_file:file(),
                            empty_rule_config()) ->
     [elvis_result:item()].
-invalid_dynamic_call(Config, Target, _RuleConfig) ->
-    Root = get_root(Config, Target),
+invalid_dynamic_call(Config, Target, RuleConfig) ->
+    Root = get_root(Config, Target, RuleConfig),
 
     Predicate = fun(Node) -> ktn_code:type(Node) == 'callback' end,
     case elvis_code:find(Predicate, Root) of
@@ -425,8 +425,8 @@ invalid_dynamic_call(Config, Target, _RuleConfig) ->
                             elvis_file:file(),
                             empty_rule_config()) ->
     [elvis_result:item()].
-used_ignored_variable(Config, Target, _RuleConfig) ->
-    Root = get_root(Config, Target),
+used_ignored_variable(Config, Target, RuleConfig) ->
+    Root = get_root(Config, Target, RuleConfig),
     ResultFun = result_node_line_col_fun(?USED_IGNORED_VAR_MSG),
 
     case elvis_code:find(fun is_ignored_var/1, Root, #{mode => zipper}) of
@@ -440,8 +440,8 @@ used_ignored_variable(Config, Target, _RuleConfig) ->
                        elvis_file:file(),
                        empty_rule_config()) ->
     [elvis_result:item()].
-no_behavior_info(Config, Target, _RuleConfig) ->
-    Root = get_root(Config, Target),
+no_behavior_info(Config, Target, RuleConfig) ->
+    Root = get_root(Config, Target, RuleConfig),
     Children = ktn_code:content(Root),
 
     FilterFun =
@@ -477,7 +477,7 @@ module_naming_convention(Config, Target, RuleConfig) ->
     Regex = option(regex, RuleConfig, module_naming_convention),
     IgnoreModules = option(ignore, RuleConfig, module_naming_convention),
 
-    Root = get_root(Config, Target),
+    Root = get_root(Config, Target, RuleConfig),
     ModuleName = elvis_code:module_name(Root),
 
     case lists:member(ModuleName, IgnoreModules) of
@@ -498,8 +498,8 @@ module_naming_convention(Config, Target, RuleConfig) ->
                             elvis_file:file(),
                             empty_rule_config()) ->
     [elvis_result:item()].
-state_record_and_type(Config, Target, _RuleConfig) ->
-    Root = get_root(Config, Target),
+state_record_and_type(Config, Target, RuleConfig) ->
+    Root = get_root(Config, Target, RuleConfig),
     case is_otp_module(Root) of
         true ->
             case {has_state_record(Root), has_state_type(Root)} of
@@ -521,8 +521,8 @@ state_record_and_type(Config, Target, _RuleConfig) ->
                            elvis_file:file(),
                            empty_rule_config()) ->
     [elvis_result:item()].
-no_spec_with_records(Config, Target, _RuleConfig) ->
-    Root = get_root(Config, Target),
+no_spec_with_records(Config, Target, RuleConfig) ->
+    Root = get_root(Config, Target, RuleConfig),
     case elvis_code:find(fun spec_includes_record/1, Root) of
         [] -> [];
         SpecNodes ->
@@ -541,7 +541,7 @@ no_spec_with_records(Config, Target, _RuleConfig) ->
 dont_repeat_yourself(Config, Target, RuleConfig) ->
     MinComplexity = option(min_complexity, RuleConfig, dont_repeat_yourself),
 
-    Root = get_root(Config, Target),
+    Root = get_root(Config, Target, RuleConfig),
 
     Nodes = find_repeated_nodes(Root, MinComplexity),
 
@@ -571,7 +571,7 @@ max_module_length(Config, Target, RuleConfig) ->
     CountComments = option(count_comments, RuleConfig, max_module_length),
     CountWhitespace = option(count_whitespace, RuleConfig, max_module_length),
 
-    Root = get_root(Config, Target),
+    Root = get_root(Config, Target, RuleConfig),
     {Src, _} = elvis_file:src(Target),
 
 
@@ -607,7 +607,7 @@ max_function_length(Config, Target, RuleConfig) ->
     CountComments = option(count_comments, RuleConfig, max_function_length),
     CountWhitespace = option(count_whitespace, RuleConfig, max_function_length),
 
-    Root = get_root(Config, Target),
+    Root = get_root(Config, Target, RuleConfig),
     {Src, _} = elvis_file:src(Target),
     Lines = binary:split(Src, <<"\n">>, [global, trim]),
 
@@ -654,7 +654,7 @@ max_function_length(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 no_call(Config, Target, RuleConfig) ->
     DefaultFns = option(no_call_functions, RuleConfig, no_call),
-    no_call_common(Config, Target, DefaultFns, ?NO_CALL_MSG).
+    no_call_common(Config, Target, DefaultFns, ?NO_CALL_MSG, RuleConfig).
 
 
 -type no_debug_call_config() :: #{ ignore => [elvis_config:ignorable()]
@@ -666,7 +666,7 @@ no_call(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 no_debug_call(Config, Target, RuleConfig) ->
     DefaultFns = option(debug_functions, RuleConfig, no_debug_call),
-    no_call_common(Config, Target, DefaultFns, ?NO_DEBUG_CALL_MSG).
+    no_call_common(Config, Target, DefaultFns, ?NO_DEBUG_CALL_MSG, RuleConfig).
 
 
 -type no_common_caveats_call_config() :: #{ ignore => [elvis_config:ignorable()]
@@ -679,7 +679,7 @@ no_debug_call(Config, Target, RuleConfig) ->
 
 no_common_caveats_call(Config, Target, RuleConfig) ->
     DefaultFns = option(caveat_functions, RuleConfig, no_common_caveats_call),
-    no_call_common(Config, Target, DefaultFns, ?NO_COMMON_CAVEATS_CALL_MSG).
+    no_call_common(Config, Target, DefaultFns, ?NO_COMMON_CAVEATS_CALL_MSG, RuleConfig).
 
 -spec node_line_limits(ktn_code:tree_node())->
     {Min :: integer(), Max :: integer()}.
@@ -702,8 +702,8 @@ node_line_limits(FunctionNode) ->
                           elvis_file:file(),
                           empty_rule_config()) ->
     [elvis_result:item()].
-no_nested_try_catch(Config, Target, _RuleConfig) ->
-    Root = get_root(Config, Target),
+no_nested_try_catch(Config, Target, RuleConfig) ->
+    Root = get_root(Config, Target, RuleConfig),
     Predicate = fun(Node) -> ktn_code:type(Node) == 'try' end,
     ResultFun = result_node_line_fun(?NO_NESTED_TRY_CATCH),
     case elvis_code:find(Predicate, Root) of
@@ -723,7 +723,7 @@ no_nested_try_catch(Config, Target, _RuleConfig) ->
                              atom_naming_convention_config()) ->
     [elvis_result:item()].
 atom_naming_convention(Config, Target, RuleConfig) ->
-    Root = get_root(Config, Target),
+    Root = get_root(Config, Target, RuleConfig),
     Regex = option(regex, RuleConfig, atom_naming_convention),
     RegexEnclosed
         = enclosed_atoms_regex_or_same(option(enclosed_atoms,
@@ -1239,11 +1239,12 @@ is_children(Parent, Node) ->
 -spec no_call_common(elvis_config:config(),
                      elvis_file:file(),
                      [function_spec()],
-                     string()
+                     string(),
+                     RuleConfig :: elvis_core:rule_config()
                     ) ->
     [elvis_result:item()].
-no_call_common(Config, Target, NoCallFuns, Msg) ->
-    Root = get_root(Config, Target),
+no_call_common(Config, Target, NoCallFuns, Msg, RuleConfig) ->
+    Root = get_root(Config, Target, RuleConfig),
 
     IsCall = fun(Node) -> ktn_code:type(Node) =:= 'call' end,
     Calls = elvis_code:find(IsCall, Root),
@@ -1296,7 +1297,7 @@ check_nested_try_catchs(ResultFun, TryExp) ->
 
 -spec option(OptionName, RuleConfig, Rule) -> OptionValue
       when OptionName :: atom(),
-           RuleConfig :: map(),
+           RuleConfig :: elvis_core:rule_config(),
            Rule :: atom(),
            OptionValue :: term().
 option(OptionName, RuleConfig, Rule) ->
@@ -1312,12 +1313,13 @@ maybe_default_option(undefined = _UserDefinedOptionValue, OptionName, Rule) ->
 maybe_default_option(UserDefinedOptionValue, _OptionName, _Rule) ->
     UserDefinedOptionValue.
 
--spec get_root(Config, Target) -> Res when
+-spec get_root(Config, Target, RuleConfig) -> Res when
       Config :: elvis_config:config(),
       Target :: elvis_file:file(),
+      RuleConfig :: Options :: #{ atom() => term() },
       Res :: ktn_code:tree_node().
-get_root(Config, Target) ->
-    {Root0, File0} = elvis_file:parse_tree(Config, Target),
+get_root(Config, Target, RuleConfig) ->
+    {Root0, File0} = elvis_file:parse_tree(Config, Target, RuleConfig),
     case maps:get(ruleset, Config, undefined) of
         beam_files ->
             maps:get(abstract_parse_tree, File0);

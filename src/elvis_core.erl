@@ -20,7 +20,10 @@
 -type source_filename() :: nonempty_string().
 -type target() :: source_filename() | module().
 
--type rule() :: {Module :: module(), Function :: atom(), Options :: #{ atom() => term() }}
+-type rule_config() :: #{ atom() => term() }.
+-export_type([rule_config/0]).
+
+-type rule() :: {Module :: module(), Function :: atom(), RuleConfig :: rule_config()}
               | {Module :: module(), Function :: atom()}.
 -export_type([rule/0]).
 
@@ -164,9 +167,9 @@ elvis_attr_rules(ElvisAttrs) ->
 -spec apply_rule({Mod, Fun} | {Mod, Fun, RuleCfg}, {Results, ElvisCfg, File}) -> Result
       when Mod :: module(),
            Fun :: atom(),
-           RuleCfg :: map(),
+           RuleCfg :: rule_config(),
            Results :: [elvis_result:rule()],
-           ElvisCfg :: elvis_config:configs(),
+           ElvisCfg :: elvis_config:config(),
            File :: elvis_file:file(),
            Result :: {Results, ElvisCfg, File}.
 apply_rule({Module, Function}, {Result, Config, File}) ->

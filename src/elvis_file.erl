@@ -52,7 +52,7 @@ parse_tree(Config, Target) ->
     parse_tree(Config, Target, _RuleConfig = #{}).
 
 %% @doc Add the root node of the parse tree to the file data, with filtering.
--spec parse_tree(elvis_config:configs() | map(), file(), map()) ->
+-spec parse_tree(elvis_config:configs() | elvis_config:config(), file(), elvis_core:rule_config()) ->
   {ktn_code:tree_node(), file()}.
 parse_tree(_Config, File = #{parse_tree := ParseTree}, _RuleConfig) ->
     {ParseTree, File};
@@ -171,7 +171,7 @@ find_encoding(Content) ->
     end.
 
 -spec maybe_add_abstract_parse_tree(Config, File, Mod, Ignore) -> Res when
-      Config :: elvis_config:configs() | map(),
+      Config :: elvis_config:configs() | elvis_config:config(),
       File :: file(),
       Mod :: module(),
       Ignore :: [elvis_style:ignorable()],

@@ -325,7 +325,7 @@ rock_this_not_skipping_files(_Config) ->
 custom_ruleset(_Config) ->
     ConfigPath = "../../config/elvis-test-custom-ruleset.config",
     ElvisConfig = elvis_config:from_file(ConfigPath),
-    [[{elvis_style, no_tabs}]] = elvis_config:rules(ElvisConfig),
+    [[{elvis_text_style, no_tabs, _}]] = elvis_config:rules(ElvisConfig),
 
     %% read unknown ruleset configuration to ensure rulesets from
     %% previous load do not stick around

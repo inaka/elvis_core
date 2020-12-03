@@ -45,7 +45,7 @@ default(no_trailing_whitespace) ->
 
 %% @doc Target can be either a filename or the
 %% name of a module.
--spec line_length(elvis_config:configs(),
+-spec line_length(elvis_config:config(),
                   elvis_file:file(),
                   line_length_config()) ->
     [elvis_result:item()].
@@ -59,7 +59,7 @@ line_length(_Config, Target, RuleConfig) ->
 -type no_tabs_config() :: #{ ignore => [module()]
                            }.
 
--spec no_tabs(elvis_config:configs(),
+-spec no_tabs(elvis_config:config(),
               elvis_file:file(),
               no_tabs_config()) ->
     [elvis_result:item()].
@@ -70,7 +70,7 @@ no_tabs(_Config, Target, _RuleConfig) ->
 -type no_spaces_config() :: #{ ignore => [module()]
                              }.
 
--spec no_spaces(elvis_config:configs(),
+-spec no_spaces(elvis_config:config(),
                 elvis_file:file(),
                 no_spaces_config()) ->
     [elvis_result:item()].
@@ -82,7 +82,7 @@ no_spaces(_Config, Target, _RuleConfig) ->
                                             ignore_empty_lines => boolean()
                                           }.
 
--spec no_trailing_whitespace(Config::elvis_config:configs(),
+-spec no_trailing_whitespace(Config::elvis_config:config(),
                              Target::elvis_file:file(),
                              no_trailing_whitespace_config()) ->
     [elvis_result:item()].
@@ -197,7 +197,7 @@ check_no_trailing_whitespace(Line, Num, IgnoreEmptyLines) ->
 
 -spec option(OptionName, RuleConfig, Rule) -> OptionValue
       when OptionName :: atom(),
-           RuleConfig :: map(),
+           RuleConfig :: elvis_core:rule_config(),
            Rule :: atom(),
            OptionValue :: term().
 option(OptionName, RuleConfig, Rule) ->
