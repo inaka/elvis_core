@@ -52,8 +52,8 @@ parse_tree(Config, Target) ->
     parse_tree(Config, Target, _RuleConfig = #{}).
 
 %% @doc Add the root node of the parse tree to the file data, with filtering.
--spec parse_tree(elvis_config:configs() | elvis_config:config(), file(), elvis_core:rule_config()) ->
-  {ktn_code:tree_node(), file()}.
+-spec parse_tree(elvis_config:configs() | elvis_config:config(), file(), elvis_core:rule_config())
+    -> {ktn_code:tree_node(), file()}.
 parse_tree(_Config, File = #{parse_tree := ParseTree}, _RuleConfig) ->
     {ParseTree, File};
 parse_tree(Config, File = #{path := Path, content := Content}, RuleConfig) ->
@@ -118,10 +118,10 @@ filter_files(Files, Dirs, Filter, IgnoreList) ->
     FoundUnique = lists:usort(Found),
     lists:filter(IgnoreFun, FoundUnique).
 
-%% @doc Return module name corresponding to a given .erl file
+%% @doc Return module name corresponding to a given .erl/.beam file
 -spec module(file()) -> module().
 module(#{ path := Path }) ->
-    list_to_atom(filename:basename(Path, ".erl")).
+    list_to_atom(filename:basename(filename:basename(Path, ".erl"), ".beam")).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private

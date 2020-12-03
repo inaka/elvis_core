@@ -14,7 +14,7 @@ set_rulesets(Rulesets) ->
 rules(erl_files) ->
     lists:map(
         fun ({Mod, Rule}) ->
-            {Mod, Rule, Mod:default(Rule)}
+            {Mod, Rule, apply(Mod, default, [Rule])}
         end,
         [ {elvis_text_style, line_length}
         , {elvis_text_style, no_tabs}

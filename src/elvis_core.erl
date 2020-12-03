@@ -80,7 +80,8 @@ rock_this(Path, Config) ->
     end.
 
 %% @private
--spec do_parallel_rock(elvis_config:config()) -> ok | {fail, [elvis_result:file() | elvis_result:rule()]}.
+-spec do_parallel_rock(elvis_config:config())
+    -> ok | {fail, [elvis_result:file() | elvis_result:rule()]}.
 do_parallel_rock(Config0) ->
     Parallel = application:get_env(elvis_core, parallel, 1),
     Config = elvis_config:resolve_files(Config0),
@@ -95,14 +96,16 @@ do_parallel_rock(Config0) ->
                               [], [Config], Files, Parallel),
     elvis_result_status(Results).
 
--spec do_rock(elvis_file:file(), elvis_config:configs() | elvis_config:config()) -> {ok, elvis_result:file()}.
+-spec do_rock(elvis_file:file(), elvis_config:configs() | elvis_config:config())
+    -> {ok, elvis_result:file()}.
 do_rock(File, Config) ->
     LoadedFile = load_file_data(Config, File),
     Results = apply_rules(Config, LoadedFile),
     {ok, Results}.
 
 %% @private
--spec load_file_data(elvis_config:configs() | elvis_config:config(), elvis_file:file()) -> elvis_file:file().
+-spec load_file_data(elvis_config:configs() | elvis_config:config(), elvis_file:file())
+    -> elvis_file:file().
 load_file_data(Config, File) ->
     Path = elvis_file:path(File),
     elvis_utils:info("Loading ~s", [Path]),
