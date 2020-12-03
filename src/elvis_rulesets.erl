@@ -16,36 +16,15 @@ rules(erl_files) ->
         fun ({Mod, Rule}) ->
             {Mod, Rule, Mod:default(Rule)}
         end,
-        [ {elvis_text_style, line_length}
-        , {elvis_text_style, no_tabs}
-        , {elvis_text_style, no_trailing_whitespace}
-        , {elvis_style, macro_names}
-        , {elvis_style, macro_module_names}
-        , {elvis_style, operator_spaces}
-        , {elvis_style, nesting_level}
-        , {elvis_style, god_modules}
-        , {elvis_style, no_if_expression}
-        , {elvis_style, invalid_dynamic_call}
-        , {elvis_style, used_ignored_variable}
-        , {elvis_style, no_behavior_info}
-        , {elvis_style, module_naming_convention}
-        , {elvis_style, function_naming_convention}
-        , {elvis_style, state_record_and_type}
-        , {elvis_style, no_spec_with_records}
-        , {elvis_style, dont_repeat_yourself}
-        , {elvis_style, no_debug_call}
-        , {elvis_style, variable_naming_convention}
-        , {elvis_style, no_nested_try_catch}
-        , {elvis_style, atom_naming_convention}
-        ]);
+        code_rules()
+    );
 rules(beam_files) ->
     lists:map(
         fun (Rule) ->
             {elvis_style, Rule, elvis_style:default(Rule)}
         end,
-        [ no_debug_call,
-          invalid_dynamic_call
-        ]);
+        code_rules()
+    );
 rules(makefiles) ->
     lists:map(
         fun (Rule) ->
@@ -83,3 +62,28 @@ ensure_clean_table() ->
             true = ets:delete_all_objects(?MODULE),
             ?MODULE
     end.
+
+
+code_rules() -> [
+    line_length
+  , no_tabs
+  , no_trailing_whitespace
+  , macro_names
+  , macro_module_names
+  , operator_spaces
+  , nesting_level
+  , god_modules
+  , no_if_expression
+  , invalid_dynamic_call
+  , used_ignored_variable
+  , no_behavior_info
+  , module_naming_convention
+  , function_naming_convention
+  , state_record_and_type
+  , no_spec_with_records
+  , dont_repeat_yourself
+  , no_debug_call
+  , variable_naming_convention
+  , no_nested_try_catch
+  , atom_naming_convention
+].
