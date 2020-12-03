@@ -38,6 +38,14 @@ rules(erl_files) ->
         , {elvis_style, no_nested_try_catch}
         , {elvis_style, atom_naming_convention}
         ]);
+rules(beam_files) ->
+    lists:map(
+        fun (Rule) ->
+            {elvis_style, Rule, elvis_style:default(Rule)}
+        end,
+        [ no_debug_call,
+          invalid_dynamic_call
+        ]);
 rules(makefiles) ->
     lists:map(
         fun (Rule) ->

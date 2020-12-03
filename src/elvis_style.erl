@@ -410,8 +410,8 @@ no_if_expression(Config, Target, RuleConfig) ->
                            elvis_file:file(),
                            empty_rule_config()) ->
     [elvis_result:item()].
-invalid_dynamic_call(Config, Target, RuleConfig) ->
-    {Root, _} = elvis_file:parse_tree(Config, Target, RuleConfig),
+invalid_dynamic_call(Config, Target, _RuleConfig) ->
+    Root = get_root(Config, Target),
 
     Predicate = fun(Node) -> ktn_code:type(Node) == 'callback' end,
     case elvis_code:find(Predicate, Root) of
@@ -654,7 +654,7 @@ max_function_length(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 no_call(Config, Target, RuleConfig) ->
     DefaultFns = option(no_call_functions, RuleConfig, no_call),
-    no_call_common(Config, Target, DefaultFns, ?NO_CALL_MSG, RuleConfig).
+    no_call_common(Config, Target, DefaultFns, ?NO_CALL_MSG).
 
 
 -type no_debug_call_config() :: #{ ignore => [elvis_config:ignorable()]
@@ -666,7 +666,7 @@ no_call(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 no_debug_call(Config, Target, RuleConfig) ->
     DefaultFns = option(debug_functions, RuleConfig, no_debug_call),
-    no_call_common(Config, Target, DefaultFns, ?NO_DEBUG_CALL_MSG, RuleConfig).
+    no_call_common(Config, Target, DefaultFns, ?NO_DEBUG_CALL_MSG).
 
 
 -type no_common_caveats_call_config() :: #{ ignore => [elvis_config:ignorable()]
@@ -679,7 +679,7 @@ no_debug_call(Config, Target, RuleConfig) ->
 
 no_common_caveats_call(Config, Target, RuleConfig) ->
     DefaultFns = option(caveat_functions, RuleConfig, no_common_caveats_call),
-    no_call_common(Config, Target, DefaultFns, ?NO_COMMON_CAVEATS_CALL_MSG, RuleConfig).
+    no_call_common(Config, Target, DefaultFns, ?NO_COMMON_CAVEATS_CALL_MSG).
 
 -spec node_line_limits(ktn_code:tree_node())->
     {Min :: integer(), Max :: integer()}.
@@ -1239,12 +1239,11 @@ is_children(Parent, Node) ->
 -spec no_call_common(elvis_config:config(),
                      elvis_file:file(),
                      [function_spec()],
-                     string(),
                      map()
                     ) ->
     [elvis_result:item()].
-no_call_common(Config, Target, NoCallFuns, Msg, RuleConfig) ->
-    {Root, _} = elvis_file:parse_tree(Config, Target, RuleConfig),
+no_call_common(Config, Target, NoCallFuns, Msg) ->
+    Root = get_root(Config, Target),
 
     IsCall = fun(Node) -> ktn_code:type(Node) =:= 'call' end,
     Calls = elvis_code:find(IsCall, Root),
@@ -1312,3 +1311,16 @@ maybe_default_option(undefined = _UserDefinedOptionValue, OptionName, Rule) ->
     maps:get(OptionName, default(Rule));
 maybe_default_option(UserDefinedOptionValue, _OptionName, _Rule) ->
     UserDefinedOptionValue.
+
+-spec get_root(Config, Target) -> Res when
+      Config :: elvis_config:config() | map(),
+      Target :: elvis_file:file(),
+      Res :: ktn_code:tree_node().
+get_root(Config, Target) ->
+    case maps:get(ruleset, Config) of
+        beam_files ->
+            maps:get(abstract_parse_tree, Target);
+        _ ->
+            {Root0, _} = elvis_file:parse_tree(Config, Target),
+            Root0
+    end.

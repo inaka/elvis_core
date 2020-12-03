@@ -62,7 +62,8 @@ parse_tree(Config, File = #{path := Path, content := Content}, RuleConfig) ->
     Mod = module(File),
     Ignore = maps:get(ignore, RuleConfig, []),
     ParseTree = resolve_parse_tree(ExtStr, Content, Mod, Ignore),
-    parse_tree(Config, File#{parse_tree => ParseTree}, RuleConfig);
+    File1 = maybe_add_abstract_parse_tree(Config, File, Mod, Ignore),
+    parse_tree(Config, File1#{parse_tree => ParseTree}, RuleConfig);
 parse_tree(Config, File0 = #{path := _Path}, RuleConfig) ->
     {_, File} = src(File0),
     parse_tree(Config, File, RuleConfig);
@@ -126,7 +127,7 @@ module(#{ path := Path }) ->
 %% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec resolve_parse_tree(string(), binary(), module(), list()) ->
+-spec resolve_parse_tree(string(), string() | binary(), module(), list()) ->
     undefined | ktn_code:tree_node().
 resolve_parse_tree(".erl", Content, Mod, Ignore) ->
     Tree = ktn_code:parse_tree(Content),
@@ -168,3 +169,32 @@ find_encoding(Content) ->
         none -> utf8;
         Enc  -> Enc
     end.
+
+-spec maybe_add_abstract_parse_tree(Config, File, Mod, Ignore) -> Res when
+      Config :: elvis_config:config() | map(),
+      File :: file(),
+      Mod :: module(),
+      Ignore :: [elvis_style:ignorable()],
+      Res :: file().
+maybe_add_abstract_parse_tree(#{ruleset := beam_files},
+                              File = #{path := Path}, Mod, Ignore) ->
+    AbstractParseTree = get_abstract_parse_tree(Path, Mod, Ignore),
+    File#{abstract_parse_tree => AbstractParseTree};
+maybe_add_abstract_parse_tree(_Config, File, _Mod, _Ignore) ->
+    File.
+
+-spec get_abstract_parse_tree(BeamPath, Mod, Ignore) -> Res when
+      BeamPath :: file:filename(),
+      Mod :: module(),
+      Ignore :: [elvis_style:ignorable()],
+      Res :: ktn_code:tree_node() | undefined.
+get_abstract_parse_tree(BeamPath, Mod, Ignore) ->
+    AbstractSrc = get_abstract_source(BeamPath),
+    resolve_parse_tree(".erl", AbstractSrc, Mod, Ignore).
+
+-spec get_abstract_source(BeamPath) -> Res when
+    BeamPath :: file:filename(),
+    Res :: string().
+get_abstract_source(BeamPath) ->
+    {ok, {_, [{abstract_code, {_, AC}}]}} = beam_lib:chunks(BeamPath, [abstract_code]),
+    erl_prettypr:format(erl_syntax:form_list(AC)).
