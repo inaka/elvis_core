@@ -316,7 +316,7 @@ exists_old_rule(_) -> false.
 
 -spec option(OptionName, RuleConfig, Rule) -> OptionValue
       when OptionName :: atom(),
-           RuleConfig :: map(),
+           RuleConfig :: elvis_config:config(),
            Rule :: atom(),
            OptionValue :: term().
 option(OptionName, RuleConfig, Rule) ->

@@ -253,7 +253,7 @@ default(atom_naming_convention) ->
                                               , regex => string()
                                               }.
 
--spec function_naming_convention(elvis_config:configs(),
+-spec function_naming_convention(elvis_config:config(),
                                  elvis_file:file(),
                                  function_naming_convention_config()) ->
     [elvis_result:item()].
@@ -278,7 +278,7 @@ errors_for_function_names(Regex, [FunctionName | RemainingFuncNames]) ->
 -type variable_naming_convention_config() :: #{ ignore => [elvis_config:ignorable()]
                                               , regex => string()
                                               }.
--spec variable_naming_convention(elvis_config:configs(),
+-spec variable_naming_convention(elvis_config:config(),
                                  elvis_file:file(),
                                  variable_naming_convention_config()) ->
     [elvis_result:item()].
@@ -294,7 +294,7 @@ variable_naming_convention(Config, Target, RuleConfig) ->
                                , regex => string()
                                }.
 
--spec macro_names(elvis_config:configs(),
+-spec macro_names(elvis_config:config(),
                   elvis_file:file(),
                   macro_names_config()) ->
     [elvis_result:item()].
@@ -305,7 +305,7 @@ macro_names(Config, Target, RuleConfig) ->
                                  #{traverse => all, mode => node}),
     check_macro_names(Regexp, MacroNodes, _ResultsIn = []).
 
--spec macro_module_names(elvis_config:configs(),
+-spec macro_module_names(elvis_config:config(),
                          elvis_file:file(),
                          empty_rule_config()) ->
     [elvis_result:item()].
@@ -319,7 +319,7 @@ macro_module_names(Config, Target, _RuleConfig) ->
                                    }.
 -define(PUNCTUATION_SYMBOLS, [',', ';', 'dot', '->', ':', '::']).
 
--spec operator_spaces(elvis_config:configs(),
+-spec operator_spaces(elvis_config:config(),
                       elvis_file:file(),
                       operator_spaces_config()) ->
     [elvis_result:item()].
@@ -357,7 +357,7 @@ is_punctuation_token(Node) ->
                                  , level => integer()
                                  }.
 
--spec nesting_level(elvis_config:configs(),
+-spec nesting_level(elvis_config:config(),
                     elvis_file:file(),
                     nesting_level_config()) ->
     [elvis_result:item()].
@@ -372,7 +372,7 @@ nesting_level(Config, Target, RuleConfig) ->
                                , limit => integer()
                                }.
 
--spec god_modules(elvis_config:configs(),
+-spec god_modules(elvis_config:config(),
                   elvis_file:file(),
                   god_modules_config()) ->
     [elvis_result:item()].
@@ -391,7 +391,7 @@ god_modules(Config, Target, RuleConfig) ->
             []
     end.
 
--spec no_if_expression(elvis_config:configs(),
+-spec no_if_expression(elvis_config:config(),
                        elvis_file:file(),
                        empty_rule_config()) ->
     [elvis_result:item()].
@@ -406,7 +406,7 @@ no_if_expression(Config, Target, _RuleConfig) ->
             lists:map(ResultFun, IfExprs)
     end.
 
--spec invalid_dynamic_call(elvis_config:configs(),
+-spec invalid_dynamic_call(elvis_config:config(),
                            elvis_file:file(),
                            empty_rule_config()) ->
     [elvis_result:item()].
@@ -421,7 +421,7 @@ invalid_dynamic_call(Config, Target, _RuleConfig) ->
             []
     end.
 
--spec used_ignored_variable(elvis_config:configs(),
+-spec used_ignored_variable(elvis_config:config(),
                             elvis_file:file(),
                             empty_rule_config()) ->
     [elvis_result:item()].
@@ -436,7 +436,7 @@ used_ignored_variable(Config, Target, _RuleConfig) ->
             lists:map(ResultFun, UsedIgnoredVars)
     end.
 
--spec no_behavior_info(elvis_config:configs(),
+-spec no_behavior_info(elvis_config:config(),
                        elvis_file:file(),
                        empty_rule_config()) ->
     [elvis_result:item()].
@@ -469,7 +469,7 @@ no_behavior_info(Config, Target, _RuleConfig) ->
                                             , regex => string()
                                             }.
 
--spec module_naming_convention(elvis_config:configs(),
+-spec module_naming_convention(elvis_config:config(),
                                elvis_file:file(),
                                module_naming_convention_config()) ->
     [elvis_result:item()].
@@ -494,7 +494,7 @@ module_naming_convention(Config, Target, RuleConfig) ->
         true -> []
     end.
 
--spec state_record_and_type(elvis_config:configs(),
+-spec state_record_and_type(elvis_config:config(),
                             elvis_file:file(),
                             empty_rule_config()) ->
     [elvis_result:item()].
@@ -517,7 +517,7 @@ state_record_and_type(Config, Target, _RuleConfig) ->
             []
     end.
 
--spec no_spec_with_records(elvis_config:configs(),
+-spec no_spec_with_records(elvis_config:config(),
                            elvis_file:file(),
                            empty_rule_config()) ->
     [elvis_result:item()].
@@ -534,7 +534,7 @@ no_spec_with_records(Config, Target, _RuleConfig) ->
                                         , min_complexity => non_neg_integer()
                                         }.
 
--spec dont_repeat_yourself(elvis_config:configs(),
+-spec dont_repeat_yourself(elvis_config:config(),
                            elvis_file:file(),
                            dont_repeat_yourself_config()) ->
     [elvis_result:item()].
@@ -562,7 +562,7 @@ dont_repeat_yourself(Config, Target, RuleConfig) ->
 
     lists:map(ResultFun, Nodes).
 
--spec max_module_length(elvis_config:configs(),
+-spec max_module_length(elvis_config:config(),
                         elvis_file:file(),
                         max_module_length_config()) ->
     [elvis_result:item()].
@@ -598,7 +598,7 @@ max_module_length(Config, Target, RuleConfig) ->
             []
     end.
 
--spec max_function_length(elvis_config:configs(),
+-spec max_function_length(elvis_config:config(),
                           elvis_file:file(),
                           max_function_length_config()) ->
     [elvis_result:item()].
@@ -648,7 +648,7 @@ max_function_length(Config, Target, RuleConfig) ->
 -type no_call_config() :: #{ ignore => [elvis_config:ignorable()]
                            , no_call_functions => [function_spec()]
                            }.
--spec no_call(elvis_config:configs(),
+-spec no_call(elvis_config:config(),
               elvis_file:file(),
               no_call_config()) ->
     [elvis_result:item()].
@@ -660,7 +660,7 @@ no_call(Config, Target, RuleConfig) ->
 -type no_debug_call_config() :: #{ ignore => [elvis_config:ignorable()]
                                  , debug_functions => [function_spec()]
                                  }.
--spec no_debug_call(elvis_config:configs(),
+-spec no_debug_call(elvis_config:config(),
                     elvis_file:file(),
                     no_debug_call_config()) ->
     [elvis_result:item()].
@@ -672,7 +672,7 @@ no_debug_call(Config, Target, RuleConfig) ->
 -type no_common_caveats_call_config() :: #{ ignore => [elvis_config:ignorable()]
                                           , caveat_functions => [function_spec()]
                                           }.
--spec no_common_caveats_call(elvis_config:configs(),
+-spec no_common_caveats_call(elvis_config:config(),
                              elvis_file:file(),
                              no_common_caveats_call_config()) ->
     [elvis_result:item()].
@@ -698,7 +698,7 @@ node_line_limits(FunctionNode) ->
     [Min | _] = LineNums, % Min = first function's line
     {Min, Max}.
 
--spec no_nested_try_catch(elvis_config:configs(),
+-spec no_nested_try_catch(elvis_config:config(),
                           elvis_file:file(),
                           empty_rule_config()) ->
     [elvis_result:item()].
@@ -718,7 +718,7 @@ no_nested_try_catch(Config, Target, _RuleConfig) ->
                                           , enclosed_atoms => same | string()
                                           }.
 
--spec atom_naming_convention(elvis_config:configs(),
+-spec atom_naming_convention(elvis_config:config(),
                              elvis_file:file(),
                              atom_naming_convention_config()) ->
     [elvis_result:item()].
@@ -1236,7 +1236,7 @@ is_children(Parent, Node) ->
     [] =/= zipper:filter(fun(Child) -> Child == Node end, Zipper).
 
 %% No call
--spec no_call_common(elvis_config:configs(),
+-spec no_call_common(elvis_config:config(),
                      elvis_file:file(),
                      [function_spec()],
                      map()
@@ -1313,7 +1313,7 @@ maybe_default_option(UserDefinedOptionValue, _OptionName, _Rule) ->
     UserDefinedOptionValue.
 
 -spec get_root(Config, Target) -> Res when
-      Config :: elvis_config:configs(),
+      Config :: elvis_config:config(),
       Target :: elvis_file:file(),
       Res :: ktn_code:tree_node().
 get_root(Config, Target) ->

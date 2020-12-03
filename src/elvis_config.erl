@@ -18,9 +18,11 @@
         , merge_rules/2
         ]).
 
+-export_type([config/0]).
 -export_type([configs/0]).
 
--type configs() :: [map()] | map().
+-type config() :: map().
+-type configs() :: [config()] | config().
 
 -define(DEFAULT_FILTER, "*.erl").
 
@@ -161,7 +163,7 @@ resolve_files(RuleGroup, Files) ->
 %% @doc Takes a configuration and finds all files according to its 'dirs'
 %%      end  'filter' key, or if not specified uses '*.erl'.
 %% @end
--spec resolve_files(map()) -> map().
+-spec resolve_files(config()) -> config().
 resolve_files(RuleGroup = #{files := _Files}) ->
     RuleGroup;
 resolve_files(RuleGroup = #{dirs := Dirs}) ->
@@ -172,7 +174,7 @@ resolve_files(RuleGroup = #{dirs := Dirs}) ->
 %% @doc Takes a function and configuration and applies the function to all
 %%      file in the configuration.
 %% @end
--spec apply_to_files(Fun::fun(), Config::configs() | map()) -> configs() | map().
+-spec apply_to_files(Fun::fun(), Config::configs() | config()) -> configs() | config().
 apply_to_files(Fun, Config) when is_list(Config) ->
     ApplyFun = fun(RuleGroup) -> apply_to_files(Fun, RuleGroup) end,
     lists:map(ApplyFun, Config);
