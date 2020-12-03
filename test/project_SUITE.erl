@@ -39,7 +39,7 @@ all() ->
 
 -spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
-    ok = application:start(elvis_core),
+    {ok, _} = application:ensure_all_started(elvis_core),
     Config.
 
 -spec end_per_suite(config()) -> config().
