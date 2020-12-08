@@ -3,7 +3,7 @@
 -dialyzer(no_match).
 
 %% Used so that the line positions don't change for tests.
--compile([export_all]).
+-compile([export_all, nowarn_export_all]).
 
 exceed_with_four_levels() ->
     case 1 of

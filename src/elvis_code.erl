@@ -30,7 +30,7 @@
 %% @doc Same as calling find/3 with `#{mode => node, traverse => content}' as
 %%      the options map.
 %% @end
--spec find(fun((zipper:zipper()) -> boolean()),
+-spec find(fun((zipper:zipper(_)) -> boolean()),
            ktn_code:tree_node()) ->
     [ktn_code:tree_node()].
 find(Pred, Root) ->
@@ -53,7 +53,7 @@ find(Pred, Root) ->
 %%      </ul>
 %% @end
 
--spec find(fun((zipper:zipper()) -> boolean()),
+-spec find(fun((zipper:zipper(_)) -> boolean()),
            ktn_code:tree_node(),
            find_options()) ->
     [ktn_code:tree_node()].
@@ -64,18 +64,18 @@ find(Pred, Root, Opts) ->
     Results = find(Pred, Zipper, [], Mode),
     lists:reverse(Results).
 
--spec code_zipper(ktn_code:tree_node()) -> zipper:zipper().
+-spec code_zipper(ktn_code:tree_node()) -> zipper:zipper(_).
 code_zipper(Root) ->
     code_zipper(Root, content).
 
--spec code_zipper(ktn_code:tree_node(), content | all) -> zipper:zipper().
+-spec code_zipper(ktn_code:tree_node(), content | all) -> zipper:zipper(_).
 code_zipper(Root, Mode) ->
     case Mode of
         content -> content_zipper(Root);
         all -> all_zipper(Root)
     end.
 
--spec content_zipper(ktn_code:tree_node()) -> zipper:zipper().
+-spec content_zipper(ktn_code:tree_node()) -> zipper:zipper(_).
 content_zipper(Root) ->
     IsBranch = fun
                    (#{content := [_ | _]}) -> true;
@@ -85,7 +85,7 @@ content_zipper(Root) ->
     MakeNode = fun(Node, Content) -> Node#{content => Content} end,
     zipper:new(IsBranch, Children, MakeNode, Root).
 
--spec all_zipper(ktn_code:tree_node()) -> zipper:zipper().
+-spec all_zipper(ktn_code:tree_node()) -> zipper:zipper(_).
 all_zipper(Root) ->
     IsBranch = fun (Node = #{}) ->
                    ktn_code:content(Node) =/= []

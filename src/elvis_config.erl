@@ -19,8 +19,10 @@
         ]).
 
 -export_type([config/0]).
+-export_type([configs/0]).
 
--type config() :: [map()].
+-type config() :: map().
+-type configs() :: [config()].
 
 -define(DEFAULT_FILTER, "*.erl").
 
@@ -28,7 +30,7 @@
 %%% Public
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec from_rebar(string()) -> config().
+-spec from_rebar(string()) -> configs().
 from_rebar(Path) ->
     case file:consult(Path) of
         {ok, Config} ->
@@ -37,7 +39,7 @@ from_rebar(Path) ->
             throw(Reason)
     end.
 
--spec from_file(string()) -> config().
+-spec from_file(string()) -> configs().
 from_file(Path) ->
     case file:consult(Path) of
         {ok, [Config]} ->
@@ -46,7 +48,7 @@ from_file(Path) ->
             throw(Reason)
     end.
 
--spec load(atom(), term()) -> config().
+-spec load(atom(), term()) -> configs().
 load(Key, AppConfig) ->
     ElvisConfig = proplists:get_value(Key, AppConfig, []),
     Rulesets = proplists:get_value(rulesets, ElvisConfig, #{}),
@@ -59,7 +61,7 @@ ensure_config_list(Config) when is_map(Config) ->
 ensure_config_list(Config) ->
     Config.
 
--spec validate(Config::config()) -> ok.
+-spec validate(Config::configs()) -> ok.
 validate([]) ->
     throw({invalid_config, empty_config});
 validate(Config) ->
@@ -83,7 +85,7 @@ do_validate(RuleGroup) ->
         true -> ok
     end.
 
--spec normalize(config()) -> config().
+-spec normalize(configs()) -> configs().
 normalize(Config) when is_list(Config) ->
     lists:map(fun do_normalize/1, Config).
 
@@ -96,7 +98,7 @@ do_normalize(Config = #{src_dirs := Dirs}) ->
 do_normalize(Config) ->
     Config.
 
--spec dirs(Config::config() | map()) -> [string()].
+-spec dirs(Config::configs() | config()) -> [string()].
 dirs(Config) when is_list(Config) ->
     lists:flatmap(fun dirs/1, Config);
 dirs(_RuleGroup = #{dirs := Dirs}) ->
@@ -104,7 +106,7 @@ dirs(_RuleGroup = #{dirs := Dirs}) ->
 dirs(#{}) ->
     [].
 
--spec ignore(config() | map()) -> [string()].
+-spec ignore(configs() | config()) -> [string()].
 ignore(Config) when is_list(Config) ->
     lists:flatmap(fun ignore/1, Config);
 ignore(_RuleGroup = #{ignore := Ignore}) ->
@@ -112,7 +114,7 @@ ignore(_RuleGroup = #{ignore := Ignore}) ->
 ignore(#{}) ->
     [].
 
--spec filter(config() | map()) -> [string()].
+-spec filter(configs() | config()) -> [string()].
 filter(Config) when is_list(Config) ->
     lists:flatmap(fun filter/1, Config);
 filter(_RuleGroup = #{filter := Filter}) ->
@@ -120,7 +122,7 @@ filter(_RuleGroup = #{filter := Filter}) ->
 filter(#{}) ->
     ?DEFAULT_FILTER.
 
--spec files(RuleGroup::config() | map()) -> [elvis_file:file()].
+-spec files(RuleGroup::configs() | config()) -> [elvis_file:file()].
 files(RuleGroup) when is_list(RuleGroup) ->
     lists:map(fun files/1, RuleGroup);
 files(_RuleGroup = #{files := Files}) ->
@@ -128,8 +130,8 @@ files(_RuleGroup = #{files := Files}) ->
 files(#{}) ->
     [].
 
--spec rules(Rules::config()) -> [[elvis_core:rule()]];
-           (map()) -> [elvis_core:rule()].
+-spec rules(RulesL::configs()) -> [[elvis_core:rule()]];
+           (Rules::config())  -> [elvis_core:rule()].
 rules(Rules) when is_list(Rules) ->
     lists:map(fun rules/1, Rules);
 rules(#{rules := UserRules, ruleset := RuleSet}) ->
@@ -145,9 +147,9 @@ rules(#{}) ->
 %%      of them according to the 'filter' key, or if not specified
 %%      uses '*.erl'.
 %% @end
-%% resolve_files/2 with a config() type is used in elvis project
--spec resolve_files(Config::config() | map(), Files::[elvis_file:file()]) ->
-    config() | map().
+%% resolve_files/2 with a configs() type is used in elvis project
+-spec resolve_files(Config::configs() | config(), Files::[elvis_file:file()]) ->
+    configs() | config().
 resolve_files(Config, Files) when is_list(Config) ->
     Fun = fun(RuleGroup) -> resolve_files(RuleGroup, Files) end,
     lists:map(Fun, Config);
@@ -161,7 +163,7 @@ resolve_files(RuleGroup, Files) ->
 %% @doc Takes a configuration and finds all files according to its 'dirs'
 %%      end  'filter' key, or if not specified uses '*.erl'.
 %% @end
--spec resolve_files(map()) -> map().
+-spec resolve_files(config()) -> config().
 resolve_files(RuleGroup = #{files := _Files}) ->
     RuleGroup;
 resolve_files(RuleGroup = #{dirs := Dirs}) ->
@@ -172,7 +174,7 @@ resolve_files(RuleGroup = #{dirs := Dirs}) ->
 %% @doc Takes a function and configuration and applies the function to all
 %%      file in the configuration.
 %% @end
--spec apply_to_files(Fun::fun(), Config::config() | map()) -> config() | map().
+-spec apply_to_files(Fun::fun(), Config::configs() | config()) -> configs() | config().
 apply_to_files(Fun, Config) when is_list(Config) ->
     ApplyFun = fun(RuleGroup) -> apply_to_files(Fun, RuleGroup) end,
     lists:map(ApplyFun, Config);

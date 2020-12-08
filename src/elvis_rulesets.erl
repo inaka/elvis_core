@@ -14,7 +14,7 @@ set_rulesets(Rulesets) ->
 rules(erl_files) ->
     lists:map(
         fun ({Mod, Rule}) ->
-            {Mod, Rule, Mod:default(Rule)}
+            {Mod, Rule, apply(Mod, default, [Rule])}
         end,
         [ {elvis_text_style, line_length}
         , {elvis_text_style, no_tabs}
@@ -37,7 +37,29 @@ rules(erl_files) ->
         , {elvis_style, variable_naming_convention}
         , {elvis_style, no_nested_try_catch}
         , {elvis_style, atom_naming_convention}
-        ]);
+        ]
+    );
+rules(beam_files) ->
+    lists:map(
+        fun (Rule) ->
+            {elvis_style, Rule, elvis_style:default(Rule)}
+        end,
+        [ nesting_level
+        , god_modules
+        , no_if_expression
+        , invalid_dynamic_call
+        , used_ignored_variable
+        , module_naming_convention
+        , function_naming_convention
+        , state_record_and_type
+        , no_spec_with_records
+        , dont_repeat_yourself
+        , no_debug_call
+        , variable_naming_convention
+        , no_nested_try_catch
+        , atom_naming_convention
+        ]
+    );
 rules(makefiles) ->
     lists:map(
         fun (Rule) ->

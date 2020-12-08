@@ -255,6 +255,7 @@ rock_with_rule_groups(_Config) ->
     % rule_group in the config.
     RulesGroupConfig =
         [#{dirs => ["src"], filter => "*.erl", ruleset => erl_files},
+         #{dirs => ["_build/test/lib/elvis_core/ebin"], filter => "*.beam", ruleset => beam_files},
          #{dirs => ["."], filter => "Makefile", ruleset => makefiles},
          #{dirs => ["."], filter => "rebar.config", ruleset => rebar_config},
          #{dirs => ["."], filter => "elvis.config", ruleset => elvis_config}],
@@ -325,7 +326,7 @@ rock_this_not_skipping_files(_Config) ->
 custom_ruleset(_Config) ->
     ConfigPath = "../../config/elvis-test-custom-ruleset.config",
     ElvisConfig = elvis_config:from_file(ConfigPath),
-    [[{elvis_style, no_tabs}]] = elvis_config:rules(ElvisConfig),
+    [[{elvis_text_style, no_tabs}]] = elvis_config:rules(ElvisConfig),
 
     %% read unknown ruleset configuration to ensure rulesets from
     %% previous load do not stick around
