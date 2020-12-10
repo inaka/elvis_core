@@ -79,7 +79,7 @@ We have only presented results where all files were well-behaved (respect all
 the rules), so here's an example of how it looks when files break some of the
 rules:
 
-```
+```erlang
 # ../../test/examples/fail_line_length.erl [FAIL]
   - line_length
     - Line 14 is too long: "    io:format(\"This line is 81 characters long and should be detected, yeah!!!\").".
@@ -166,13 +166,17 @@ also you like to use tabs instead of spaces, so you need to override `erl_files`
 #### Ignoring Modules
 
 You can also `ignore` modules at a _check level_ or at a _ruleset (group of checks) level_:
+
 - at check level by setting the ignore parameter in the rule you want to skip, e.g:
+
   ```erlang
   {elvis_style, no_debug_call, #{ignore => [elvis, elvis_utils]}}
   ```
+
   There we are telling elvis to **ignore** _elvis_ and _elvis_utils_ modules when running `no_debug_call` check.
 
 - at ruleset level by setting the **ignore** group level option for the group you want to skip, e.g:
+
   ```erlang
   #{dirs => ["src"],
     filter => "*.erl",
@@ -180,6 +184,7 @@ You can also `ignore` modules at a _check level_ or at a _ruleset (group of chec
     ignore => [module1, module4]
    }
   ```
+
   With this configuration, none of the checks for [erl_files](https://github.com/inaka/elvis_core/blob/master/src/elvis_rulesets.erl#L6-L34) would be applied to `module1.erl` and `module4.erl` files.
 
 ### Formating
@@ -188,7 +193,7 @@ You can also `ignore` modules at a _check level_ or at a _ruleset (group of chec
 `plain` and `parsable`. The latter could be use for the automated parsing and has a
 format very close to dialyzer in a form `FILE:LINE:RULE:MESSAGE`:
 
-```
+```erlang
 src/example.erl:1:god_modules:This module has too many functions (56). Consider breaking it into a number of modules.
 src/example_a.erl:341:no_debug_call:Remove the debug call to io:format/2 on line 341.
 src/example_a.erl:511:used_ignored_variable:Ignored variable is being used on line 511 and column 54.
