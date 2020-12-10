@@ -1,4 +1,4 @@
-# elvis-core [![Build Status](https://travis-ci.org/inaka/elvis_core.svg?branch=master)](https://travis-ci.org/inaka/elvis_core) [![Stories in Ready](https://badge.waffle.io/inaka/elvis.png?label=ready&title=Ready)](https://waffle.io/inaka/elvis)
+# elvis-core [![Build Status](https://github.com/inaka/elvis_core/workflows/build/badge.svg)](https://github.com/inaka/elvis_core) [![Stories in Ready](https://badge.waffle.io/inaka/elvis.png?label=ready&title=Ready)](https://waffle.io/inaka/elvis)
 
 Erlang style reviewer core library.
 
