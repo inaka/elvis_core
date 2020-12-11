@@ -22,7 +22,9 @@ jobs:
       - run: |
           rebar3 --version
           erl -version
-      - run: rebar3 test
+      - run: rebar3 dialyzer
+      - run: rebar3 ct
+      - run: rebar3 cover
       - run: |
           rebar3 escriptize
           _build/default/bin/elvis_core
