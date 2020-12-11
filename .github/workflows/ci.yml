@@ -20,9 +20,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: |
-        rebar3 --version
-        erl -version
+          rebar3 --version
+          erl -version
       - run: rebar3 test
       - run: |
-        rebar3 escriptize
-        _build/default/bin/elvis_core
+          rebar3 escriptize
+          _build/default/bin/elvis_core
