@@ -11,18 +11,21 @@ jobs:
   ci:
     name: Run checks and tests over ${{matrix.otp_vsn}} and ${{matrix.os}}
     runs-on: ${{matrix.os}}
-    container:
-      image: erlang:${{matrix.otp_vsn}}
     strategy:
       matrix:
-        otp_vsn: [19.3, 20.0, 21.3, 22.3, 23.1]
+        otp_vsn: [19.3.6.13, 20.3.8.26, 21.3.8.17, 22.3.4.9, 23.1.5]
         os: [ubuntu-latest]
     steps:
       - uses: actions/checkout@v2
+      - uses: gleam-lang/setup-erlang@v1.0.0
+        with:
+          otp-version: ${{matrix.otp_vsn}}
       - run: |
-        rebar3 --version
-        erl -version
-      - run: rebar3 test
+          rebar3 --version
+          erl -version
+      - run: rebar3 dialyzer
+      - run: rebar3 ct
+      - run: rebar3 cover
       - run: |
-        rebar3 escriptize
-        _build/default/bin/elvis_core
+          rebar3 escriptize
+          _build/default/bin/elvis_core
