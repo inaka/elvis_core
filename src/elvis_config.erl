@@ -158,6 +158,14 @@ resolve_files(RuleGroup, Files) ->
     Dirs = dirs(RuleGroup),
     Ignore = ignore(RuleGroup),
     FilteredFiles = elvis_file:filter_files(Files, Dirs, Filter, Ignore),
+    _ = case FilteredFiles of
+            [] ->
+                Error = elvis_result:new(warn, "Searching for files in ~p yielded none. "
+                                               "Update your configuration.", [Dirs]),
+                ok = elvis_result:print_results([Error]);
+            _ ->
+                ok
+        end,
     RuleGroup#{files => FilteredFiles}.
 
 %% @doc Takes a configuration and finds all files according to its 'dirs'

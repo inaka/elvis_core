@@ -22,6 +22,7 @@
          error/2,
          error_prn/1,
          error_prn/2,
+         warn_prn/2,
          parse_colors/1
         ]).
 
@@ -162,6 +163,11 @@ error_prn(Message, Args) ->
     ColoredMessage = "{{red}}Error: {{reset}}" ++ Message ++ "{{reset}}~n",
     print(ColoredMessage, Args).
 
+-spec warn_prn(string(), [term()]) -> ok.
+warn_prn(Message, Args) ->
+    ColoredMessage = "{{magenta}}Warning: {{reset}}" ++ Message ++ "{{reset}}~n",
+    print(ColoredMessage, Args).
+
 -spec print_info(string(), [term()]) -> ok.
 print_info(Message, Args) ->
     case application:get_env(elvis_core, verbose) of
@@ -188,6 +194,7 @@ parse_colors(Message) ->
                "green-bold" => "\e[1;32m",
                "white" => "\e[0;37m",
                "white-bold" => "\e[1;37m",
+               "magenta" => "\e[1;35m",
                "reset" => "\e[0m"},
     Opts = [global, {return, list}],
     case application:get_env(elvis_core, output_format, colors) of

@@ -53,6 +53,11 @@
            error_msg => string(),
            info => list()
          }.
+-type elvis_warn() ::
+        #{
+           warn_msg => string(),
+           info => list()
+         }.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Public
@@ -63,7 +68,8 @@
 -spec new(item, string(), [term()]) -> item()
        ; (rule, atom(), [item()]) -> rule()
        ; (file, elvis_file:file(), [elvis_error() | rule()]) -> file()
-       ; (error, string(), string()) -> elvis_error().
+       ; (error, string(), string()) -> elvis_error()
+       ; (warn, string(), string()) -> elvis_warn().
 new(item, Msg, Info) ->
     new(item, Msg, Info, 0);
 new(rule, Name, Results) ->
@@ -71,7 +77,9 @@ new(rule, Name, Results) ->
 new(file, #{path := Path}, Rules) ->
     #{file => Path, rules => Rules};
 new(error, Msg, Info) ->
-    #{error_msg => Msg, info => Info}.
+    #{error_msg => Msg, info => Info};
+new(warn, Msg, Info) ->
+    #{warn_msg => Msg, info => Info}.
 
 -spec new(item, string(), [term()], integer()) -> item().
 new(item, Msg, Info, LineNum) ->
@@ -165,7 +173,9 @@ print_item(_Format, _File, _Name, []) ->
     ok.
 
 print_error(#{error_msg := Msg, info := Info}) ->
-    elvis_utils:error_prn(Msg, Info).
+    elvis_utils:error_prn(Msg, Info);
+print_error(#{warn_msg := Msg, info := Info}) ->
+    elvis_utils:warn_prn(Msg, Info).
 
 -spec status([file() | rule()]) -> ok | fail.
 status([]) ->
