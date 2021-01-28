@@ -1,11 +1,30 @@
 # Changelog
 
+## [1.1.0](https://github.com/inaka/elvis_core/tree/1.1.0) (2021-01-28)
+
+[Full Changelog](https://github.com/inaka/elvis_core/compare/1.0.0...1.1.0)
+
+**Closed issues:**
+
+- Warn on empty analysis [\#146](https://github.com/inaka/elvis_core/issues/146)
+- Execution without elvis.config shows no issues [\#163](https://github.com/inaka/elvis_core/issues/163)
+- provide a hex package [\#7](https://github.com/inaka/elvis_core/issues/7)
+
+**Merged pull requests:**
+
+- Issue warnings on empty folders [\#169](https://github.com/inaka/elvis_core/pull/169) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+- Fix broken yml for GitHub Actions [\#143](https://github.com/inaka/elvis_core/pull/143) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+- Replace Travis CI with GitHub Actions [\#142](https://github.com/inaka/elvis_core/pull/142) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+- Allow for custom rules in elvis configuration [\#141](https://github.com/inaka/elvis_core/pull/141) ([cnasten](https://github.com/cnasten))
+- Analyze abstract code \(beam files\) [\#138](https://github.com/inaka/elvis_core/pull/138) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+
 ## [1.0.0](https://github.com/inaka/elvis_core/tree/1.0.0) (2020-11-23)
 
 [Full Changelog](https://github.com/inaka/elvis_core/compare/0.7.0...1.0.0)
 
 **Merged pull requests:**
 
+- Bump Version to 1.0.0 [\#140](https://github.com/inaka/elvis_core/pull/140) ([elbrujohalcon](https://github.com/elbrujohalcon))
 - Accept British spelling for behaviour. [\#139](https://github.com/inaka/elvis_core/pull/139) ([NAR](https://github.com/NAR))
 - Feature option ignore in all rules [\#137](https://github.com/inaka/elvis_core/pull/137) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
 - Allow module-level configuration via attribute `-elvis\(\_\)` [\#136](https://github.com/inaka/elvis_core/pull/136) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
@@ -306,6 +325,12 @@
 ## [0.2.6-alpha2](https://github.com/inaka/elvis_core/tree/0.2.6-alpha2) (2015-12-23)
 
 [Full Changelog](https://github.com/inaka/elvis_core/compare/8fe81e68eadc791b3f465f5c8c6b8481b6e31cc4...0.2.6-alpha2)
+
+**Closed issues:**
+
+- Update README with apropiate content from inaka/elvis [\#10](https://github.com/inaka/elvis_core/issues/10)
+- Remove rebar binary [\#8](https://github.com/inaka/elvis_core/issues/8)
+- add option for global ignore [\#5](https://github.com/inaka/elvis_core/issues/5)
 
 **Merged pull requests:**
 
