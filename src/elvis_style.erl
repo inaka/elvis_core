@@ -879,7 +879,7 @@ macro_as_atom({var, _Text, MacroAsAtom}, _Types, _MacroNodeValue) ->
     MacroAsAtom;
 macro_as_atom({atom, _Text, MacroAsAtom}, _Types, _MacroNodeValue) ->
     MacroAsAtom;
-macro_as_atom({call, _Text, {var, _Text, MacroAsAtom}, _VarArg}, _Types, _MacroNodeValue) ->
+macro_as_atom({call, _CallText, {var, _VarText, MacroAsAtom}, _VarArg}, _Types, _MacroNodeValue) ->
     MacroAsAtom;
 macro_as_atom(false, [Type | OtherTypes], MacroNodeValue) ->
     macro_as_atom(lists:keyfind(Type, _N = 1, MacroNodeValue), OtherTypes, MacroNodeValue).
