@@ -1,17 +1,27 @@
 # Changelog
 
+## [1.1.1](https://github.com/inaka/elvis_core/tree/1.1.1) (2021-02-08)
+
+[Full Changelog](https://github.com/inaka/elvis_core/compare/1.1.0...1.1.1)
+
+**Merged pull requests:**
+
+- Fix unwarranted match as found by OTP 24 [\#175](https://github.com/inaka/elvis_core/pull/175) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+
 ## [1.1.0](https://github.com/inaka/elvis_core/tree/1.1.0) (2021-01-28)
 
 [Full Changelog](https://github.com/inaka/elvis_core/compare/1.0.0...1.1.0)
 
 **Closed issues:**
 
+- Release request [\#173](https://github.com/inaka/elvis_core/issues/173)
 - Warn on empty analysis [\#146](https://github.com/inaka/elvis_core/issues/146)
 - Execution without elvis.config shows no issues [\#163](https://github.com/inaka/elvis_core/issues/163)
 - provide a hex package [\#7](https://github.com/inaka/elvis_core/issues/7)
 
 **Merged pull requests:**
 
+- Fix \#173: New release \(1.1.0\) [\#174](https://github.com/inaka/elvis_core/pull/174) ([elbrujohalcon](https://github.com/elbrujohalcon))
 - Issue warnings on empty folders [\#169](https://github.com/inaka/elvis_core/pull/169) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
 - Fix broken yml for GitHub Actions [\#143](https://github.com/inaka/elvis_core/pull/143) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
 - Replace Travis CI with GitHub Actions [\#142](https://github.com/inaka/elvis_core/pull/142) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
