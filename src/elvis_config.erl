@@ -160,8 +160,9 @@ resolve_files(RuleGroup, Files) ->
     FilteredFiles = elvis_file:filter_files(Files, Dirs, Filter, Ignore),
     _ = case FilteredFiles of
             [] ->
-                Error = elvis_result:new(warn, "Searching for files in ~p yielded none. "
-                                               "Update your configuration.", [Dirs]),
+                Error = elvis_result:new(warn, "Searching for files in ~p, for ruleset ~p, yielded "
+                                               "none. Update your configuration.",
+                                               [Dirs, maps:get(ruleset, RuleGroup)]),
                 ok = elvis_result:print_results([Error]);
             _ ->
                 ok
