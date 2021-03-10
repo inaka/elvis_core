@@ -284,7 +284,7 @@ verify_macro_names_rule(Config) ->
 
     Path = "fail_macro_names." ++ Ext,
 
-    [_, _, _, _] = elvis_core_apply_rule(Config, elvis_style, macro_names, #{}, Path),
+    [_, _, _, _, _] = elvis_core_apply_rule(Config, elvis_style, macro_names, #{}, Path),
 
     [_, _] = elvis_core_apply_rule(Config, elvis_style, macro_names, #{ regex => "^[A-Za-z_ ]+$" }, Path),
 
@@ -292,7 +292,7 @@ verify_macro_names_rule(Config) ->
 
     [] = elvis_core_apply_rule(Config, elvis_style, macro_names, #{ regex => "^[A-Za-z_, \-]+$" }, Path),
 
-    [_, _, _, _, _, _] = elvis_core_apply_rule(Config, elvis_style, macro_names, #{ regex => "^POTENTIAL_BAD-NAME$" }, Path),
+    [_, _, _, _, _, _, _] = elvis_core_apply_rule(Config, elvis_style, macro_names, #{ regex => "^POTENTIAL_BAD-NAME$" }, Path),
 
     [] = elvis_core_apply_rule(Config, elvis_style, macro_names, #{ ignore => [fail_macro_names] }, Path).
 

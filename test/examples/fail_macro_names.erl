@@ -1,6 +1,7 @@
 -module(fail_macro_names).
 
  -define (bad_name,   "(no)").
+ -define (error(A),   {error, A}).
 -define(GOOD_NAME,  "(megusta)").
 -define(wtf_NAME,   "(yuno)").
 -define(GOOD_NAME(Arg), "(megusta)").
