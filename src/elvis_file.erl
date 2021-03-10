@@ -86,37 +86,43 @@ find_files(Dirs, Pattern) ->
           end,
     [#{path => Path} || Path <- lists:usort(lists:flatmap(Fun, Dirs))].
 
+dir_to(Filter, _Dir = ".") ->
+    Filter;
+dir_to(Filter, Dir) ->
+    filename:join(Dir, Filter).
+
+file_in(ExpandedFilter, Files) ->
+    lists:filter(fun (_File = #{ path := Path }) ->
+                     lists:member(Path, ExpandedFilter)
+                 end,
+                 Files).
+
 %% @doc Filter files based on the glob provided.
 -spec filter_files([file()], [string()], string(), [string()]) -> [file()].
 filter_files(Files, Dirs, Filter, IgnoreList) ->
-    AppendFilter = fun(Dir) ->
-                         case Dir of
-                             "." -> Filter;
-                             Dir -> reduce_stars(Dir ++ "/" ++ Filter)
-                         end
-                   end,
-    FullFilters = lists:map(AppendFilter, Dirs),
-    Regexes = lists:map(fun glob_to_regex/1, FullFilters),
-    FlatmapFun =
-        fun(Regex) ->
-                FilterFun =
-                    fun(#{path := Path}) ->
-                            match == re:run(Path, Regex, [{capture, none}])
-                    end,
-                lists:filter(FilterFun, Files)
-        end,
-    IgnoreFun =
-        fun(#{path := Path}) ->
-                IsIgnored =
-                    fun(Regex) ->
-                            match == re:run(Path, Regex, [{capture, none}])
-                    end,
-                not lists:any(IsIgnored, IgnoreList)
-        end,
-    Found = lists:flatmap(FlatmapFun, Regexes),
+    ExpandedFilters
+        = lists:map(
+              fun (Dir) ->
+                  filelib:wildcard(dir_to(Filter, Dir))
+              end,
+              Dirs),
+    Found
+        = lists:flatmap(
+              fun (ExpandedFilter) ->
+                  file_in(ExpandedFilter, Files)
+              end,
+              ExpandedFilters),
     % File src/sub/file.erl will match both src/ and src/sub/ folders. We can't have that!
     FoundUnique = lists:usort(Found),
-    lists:filter(IgnoreFun, FoundUnique).
+    lists:filter(
+        fun(#{ path := Path }) ->
+            not lists:any(
+                    fun(Regex) ->
+                        match == re:run(Path, Regex, [{capture, none}])
+                    end,
+                    IgnoreList)
+        end,
+        FoundUnique).
 
 %% @doc Return module name corresponding to a given .erl/.beam file
 -spec module(file()) -> module().
@@ -146,21 +152,6 @@ resolve_parse_tree(".erl", Content, Mod, Ignore) ->
     Tree#{ content => FilteredTreeContent };
 resolve_parse_tree(_, _, _, _) ->
     undefined.
-
--spec glob_to_regex(iodata()) -> iodata().
-glob_to_regex(Glob) ->
-  add_delimiters(replace_questions(replace_stars(escape_all_chars(Glob)))).
-
-add_delimiters(Glob) -> [$^, Glob, $$].
-
-escape_all_chars(Glob) -> re:replace(Glob, ".", "[&]", [global]).
-
-replace_stars(Glob) -> re:replace(Glob, "[[][*][]]", ".*", [global]).
-
-replace_questions(Glob) -> re:replace(Glob, "[[][?][]]", ".", [global]).
-
-reduce_stars(DirAndFilter) ->
-    re:replace(DirAndFilter, "/\\*+/", "/", [global, {return, list}]).
 
 -spec find_encoding(Content::binary()) ->
   atom().
