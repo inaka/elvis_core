@@ -26,6 +26,7 @@
          rock_with_rule_groups/1,
          rock_this_skipping_files/1,
          rock_this_not_skipping_files/1,
+         rock_with_umbrella_apps/1,
          %% Util & Config
          custom_ruleset/1,
          throw_configuration/1,
@@ -317,6 +318,20 @@ rock_this_not_skipping_files(_Config) ->
     ok = elvis_core:rock_this(Path, ElvisConfig),
     1 = meck:num_calls(elvis_file, load_file_data, '_'),
     meck:unload(elvis_file),
+    ok.
+
+-spec rock_with_umbrella_apps(config()) -> ok.
+rock_with_umbrella_apps(_Config) ->
+    ElvisUmbrellaConfigFile = "../../config/elvis-umbrella.config",
+    ElvisConfig = elvis_config:from_file(ElvisUmbrellaConfigFile),
+    {fail, [
+        #{ file := "../../_build/test/lib/elvis_core/test/dirs/test/dir_test.erl" }
+      , #{ file := "../../_build/test/lib/elvis_core/test/dirs/src/dirs_src.erl" }
+      , #{ file := "../../_build/test/lib/elvis_core/test/dirs/apps/app2/test/dirs_apps_app2_test.erl" }
+      , #{ file := "../../_build/test/lib/elvis_core/test/dirs/apps/app2/src/dirs_apps_app2_src.erl" }
+      , #{ file := "../../_build/test/lib/elvis_core/test/dirs/apps/app1/test/dirs_apps_app1_test.erl" }
+      , #{ file := "../../_build/test/lib/elvis_core/test/dirs/apps/app1/src/dirs_apps_app1_src.erl" }
+    ]} = elvis_core:rock(ElvisConfig),
     ok.
 
 %%%%%%%%%%%%%%%

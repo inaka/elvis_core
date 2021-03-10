@@ -9,15 +9,16 @@ on:
       - master
 jobs:
   ci:
-    name: Run checks and tests over ${{matrix.otp_vsn}} and ${{matrix.os}}
+    name: >
+      Run Linux-based checks and tests over ${{matrix.otp_vsn}} and ${{matrix.os}}
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
         otp_vsn: [19.3.6.13, 20.3.8.26, 21.3.8.17, 22.3.4.9, 23.1.5]
-        os: [ubuntu-latest]
+        os: [ubuntu-18.04]
     steps:
       - uses: actions/checkout@v2
-      - uses: gleam-lang/setup-erlang@v1.0.0
+      - uses: gleam-lang/setup-erlang@v1.1.1
         with:
           otp-version: ${{matrix.otp_vsn}}
       - run: |
