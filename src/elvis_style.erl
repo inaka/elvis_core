@@ -998,9 +998,11 @@ character_at_location(Position, Lines, Operator, {LineNo, Col}, Encoding) ->
     % If ColToCheck is greater than the length of OperatorLineStr variable, it
     % means the end of line was reached so return " " to make the check pass,
     % otherwise return the character at the given column.
-    % NOTE: text below only applies when the given Position is equal to `right`.
+    % NOTE: text below only applies when the given Position is equal to `right`,
+    %       or Position is equal to `left` and Col is 1.
     SpaceChar = $\s,
-    case {Position, (ColToCheck > length(OperatorLineStr))} of
+    case ColToCheck =:= 0 orelse {Position, (ColToCheck > length(OperatorLineStr))} of
+        true -> SpaceChar;
         {right, true}  -> SpaceChar;
         _ -> lists:nth(ColToCheck, OperatorLineStr)
     end.

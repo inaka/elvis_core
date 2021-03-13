@@ -324,11 +324,15 @@ verify_operator_spaces(Config) ->
     MinusOperation = #{rules => [{right, "-"}, {left, "-"}]},
     [] = elvis_core_apply_rule(Config, elvis_style, operator_spaces, MinusOperation, Path),
 
+    Arrow = #{rules => [{left, "->"}]},
+    [] = elvis_core_apply_rule(Config, elvis_style, operator_spaces, Arrow, Path),
+
     AllOptions = #{rules => [{right, ","},
                              {right, "++"},
                              {left, "++"},
                              {right, "+"},
-                             {left, "+"}]},
+                             {left, "+"},
+                             {left, "->"}]},
     [_, _, _, _, _, _] =
         elvis_core_apply_rule(Config, elvis_style, operator_spaces, AllOptions, Path).
 
