@@ -13,6 +13,8 @@
         , function7/0
         , tag_filters/2
         , unicode_characters/0
+        , this/0
+        , this/1
         ]).
 
 %% No space before and after coma,on a comment.
@@ -75,3 +77,14 @@ unicode_characters() ->
   <<"©"/utf8>> = <<"\\u00A9">>,
   <<"ß"/utf8>> = <<"\\o337">>,
   ok.
+
+-spec this()
+-> should_not_crash.
+this()
+-> should_not_crash.
+
+-spec this(shouldnt_either)
+-> -1.
+this(shouldnt_either)
+-> A = 1
+- 2, A.
