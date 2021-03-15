@@ -163,7 +163,7 @@ verify_function_naming_convention(Config) ->
     PathFail = "fail_function_naming_convention." ++ Ext,
 
     [_CamelCaseError, _ALL_CAPSError, _InitialCapError,
-     _HyphenError, _PredError, _EmailError] =
+     _HyphenError, _PredError, EmailError] =
       elvis_core_apply_rule(Config, elvis_style, function_naming_convention, RuleConfig, PathFail),
 
     RuleConfig3 = #{regex => "^([a-z][a-z0-9]*_?)*$",
@@ -174,7 +174,7 @@ verify_function_naming_convention(Config) ->
                               , {fail_function_naming_convention, 'no_predicates?'}
                               ]
                    },
-    [_EmailError] = elvis_core_apply_rule(Config, elvis_style, function_naming_convention, RuleConfig3, PathFail),
+    [EmailError] = elvis_core_apply_rule(Config, elvis_style, function_naming_convention, RuleConfig3, PathFail),
 
     % ignored
     PathIgnored = "fail_function_naming_convention_ignored_function." ++ Ext,
