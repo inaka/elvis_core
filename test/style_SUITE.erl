@@ -174,7 +174,7 @@ verify_function_naming_convention(Config) ->
                               , {fail_function_naming_convention, 'no_predicates?'}
                               ]
                    },
-    [_EmailError] = elvis_core_apply_rule(Config, elvis_style, function_naming_convention, RuleConfig3, PathFail),
+    [_EmailError2] = elvis_core_apply_rule(Config, elvis_style, function_naming_convention, RuleConfig3, PathFail),
 
     % ignored
     PathIgnored = "fail_function_naming_convention_ignored_function." ++ Ext,

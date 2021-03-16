@@ -953,6 +953,8 @@ has_remote_call_parent(Zipper) ->
     case ktn_code:type(Node) of
         remote ->
             true;
+        call ->
+            ktn_code:type(zipper:node(zipper:down(Zipper))) =:= remote;
         _ ->
             has_remote_call_parent(zipper:up(Zipper))
     end.
