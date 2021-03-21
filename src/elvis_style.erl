@@ -320,7 +320,7 @@ macro_module_names(Config, Target, RuleConfig) ->
 -type operator_spaces_config() :: #{ ignore => [ignorable()]
                                    , rules => [{right | left, string()}]
                                    }.
--define(PUNCTUATION_SYMBOLS, [',', ';', 'dot', '->', ':', '::']).
+-define(PUNCTUATION_SYMBOLS, [',', ';', 'dot', '->', ':', '::', '|', '||']).
 
 -spec operator_spaces(elvis_config:config(),
                       elvis_file:file(),
