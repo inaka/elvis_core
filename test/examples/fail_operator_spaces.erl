@@ -11,6 +11,8 @@
         , function5/0
         , function6/0
         , function7/0
+        , function8/0
+        , function9/0
         , tag_filters/2
         , unicode_characters/0
         , this/0
@@ -52,6 +54,12 @@ function7() ->
     re:run(Name, "^.{1,20}$", [unicode]),
     RegExp = "^.{1,20}$",
     re:run(Name, RegExp, [unicode]).
+
+function8() ->
+    [should| [fail]] ++ [should |[fail]] ++ [shouldnot | [fail]].
+
+function9() ->
+    [X|| X <- [fail]] ++ [X ||X <- [fail]] ++ [X || X <- [notfail]].
 
 tag_filters(DocName, #{conn := Conn} = State) ->
   TableName = atom_to_list(DocName),

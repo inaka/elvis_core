@@ -327,13 +327,23 @@ verify_operator_spaces(Config) ->
     Arrow = #{rules => [{left, "->"}]},
     [] = elvis_core_apply_rule(Config, elvis_style, operator_spaces, Arrow, Path),
 
+    BarOptions = #{rules => [{right, "|"}, {left, "|"}]},
+    [_, _] = elvis_core_apply_rule(Config, elvis_style, operator_spaces, BarOptions, Path),
+
+    ComprehensionOperation = #{rules => [{right, "||"}, {left, "||"}]},
+    [_, _] = elvis_core_apply_rule(Config, elvis_style, operator_spaces, ComprehensionOperation, Path),
+
     AllOptions = #{rules => [{right, ","},
                              {right, "++"},
                              {left, "++"},
                              {right, "+"},
                              {left, "+"},
-                             {left, "->"}]},
-    [_, _, _, _, _, _] =
+                             {left, "->"},
+                             {right, "|"},
+                             {left, "|"},
+                             {right, "||"},
+                             {left, "||"}]},
+    [_, _, _, _, _, _, _, _, _, _] =
         elvis_core_apply_rule(Config, elvis_style, operator_spaces, AllOptions, Path).
 
 -spec verify_operator_spaces_latin1(config()) -> any().
