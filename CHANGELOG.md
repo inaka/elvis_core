@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.1.2](https://github.com/inaka/elvis_core/tree/1.1.2) (2021-03-24)
+
+[Full Changelog](https://github.com/inaka/elvis_core/compare/1.1.1...1.1.2)
+
+**Fixed bugs:**
+
+- -\> at the beginning of the line makes the linter crash [\#183](https://github.com/inaka/elvis_core/issues/183)
+
+**Closed issues:**
+
+- Analysis not working over umbrella apps [\#178](https://github.com/inaka/elvis_core/issues/178)
+
+**Merged pull requests:**
+
+- allow checking spaces around | and || [\#187](https://github.com/inaka/elvis_core/pull/187) ([z8674558](https://github.com/z8674558))
+- Further adapt to OTP 24 while bumping some dep.s [\#185](https://github.com/inaka/elvis_core/pull/185) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+- Prevent crash for operators being analyzed at the left-most line position [\#184](https://github.com/inaka/elvis_core/pull/184) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+- Fix a crash happening when a macro is also an atom \(as a function\) [\#181](https://github.com/inaka/elvis_core/pull/181) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+- Fix analysis over umbrella apps [\#179](https://github.com/inaka/elvis_core/pull/179) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+- Ease consumption of warning [\#176](https://github.com/inaka/elvis_core/pull/176) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+
 ## [1.1.1](https://github.com/inaka/elvis_core/tree/1.1.1) (2021-02-08)
 
 [Full Changelog](https://github.com/inaka/elvis_core/compare/1.1.0...1.1.1)
