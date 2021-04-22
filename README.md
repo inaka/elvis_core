@@ -231,7 +231,7 @@ You can find examples for  configuration files in this project's `config` direct
 ## Implemented Rules
 
 A reference of all rules implemented in Elvis can be found in this wiki page:
-[Rules](https://github.com/inaka/elvis/wiki/Rules).
+[Rules](https://github.com/inaka/elvis_core/wiki/Rules).
 
 ### Custom Rules
 
