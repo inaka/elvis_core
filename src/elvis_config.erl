@@ -33,8 +33,8 @@
 -spec from_rebar(string()) -> configs().
 from_rebar(Path) ->
     case file:consult(Path) of
-        {ok, Config} ->
-            load(elvis, Config);
+        {ok, AppConfig} ->
+            load(AppConfig);
         {error, Reason} ->
             throw(Reason)
     end.
@@ -42,18 +42,18 @@ from_rebar(Path) ->
 -spec from_file(string()) -> configs().
 from_file(Path) ->
     case file:consult(Path) of
-        {ok, [Config]} ->
-            load(elvis, Config);
+        {ok, [AppConfig]} ->
+            load(AppConfig);
         {error, Reason} ->
             throw(Reason)
     end.
 
--spec load(atom(), term()) -> configs().
-load(Key, AppConfig) ->
-    ElvisConfig = proplists:get_value(Key, AppConfig, []),
-    Rulesets = proplists:get_value(rulesets, ElvisConfig, #{}),
-    elvis_rulesets:set_rulesets(Rulesets),
-    Config =  proplists:get_value(config, ElvisConfig, []),
+-spec load(term()) -> configs().
+load(AppConfig) ->
+    ElvisConfig = proplists:get_value(elvis, AppConfig, []),
+    RulesetsConfig = proplists:get_value(rulesets, ElvisConfig, #{}),
+    elvis_rulesets:set_rulesets(RulesetsConfig),
+    Config = proplists:get_value(config, ElvisConfig, []),
     ensure_config_list(Config).
 
 ensure_config_list(Config) when is_map(Config) ->
