@@ -49,8 +49,8 @@ from_file(Path, Key, Default) ->
     case file:consult(Path) of
         {ok, [AppConfig]} ->
             load(Key, load_initial(AppConfig), Default);
-        {error, Reason} ->
-            throw(Reason)
+        {error, _Reason} ->
+            Default
     end.
 
 -spec from_application_or_config(atom(), term()) -> term().
