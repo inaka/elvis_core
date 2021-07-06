@@ -55,7 +55,12 @@ from_file(Path, Key, Default) ->
 
 -spec from_application_or_config(atom(), term()) -> term().
 from_application_or_config(Key, Default) ->
-    application:get_env(elvis_core, Key, from_file("elvis.config", Key, Default)).
+    case application:get_env(elvis_core, Key) of
+        {ok, Value} ->
+            Value;
+        _ ->
+            from_file("elvis.config", Key, Default)
+    end.
 
 -spec load(atom(), term(), term()) -> configs().
 load(Key, ElvisConfig, Default) ->
