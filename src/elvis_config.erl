@@ -34,31 +34,39 @@
 from_rebar(Path) ->
     case file:consult(Path) of
         {ok, AppConfig} ->
-            load(AppConfig);
+            load(config, load_initial(AppConfig), []);
         {error, Reason} ->
             throw(Reason)
     end.
 
 -spec from_file(string()) -> configs().
 from_file(Path) ->
+    from_file(Path, config, []).
+
+-spec from_file(string(), atom(), term()) -> configs().
+from_file(Path, Key, Default) ->
     case file:consult(Path) of
         {ok, [AppConfig]} ->
-            load(AppConfig);
+            load(Key, load_initial(AppConfig), Default);
         {error, Reason} ->
             throw(Reason)
     end.
 
--spec load(term()) -> configs().
-load(AppConfig) ->
+
+-spec load(atom(), term(), term()) -> configs().
+load(Key, ElvisConfig, Default) ->
+    ensure_config_list(Key, proplists:get_value(Key, ElvisConfig, Default)).
+
+-spec load_initial(term()) -> [term()].
+load_initial(AppConfig) ->
     ElvisConfig = proplists:get_value(elvis, AppConfig, []),
     RulesetsConfig = proplists:get_value(rulesets, ElvisConfig, #{}),
     elvis_rulesets:set_rulesets(RulesetsConfig),
-    Config = proplists:get_value(config, ElvisConfig, []),
-    ensure_config_list(Config).
+    ElvisConfig.
 
-ensure_config_list(Config) when is_map(Config) ->
+ensure_config_list(config, Config) when is_map(Config) ->
     [Config];
-ensure_config_list(Config) ->
+ensure_config_list(_Other, Config) ->
     Config.
 
 -spec validate(Config::configs()) -> ok.
