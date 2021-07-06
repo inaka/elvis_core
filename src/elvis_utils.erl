@@ -170,15 +170,15 @@ warn_prn(Message, Args) ->
 
 -spec print_info(string(), [term()]) -> ok.
 print_info(Message, Args) ->
-    case application:get_env(elvis_core, verbose) of
-        {ok, true} -> print(Message, Args);
-        _ -> ok
+    case elvis_config:from_application_or_config(verbose, false) of
+        true -> print(Message, Args);
+        false -> ok
     end.
 
 -spec print(string(), [term()]) -> ok.
 print(Message, Args) ->
-    case application:get_env(elvis_core, no_output) of
-        {ok, true} -> ok;
+    case elvis_config:from_application_or_config(no_output, false) of
+        true -> ok;
         _ ->
             Output = io_lib:format(Message, Args),
             EscapedOutput = escape_format_str(Output),
@@ -197,7 +197,7 @@ parse_colors(Message) ->
                "magenta" => "\e[1;35m",
                "reset" => "\e[0m"},
     Opts = [global, {return, list}],
-    case application:get_env(elvis_core, output_format, colors) of
+    case elvis_config:from_application_or_config(output_format, colors) of
         P when P =:= plain orelse
                P =:= parsable ->
             re:replace(Message, "{{.*?}}", "", Opts);

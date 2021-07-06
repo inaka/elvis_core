@@ -2,6 +2,7 @@
 
 -export([ from_rebar/1
         , from_file/1
+        , from_application_or_config/2
         , validate/1
         , normalize/1
           %% Geters
@@ -52,6 +53,9 @@ from_file(Path, Key, Default) ->
             throw(Reason)
     end.
 
+-spec from_application_or_config(atom(), term()) -> term().
+from_application_or_config(Key, Default) ->
+    application:get_env(elvis_core, Key, from_file("elvis.config", Key, Default)).
 
 -spec load(atom(), term(), term()) -> configs().
 load(Key, ElvisConfig, Default) ->
