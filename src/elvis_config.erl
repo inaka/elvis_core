@@ -49,6 +49,8 @@ from_file(Path, Key, Default) ->
     case file:consult(Path) of
         {ok, [AppConfig]} ->
             load(Key, load_initial(AppConfig), Default);
+        {error, {_Line, _Mod, _Term} = Reason} ->
+            throw(Reason);
         {error, _Reason} ->
             Default
     end.
