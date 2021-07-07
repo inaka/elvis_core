@@ -228,6 +228,11 @@ The default value for `parallel` is `1`.
 
 You can find examples for  configuration files in this project's `config` directory.
 
+## Application environment
+
+Options `output_format`, `verbose`, `no_output`, and `parallel` can also be set as application-level
+environment variables, i.e. as they would be found by `application:get_env/2,3`.
+
 ## Implemented Rules
 
 A reference of all rules implemented in Elvis can be found in this wiki page:
