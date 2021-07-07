@@ -2,6 +2,7 @@
 
 -export([ from_rebar/1
         , from_file/1
+        , from_application_or_config/2
         , validate/1
         , normalize/1
           %% Geters
@@ -33,32 +34,50 @@
 -spec from_rebar(string()) -> configs().
 from_rebar(Path) ->
     case file:consult(Path) of
-        {ok, Config} ->
-            load(elvis, Config);
+        {ok, AppConfig} ->
+            load(config, load_initial(AppConfig), []);
         {error, Reason} ->
             throw(Reason)
     end.
 
 -spec from_file(string()) -> configs().
 from_file(Path) ->
+    from_file(Path, config, []).
+
+-spec from_file(string(), atom(), term()) -> configs().
+from_file(Path, Key, Default) ->
     case file:consult(Path) of
-        {ok, [Config]} ->
-            load(elvis, Config);
-        {error, Reason} ->
-            throw(Reason)
+        {ok, [AppConfig]} ->
+            load(Key, load_initial(AppConfig), Default);
+        {error, {_Line, _Mod, _Term} = Reason} ->
+            throw(Reason);
+        {error, _Reason} ->
+            Default
     end.
 
--spec load(atom(), term()) -> configs().
-load(Key, AppConfig) ->
-    ElvisConfig = proplists:get_value(Key, AppConfig, []),
-    Rulesets = proplists:get_value(rulesets, ElvisConfig, #{}),
-    elvis_rulesets:set_rulesets(Rulesets),
-    Config =  proplists:get_value(config, ElvisConfig, []),
-    ensure_config_list(Config).
+-spec from_application_or_config(atom(), term()) -> term().
+from_application_or_config(Key, Default) ->
+    case application:get_env(elvis_core, Key) of
+        {ok, Value} ->
+            Value;
+        _ ->
+            from_file("elvis.config", Key, Default)
+    end.
 
-ensure_config_list(Config) when is_map(Config) ->
+-spec load(atom(), term(), term()) -> configs().
+load(Key, ElvisConfig, Default) ->
+    ensure_config_list(Key, proplists:get_value(Key, ElvisConfig, Default)).
+
+-spec load_initial(term()) -> [term()].
+load_initial(AppConfig) ->
+    ElvisConfig = proplists:get_value(elvis, AppConfig, []),
+    RulesetsConfig = proplists:get_value(rulesets, ElvisConfig, #{}),
+    elvis_rulesets:set_rulesets(RulesetsConfig),
+    ElvisConfig.
+
+ensure_config_list(config, Config) when is_map(Config) ->
     [Config];
-ensure_config_list(Config) ->
+ensure_config_list(_Other, Config) ->
     Config.
 
 -spec validate(Config::configs()) -> ok.

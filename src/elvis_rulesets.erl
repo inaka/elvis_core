@@ -92,7 +92,7 @@ rules(Group) ->
 ensure_clean_table() ->
     case ets:info(?MODULE) of
         undefined ->
-            ets:new(?MODULE, [set, named_table, {keypos, 1}]);
+            ets:new(?MODULE, [set, named_table, {keypos, 1}, public]);
         _ ->
             true = ets:delete_all_objects(?MODULE),
             ?MODULE
