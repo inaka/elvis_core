@@ -25,6 +25,18 @@
         "Please check Elvis's GitHub repository to find out what the "
         "new format is.").
 
+% These are part of a non-declared "behaviour"
+% The reason why we don't try to handle them with different arity is
+%  that arguments are ignored in different positions (1 and 3) so that'd
+%  probably be messier than to ignore the warning
+-hank([{unnecessary_function_arguments, [
+            old_configuration_format/3,
+            no_deps_master_rebar/3,
+            no_deps_master_erlang_mk/3,
+            protocol_for_deps_rebar/3,
+            protocol_for_deps_erlang_mk/3
+       ]}]).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

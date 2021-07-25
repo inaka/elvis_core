@@ -30,15 +30,6 @@
 -export_type([empty_rule_config/0]).
 -export_type([ignorable/0]).
 
--define(LINE_LENGTH_MSG, "Line ~p is too long: ~s.").
-
--define(NO_TABS_MSG, "Line ~p has a tab at column ~p.").
-
--define(NO_SPACES_MSG, "Line ~p has a spaces at column ~p.").
-
--define(NO_TRAILING_WHITESPACE_MSG,
-        "Line ~b has ~b trailing whitespace characters.").
-
 -define(INVALID_MACRO_NAME_REGEX_MSG,
         "The macro named ~p on line ~p does not respect the format "
         "defined by the regular expression '~p'.").

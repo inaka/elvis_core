@@ -17,6 +17,17 @@
 -define(NO_TRAILING_WHITESPACE_MSG,
         "Line ~b has ~b trailing whitespace characters.").
 
+% These are part of a non-declared "behaviour"
+% The reason why we don't try to handle them with different arity is
+%  that arguments are ignored in different positions (1 and 3) so that'd
+%  probably be messier than to ignore the warning
+-hank([{unnecessary_function_arguments, [
+            no_trailing_whitespace/3,
+            no_spaces/3,
+            no_tabs/3,
+            line_length/3
+       ]}]).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -62,7 +73,7 @@ line_length(_Config, Target, RuleConfig) ->
     [elvis_result:item()].
 no_tabs(_Config, Target, _RuleConfig) ->
     {Src, _} = elvis_file:src(Target),
-    elvis_utils:check_lines(Src, fun check_no_tabs/3, []).
+    elvis_utils:check_lines(Src, fun check_no_tabs/2, []).
 
 -spec no_spaces(elvis_config:config(),
                 elvis_file:file(),
@@ -70,7 +81,7 @@ no_tabs(_Config, Target, _RuleConfig) ->
     [elvis_result:item()].
 no_spaces(_Config, Target, _RuleConfig) ->
     {Src, _} = elvis_file:src(Target),
-    elvis_utils:check_lines(Src, fun check_no_spaces/3, []).
+    elvis_utils:check_lines(Src, fun check_no_spaces/2, []).
 
 -type no_trailing_whitespace_config() :: #{ ignore => [module()],
                                             ignore_empty_lines => boolean()
@@ -135,9 +146,9 @@ check_line_length(Line, Num, [Limit, Encoding]) ->
 
 %% No Tabs
 
--spec check_no_tabs(binary(), integer(), [term()]) ->
+-spec check_no_tabs(binary(), integer()) ->
     no_result | {ok, elvis_result:item()}.
-check_no_tabs(Line, Num, _Args) ->
+check_no_tabs(Line, Num) ->
     case binary:match(Line, <<"\t">>) of
         nomatch ->
             no_result;
@@ -150,9 +161,9 @@ check_no_tabs(Line, Num, _Args) ->
 
 %% No Spaces
 
--spec check_no_spaces(binary(), integer(), [term()]) ->
+-spec check_no_spaces(binary(), integer()) ->
     no_result | {ok, elvis_result:item()}.
-check_no_spaces(Line, Num, _Args) ->
+check_no_spaces(Line, Num) ->
     case re:run(Line, <<"^\t* ">>) of
         nomatch ->
             no_result;
