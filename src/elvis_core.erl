@@ -192,7 +192,8 @@ apply_rule({Module, Function, ConfigArgs}, {Result, Config, File}) ->
             case lists:member(AnalyzedModule, Ignores) of
                 false ->
                     FilteredConfigMap
-                        = ConfigMap#{ ignore => lists:delete(AnalyzedModule, Ignores) },
+                        = maps:merge(ConfigMap#{ ignore => lists:delete(AnalyzedModule, Ignores) },
+                                     ConfigArgs),
                     Results = Module:Function(Config, File, FilteredConfigMap),
                     SortFun = fun(#{line_num := L1}, #{line_num := L2}) ->
                         L1 =< L2

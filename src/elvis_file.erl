@@ -54,8 +54,10 @@ parse_tree(Config, Target) ->
 %% @doc Add the root node of the parse tree to the file data, with filtering.
 -spec parse_tree(elvis_config:configs() | elvis_config:config(), file(), elvis_core:rule_config())
     -> {ktn_code:tree_node(), file()}.
-parse_tree(_Config, File = #{parse_tree := ParseTree}, _RuleConfig) ->
-    {ParseTree, File};
+parse_tree(_Config, File = #{parse_tree := ParseTree0}, RuleConfig) ->
+    Ignore = maps:get(ignore, RuleConfig, []),
+    Mod = module(File),
+    {filter_tree_for(ParseTree0, Mod, Ignore), File};
 parse_tree(Config, File = #{path := Path, content := Content}, RuleConfig) ->
     Ext = filename:extension(Path),
     ExtStr = elvis_utils:to_str(Ext),
@@ -137,21 +139,26 @@ module(#{ path := Path }) ->
     undefined | ktn_code:tree_node().
 resolve_parse_tree(".erl", Content, Mod, Ignore) ->
     Tree = ktn_code:parse_tree(Content),
-    TreeContent = maps:get(content, Tree, []),
-    FilteredTreeContent =
-        lists:filter(fun (#{ type := function
-                           , attrs := #{ name := FunName
-                                       , arity := FunArity
-                                       }
-                           }) ->
-                             not(lists:member({Mod, FunName}, Ignore)
-                                 orelse lists:member({Mod, FunName, FunArity}, Ignore));
-                         (_) -> true
-        end,
-        TreeContent),
-    Tree#{ content => FilteredTreeContent };
+    filter_tree_for(Tree, Mod, Ignore);
 resolve_parse_tree(_, _, _, _) ->
     undefined.
+
+filter_tree_for(Tree, Mod, Ignore) when is_map(Tree) ->
+    TreeContent = maps:get(content, Tree, []),
+    Tree#{ content =>
+               lists:filter(
+                   fun (#{ type := function
+                         , attrs := #{ name := FunName
+                                     , arity := FunArity
+                                     }
+                         }) ->
+                             not(lists:member({Mod, FunName}, Ignore)
+                                 orelse lists:member({Mod, FunName, FunArity}, Ignore));
+                       (_) -> true
+                   end,
+                   TreeContent) };
+filter_tree_for(Tree, _Mod, _Ignore) ->
+    Tree.
 
 -spec find_encoding(Content::binary()) ->
   atom().
