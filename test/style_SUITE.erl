@@ -66,7 +66,8 @@
          verify_elvis_attr_used_ignored_variable/1,
          verify_elvis_attr_variable_naming_convention/1,
          %% Non-rule
-         results_are_ordered_by_line/1
+         results_are_ordered_by_line/1,
+         oddities/1
         ]).
 
 -define(EXCLUDED_FUNS,
@@ -844,6 +845,15 @@ results_are_ordered_by_line(_Config) ->
     ElvisConfig = elvis_test_utils:config(),
     {fail, Results} = elvis_core:rock(ElvisConfig),
     true = lists:all(fun(X) -> X end, is_item_line_sort(Results)).
+
+-spec oddities(config()) -> true.
+oddities(_Config) ->
+    ElvisConfig = [#{ dirs => ["../../_build/test/lib/elvis_core/test/examples"],
+                      filter => "odditiesß.erl",
+                      ruleset => erl_files,
+                      rules => [{elvis_style, god_modules, #{ limit => 0 }}] }],
+    {fail, [#{ rules := [_, _, _, _]}]} = elvis_core:rock(ElvisConfig),
+    true.
 
 -spec verify_elvis_attr_atom_naming_convention(config()) -> true.
 verify_elvis_attr_atom_naming_convention(Config) ->
