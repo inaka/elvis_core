@@ -22,11 +22,7 @@ jobs:
         with:
           otp-version: ${{matrix.otp_vsn}}
           rebar3-version: '3.15'
-      - run: rebar3 hank
-      - run: rebar3 xref
-      - run: rebar3 dialyzer
-      - run: rebar3 ct
-      - run: rebar3 cover
+      - run: rebar3 test
       - run: |
           rebar3 escriptize
           _build/default/bin/elvis_core

@@ -259,8 +259,8 @@ function_naming_convention(Config, Target, RuleConfig) ->
 
 errors_for_function_names(_Regex, []) -> [];
 errors_for_function_names(Regex, [FunctionName | RemainingFuncNames]) ->
-    FunctionNameStr = atom_to_list(FunctionName),
-    case re:run(FunctionNameStr, Regex) of
+    FunctionNameStr = unicode:characters_to_list(atom_to_list(FunctionName), unicode),
+    case re:run(FunctionNameStr, Regex, [unicode]) of
         nomatch ->
             Msg = ?FUNCTION_NAMING_CONVENTION_MSG,
             Info = [FunctionNameStr, Regex],
@@ -743,7 +743,7 @@ check_atom_names(Regex, RegexEnclosed, [AtomNode | RemainingAtomNodes], AccIn) -
     {IsEnclosed, AtomName} = string_strip_enclosed(AtomName0),
     RE = re_compile_for_atom_type(IsEnclosed, Regex, RegexEnclosed),
     AccOut
-        = case re:run(_Subject = AtomName, RE) of
+        = case re:run(_Subject = unicode:characters_to_list(AtomName, unicode), RE) of
               nomatch when not(IsEnclosed)->
                   Msg = ?ATOM_NAMING_CONVENTION_MSG,
                   {Line, _} = ktn_code:attr(location, AtomNode),
@@ -771,10 +771,10 @@ string_strip_enclosed(NonEnclosedAtomName) ->
   {IsEnclosed, NonEnclosedAtomName}.
 
 re_compile_for_atom_type(false = _IsEnclosed, Regex, _RegexEnclosed) ->
-    {ok, RE} = re:compile(Regex),
+    {ok, RE} = re:compile(Regex, [unicode]),
     RE;
 re_compile_for_atom_type(true = _IsEnclosed, _Regex, RegexEnclosed) ->
-    {ok, RE} = re:compile(RegexEnclosed),
+    {ok, RE} = re:compile(RegexEnclosed, [unicode]),
     RE.
 
 is_atom_node(MaybeAtom) ->
@@ -835,8 +835,9 @@ line_is_whitespace(Line) ->
 check_macro_names(_Regexp, [] = _MacroNodes, ResultsIn) ->
     ResultsIn;
 check_macro_names(Regexp, [MacroNode | RemainingMacroNodes], ResultsIn) ->
-    {ok, RE} = re:compile(Regexp),
-    {MacroNameStripped, MacroNameOriginal} = macro_name_from_node(MacroNode),
+    {ok, RE} = re:compile(Regexp, [unicode]),
+    {MacroNameStripped0, MacroNameOriginal} = macro_name_from_node(MacroNode),
+    MacroNameStripped = unicode:characters_to_list(MacroNameStripped0, unicode),
     ResultsOut
         = case re:run(_Subject = MacroNameStripped, RE) of
               nomatch ->
