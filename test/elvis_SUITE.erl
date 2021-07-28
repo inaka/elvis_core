@@ -1,5 +1,9 @@
 -module(elvis_SUITE).
 
+-if(?OTP_RELEASE >= 23).
+-behaviour(ct_suite).
+-endif.
+
 -export([
          all/0,
          init_per_suite/1,
