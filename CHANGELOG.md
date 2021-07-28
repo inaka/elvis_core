@@ -1,5 +1,30 @@
 # Changelog
 
+## [1.2.0](https://github.com/inaka/elvis_core/tree/1.2.0) (2021-07-28)
+
+[Full Changelog](https://github.com/inaka/elvis_core/compare/1.1.2...1.2.0)
+
+**Implemented enhancements:**
+
+- Print initial message, upon starting analysis [\#193](https://github.com/inaka/elvis_core/issues/193)
+
+**Closed issues:**
+
+- Fetch more options from elvis.config + rebar.config [\#197](https://github.com/inaka/elvis_core/issues/197)
+- Release request [\#188](https://github.com/inaka/elvis_core/issues/188)
+
+**Merged pull requests:**
+
+- Don't crash upon trying to handle unicode that Erlang accepts [\#203](https://github.com/inaka/elvis_core/pull/203) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+- Remove error-prone \_meta\_SUITE while creating alias \_test\_ [\#202](https://github.com/inaka/elvis_core/pull/202) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+- Fix function/arity filtering [\#201](https://github.com/inaka/elvis_core/pull/201) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+- Allow for analysis under rebar3\_hank [\#200](https://github.com/inaka/elvis_core/pull/200) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+- Brush up README.md [\#199](https://github.com/inaka/elvis_core/pull/199) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+- elvis.config options for application:get\_env/2,3 [\#198](https://github.com/inaka/elvis_core/pull/198) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+- Increase consumer confidence [\#195](https://github.com/inaka/elvis_core/pull/195) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+- chore\(README\): fix link to wiki [\#194](https://github.com/inaka/elvis_core/pull/194) ([z8674558](https://github.com/z8674558))
+- Move to a GitHub action \(instead of container-based\) CI approach [\#192](https://github.com/inaka/elvis_core/pull/192) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+
 ## [1.1.2](https://github.com/inaka/elvis_core/tree/1.1.2) (2021-03-24)
 
 [Full Changelog](https://github.com/inaka/elvis_core/compare/1.1.1...1.1.2)
@@ -14,6 +39,7 @@
 
 **Merged pull requests:**
 
+- Bump Version to 1.1.2 [\#189](https://github.com/inaka/elvis_core/pull/189) ([elbrujohalcon](https://github.com/elbrujohalcon))
 - allow checking spaces around | and || [\#187](https://github.com/inaka/elvis_core/pull/187) ([z8674558](https://github.com/z8674558))
 - Further adapt to OTP 24 while bumping some dep.s [\#185](https://github.com/inaka/elvis_core/pull/185) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
 - Prevent crash for operators being analyzed at the left-most line position [\#184](https://github.com/inaka/elvis_core/pull/184) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
