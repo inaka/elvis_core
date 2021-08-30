@@ -12,6 +12,8 @@
          %% General
          erlang_halt/1,
          to_str/1,
+         split_all_lines/1,
+         split_all_lines/2,
 
          %% Output
          info/1,
@@ -42,7 +44,7 @@
 -spec check_lines(binary(), fun(), term()) ->
     [elvis_result:item()].
 check_lines(Src, Fun, Args) ->
-    Lines = binary:split(Src, <<"\n">>, [global]),
+    Lines = split_all_lines(Src),
     check_lines(Lines, Fun, Args, [], 1).
 
 %% @doc Checks each line calling fun and providing the previous and next
@@ -50,7 +52,7 @@ check_lines(Src, Fun, Args) ->
 -spec check_lines_with_context(binary(), fun(), term(), line_content()) ->
     [elvis_result:item()].
 check_lines_with_context(Src, Fun, Args, Ctx) ->
-    Lines = binary:split(Src, <<"\n">>, [global]),
+    Lines = split_all_lines(Src),
     LinesContext = context(Lines, Ctx),
     check_lines(LinesContext, Fun, Args, [], 1).
 
@@ -120,6 +122,14 @@ to_str(Arg) when is_integer(Arg) ->
     integer_to_list(Arg);
 to_str(Arg) when is_list(Arg) ->
     Arg.
+
+-spec split_all_lines(binary()) -> [binary()].
+split_all_lines(Binary) ->
+    split_all_lines(Binary, []).
+
+-spec split_all_lines(binary(), list()) -> [binary()].
+split_all_lines(Binary, Opts) ->
+    binary:split(Binary, [<<"\r\n">>, <<"\n">>], [global | Opts]).
 
 %% @doc Takes a line, a character and a count, returning the indentation level
 %%      invalid if the number of character is not a multiple of count.

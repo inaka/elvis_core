@@ -1,0 +1,5 @@
+# Never modify line endings of our newline-covering test cases
+test/examples/fail_no_trailing_whitespace.erl -crlf
+test/examples/fail_operator_spaces.erl -crlf
+test/examples/pass_no_trailing_whitespace_elvis_attr.erl -crlf
+test/examples/pass_operator_spaces_elvis_attr.erl -crlf

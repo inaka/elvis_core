@@ -15,6 +15,7 @@
         , function6/0
         , function7/0
         , tag_filters/2
+        , windows_newlines/0
         , unicode_characters/0
         ]).
 
@@ -78,3 +79,8 @@ unicode_characters() ->
   <<"©"/utf8>> = <<"\\u00A9">> ,
   <<"ß"/utf8>> = <<"\\o337">> ,
   ok.
+
+windows_newlines() ->
+    <<_/bytes>> = <<"Foo" ,
+                    "bar">> ,
+    ok.
