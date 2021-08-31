@@ -123,7 +123,7 @@ to_str(Arg) when is_integer(Arg) ->
 to_str(Arg) when is_list(Arg) ->
     Arg.
 
--spec split_all_lines(binary()) -> [binary()].
+-spec split_all_lines(binary()) -> [binary(), ...].
 split_all_lines(Binary) ->
     split_all_lines(Binary, []).
 
