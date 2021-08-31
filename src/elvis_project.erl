@@ -267,7 +267,7 @@ is_erlang_mk_not_git_dep(Line, Regex) ->
 
 get_erlang_mk_deps(File) ->
     {Src, _} = elvis_file:src(File),
-    Lines = binary:split(Src, <<"\n">>, [global]),
+    Lines = elvis_utils:split_all_lines(Src),
     Opts = [{capture, all_but_first, binary}],
     IsDepsLine =
       fun(Line) ->

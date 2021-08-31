@@ -328,7 +328,7 @@ operator_spaces(Config, Target, RuleConfig) ->
     Tokens = ktn_code:attr(tokens, Root),
     PunctuationTokens = lists:filter(fun is_punctuation_token/1, Tokens),
 
-    Lines = binary:split(Src, <<"\n">>, [global]),
+    Lines = elvis_utils:split_all_lines(Src),
     AllNodes = OpNodes ++ PunctuationTokens,
 
     FlatMap = fun(Rule) ->
@@ -577,7 +577,7 @@ max_module_length(Config, Target, RuleConfig) ->
                     andalso (CountWhitespace
                              orelse (not line_is_whitespace(Line)))
         end,
-    Lines = case binary:split(Src, <<"\n">>, [global, trim]) of
+    Lines = case elvis_utils:split_all_lines(Src, [trim]) of
                 Ls when CountComments andalso CountWhitespace -> Ls;
                 Ls -> lists:filter(FilterFun, Ls)
             end,
@@ -603,7 +603,7 @@ max_function_length(Config, Target, RuleConfig) ->
 
     Root = get_root(Config, Target, RuleConfig),
     {Src, _} = elvis_file:src(Target),
-    Lines = binary:split(Src, <<"\n">>, [global, trim]),
+    Lines = elvis_utils:split_all_lines(Src, [trim]),
 
     IsFunction = fun(Node) -> ktn_code:type(Node) == function end,
     Functions0 = elvis_code:find(IsFunction, Root),
