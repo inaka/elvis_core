@@ -374,7 +374,7 @@ find_file_and_check_src(_Config) ->
     [] = elvis_file:find_files(Dirs, "doesnt_exist.erl"),
     [File] = elvis_file:find_files(Dirs, "small.erl"),
 
-    {<<"-module(small).", LineBreak>>, _} = elvis_file:src(File),
+    {<<"-module(small).", LineBreak/binary>>, _} = elvis_file:src(File),
     LineBreak
         = case os:type() of
             {unix, _} -> <<"\n">>;
