@@ -43,8 +43,10 @@
          verify_no_call/1,
          verify_no_nested_try_catch/1,
          verify_atom_naming_convention/1,
+         verify_numeric_format/1,
          %% -elvis attribute
          verify_elvis_attr_atom_naming_convention/1,
+         verify_elvis_attr_numeric_format/1,
          verify_elvis_attr_dont_repeat_yourself/1,
          verify_elvis_attr_function_naming_convention/1,
          verify_elvis_attr_god_modules/1,
@@ -844,6 +846,53 @@ verify_atom_naming_convention(Config) ->
                 = elvis_core_apply_rule(Config, elvis_style, atom_naming_convention, #{ regex => KeepRegex, enclosed_atoms => "^([\\\\][\-a-z0-9A-Z_' \\\\]*)$" }, FailPath)
     end.
 
+-spec verify_numeric_format(config()) -> any().
+verify_numeric_format(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    BaseRegex = "^[^_]+$",
+
+    % pass
+
+    PassModule = pass_numeric_format,
+    PassPath = atom_to_list(PassModule) ++ "." ++ Ext,
+
+    [] = elvis_core_apply_rule(Config, elvis_style, numeric_format, #{ regex => BaseRegex }, PassPath),
+
+    % fail
+
+    FailModule = fail_numeric_format,
+    FailPath = atom_to_list(FailModule) ++ "." ++ Ext,
+
+    [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_] % no underscores
+        = elvis_core_apply_rule(Config, elvis_style, numeric_format, #{ regex => BaseRegex,
+                                                                        int_regex => same,
+                                                                        float_regex => same }, FailPath),
+    [_,_,_,_,_,_,_,_,_,_,_] % with at least 2 digits
+        = elvis_core_apply_rule(Config, elvis_style, numeric_format, #{ regex => "^(.*\\d\\d)$",
+                                                                        int_regex => same,
+                                                                        float_regex => same }, FailPath),
+    [_,_,_,_] % only base 10
+        = elvis_core_apply_rule(Config, elvis_style, numeric_format, #{ regex => "^([^#]+)$",
+                                                                        int_regex => same,
+                                                                        float_regex => same }, FailPath),
+    [_,_,_,_,_,_,_,_,_,_,_,_,_,_] % any float, nothing else - impossible to match base regex
+        = elvis_core_apply_rule(Config, elvis_style, numeric_format, #{ regex => "impossible-to-match",
+                                                                        int_regex => same,
+                                                                        float_regex => ".*" }, FailPath),
+    [_,_,_,_] % any integer, nothing else - impossible to match base regex
+        = elvis_core_apply_rule(Config, elvis_style, numeric_format, #{ regex => "impossible-to-match",
+                                                                        int_regex => ".*",
+                                                                        float_regex => same }, FailPath),
+    [] % base regex is ignored
+        = elvis_core_apply_rule(Config, elvis_style, numeric_format, #{ regex => "impossible-to-match",
+                                                                        int_regex => ".*",
+                                                                        float_regex => ".*" }, FailPath),
+    [] % ignored module
+        = elvis_core_apply_rule(Config, elvis_style, numeric_format, #{ regex => BaseRegex,
+                                                                        ignore => [FailModule] }, FailPath),
+    true.
+
 -spec results_are_ordered_by_line(config()) -> true.
 results_are_ordered_by_line(_Config) ->
     ElvisConfig = elvis_test_utils:config(),
@@ -862,6 +911,10 @@ oddities(_Config) ->
 -spec verify_elvis_attr_atom_naming_convention(config()) -> true.
 verify_elvis_attr_atom_naming_convention(Config) ->
     verify_elvis_attr(Config, "pass_atom_naming_convention_elvis_attr").
+
+-spec verify_elvis_attr_numeric_format(config()) -> true.
+verify_elvis_attr_numeric_format(Config) ->
+    verify_elvis_attr(Config, "pass_numeric_format_elvis_attr").
 
 -spec verify_elvis_attr_dont_repeat_yourself(config()) -> true.
 verify_elvis_attr_dont_repeat_yourself(Config) ->
