@@ -24,6 +24,7 @@
          no_common_caveats_call/3,
          no_nested_try_catch/3,
          atom_naming_convention/3,
+         numeric_format/3,
          option/3
         ]).
 
@@ -119,6 +120,10 @@
 
 -define(ATOM_NAMING_CONVENTION_MSG,
         "Atom ~p on line ~p does not respect the format "
+        "defined by the regular expression '~p'.").
+
+-define(NUMERIC_FORMAT_MSG,
+        "Number ~p on line ~p does not respect the format "
         "defined by the regular expression '~p'.").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -221,6 +226,13 @@ default(no_common_caveats_call) ->
 default(atom_naming_convention) ->
     #{ regex => "^([a-z][a-z0-9]*_?)*(_SUITE)?$"
      , enclosed_atoms => ".*"
+     };
+
+%% Not restrictive. Those who want more restrictions can set it like "^[^_]*$"
+default(numeric_format) ->
+    #{ regex => ".*"
+     , int_regex => same
+     , float_regex => same
      }.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -719,22 +731,70 @@ no_nested_try_catch(Config, Target, RuleConfig) ->
 atom_naming_convention(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
     Regex = option(regex, RuleConfig, atom_naming_convention),
-    RegexEnclosed
-        = enclosed_atoms_regex_or_same(option(enclosed_atoms,
-                                              RuleConfig,
-                                              atom_naming_convention),
-                                       Regex),
+    RegexEnclosed = specific_or_default(option(enclosed_atoms,
+                                               RuleConfig,
+                                               atom_naming_convention),
+                                        Regex),
     AtomNodes = elvis_code:find(fun is_atom_node/1, Root, #{traverse => all, mode => node}),
     check_atom_names(Regex, RegexEnclosed, AtomNodes, []).
+
+-type numeric_format_config() :: #{ ignore => [ignorable()]
+                                  , regex => string()
+                                  , int_regex => same | string()
+                                  , float_regex => same | string()
+                                  }.
+
+-spec numeric_format(elvis_config:config(),
+                     elvis_file:file(),
+                     numeric_format_config()) ->
+    [elvis_result:item()].
+numeric_format(Config, Target, RuleConfig) ->
+    Root = get_root(Config, Target, RuleConfig),
+    Regex = option(regex, RuleConfig, numeric_format),
+    IntRegex = specific_or_default(option(int_regex,
+                                          RuleConfig,
+                                          numeric_format),
+                                   Regex),
+    FloatRegex = specific_or_default(option(float_regex,
+                                            RuleConfig,
+                                            numeric_format),
+                                     Regex),
+    IntNodes = elvis_code:find(fun is_integer_node/1, Root, #{traverse => all, mode => node}),
+    FloatNodes = elvis_code:find(fun is_float_node/1, Root, #{traverse => all, mode => node}),
+    check_numeric_format(IntRegex,
+                         IntNodes,
+                         check_numeric_format(FloatRegex, FloatNodes, [])).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-enclosed_atoms_regex_or_same(same, Regex) ->
+specific_or_default(same, Regex) ->
     Regex;
-enclosed_atoms_regex_or_same(RegexEnclosed, _Regex) ->
+specific_or_default(RegexEnclosed, _Regex) ->
     RegexEnclosed.
+
+check_numeric_format(_Regex, [], Acc) ->
+    lists:reverse(Acc);
+check_numeric_format(Regex, [NumNode | RemainingNumNodes], AccIn) ->
+    Number = ktn_code:attr(text, NumNode),
+    AccOut =
+        case re:run(Number, Regex) of
+            nomatch ->
+                {Line, _} = ktn_code:attr(location, NumNode),
+                Result = elvis_result:new(
+                            item, ?NUMERIC_FORMAT_MSG, [Number, Line, Regex]),
+                [Result|AccIn];
+            {match, _} ->
+                AccIn
+        end,
+    check_numeric_format(Regex, RemainingNumNodes, AccOut).
+
+is_integer_node(Node) ->
+    ktn_code:type(Node) =:= integer.
+
+is_float_node(Node) ->
+    ktn_code:type(Node) =:= float.
 
 check_atom_names(_Regex, _RegexEnclosed, [] = _AtomNodes, Acc) ->
     Acc;
