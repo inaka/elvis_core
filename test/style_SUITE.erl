@@ -550,6 +550,20 @@ verify_state_record_and_type(Config) ->
     PathPassGenStateMState = "fail_state_record_and_type_gen_statem_state." ++ Ext,
     [_] = elvis_core_apply_rule(Config, elvis_style, state_record_and_type, #{}, PathPassGenStateMState).
 
+-spec verify_incorrect_behaviour_spelling(config()) -> any().
+verify_incorrect_behaviour_spelling(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PathFail = "british_behaviour_spelling." ++ Ext,
+    [_, _, _] = elvis_core_apply_rule(Config, elvis_style, incorrect_behaviour_spelling, #{spelling_type => american}, PathFail),
+    PathFail1 = "american_behavior_spelling." ++ Ext,
+    [_, _, _] = elvis_core_apply_rule(Config, elvis_style, incorrect_behaviour_spelling, #{spelling_type => british}, PathFail1),
+
+    PathPass = "british_behaviour_spelling." ++ Ext,
+    [] = elvis_core_apply_rule(Config, elvis_style, incorrect_behaviour_spelling, #{spelling_type => british}, PathPass),
+    PathPass1 = "american_behavior_spelling." ++ Ext,
+    [] = elvis_core_apply_rule(Config, elvis_style, incorrect_behaviour_spelling, #{spelling_type => american}, PathPass1).
+
 -spec verify_no_spec_with_records(config()) -> any().
 verify_no_spec_with_records(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
