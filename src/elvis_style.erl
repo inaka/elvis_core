@@ -25,7 +25,7 @@
          no_nested_try_catch/3,
          atom_naming_convention/3,
          numeric_format/3,
-         incorrect_behaviour_spelling/3,
+         behaviour_spelling/3,
          option/3
         ]).
 
@@ -127,9 +127,9 @@
         "Number ~p on line ~p does not respect the format "
         "defined by the regular expression '~p'.").
 
--define(INCORRECT_BEHAVIOUR_SPELLING(SpellingType),
+-define(BEHAVIOUR_SPELLING(SpellingType),
         "The behavior/behaviour in line ~p is misspelt, please use the "
-        ++ SpellingType ++ " spelling.").
+        ++ atom_to_list(SpellingType) ++ " spelling.").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
@@ -238,11 +238,11 @@ default(numeric_format) ->
     #{ regex => ".*"
      , int_regex => same
      , float_regex => same
-     }.
-
-default(incorrect_behaviour_spelling) ->
-    #{ spelling_type => american
      };
+
+default(behaviour_spelling) ->
+    #{ spelling_type => behavior
+     }.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Rules
@@ -774,27 +774,27 @@ numeric_format(Config, Target, RuleConfig) ->
                          IntNodes,
                          check_numeric_format(FloatRegex, FloatNodes, [])).
 
--spec incorrect_behaviour_spelling(elvis_config:config(),
+-spec behaviour_spelling(elvis_config:config(),
                                    elvis_file:file(),
                                    empty_rule_config()) ->
     [elvis_result:item()].
-incorrect_behaviour_spelling(Config, Target, RuleConfig) ->
-    SpellingType = option(spelling_type, RuleConfig, incorrect_behaviour_spelling),
+behaviour_spelling(Config, Target, RuleConfig) ->
+    SpellingType = option(spelling_type, RuleConfig, behaviour_spelling),
     Root = get_root(Config, Target, RuleConfig),
     Predicate =
         fun(Node) ->
-            NodeType = ktn_code:type(Node)
+            NodeType = ktn_code:type(Node),
             case {NodeType, SpellingType} of
-                {behavior, british}   -> true;
-                {behaviour, american} -> true;
+                {behavior, behaviour}   -> true;
+                {behaviour, behavior} -> true;
                 _                     -> false
             end
         end,
     case elvis_code:find(Predicate, Root) of
         [] -> [];
         InconsistentBehaviorNodes ->
-            ResultFun = result_node_line_fun(?INCORRECT_BEHAVIOuR_SPELLING(SpellingType)),
-            lists:map(ResultFun, SpecNodes)
+            ResultFun = result_node_line_fun(?BEHAVIOUR_SPELLING(SpellingType)),
+            lists:map(ResultFun, InconsistentBehaviorNodes)
     end.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

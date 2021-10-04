@@ -71,6 +71,7 @@
          verify_elvis_attr_state_record_and_type/1,
          verify_elvis_attr_used_ignored_variable/1,
          verify_elvis_attr_variable_naming_convention/1,
+         verify_behaviour_spelling/1,
          %% Non-rule
          results_are_ordered_by_line/1,
          oddities/1
@@ -550,19 +551,19 @@ verify_state_record_and_type(Config) ->
     PathPassGenStateMState = "fail_state_record_and_type_gen_statem_state." ++ Ext,
     [_] = elvis_core_apply_rule(Config, elvis_style, state_record_and_type, #{}, PathPassGenStateMState).
 
--spec verify_incorrect_behaviour_spelling(config()) -> any().
-verify_incorrect_behaviour_spelling(Config) ->
+-spec verify_behaviour_spelling(config()) -> any().
+verify_behaviour_spelling(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     PathFail = "british_behaviour_spelling." ++ Ext,
-    [_, _, _] = elvis_core_apply_rule(Config, elvis_style, incorrect_behaviour_spelling, #{spelling_type => american}, PathFail),
+    [_] = elvis_core_apply_rule(Config, elvis_style, behaviour_spelling, #{spelling_type => behavior}, PathFail),
     PathFail1 = "american_behavior_spelling." ++ Ext,
-    [_, _, _] = elvis_core_apply_rule(Config, elvis_style, incorrect_behaviour_spelling, #{spelling_type => british}, PathFail1),
+    [_] = elvis_core_apply_rule(Config, elvis_style, behaviour_spelling, #{spelling_type => behaviour}, PathFail1),
 
     PathPass = "british_behaviour_spelling." ++ Ext,
-    [] = elvis_core_apply_rule(Config, elvis_style, incorrect_behaviour_spelling, #{spelling_type => british}, PathPass),
+    [] = elvis_core_apply_rule(Config, elvis_style, behaviour_spelling, #{spelling_type => behaviour}, PathPass),
     PathPass1 = "american_behavior_spelling." ++ Ext,
-    [] = elvis_core_apply_rule(Config, elvis_style, incorrect_behaviour_spelling, #{spelling_type => american}, PathPass1).
+    [] = elvis_core_apply_rule(Config, elvis_style, behaviour_spelling, #{spelling_type => behavior}, PathPass1).
 
 -spec verify_no_spec_with_records(config()) -> any().
 verify_no_spec_with_records(Config) ->

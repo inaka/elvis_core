@@ -1,4 +1,4 @@
--module(british_behavior_spelling).
+-module(american_behavior_spelling).
 
 -dialyzer(no_behaviours).
 
