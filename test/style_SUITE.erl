@@ -556,14 +556,14 @@ verify_behaviour_spelling(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     PathFail = "british_behaviour_spelling." ++ Ext,
-    [_] = elvis_core_apply_rule(Config, elvis_style, behaviour_spelling, #{spelling_type => behavior}, PathFail),
+    [_] = elvis_core_apply_rule(Config, elvis_style, behaviour_spelling, #{spelling => behavior}, PathFail),
     PathFail1 = "american_behavior_spelling." ++ Ext,
-    [_] = elvis_core_apply_rule(Config, elvis_style, behaviour_spelling, #{spelling_type => behaviour}, PathFail1),
+    [_] = elvis_core_apply_rule(Config, elvis_style, behaviour_spelling, #{spelling => behaviour}, PathFail1),
 
     PathPass = "british_behaviour_spelling." ++ Ext,
-    [] = elvis_core_apply_rule(Config, elvis_style, behaviour_spelling, #{spelling_type => behaviour}, PathPass),
+    [] = elvis_core_apply_rule(Config, elvis_style, behaviour_spelling, #{spelling => behaviour}, PathPass),
     PathPass1 = "american_behavior_spelling." ++ Ext,
-    [] = elvis_core_apply_rule(Config, elvis_style, behaviour_spelling, #{spelling_type => behavior}, PathPass1).
+    [] = elvis_core_apply_rule(Config, elvis_style, behaviour_spelling, #{spelling => behavior}, PathPass1).
 
 -spec verify_no_spec_with_records(config()) -> any().
 verify_no_spec_with_records(Config) ->

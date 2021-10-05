@@ -127,9 +127,9 @@
         "Number ~p on line ~p does not respect the format "
         "defined by the regular expression '~p'.").
 
--define(BEHAVIOUR_SPELLING(SpellingType),
+-define(BEHAVIOUR_SPELLING,
         "The behavior/behaviour in line ~p is misspelt, please use the "
-        ++ atom_to_list(SpellingType) ++ " spelling.").
+        "~p spelling.").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
@@ -241,7 +241,7 @@ default(numeric_format) ->
      };
 
 default(behaviour_spelling) ->
-    #{ spelling_type => behavior
+    #{ spelling => behaviour
      }.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -779,21 +779,22 @@ numeric_format(Config, Target, RuleConfig) ->
                                    empty_rule_config()) ->
     [elvis_result:item()].
 behaviour_spelling(Config, Target, RuleConfig) ->
-    SpellingType = option(spelling_type, RuleConfig, behaviour_spelling),
+    Spelling = option(spelling, RuleConfig, behaviour_spelling),
     Root = get_root(Config, Target, RuleConfig),
     Predicate =
         fun(Node) ->
             NodeType = ktn_code:type(Node),
-            case {NodeType, SpellingType} of
-                {behavior, behaviour}   -> true;
-                {behaviour, behavior} -> true;
-                _                     -> false
-            end
+            lists:member(NodeType, [behaviour, behavior]) andalso NodeType /= Spelling
         end,
     case elvis_code:find(Predicate, Root) of
         [] -> [];
         InconsistentBehaviorNodes ->
-            ResultFun = result_node_line_fun(?BEHAVIOUR_SPELLING(SpellingType)),
+            ResultFun = 
+                fun(Node) ->
+                    {Line, _} = ktn_code:attr(location, Node),
+                    Info = [Line, Spelling],
+                    elvis_result:new(item, ?BEHAVIOUR_SPELLING, Info, Line)
+                end,
             lists:map(ResultFun, InconsistentBehaviorNodes)
     end.
 
