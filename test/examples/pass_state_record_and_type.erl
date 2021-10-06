@@ -2,7 +2,7 @@
 
 -dialyzer(no_behaviours).
 
--behavior(gen_server).
+-behaviour(gen_server).
 
 -export([
          init/1,
