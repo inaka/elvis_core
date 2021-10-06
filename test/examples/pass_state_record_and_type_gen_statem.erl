@@ -2,7 +2,7 @@
 
 -dialyzer(no_behaviours).
 
--behavior(gen_statem).
+-behaviour(gen_statem).
 
 -export([
          init/1,

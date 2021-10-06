@@ -25,6 +25,7 @@
          no_nested_try_catch/3,
          atom_naming_convention/3,
          numeric_format/3,
+         behaviour_spelling/3,
          option/3
         ]).
 
@@ -125,6 +126,10 @@
 -define(NUMERIC_FORMAT_MSG,
         "Number ~p on line ~p does not respect the format "
         "defined by the regular expression '~p'.").
+
+-define(BEHAVIOUR_SPELLING,
+        "The behavior/behaviour in line ~p is misspelt, please use the "
+        "~p spelling.").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
@@ -233,6 +238,10 @@ default(numeric_format) ->
     #{ regex => ".*"
      , int_regex => same
      , float_regex => same
+     };
+
+default(behaviour_spelling) ->
+    #{ spelling => behaviour
      }.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -764,6 +773,30 @@ numeric_format(Config, Target, RuleConfig) ->
     check_numeric_format(IntRegex,
                          IntNodes,
                          check_numeric_format(FloatRegex, FloatNodes, [])).
+
+-spec behaviour_spelling(elvis_config:config(),
+                                   elvis_file:file(),
+                                   empty_rule_config()) ->
+    [elvis_result:item()].
+behaviour_spelling(Config, Target, RuleConfig) ->
+    Spelling = option(spelling, RuleConfig, behaviour_spelling),
+    Root = get_root(Config, Target, RuleConfig),
+    Predicate =
+        fun(Node) ->
+            NodeType = ktn_code:type(Node),
+            lists:member(NodeType, [behaviour, behavior]) andalso NodeType /= Spelling
+        end,
+    case elvis_code:find(Predicate, Root) of
+        [] -> [];
+        InconsistentBehaviorNodes ->
+            ResultFun = 
+                fun(Node) ->
+                    {Line, _} = ktn_code:attr(location, Node),
+                    Info = [Line, Spelling],
+                    elvis_result:new(item, ?BEHAVIOUR_SPELLING, Info, Line)
+                end,
+            lists:map(ResultFun, InconsistentBehaviorNodes)
+    end.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
