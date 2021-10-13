@@ -789,7 +789,7 @@ behaviour_spelling(Config, Target, RuleConfig) ->
     case elvis_code:find(Predicate, Root) of
         [] -> [];
         InconsistentBehaviorNodes ->
-            ResultFun = 
+            ResultFun =
                 fun(Node) ->
                     {Line, _} = ktn_code:attr(location, Node),
                     Info = [Line, Spelling],
@@ -810,16 +810,20 @@ specific_or_default(RegexEnclosed, _Regex) ->
 check_numeric_format(_Regex, [], Acc) ->
     lists:reverse(Acc);
 check_numeric_format(Regex, [NumNode | RemainingNumNodes], AccIn) ->
-    Number = ktn_code:attr(text, NumNode),
     AccOut =
-        case re:run(Number, Regex) of
-            nomatch ->
-                {Line, _} = ktn_code:attr(location, NumNode),
-                Result = elvis_result:new(
-                            item, ?NUMERIC_FORMAT_MSG, [Number, Line, Regex]),
-                [Result|AccIn];
-            {match, _} ->
-                AccIn
+        case ktn_code:attr(text, NumNode) of
+            undefined ->
+                AccIn;
+            Number ->
+                case re:run(Number, Regex) of
+                    nomatch ->
+                        {Line, _} = ktn_code:attr(location, NumNode),
+                        Result = elvis_result:new(
+                                    item, ?NUMERIC_FORMAT_MSG, [Number, Line, Regex]),
+                        [Result|AccIn];
+                    {match, _} ->
+                        AccIn
+                end
         end,
     check_numeric_format(Regex, RemainingNumNodes, AccOut).
 
