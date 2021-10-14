@@ -789,7 +789,7 @@ behaviour_spelling(Config, Target, RuleConfig) ->
     case elvis_code:find(Predicate, Root) of
         [] -> [];
         InconsistentBehaviorNodes ->
-            ResultFun = 
+            ResultFun =
                 fun(Node) ->
                     {Line, _} = ktn_code:attr(location, Node),
                     Info = [Line, Spelling],
