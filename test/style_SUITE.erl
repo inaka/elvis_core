@@ -906,6 +906,14 @@ verify_numeric_format(Config) ->
     [] % ignored module
         = elvis_core_apply_rule(Config, elvis_style, numeric_format, #{ regex => BaseRegex,
                                                                         ignore => [FailModule] }, FailPath),
+
+    % ugly
+
+    UglyModule = ugly_numeric_format,
+    UglyPath = atom_to_list(UglyModule) ++ "." ++ Ext,
+
+    [] = elvis_core_apply_rule(Config, elvis_style, numeric_format, #{ regex => BaseRegex }, UglyPath),
+
     true.
 
 -spec results_are_ordered_by_line(config()) -> true.
@@ -1037,7 +1045,12 @@ elvis_core_apply_rule(Config, Module, Function, RuleConfig, Filename) ->
     {ok, File} = elvis_test_utils:find_file(SrcDirs, Filename),
     {[RulesResults], _, _} = elvis_core:apply_rule({Module, Function, RuleConfig},
                                                    {[], ElvisConfig, File}),
-    maps:get(items, RulesResults, []).
+    case RulesResults of
+        #{error_msg := Msg, info := Info} ->
+            ct:fail(Msg, Info);
+        #{items := Items} ->
+            Items
+    end.
 
 verify_elvis_attr(Config, FilenameNoExt) ->
     ElvisConfig = elvis_test_utils:config(proplists:get_value(group, Config, erl_files)),
