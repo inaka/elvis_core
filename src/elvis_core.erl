@@ -119,10 +119,11 @@ load_file_data(Config, File) ->
     end.
 
 %% @private
--spec main([]) -> ok | {fail, [elvis_result:file()]}.
+-spec main([]) -> false | no_return().
 main([]) ->
     ok = application:load(elvis_core),
-    rock(elvis_config:from_file("elvis.config")).
+    R = rock(elvis_config:from_file("elvis.config")),
+    R =/= ok andalso halt(1).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Private
