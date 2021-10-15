@@ -123,7 +123,7 @@ load_file_data(Config, File) ->
 main([]) ->
     ok = application:load(elvis_core),
     R = rock(elvis_config:from_file("elvis.config")),
-    R =/= ok andalso halt(1).
+    R =:= ok orelse halt(1).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Private
