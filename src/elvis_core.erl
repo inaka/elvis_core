@@ -119,7 +119,7 @@ load_file_data(Config, File) ->
     end.
 
 %% @private
--spec main([]) -> false | no_return().
+-spec main([]) -> true | no_return().
 main([]) ->
     ok = application:load(elvis_core),
     R = rock(elvis_config:from_file("elvis.config")),
