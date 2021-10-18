@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.3.1](https://github.com/inaka/elvis_core/tree/1.3.1) (2021-10-18)
+
+[Full Changelog](https://github.com/inaka/elvis_core/compare/1.3.0...1.3.1)
+
+**Fixed bugs:**
+
+- badarg when applying numeric\_format [\#213](https://github.com/inaka/elvis_core/issues/213)
+
+**Merged pull requests:**
+
+- Exit with `1` if `escriptize` \(from CI\) fails [\#215](https://github.com/inaka/elvis_core/pull/215) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+- Fix \#213: Handle no-text numbers in numeric\_format [\#214](https://github.com/inaka/elvis_core/pull/214) ([elbrujohalcon](https://github.com/elbrujohalcon))
+
 ## [1.3.0](https://github.com/inaka/elvis_core/tree/1.3.0) (2021-10-06)
 
 [Full Changelog](https://github.com/inaka/elvis_core/compare/1.2.0...1.3.0)
