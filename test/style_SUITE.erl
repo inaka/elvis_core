@@ -812,13 +812,18 @@ verify_atom_naming_convention(Config) ->
 
     PassModule = pass_atom_naming_convention,
     PassPath = atom_to_list(PassModule) ++ "." ++ Ext,
+    PassModule2 = pass_atom_naming_convention_exception_class,
+    PassPath2 = atom_to_list(PassModule2) ++ "." ++ Ext,
 
     [] = elvis_core_apply_rule(Config, elvis_style, atom_naming_convention, #{ regex => BaseRegex }, PassPath),
+    [] = elvis_core_apply_rule(Config, elvis_style, atom_naming_convention, #{ regex => "^[^xwyhr]*$"}, PassPath2),
 
     % fail
 
     FailModule = fail_atom_naming_convention,
     FailPath = atom_to_list(FailModule) ++ "." ++ Ext,
+    FailModule2 = fail_atom_naming_convention_exception_class,
+    FailPath2 = atom_to_list(FailModule2) ++ "." ++ Ext,
 
     [_,_,_,_,_,_,_,_,_,_]
         = elvis_core_apply_rule(Config, elvis_style, atom_naming_convention, #{ regex => BaseRegex,
@@ -852,6 +857,8 @@ verify_atom_naming_convention(Config) ->
                                                                         enclosed_atoms => "^([a-z][\-a-z0-9A-Z_]*)$" }, FailPath),
     [_,_,_,_]
         = elvis_core_apply_rule(Config, elvis_style, atom_naming_convention, #{ regex => KeepRegex, enclosed_atoms => "^([0-9a-z][\-a-z0-9A-Z_' \\\\]*)$" }, FailPath),
+    [_]
+        = elvis_core_apply_rule(Config, elvis_style, atom_naming_convention, #{ regex => "^[^xwyhr]*$" }, FailPath2),
     _ = case Group of
         beam_files -> % 'or_THIS' getting stripped of enclosing '
             [_,_,_,_]

@@ -833,14 +833,23 @@ is_integer_node(Node) ->
 is_float_node(Node) ->
     ktn_code:type(Node) =:= float.
 
+is_exception_class(error) -> true;
+is_exception_class(exit) -> true;
+is_exception_class(throw) -> true;
+is_exception_class(_) -> false.
+
 check_atom_names(_Regex, _RegexEnclosed, [] = _AtomNodes, Acc) ->
     Acc;
 check_atom_names(Regex, RegexEnclosed, [AtomNode | RemainingAtomNodes], AccIn) ->
     AtomName0 = ktn_code:attr(text, AtomNode),
+    ValueAtomName = ktn_code:attr(value, AtomNode),
     {IsEnclosed, AtomName} = string_strip_enclosed(AtomName0),
+    IsExceptionClass = is_exception_class(ValueAtomName),
     RE = re_compile_for_atom_type(IsEnclosed, Regex, RegexEnclosed),
     AccOut
         = case re:run(_Subject = unicode:characters_to_list(AtomName, unicode), RE) of
+              _ when IsExceptionClass andalso not(IsEnclosed) ->
+                  AccIn;
               nomatch when not(IsEnclosed)->
                   Msg = ?ATOM_NAMING_CONVENTION_MSG,
                   {Line, _} = ktn_code:attr(location, AtomNode),
