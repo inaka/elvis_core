@@ -235,7 +235,7 @@ rock_with_no_output_has_no_output(_Config) ->
     application:set_env(elvis_core, no_output, true),
     ElvisConfig = elvis_test_utils:config(),
     Fun = fun() -> elvis_core:rock(ElvisConfig) end,
-    [] = check_no_line_output(Fun),
+    [] = get_output(Fun),
     application:unset_env(elvis_core, no_output),
     ok.
 
@@ -252,7 +252,11 @@ rock_without_errors_has_no_output(_Config) ->
     ConfigPath = "../../config/test.pass.config",
     ElvisConfig = elvis_config:from_file(ConfigPath),
     Fun = fun() -> elvis_core:rock(ElvisConfig) end,
-    [] = check_no_line_output(Fun),
+    Output = get_output(Fun),
+    RemoveSearchPattern = "fail_non_parsable_file.erl",
+    ct:pal("Output=~p~n", [Output]),
+    [] = lists:filter(fun(String) -> string:find(String, RemoveSearchPattern) == nomatch end,
+                      Output),
     ok.
 
 -spec rock_without_errors_and_with_verbose_has_output(config()) -> ok.
@@ -453,11 +457,11 @@ check_some_line_output(Fun, Expected, FilterFun) ->
     ListFun = fun(Line) -> FilterFun(Line, Expected) end,
     [_ | _] = lists:filter(ListFun, Lines).
 
-check_no_line_output(Fun) ->
+get_output(Fun) ->
     _ = ct:capture_start(),
     _ = Fun(),
     _ = ct:capture_stop(),
-    [] = ct:capture_get([]).
+    ct:capture_get([]).
 
 matches_regex(Result, Regex) ->
     case re:run(Result, Regex) of

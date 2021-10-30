@@ -100,7 +100,7 @@ do_parallel_rock(Config0) ->
         {error, {T, E}} ->
             %% {T, E} will be put into an {error, _} tuple higher on the call stack,
             %% let's not encapsulate it multiple times.
-            {fail, {T, E}}
+            {fail, [{T, E}]}
     end.
 
 -spec do_rock(elvis_file:file(), elvis_config:configs() | elvis_config:config())
