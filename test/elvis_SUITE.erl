@@ -253,6 +253,10 @@ rock_without_errors_has_no_output(_Config) ->
     ElvisConfig = elvis_config:from_file(ConfigPath),
     Fun = fun() -> elvis_core:rock(ElvisConfig) end,
     Output = get_output(Fun),
+    %% This is related to the test case `rock_with_non_parsable_file`,
+    %% which will print an error to the standard output
+    %% and CT will capture it.
+    %% Thus, we remove it from the list of captures before doing the actual check
     RemoveSearchPattern = "fail_non_parsable_file.erl",
     ct:pal("Output=~p~n", [Output]),
     [] = lists:filter(fun(String) -> string:find(String, RemoveSearchPattern) == nomatch end,
