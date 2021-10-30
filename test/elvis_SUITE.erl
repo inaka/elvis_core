@@ -24,6 +24,7 @@
          rock_without_colors/1,
          rock_with_parsable/1,
          rock_with_no_output_has_no_output/1,
+         rock_with_non_parsable_file/1,
          rock_with_errors_has_output/1,
          rock_without_errors_has_no_output/1,
          rock_without_errors_and_with_verbose_has_output/1,
@@ -218,6 +219,16 @@ rock_with_parsable(_Config) ->
          after
              application:set_env(elvis_core, output_format, Default)
          end.
+
+rock_with_non_parsable_file(_Config) ->
+    ElvisConfig = elvis_test_utils:config(),
+    Path =
+        "../../_build/test/lib/elvis_core/test/non_compilable_examples/fail_non_parsable_file.erl",
+    try
+        elvis_core:rock_this(Path, ElvisConfig)
+    catch
+        {fail, {error, {badmatch, _}}} -> ok
+    end.
 
 -spec rock_with_no_output_has_no_output(config()) -> ok.
 rock_with_no_output_has_no_output(_Config) ->
