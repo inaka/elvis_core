@@ -420,7 +420,7 @@
 
 **Closed issues:**
 
-- Update README with apropiate content from inaka/elvis [\#10](https://github.com/inaka/elvis_core/issues/10)
+- Update README with appropriate content from inaka/elvis [\#10](https://github.com/inaka/elvis_core/issues/10)
 - Remove rebar binary [\#8](https://github.com/inaka/elvis_core/issues/8)
 - add option for global ignore [\#5](https://github.com/inaka/elvis_core/issues/5)
 
