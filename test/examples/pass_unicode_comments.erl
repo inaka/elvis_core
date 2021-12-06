@@ -1,4 +1,4 @@
-%%% @doc FSM to syncronize differences for the remote DC replication
+%%% @doc FSM to synchronize differences for the remote DC replication
 %%%                             ┌────────┐
 %%%                             │   not  │
 %%%                             ▼  empty │
