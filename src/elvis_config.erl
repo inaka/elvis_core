@@ -246,6 +246,7 @@ merge_rules(UserRules, DefaultRules) ->
         lists:filter(
             fun({_FileName, _RuleName, OverrideOptions}) ->
                 disable /= OverrideOptions;
+               ({_FileName, _RuleName}) -> true; % not disabled
                (_) -> false end,
             UserRules
         ),

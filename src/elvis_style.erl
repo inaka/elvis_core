@@ -162,7 +162,7 @@ default(macro_module_names) ->
     #{};
 
 default(no_macros) ->
-    #{};
+    disable;
 
 default(operator_spaces) ->
     #{ rules => [ {right, ","}
