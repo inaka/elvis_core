@@ -21,6 +21,7 @@ rules(erl_files) ->
         , {elvis_text_style, no_trailing_whitespace}
         , {elvis_style, macro_names}
         , {elvis_style, macro_module_names}
+        %, {elvis_style, no_macros} % it exists, but is disabled by default
         , {elvis_style, operator_spaces}
         , {elvis_style, nesting_level}
         , {elvis_style, god_modules}

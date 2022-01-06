@@ -6,6 +6,7 @@
          variable_naming_convention/3,
          macro_names/3,
          macro_module_names/3,
+         no_macros/3,
          operator_spaces/3,
          nesting_level/3,
          god_modules/3,
@@ -43,6 +44,23 @@
 
 -define(MACRO_AS_FUNCTION_NAME_MSG,
             "Don't use macros (like ~s on line ~p) as function names.").
+
+-define(NO_MACROS_MSG,
+            "Unexpected macro (~p) used on line ~p.").
+
+-define(PREDEF_MACROS, % from unexported eep:predef_macros/1
+        [ 'BASE_MODULE'
+        , 'BASE_MODULE_STRING'
+        , 'BEAM'
+        , 'FILE'
+        , 'FUNCTION_ARITY'
+        , 'FUNCTION_NAME'
+        , 'LINE'
+        , 'MACHINE'
+        , 'MODULE'
+        , 'MODULE_STRING'
+        , 'OTP_RELEASE'
+        ]).
 
 -define(OPERATOR_SPACE_MSG, "Missing space ~s ~p on line ~p").
 
@@ -141,6 +159,9 @@ default(macro_names) ->
      };
 
 default(macro_module_names) ->
+    #{};
+
+default(no_macros) ->
     #{};
 
 default(operator_spaces) ->
@@ -328,6 +349,40 @@ macro_module_names(Config, Target, RuleConfig) ->
     {Src, _} = elvis_file:src(Target),
     Root = get_root(Config, Target, RuleConfig),
     elvis_utils:check_lines(Src, fun check_macro_module_names/3, [Root]).
+
+-type no_macros_config() :: #{ allow => [atom()]
+                             , ignore => [ignorable()]
+                             }.
+
+-spec no_macros(elvis_config:config(),
+                elvis_file:file(),
+                no_macros_config()) ->
+    [elvis_result:item()].
+no_macros(ElvisConfig, RuleTarget, RuleConfig) ->
+    TreeRootNode = get_root(ElvisConfig, RuleTarget, RuleConfig),
+    AllowedMacros = maps:get(allow, RuleConfig, []) ++ ?PREDEF_MACROS,
+
+    MacroNodes = elvis_code:find(fun is_macro_node/1,
+                                 TreeRootNode,
+                                 #{traverse => all, mode => node}),
+
+    lists:foldl(
+        fun (MacroNode, Acc) ->
+            Macro = list_to_atom(ktn_code:attr(name, MacroNode)),
+            case lists:member(Macro, AllowedMacros) of
+                true ->
+                    Acc;
+                false ->
+                    {Line, _Col} = ktn_code:attr(location, MacroNode),
+                    [elvis_result:new(item, ?NO_MACROS_MSG, [Macro, Line]) | Acc]
+            end
+        end,
+        [],
+        MacroNodes
+    ).
+
+is_macro_node(Node) ->
+    ktn_code:type(Node) =:= macro.
 
 -type operator_spaces_config() :: #{ ignore => [ignorable()]
                                    , rules => [{right | left, string()}]

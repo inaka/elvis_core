@@ -4,6 +4,13 @@
 
 -elvis([{elvis_style, macro_module_names, disable}]).
 -elvis([{elvis_style, macro_names, #{regex => "^[a-zA-Z_]+$"}}]).
+-elvis([{elvis_style, no_macros, #{allow => [ function_name
+                                            , module_name
+                                            , 'FUN_NAME'
+                                            , 'BINARY'
+                                            , 'BINARY_SIZE'
+                                            ]
+                                  }}]).
 
 -export([
          module_name/0,
