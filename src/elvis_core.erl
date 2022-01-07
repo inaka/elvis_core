@@ -185,8 +185,6 @@ elvis_attr_rules(ElvisAttrs) ->
            Result :: {Results, ElvisCfg, File}.
 apply_rule({Module, Function}, {Result, Config, File}) ->
     apply_rule({Module, Function, #{}}, {Result, Config, File});
-apply_rule({_Module, _Function, disable}, {Result, Config, File}) ->
-    {Result, Config, File};
 apply_rule({Module, Function, ConfigArgs}, {Result, Config, File}) ->
     ConfigMap =
         try
