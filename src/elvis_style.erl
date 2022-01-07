@@ -48,20 +48,6 @@
 -define(NO_MACROS_MSG,
             "Unexpected macro (~p) used on line ~p.").
 
--define(PREDEF_MACROS, % from unexported eep:predef_macros/1
-        [ 'BASE_MODULE'
-        , 'BASE_MODULE_STRING'
-        , 'BEAM'
-        , 'FILE'
-        , 'FUNCTION_ARITY'
-        , 'FUNCTION_NAME'
-        , 'LINE'
-        , 'MACHINE'
-        , 'MODULE'
-        , 'MODULE_STRING'
-        , 'OTP_RELEASE'
-        ]).
-
 -define(OPERATOR_SPACE_MSG, "Missing space ~s ~p on line ~p").
 
 -define(NESTING_LEVEL_MSG,
@@ -360,7 +346,7 @@ macro_module_names(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 no_macros(ElvisConfig, RuleTarget, RuleConfig) ->
     TreeRootNode = get_root(ElvisConfig, RuleTarget, RuleConfig),
-    AllowedMacros = maps:get(allow, RuleConfig, []) ++ ?PREDEF_MACROS,
+    AllowedMacros = maps:get(allow, RuleConfig, []) ++ eep_predef_macros(),
 
     MacroNodes = elvis_code:find(fun is_macro_node/1,
                                  TreeRootNode,
@@ -383,6 +369,20 @@ no_macros(ElvisConfig, RuleTarget, RuleConfig) ->
 
 is_macro_node(Node) ->
     ktn_code:type(Node) =:= macro.
+
+eep_predef_macros() -> % From unexported eep:predef_macros/1
+    [ 'BASE_MODULE'
+    , 'BASE_MODULE_STRING'
+    , 'BEAM'
+    , 'FILE'
+    , 'FUNCTION_ARITY'
+    , 'FUNCTION_NAME'
+    , 'LINE'
+    , 'MACHINE'
+    , 'MODULE'
+    , 'MODULE_STRING'
+    , 'OTP_RELEASE'
+    ].
 
 -type operator_spaces_config() :: #{ ignore => [ignorable()]
                                    , rules => [{right | left, string()}]
