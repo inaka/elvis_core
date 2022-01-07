@@ -6,6 +6,8 @@
         , macro_with_underscore/0
         ]).
 
+-elvis([{elvis_style, no_macros, #{allow => ['__']}}]).
+
 use_ignored_var(_One, Two) ->
     Three = _One + Two,
     case Three of

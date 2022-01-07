@@ -24,6 +24,7 @@
          verify_no_trailing_whitespace_rule/1,
          verify_macro_names_rule/1,
          verify_macro_module_names/1,
+         verify_no_macros/1,
          verify_operator_spaces/1,
          verify_operator_spaces_latin1/1,
          verify_nesting_level/1,
@@ -121,6 +122,7 @@ groups() -> [
        , verify_no_call
        , verify_no_nested_try_catch
        , verify_atom_naming_convention
+       , verify_no_macros
     ]}
 ].
 
@@ -312,6 +314,22 @@ verify_macro_module_names(Config) ->
 
     [_, _, _, _] = elvis_core_apply_rule(Config, elvis_style, macro_module_names, #{}, Path).
 
+-spec verify_no_macros(config()) -> any().
+verify_no_macros(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PathFail = "fail_no_macros." ++ Ext,
+    FailRes = elvis_core_apply_rule(Config, elvis_style, no_macros, #{}, PathFail),
+    case Ext of
+        "beam" ->
+            [] = FailRes; % no macros on BEAM files
+        _ ->
+            [_] = FailRes
+    end,
+
+    PathPass = "pass_no_macros." ++ Ext,
+    [] = elvis_core_apply_rule(Config, elvis_style, no_macros, #{ allow => ['ALLOWED_MACRO'] }, PathPass).
+
 -spec verify_operator_spaces(config()) -> any().
 verify_operator_spaces(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
@@ -479,10 +497,10 @@ verify_used_ignored_variable(Config) ->
             ] = elvis_core_apply_rule(Config, elvis_style, used_ignored_variable, #{}, Path);
         erl_files ->
             [
-             #{line_num := 10},
-             #{line_num := 13},
-             #{line_num := 17},
-             #{line_num := 17}
+             #{line_num := 12},
+             #{line_num := 15},
+             #{line_num := 19},
+             #{line_num := 19}
             ] = elvis_core_apply_rule(Config, elvis_style, used_ignored_variable, #{}, Path)
     end,
     [] = elvis_core_apply_rule(Config, elvis_style, used_ignored_variable, #{ignore => [fail_used_ignored_variable]}, Path).

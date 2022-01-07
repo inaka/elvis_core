@@ -8,6 +8,7 @@
 
 -elvis([{elvis_style, used_ignored_variable, disable}]).
 -elvis([{elvis_style, macro_names, #{regex => ".*"}}]).
+-elvis([{elvis_style, no_macros, #{allow => ['__']}}]).
 
 use_ignored_var(_One, Two) ->
     Three = _One + Two,
