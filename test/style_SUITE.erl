@@ -22,6 +22,7 @@
          verify_no_tabs_rule/1,
          verify_no_spaces_rule/1,
          verify_no_trailing_whitespace_rule/1,
+         verify_no_trailing_whitespace_rule_crlf/1,
          verify_macro_names_rule/1,
          verify_macro_module_names/1,
          verify_operator_spaces/1,
@@ -277,6 +278,14 @@ verify_no_trailing_whitespace_rule(Config) ->
     do_verify_no_trailing_whitespace(Path, Config,
                                      #{ignore_empty_lines => false}, 4),
     do_verify_no_trailing_whitespace(Path, Config, #{}, 4).
+
+-spec verify_no_trailing_whitespace_rule_crlf(config()) -> any().
+verify_no_trailing_whitespace_rule_crlf(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PathCrLf = "fail_no_trailing_whitespace_crlf." ++ Ext,
+
+    do_verify_no_trailing_whitespace(PathCrLf, Config, #{ignore_empty_lines => false}, 0).
 
 do_verify_no_trailing_whitespace(Path, Config, RuleConfig, ExpectedNumItems) ->
     Items = elvis_core_apply_rule(Config, elvis_text_style, no_trailing_whitespace, RuleConfig, Path),
