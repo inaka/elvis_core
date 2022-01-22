@@ -25,6 +25,7 @@
          verify_no_trailing_whitespace_rule_crlf/1,
          verify_macro_names_rule/1,
          verify_macro_module_names/1,
+         verify_no_macros/1,
          verify_operator_spaces/1,
          verify_operator_spaces_latin1/1,
          verify_nesting_level/1,
@@ -44,8 +45,10 @@
          verify_no_call/1,
          verify_no_nested_try_catch/1,
          verify_atom_naming_convention/1,
+         verify_numeric_format/1,
          %% -elvis attribute
          verify_elvis_attr_atom_naming_convention/1,
+         verify_elvis_attr_numeric_format/1,
          verify_elvis_attr_dont_repeat_yourself/1,
          verify_elvis_attr_function_naming_convention/1,
          verify_elvis_attr_god_modules/1,
@@ -70,6 +73,7 @@
          verify_elvis_attr_state_record_and_type/1,
          verify_elvis_attr_used_ignored_variable/1,
          verify_elvis_attr_variable_naming_convention/1,
+         verify_behaviour_spelling/1,
          %% Non-rule
          results_are_ordered_by_line/1,
          oddities/1
@@ -119,6 +123,7 @@ groups() -> [
        , verify_no_call
        , verify_no_nested_try_catch
        , verify_atom_naming_convention
+       , verify_no_macros
     ]}
 ].
 
@@ -318,6 +323,22 @@ verify_macro_module_names(Config) ->
 
     [_, _, _, _] = elvis_core_apply_rule(Config, elvis_style, macro_module_names, #{}, Path).
 
+-spec verify_no_macros(config()) -> any().
+verify_no_macros(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PathFail = "fail_no_macros." ++ Ext,
+    FailRes = elvis_core_apply_rule(Config, elvis_style, no_macros, #{}, PathFail),
+    case Ext of
+        "beam" ->
+            [] = FailRes; % no macros on BEAM files
+        _ ->
+            [_] = FailRes
+    end,
+
+    PathPass = "pass_no_macros." ++ Ext,
+    [] = elvis_core_apply_rule(Config, elvis_style, no_macros, #{ allow => ['ALLOWED_MACRO'] }, PathPass).
+
 -spec verify_operator_spaces(config()) -> any().
 verify_operator_spaces(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
@@ -485,10 +506,10 @@ verify_used_ignored_variable(Config) ->
             ] = elvis_core_apply_rule(Config, elvis_style, used_ignored_variable, #{}, Path);
         erl_files ->
             [
-             #{line_num := 10},
-             #{line_num := 13},
-             #{line_num := 17},
-             #{line_num := 17}
+             #{line_num := 12},
+             #{line_num := 15},
+             #{line_num := 19},
+             #{line_num := 19}
             ] = elvis_core_apply_rule(Config, elvis_style, used_ignored_variable, #{}, Path)
     end,
     [] = elvis_core_apply_rule(Config, elvis_style, used_ignored_variable, #{ignore => [fail_used_ignored_variable]}, Path).
@@ -556,6 +577,20 @@ verify_state_record_and_type(Config) ->
 
     PathPassGenStateMState = "fail_state_record_and_type_gen_statem_state." ++ Ext,
     [_] = elvis_core_apply_rule(Config, elvis_style, state_record_and_type, #{}, PathPassGenStateMState).
+
+-spec verify_behaviour_spelling(config()) -> any().
+verify_behaviour_spelling(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PathFail = "british_behaviour_spelling." ++ Ext,
+    [_] = elvis_core_apply_rule(Config, elvis_style, behaviour_spelling, #{spelling => behavior}, PathFail),
+    PathFail1 = "american_behavior_spelling." ++ Ext,
+    [_] = elvis_core_apply_rule(Config, elvis_style, behaviour_spelling, #{spelling => behaviour}, PathFail1),
+
+    PathPass = "british_behaviour_spelling." ++ Ext,
+    [] = elvis_core_apply_rule(Config, elvis_style, behaviour_spelling, #{spelling => behaviour}, PathPass),
+    PathPass1 = "american_behavior_spelling." ++ Ext,
+    [] = elvis_core_apply_rule(Config, elvis_style, behaviour_spelling, #{spelling => behavior}, PathPass1).
 
 -spec verify_no_spec_with_records(config()) -> any().
 verify_no_spec_with_records(Config) ->
@@ -804,13 +839,18 @@ verify_atom_naming_convention(Config) ->
 
     PassModule = pass_atom_naming_convention,
     PassPath = atom_to_list(PassModule) ++ "." ++ Ext,
+    PassModule2 = pass_atom_naming_convention_exception_class,
+    PassPath2 = atom_to_list(PassModule2) ++ "." ++ Ext,
 
     [] = elvis_core_apply_rule(Config, elvis_style, atom_naming_convention, #{ regex => BaseRegex }, PassPath),
+    [] = elvis_core_apply_rule(Config, elvis_style, atom_naming_convention, #{ regex => "^[^xwyhr]*$"}, PassPath2),
 
     % fail
 
     FailModule = fail_atom_naming_convention,
     FailPath = atom_to_list(FailModule) ++ "." ++ Ext,
+    FailModule2 = fail_atom_naming_convention_exception_class,
+    FailPath2 = atom_to_list(FailModule2) ++ "." ++ Ext,
 
     [_,_,_,_,_,_,_,_,_,_]
         = elvis_core_apply_rule(Config, elvis_style, atom_naming_convention, #{ regex => BaseRegex,
@@ -844,6 +884,8 @@ verify_atom_naming_convention(Config) ->
                                                                         enclosed_atoms => "^([a-z][\-a-z0-9A-Z_]*)$" }, FailPath),
     [_,_,_,_]
         = elvis_core_apply_rule(Config, elvis_style, atom_naming_convention, #{ regex => KeepRegex, enclosed_atoms => "^([0-9a-z][\-a-z0-9A-Z_' \\\\]*)$" }, FailPath),
+    [_]
+        = elvis_core_apply_rule(Config, elvis_style, atom_naming_convention, #{ regex => "^[^xwyhr]*$" }, FailPath2),
     _ = case Group of
         beam_files -> % 'or_THIS' getting stripped of enclosing '
             [_,_,_,_]
@@ -852,6 +894,61 @@ verify_atom_naming_convention(Config) ->
             [_,_,_,_,_]
                 = elvis_core_apply_rule(Config, elvis_style, atom_naming_convention, #{ regex => KeepRegex, enclosed_atoms => "^([\\\\][\-a-z0-9A-Z_' \\\\]*)$" }, FailPath)
     end.
+
+-spec verify_numeric_format(config()) -> any().
+verify_numeric_format(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    BaseRegex = "^[^_]+$",
+
+    % pass
+
+    PassModule = pass_numeric_format,
+    PassPath = atom_to_list(PassModule) ++ "." ++ Ext,
+
+    [] = elvis_core_apply_rule(Config, elvis_style, numeric_format, #{ regex => BaseRegex }, PassPath),
+
+    % fail
+
+    FailModule = fail_numeric_format,
+    FailPath = atom_to_list(FailModule) ++ "." ++ Ext,
+
+    [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_] % no underscores
+        = elvis_core_apply_rule(Config, elvis_style, numeric_format, #{ regex => BaseRegex,
+                                                                        int_regex => same,
+                                                                        float_regex => same }, FailPath),
+    [_,_,_,_,_,_,_,_,_,_,_] % with at least 2 digits
+        = elvis_core_apply_rule(Config, elvis_style, numeric_format, #{ regex => "^(.*\\d\\d)$",
+                                                                        int_regex => same,
+                                                                        float_regex => same }, FailPath),
+    [_,_,_,_] % only base 10
+        = elvis_core_apply_rule(Config, elvis_style, numeric_format, #{ regex => "^([^#]+)$",
+                                                                        int_regex => same,
+                                                                        float_regex => same }, FailPath),
+    [_,_,_,_,_,_,_,_,_,_,_,_,_,_] % any float, nothing else - impossible to match base regex
+        = elvis_core_apply_rule(Config, elvis_style, numeric_format, #{ regex => "impossible-to-match",
+                                                                        int_regex => same,
+                                                                        float_regex => ".*" }, FailPath),
+    [_,_,_,_] % any integer, nothing else - impossible to match base regex
+        = elvis_core_apply_rule(Config, elvis_style, numeric_format, #{ regex => "impossible-to-match",
+                                                                        int_regex => ".*",
+                                                                        float_regex => same }, FailPath),
+    [] % base regex is ignored
+        = elvis_core_apply_rule(Config, elvis_style, numeric_format, #{ regex => "impossible-to-match",
+                                                                        int_regex => ".*",
+                                                                        float_regex => ".*" }, FailPath),
+    [] % ignored module
+        = elvis_core_apply_rule(Config, elvis_style, numeric_format, #{ regex => BaseRegex,
+                                                                        ignore => [FailModule] }, FailPath),
+
+    % ugly
+
+    UglyModule = ugly_numeric_format,
+    UglyPath = atom_to_list(UglyModule) ++ "." ++ Ext,
+
+    [] = elvis_core_apply_rule(Config, elvis_style, numeric_format, #{ regex => BaseRegex }, UglyPath),
+
+    true.
 
 -spec results_are_ordered_by_line(config()) -> true.
 results_are_ordered_by_line(_Config) ->
@@ -871,6 +968,10 @@ oddities(_Config) ->
 -spec verify_elvis_attr_atom_naming_convention(config()) -> true.
 verify_elvis_attr_atom_naming_convention(Config) ->
     verify_elvis_attr(Config, "pass_atom_naming_convention_elvis_attr").
+
+-spec verify_elvis_attr_numeric_format(config()) -> true.
+verify_elvis_attr_numeric_format(Config) ->
+    verify_elvis_attr(Config, "pass_numeric_format_elvis_attr").
 
 -spec verify_elvis_attr_dont_repeat_yourself(config()) -> true.
 verify_elvis_attr_dont_repeat_yourself(Config) ->
@@ -978,7 +1079,12 @@ elvis_core_apply_rule(Config, Module, Function, RuleConfig, Filename) ->
     {ok, File} = elvis_test_utils:find_file(SrcDirs, Filename),
     {[RulesResults], _, _} = elvis_core:apply_rule({Module, Function, RuleConfig},
                                                    {[], ElvisConfig, File}),
-    maps:get(items, RulesResults, []).
+    case RulesResults of
+        #{error_msg := Msg, info := Info} ->
+            ct:fail(Msg, Info);
+        #{items := Items} ->
+            Items
+    end.
 
 verify_elvis_attr(Config, FilenameNoExt) ->
     ElvisConfig = elvis_test_utils:config(proplists:get_value(group, Config, erl_files)),

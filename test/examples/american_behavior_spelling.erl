@@ -1,8 +1,8 @@
--module(pass_state_record_and_type).
+-module(american_behavior_spelling).
 
 -dialyzer(no_behaviours).
 
--behaviour(gen_server).
+-behavior(gen_server).
 
 -export([
          init/1,
@@ -13,13 +13,9 @@
          terminate/2
         ]).
 
--record(state, {}).
-
--type state() :: #state{}.
-
--spec init(term()) -> state().
+-spec init(term()) -> ok.
 init(_Args) ->
-    #state{}.
+    ok.
 
 -spec handle_call(term(), term(), term()) -> ok.
 handle_call(_Request, _From, _State) ->

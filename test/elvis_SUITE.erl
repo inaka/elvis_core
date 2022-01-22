@@ -24,6 +24,7 @@
          rock_without_colors/1,
          rock_with_parsable/1,
          rock_with_no_output_has_no_output/1,
+         rock_with_non_parsable_file/1,
          rock_with_errors_has_output/1,
          rock_without_errors_has_no_output/1,
          rock_without_errors_and_with_verbose_has_output/1,
@@ -219,12 +220,22 @@ rock_with_parsable(_Config) ->
              application:set_env(elvis_core, output_format, Default)
          end.
 
+rock_with_non_parsable_file(_Config) ->
+    ElvisConfig = elvis_test_utils:config(),
+    Path =
+        "../../_build/test/lib/elvis_core/test/non_compilable_examples/fail_non_parsable_file.erl",
+    try
+        elvis_core:rock_this(Path, ElvisConfig)
+    catch
+        {fail, {error, {badmatch, _}}} -> ok
+    end.
+
 -spec rock_with_no_output_has_no_output(config()) -> ok.
 rock_with_no_output_has_no_output(_Config) ->
     application:set_env(elvis_core, no_output, true),
     ElvisConfig = elvis_test_utils:config(),
     Fun = fun() -> elvis_core:rock(ElvisConfig) end,
-    [] = check_no_line_output(Fun),
+    [] = get_output(Fun),
     application:unset_env(elvis_core, no_output),
     ok.
 
@@ -241,7 +252,15 @@ rock_without_errors_has_no_output(_Config) ->
     ConfigPath = "../../config/test.pass.config",
     ElvisConfig = elvis_config:from_file(ConfigPath),
     Fun = fun() -> elvis_core:rock(ElvisConfig) end,
-    [] = check_no_line_output(Fun),
+    Output = get_output(Fun),
+    %% This is related to the test case `rock_with_non_parsable_file`,
+    %% which will print an error to the standard output
+    %% and CT will capture it.
+    %% Thus, we remove it from the list of captures before doing the actual check
+    RemoveSearchPattern = "fail_non_parsable_file.erl",
+    ct:pal("Output=~p~n", [Output]),
+    [] = lists:filter(fun(String) -> string:find(String, RemoveSearchPattern) == nomatch end,
+                      Output),
     ok.
 
 -spec rock_without_errors_and_with_verbose_has_output(config()) -> ok.
@@ -374,7 +393,12 @@ find_file_and_check_src(_Config) ->
     [] = elvis_file:find_files(Dirs, "doesnt_exist.erl"),
     [File] = elvis_file:find_files(Dirs, "small.erl"),
 
-    {<<"-module(small).\n">>, _} = elvis_file:src(File),
+    {<<"-module(small).", LineBreak/binary>>, _} = elvis_file:src(File),
+    LineBreak
+        = case os:type() of
+            {unix, _} -> <<"\n">>;
+            {win32, _} -> <<"\r\n">>
+        end,
     {error, enoent} = elvis_file:src(#{path => "doesnt_exist.erl"}).
 
 
@@ -437,11 +461,11 @@ check_some_line_output(Fun, Expected, FilterFun) ->
     ListFun = fun(Line) -> FilterFun(Line, Expected) end,
     [_ | _] = lists:filter(ListFun, Lines).
 
-check_no_line_output(Fun) ->
+get_output(Fun) ->
     _ = ct:capture_start(),
     _ = Fun(),
     _ = ct:capture_stop(),
-    [] = ct:capture_get([]).
+    ct:capture_get([]).
 
 matches_regex(Result, Regex) ->
     case re:run(Result, Regex) of

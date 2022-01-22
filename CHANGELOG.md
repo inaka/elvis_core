@@ -1,5 +1,40 @@
 # Changelog
 
+## [1.3.1](https://github.com/inaka/elvis_core/tree/1.3.1) (2021-10-18)
+
+[Full Changelog](https://github.com/inaka/elvis_core/compare/1.3.0...1.3.1)
+
+**Fixed bugs:**
+
+- badarg when applying numeric\_format [\#213](https://github.com/inaka/elvis_core/issues/213)
+
+**Merged pull requests:**
+
+- Exit with `1` if `escriptize` \(from CI\) fails [\#215](https://github.com/inaka/elvis_core/pull/215) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+- Fix \#213: Handle no-text numbers in numeric\_format [\#214](https://github.com/inaka/elvis_core/pull/214) ([elbrujohalcon](https://github.com/elbrujohalcon))
+
+## [1.3.0](https://github.com/inaka/elvis_core/tree/1.3.0) (2021-10-06)
+
+[Full Changelog](https://github.com/inaka/elvis_core/compare/1.2.0...1.3.0)
+
+**Implemented enhancements:**
+
+- Run CI on a Windows container [\#180](https://github.com/inaka/elvis_core/issues/180)
+
+**Closed issues:**
+
+- Document numeric\_format [\#211](https://github.com/inaka/elvis_core/issues/211)
+- New rule \(?\) behavior vs. behaviour [\#210](https://github.com/inaka/elvis_core/issues/210)
+- \[New Rule\] Disallow numbers with underscores in them [\#208](https://github.com/inaka/elvis_core/issues/208)
+- Handle Windows newlines gracefully [\#205](https://github.com/inaka/elvis_core/issues/205)
+
+**Merged pull requests:**
+
+- Fix 210: New rule for behavior vs behaviour. [\#212](https://github.com/inaka/elvis_core/pull/212) ([jackyhui96](https://github.com/jackyhui96))
+- Fix \#208: New rule for numeric format [\#209](https://github.com/inaka/elvis_core/pull/209) ([elbrujohalcon](https://github.com/elbrujohalcon))
+- CI over Windows [\#207](https://github.com/inaka/elvis_core/pull/207) ([paulo-ferraz-oliveira](https://github.com/paulo-ferraz-oliveira))
+- Handle Windows line endings gracefully [\#206](https://github.com/inaka/elvis_core/pull/206) ([g-andrade](https://github.com/g-andrade))
+
 ## [1.2.0](https://github.com/inaka/elvis_core/tree/1.2.0) (2021-07-28)
 
 [Full Changelog](https://github.com/inaka/elvis_core/compare/1.1.2...1.2.0)
@@ -385,7 +420,7 @@
 
 **Closed issues:**
 
-- Update README with apropiate content from inaka/elvis [\#10](https://github.com/inaka/elvis_core/issues/10)
+- Update README with appropriate content from inaka/elvis [\#10](https://github.com/inaka/elvis_core/issues/10)
 - Remove rebar binary [\#8](https://github.com/inaka/elvis_core/issues/8)
 - add option for global ignore [\#5](https://github.com/inaka/elvis_core/issues/5)
 

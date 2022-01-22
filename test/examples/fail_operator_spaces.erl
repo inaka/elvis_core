@@ -15,6 +15,7 @@
         , function9/0
         , tag_filters/2
         , unicode_characters/0
+        , windows_newlines/0
         , this/0
         , this/1
         ]).
@@ -85,6 +86,11 @@ unicode_characters() ->
   <<"©"/utf8>> = <<"\\u00A9">>,
   <<"ß"/utf8>> = <<"\\o337">>,
   ok.
+
+windows_newlines() ->
+    <<_/bytes>> = <<"Foo",
+                    "bar">>,
+    ok.
 
 -spec this()
 -> should_not_crash.

@@ -6,6 +6,7 @@
          variable_naming_convention/3,
          macro_names/3,
          macro_module_names/3,
+         no_macros/3,
          operator_spaces/3,
          nesting_level/3,
          god_modules/3,
@@ -24,6 +25,8 @@
          no_common_caveats_call/3,
          no_nested_try_catch/3,
          atom_naming_convention/3,
+         numeric_format/3,
+         behaviour_spelling/3,
          option/3
         ]).
 
@@ -41,6 +44,9 @@
 
 -define(MACRO_AS_FUNCTION_NAME_MSG,
             "Don't use macros (like ~s on line ~p) as function names.").
+
+-define(NO_MACROS_MSG,
+            "Unexpected macro (~p) used on line ~p.").
 
 -define(OPERATOR_SPACE_MSG, "Missing space ~s ~p on line ~p").
 
@@ -121,6 +127,14 @@
         "Atom ~p on line ~p does not respect the format "
         "defined by the regular expression '~p'.").
 
+-define(NUMERIC_FORMAT_MSG,
+        "Number ~p on line ~p does not respect the format "
+        "defined by the regular expression '~p'.").
+
+-define(BEHAVIOUR_SPELLING,
+        "The behavior/behaviour in line ~p is misspelt, please use the "
+        "~p spelling.").
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -131,6 +145,9 @@ default(macro_names) ->
      };
 
 default(macro_module_names) ->
+    #{};
+
+default(no_macros) ->
     #{};
 
 default(operator_spaces) ->
@@ -221,6 +238,17 @@ default(no_common_caveats_call) ->
 default(atom_naming_convention) ->
     #{ regex => "^([a-z][a-z0-9]*_?)*(_SUITE)?$"
      , enclosed_atoms => ".*"
+     };
+
+%% Not restrictive. Those who want more restrictions can set it like "^[^_]*$"
+default(numeric_format) ->
+    #{ regex => ".*"
+     , int_regex => same
+     , float_regex => same
+     };
+
+default(behaviour_spelling) ->
+    #{ spelling => behaviour
      }.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -308,6 +336,54 @@ macro_module_names(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
     elvis_utils:check_lines(Src, fun check_macro_module_names/3, [Root]).
 
+-type no_macros_config() :: #{ allow => [atom()]
+                             , ignore => [ignorable()]
+                             }.
+
+-spec no_macros(elvis_config:config(),
+                elvis_file:file(),
+                no_macros_config()) ->
+    [elvis_result:item()].
+no_macros(ElvisConfig, RuleTarget, RuleConfig) ->
+    TreeRootNode = get_root(ElvisConfig, RuleTarget, RuleConfig),
+    AllowedMacros = maps:get(allow, RuleConfig, []) ++ eep_predef_macros(),
+
+    MacroNodes = elvis_code:find(fun is_macro_node/1,
+                                 TreeRootNode,
+                                 #{traverse => all, mode => node}),
+
+    lists:foldl(
+        fun (MacroNode, Acc) ->
+            Macro = list_to_atom(ktn_code:attr(name, MacroNode)),
+            case lists:member(Macro, AllowedMacros) of
+                true ->
+                    Acc;
+                false ->
+                    {Line, _Col} = ktn_code:attr(location, MacroNode),
+                    [elvis_result:new(item, ?NO_MACROS_MSG, [Macro, Line]) | Acc]
+            end
+        end,
+        [],
+        MacroNodes
+    ).
+
+is_macro_node(Node) ->
+    ktn_code:type(Node) =:= macro.
+
+eep_predef_macros() -> % From unexported eep:predef_macros/1
+    [ 'BASE_MODULE'
+    , 'BASE_MODULE_STRING'
+    , 'BEAM'
+    , 'FILE'
+    , 'FUNCTION_ARITY'
+    , 'FUNCTION_NAME'
+    , 'LINE'
+    , 'MACHINE'
+    , 'MODULE'
+    , 'MODULE_STRING'
+    , 'OTP_RELEASE'
+    ].
+
 -type operator_spaces_config() :: #{ ignore => [ignorable()]
                                    , rules => [{right | left, string()}]
                                    }.
@@ -328,7 +404,7 @@ operator_spaces(Config, Target, RuleConfig) ->
     Tokens = ktn_code:attr(tokens, Root),
     PunctuationTokens = lists:filter(fun is_punctuation_token/1, Tokens),
 
-    Lines = binary:split(Src, <<"\n">>, [global]),
+    Lines = elvis_utils:split_all_lines(Src),
     AllNodes = OpNodes ++ PunctuationTokens,
 
     FlatMap = fun(Rule) ->
@@ -577,7 +653,7 @@ max_module_length(Config, Target, RuleConfig) ->
                     andalso (CountWhitespace
                              orelse (not line_is_whitespace(Line)))
         end,
-    Lines = case binary:split(Src, <<"\n">>, [global, trim]) of
+    Lines = case elvis_utils:split_all_lines(Src, [trim]) of
                 Ls when CountComments andalso CountWhitespace -> Ls;
                 Ls -> lists:filter(FilterFun, Ls)
             end,
@@ -603,7 +679,7 @@ max_function_length(Config, Target, RuleConfig) ->
 
     Root = get_root(Config, Target, RuleConfig),
     {Src, _} = elvis_file:src(Target),
-    Lines = binary:split(Src, <<"\n">>, [global, trim]),
+    Lines = elvis_utils:split_all_lines(Src, [trim]),
 
     IsFunction = fun(Node) -> ktn_code:type(Node) == function end,
     Functions0 = elvis_code:find(IsFunction, Root),
@@ -719,31 +795,116 @@ no_nested_try_catch(Config, Target, RuleConfig) ->
 atom_naming_convention(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
     Regex = option(regex, RuleConfig, atom_naming_convention),
-    RegexEnclosed
-        = enclosed_atoms_regex_or_same(option(enclosed_atoms,
-                                              RuleConfig,
-                                              atom_naming_convention),
-                                       Regex),
+    RegexEnclosed = specific_or_default(option(enclosed_atoms,
+                                               RuleConfig,
+                                               atom_naming_convention),
+                                        Regex),
     AtomNodes = elvis_code:find(fun is_atom_node/1, Root, #{traverse => all, mode => node}),
     check_atom_names(Regex, RegexEnclosed, AtomNodes, []).
+
+-type numeric_format_config() :: #{ ignore => [ignorable()]
+                                  , regex => string()
+                                  , int_regex => same | string()
+                                  , float_regex => same | string()
+                                  }.
+
+-spec numeric_format(elvis_config:config(),
+                     elvis_file:file(),
+                     numeric_format_config()) ->
+    [elvis_result:item()].
+numeric_format(Config, Target, RuleConfig) ->
+    Root = get_root(Config, Target, RuleConfig),
+    Regex = option(regex, RuleConfig, numeric_format),
+    IntRegex = specific_or_default(option(int_regex,
+                                          RuleConfig,
+                                          numeric_format),
+                                   Regex),
+    FloatRegex = specific_or_default(option(float_regex,
+                                            RuleConfig,
+                                            numeric_format),
+                                     Regex),
+    IntNodes = elvis_code:find(fun is_integer_node/1, Root, #{traverse => all, mode => node}),
+    FloatNodes = elvis_code:find(fun is_float_node/1, Root, #{traverse => all, mode => node}),
+    check_numeric_format(IntRegex,
+                         IntNodes,
+                         check_numeric_format(FloatRegex, FloatNodes, [])).
+
+-spec behaviour_spelling(elvis_config:config(),
+                                   elvis_file:file(),
+                                   empty_rule_config()) ->
+    [elvis_result:item()].
+behaviour_spelling(Config, Target, RuleConfig) ->
+    Spelling = option(spelling, RuleConfig, behaviour_spelling),
+    Root = get_root(Config, Target, RuleConfig),
+    Predicate =
+        fun(Node) ->
+            NodeType = ktn_code:type(Node),
+            lists:member(NodeType, [behaviour, behavior]) andalso NodeType /= Spelling
+        end,
+    case elvis_code:find(Predicate, Root) of
+        [] -> [];
+        InconsistentBehaviorNodes ->
+            ResultFun =
+                fun(Node) ->
+                    {Line, _} = ktn_code:attr(location, Node),
+                    Info = [Line, Spelling],
+                    elvis_result:new(item, ?BEHAVIOUR_SPELLING, Info, Line)
+                end,
+            lists:map(ResultFun, InconsistentBehaviorNodes)
+    end.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-enclosed_atoms_regex_or_same(same, Regex) ->
+specific_or_default(same, Regex) ->
     Regex;
-enclosed_atoms_regex_or_same(RegexEnclosed, _Regex) ->
+specific_or_default(RegexEnclosed, _Regex) ->
     RegexEnclosed.
+
+check_numeric_format(_Regex, [], Acc) ->
+    lists:reverse(Acc);
+check_numeric_format(Regex, [NumNode | RemainingNumNodes], AccIn) ->
+    AccOut =
+        case ktn_code:attr(text, NumNode) of
+            undefined ->
+                AccIn;
+            Number ->
+                case re:run(Number, Regex) of
+                    nomatch ->
+                        {Line, _} = ktn_code:attr(location, NumNode),
+                        Result = elvis_result:new(
+                                    item, ?NUMERIC_FORMAT_MSG, [Number, Line, Regex]),
+                        [Result|AccIn];
+                    {match, _} ->
+                        AccIn
+                end
+        end,
+    check_numeric_format(Regex, RemainingNumNodes, AccOut).
+
+is_integer_node(Node) ->
+    ktn_code:type(Node) =:= integer.
+
+is_float_node(Node) ->
+    ktn_code:type(Node) =:= float.
+
+is_exception_class(error) -> true;
+is_exception_class(exit) -> true;
+is_exception_class(throw) -> true;
+is_exception_class(_) -> false.
 
 check_atom_names(_Regex, _RegexEnclosed, [] = _AtomNodes, Acc) ->
     Acc;
 check_atom_names(Regex, RegexEnclosed, [AtomNode | RemainingAtomNodes], AccIn) ->
     AtomName0 = ktn_code:attr(text, AtomNode),
+    ValueAtomName = ktn_code:attr(value, AtomNode),
     {IsEnclosed, AtomName} = string_strip_enclosed(AtomName0),
+    IsExceptionClass = is_exception_class(ValueAtomName),
     RE = re_compile_for_atom_type(IsEnclosed, Regex, RegexEnclosed),
     AccOut
         = case re:run(_Subject = unicode:characters_to_list(AtomName, unicode), RE) of
+              _ when IsExceptionClass andalso not(IsEnclosed) ->
+                  AccIn;
               nomatch when not(IsEnclosed)->
                   Msg = ?ATOM_NAMING_CONVENTION_MSG,
                   {Line, _} = ktn_code:attr(location, AtomNode),

@@ -87,14 +87,21 @@ do_parallel_rock(Config0) ->
     Config = elvis_config:resolve_files(Config0),
     Files = elvis_config:files(Config),
 
-    {ok, Results} =
+    Result =
         elvis_task:chunk_fold({?MODULE, do_rock},
                               fun(Elem, Acc) ->
                                       elvis_result:print_results(Elem),
                                       {ok, [Elem | Acc]}
                               end,
                               [], [Config], Files, Parallel),
-    elvis_result_status(Results).
+    case Result of
+        {ok, Results} ->
+            elvis_result_status(Results);
+        {error, {T, E}} ->
+            %% {T, E} will be put into an {error, _} tuple higher on the call stack,
+            %% let's not encapsulate it multiple times.
+            {fail, [{T, E}]}
+    end.
 
 -spec do_rock(elvis_file:file(), elvis_config:configs() | elvis_config:config())
     -> {ok, elvis_result:file()}.
@@ -119,10 +126,11 @@ load_file_data(Config, File) ->
     end.
 
 %% @private
--spec main([]) -> ok | {fail, [elvis_result:file()]}.
+-spec main([]) -> true | no_return().
 main([]) ->
     ok = application:load(elvis_core),
-    rock(elvis_config:from_file("elvis.config")).
+    R = rock(elvis_config:from_file("elvis.config")),
+    R =:= ok orelse halt(1).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Private
