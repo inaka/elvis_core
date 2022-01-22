@@ -1,1 +1,1 @@
-test/examples/fail_no_trailing_whitespace_crlf.erl auto eol=crlf
+test/examples/pass_no_trailing_whitespace_crlf.erl auto eol=crlf

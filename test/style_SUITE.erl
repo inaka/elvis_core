@@ -283,7 +283,7 @@ verify_no_trailing_whitespace_rule(Config) ->
 verify_no_trailing_whitespace_rule_crlf(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    PathCrLf = "fail_no_trailing_whitespace_crlf." ++ Ext,
+    PathCrLf = "pass_no_trailing_whitespace_crlf." ++ Ext,
 
     do_verify_no_trailing_whitespace(PathCrLf, Config, #{ignore_empty_lines => false}, 0).
 

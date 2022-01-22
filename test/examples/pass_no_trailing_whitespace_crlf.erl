@@ -1,4 +1,4 @@
--module(fail_no_trailing_whitespace_crlf).
+-module(pass_no_trailing_whitespace_crlf).
 
 -export([one/0]).
 
