@@ -30,7 +30,6 @@ rules(erl_files) ->
         , {elvis_style, no_behavior_info}
         , {elvis_style, module_naming_convention}
         , {elvis_style, function_naming_convention}
-        , {elvis_style, state_record_and_type}
         , {elvis_style, no_spec_with_records}
         , {elvis_style, dont_repeat_yourself}
         , {elvis_style, no_debug_call}
@@ -53,7 +52,6 @@ rules(beam_files) ->
         , used_ignored_variable
         , module_naming_convention
         , function_naming_convention
-        , state_record_and_type
         , no_spec_with_records
         , dont_repeat_yourself
         , no_debug_call
