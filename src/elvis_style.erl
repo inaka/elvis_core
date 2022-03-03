@@ -360,7 +360,7 @@ no_macros(ElvisConfig, RuleTarget, RuleConfig) ->
                     Acc;
                 false ->
                     {Line, _Col} = ktn_code:attr(location, MacroNode),
-                    [elvis_result:new(item, ?NO_MACROS_MSG, [Macro, Line]) | Acc]
+                    [elvis_result:new(item, ?NO_MACROS_MSG, [Macro, Line], Line) | Acc]
             end
         end,
         [],
@@ -662,7 +662,7 @@ max_module_length(Config, Target, RuleConfig) ->
         L when L > MaxLength ->
             Info = [ModuleName, L, MaxLength],
             Msg = ?MAX_MODULE_LENGTH,
-            Result = elvis_result:new(item, Msg, Info, 0),
+            Result = elvis_result:new(item, Msg, Info, 1),
             [Result];
         _ ->
             []
@@ -874,7 +874,7 @@ check_numeric_format(Regex, [NumNode | RemainingNumNodes], AccIn) ->
                     nomatch ->
                         {Line, _} = ktn_code:attr(location, NumNode),
                         Result = elvis_result:new(
-                                    item, ?NUMERIC_FORMAT_MSG, [Number, Line, Regex]),
+                                    item, ?NUMERIC_FORMAT_MSG, [Number, Line, Regex], Line),
                         [Result|AccIn];
                     {match, _} ->
                         AccIn
@@ -909,13 +909,13 @@ check_atom_names(Regex, RegexEnclosed, [AtomNode | RemainingAtomNodes], AccIn) -
                   Msg = ?ATOM_NAMING_CONVENTION_MSG,
                   {Line, _} = ktn_code:attr(location, AtomNode),
                   Info = [AtomName0, Line, Regex],
-                  Result = elvis_result:new(item, Msg, Info),
+                  Result = elvis_result:new(item, Msg, Info, Line),
                   AccIn ++ [Result];
               nomatch when IsEnclosed->
                   Msg = ?ATOM_NAMING_CONVENTION_MSG,
                   {Line, _} = ktn_code:attr(location, AtomNode),
                   Info = [AtomName0, Line, RegexEnclosed],
-                  Result = elvis_result:new(item, Msg, Info),
+                  Result = elvis_result:new(item, Msg, Info, Line),
                   AccIn ++ [Result];
               {match, _Captured} ->
                   AccIn
@@ -1005,7 +1005,7 @@ check_macro_names(Regexp, [MacroNode | RemainingMacroNodes], ResultsIn) ->
                   Msg = ?INVALID_MACRO_NAME_REGEX_MSG,
                   {Line, _} = ktn_code:attr(location, MacroNode),
                   Info = [MacroNameOriginal, Line, Regexp],
-                  Result = elvis_result:new(item, Msg, Info),
+                  Result = elvis_result:new(item, Msg, Info, Line),
                   ResultsIn ++ [Result];
               {match, _Captured} ->
                   ResultsIn
