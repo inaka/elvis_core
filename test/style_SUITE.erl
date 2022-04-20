@@ -45,6 +45,7 @@
          verify_no_call/1,
          verify_no_nested_try_catch/1,
          verify_atom_naming_convention/1,
+         verify_no_throw/1,
          verify_numeric_format/1,
          %% -elvis attribute
          verify_elvis_attr_atom_naming_convention/1,
@@ -123,6 +124,7 @@ groups() -> [
        , verify_no_call
        , verify_no_nested_try_catch
        , verify_atom_naming_convention
+       , verify_no_throw
        , verify_no_macros
     ]}
 ].
@@ -894,6 +896,18 @@ verify_atom_naming_convention(Config) ->
             [_,_,_,_,_]
                 = elvis_core_apply_rule(Config, elvis_style, atom_naming_convention, #{ regex => KeepRegex, enclosed_atoms => "^([\\\\][\-a-z0-9A-Z_' \\\\]*)$" }, FailPath)
     end.
+
+-spec verify_no_throw(config()) -> any().
+verify_no_throw(Config) ->
+    _Group = proplists:get_value(group, Config, erl_files),
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    % fail
+
+    FailModule = fail_no_throw,
+    FailPath = atom_to_list(FailModule) ++ "." ++ Ext,
+
+    [_, _, _, _] = elvis_core_apply_rule(Config, elvis_style, no_throw, #{}, FailPath).
 
 -spec verify_numeric_format(config()) -> any().
 verify_numeric_format(Config) ->
