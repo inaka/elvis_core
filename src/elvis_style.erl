@@ -815,7 +815,12 @@ atom_naming_convention(Config, Target, RuleConfig) ->
    [elvis_result:item()].
 no_throw(Config, Target, RuleConfig) ->
     Zipper = fun (Node) ->
-                 is_call(Node, [{throw, 1}, {erlang, throw, 1}])
+                 lists:any(
+                     fun (T) ->
+                         is_call(Node, T)
+                     end,
+                     [{throw, 1}, {erlang, throw, 1}]
+                 )
              end,
     Root = get_root(Config, Target, RuleConfig),
     Opts = #{ mode => node, traverse => content },
@@ -1464,10 +1469,6 @@ call_mfa(Call) ->
     A = length(ktn_code:content(Call)),
     {M, F, A}.
 
-is_call(_Node, []) ->
-    false;
-is_call(Node, [MFA | Tail]) ->
-    is_call(Node, MFA) orelse is_call(Node, Tail);
 is_call(Node, {F, A}) ->
     ktn_code:type(Node) =:= call
         andalso list_to_existing_atom(ktn_code:attr(text, Node)) =:= F
