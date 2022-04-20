@@ -1471,7 +1471,7 @@ call_mfa(Call) ->
 
 is_call(Node, {F, A}) ->
     ktn_code:type(Node) =:= call
-        andalso list_to_existing_atom(ktn_code:attr(text, Node)) =:= F
+        andalso list_to_atom(ktn_code:attr(text, Node)) =:= F
         andalso length(ktn_code:content(Node)) =:= A;
 is_call(Node, {M, F, A}) ->
     call_mfa(Node) =:= {M, F, A}.
