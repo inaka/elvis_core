@@ -36,6 +36,7 @@ rules(erl_files) ->
         , {elvis_style, variable_naming_convention}
         , {elvis_style, no_nested_try_catch}
         , {elvis_style, atom_naming_convention}
+        , {elvis_style, no_throw}
         , {elvis_style, numeric_format}
         , {elvis_style, behaviour_spelling}
         ]
@@ -58,6 +59,7 @@ rules(beam_files) ->
         , variable_naming_convention
         , no_nested_try_catch
         , atom_naming_convention
+        , no_throw
         , behaviour_spelling
         ]
     );
