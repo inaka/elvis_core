@@ -129,7 +129,7 @@
         "defined by the regular expression '~p'.").
 
 -define(NO_THROW_MSG,
-        "The call to throw/1 on line ~p is unexpected").
+        "Usage of throw/1 on line ~p is not recommended").
 
 -define(NUMERIC_FORMAT_MSG,
         "Number ~p on line ~p does not respect the format "
