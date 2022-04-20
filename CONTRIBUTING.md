@@ -23,7 +23,7 @@ The following is a checklist you can follow when implementing a new Elvis rule:
 
 - [ ] Write both test cases that fail and that pass the rule.
 - [ ] Edit the [Rules](https://github.com/inaka/elvis/wiki/Rules) wiki page, by adding the rule to the list.
-- [ ] When the issue has the label `default rule`, add the rule to [Default Rules in Elvis Webhook](https://github.com/inaka/elvis/wiki/Default-Rules-in-Elvis-Webhook) and in the [`config/elvis.config`](https://github.com/inaka/elvis/blob/master/config/elvis.config) file.
+- [ ] When the issue has the label `default rule`, add the rule to [Default Rules in Elvis Webhook](https://github.com/inaka/elvis/wiki/Default-Rules-in-Elvis-Webhook) and in the [`config/elvis.config`](https://github.com/inaka/elvis/blob/HEAD/config/elvis.config) file.
 
 ## Questions?
 

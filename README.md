@@ -222,7 +222,7 @@ The default value for `parallel` is `1`.
 ## Configuration examples
 
 You can find examples for configuration files in this project's
-[`config`](https://github.com/inaka/elvis_core/tree/master/config) directory.
+[`config`](https://github.com/inaka/elvis_core/tree/HEAD/config) directory.
 
 ## Application environment
 

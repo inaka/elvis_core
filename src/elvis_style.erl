@@ -25,6 +25,7 @@
          no_common_caveats_call/3,
          no_nested_try_catch/3,
          atom_naming_convention/3,
+         no_throw/3,
          numeric_format/3,
          behaviour_spelling/3,
          option/3
@@ -126,6 +127,9 @@
 -define(ATOM_NAMING_CONVENTION_MSG,
         "Atom ~p on line ~p does not respect the format "
         "defined by the regular expression '~p'.").
+
+-define(NO_THROW_MSG,
+        "Usage of throw/1 on line ~p is not recommended").
 
 -define(NUMERIC_FORMAT_MSG,
         "Number ~p on line ~p does not respect the format "
@@ -239,6 +243,9 @@ default(atom_naming_convention) ->
     #{ regex => "^([a-z][a-z0-9]*_?)*(_SUITE)?$"
      , enclosed_atoms => ".*"
      };
+
+default(no_throw) ->
+    #{};
 
 %% Not restrictive. Those who want more restrictions can set it like "^[^_]*$"
 default(numeric_format) ->
@@ -801,6 +808,31 @@ atom_naming_convention(Config, Target, RuleConfig) ->
                                         Regex),
     AtomNodes = elvis_code:find(fun is_atom_node/1, Root, #{traverse => all, mode => node}),
     check_atom_names(Regex, RegexEnclosed, AtomNodes, []).
+
+-type no_throw_config() :: #{ ignore => [ignorable()] }.
+
+-spec no_throw(elvis_config:config(), elvis_file:file(), no_throw_config()) ->
+   [elvis_result:item()].
+no_throw(Config, Target, RuleConfig) ->
+    Zipper = fun (Node) ->
+                 lists:any(
+                     fun (T) ->
+                         is_call(Node, T)
+                     end,
+                     [{throw, 1}, {erlang, throw, 1}]
+                 )
+             end,
+    Root = get_root(Config, Target, RuleConfig),
+    Opts = #{ mode => node, traverse => content },
+    ThrowNodes = elvis_code:find(Zipper, Root, Opts),
+    lists:foldl(
+        fun (ThrowNode, AccIn) ->
+            {Line, _} = ktn_code:attr(location, ThrowNode),
+            [elvis_result:new(item, ?NO_THROW_MSG, [Line]) | AccIn]
+        end,
+        [],
+        ThrowNodes
+     ).
 
 -type numeric_format_config() :: #{ ignore => [ignorable()]
                                   , regex => string()
@@ -1436,6 +1468,13 @@ call_mfa(Call) ->
     F = ktn_code:attr(value, ktn_code:node_attr(function, FunctionSpec)),
     A = length(ktn_code:content(Call)),
     {M, F, A}.
+
+is_call(Node, {F, A}) ->
+    ktn_code:type(Node) =:= call
+        andalso list_to_existing_atom(ktn_code:attr(text, Node)) =:= F
+        andalso length(ktn_code:content(Node)) =:= A;
+is_call(Node, {M, F, A}) ->
+    call_mfa(Node) =:= {M, F, A}.
 
 fun_spec_match({M, F}, {M, F, _}) -> true;
 fun_spec_match({M, F, A}, {M, F, A}) -> true;
