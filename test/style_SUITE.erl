@@ -27,6 +27,7 @@
          verify_macro_module_names/1,
          verify_no_macros/1,
          verify_operator_spaces/1,
+         verify_no_space/1,
          verify_operator_spaces_latin1/1,
          verify_nesting_level/1,
          verify_god_modules/1,
@@ -382,6 +383,21 @@ verify_operator_spaces(Config) ->
                              {left, "||"}]},
     [_, _, _, _, _, _, _, _, _, _] =
         elvis_core_apply_rule(Config, elvis_style, operator_spaces, AllOptions, Path).
+
+-spec verify_no_space(config()) -> any().
+verify_no_space(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    Path1 = "fail_no_space." ++ Ext,
+    [#{info := [right, "(", 3]},
+     #{info := [right, "(", 32]},
+     #{info := [right, "(", 46]},
+     #{info := [left,  ")", 46]},
+     #{info := [left,  ")", 65]},
+     #{info := [left,  ")", 72]},
+     #{info := [right, "(", 102]},
+     #{info := [left,  ")", 102]}]
+        = elvis_core_apply_rule(Config, elvis_style, no_space, #{rules=>[{right, "("}, {left, ")"}]}, Path1).
 
 -spec verify_operator_spaces_latin1(config()) -> any().
 verify_operator_spaces_latin1(Config) ->

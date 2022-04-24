@@ -8,6 +8,7 @@
          macro_module_names/3,
          no_macros/3,
          operator_spaces/3,
+         no_space/3,
          nesting_level/3,
          god_modules/3,
          no_if_expression/3,
@@ -49,7 +50,9 @@
 -define(NO_MACROS_MSG,
             "Unexpected macro (~p) used on line ~p.").
 
--define(OPERATOR_SPACE_MSG, "Missing space ~s ~p on line ~p").
+-define(MISSING_SPACE_MSG, "Missing space ~s ~p on line ~p").
+
+-define(UNEXPECTED_SPACE_MSG, "Unexpected space ~s ~p on line ~p").
 
 -define(NESTING_LEVEL_MSG,
         "The expression on line ~p and column ~p is nested "
@@ -158,6 +161,12 @@ default(operator_spaces) ->
     #{ rules => [ {right, ","}
                 , {right, "++"}
                 , {left, "++"}
+                ]
+     };
+
+default(no_space) ->
+    #{ rules => [ {right, "("}
+                , {left, ")"}
                 ]
      };
 
@@ -415,7 +424,7 @@ operator_spaces(Config, Target, RuleConfig) ->
     AllNodes = OpNodes ++ PunctuationTokens,
 
     FlatMap = fun(Rule) ->
-                  check_operator_spaces(Lines, AllNodes, Rule, Encoding)
+                  check_spaces(Lines, AllNodes, Rule, Encoding, should_have)
               end,
     lists:flatmap(FlatMap, Rules).
 
@@ -423,6 +432,29 @@ operator_spaces(Config, Target, RuleConfig) ->
 -spec is_operator_node(ktn_code:tree_node()) -> boolean().
 is_operator_node(Node) ->
     ktn_code:type(Node) =:= op andalso length(ktn_code:content(Node)) > 1.
+
+-type no_space_config() :: #{ ignore => [ignorable()]
+                                   , rules => [{right | left, string()}]
+                                   }.
+
+-spec no_space(elvis_config:config(),
+               elvis_file:file(),
+               no_space_config()) ->
+    [elvis_result:item()].
+no_space(Config, Target, RuleConfig) ->
+    Rules = option(rules, RuleConfig, no_space),
+    Root = get_root(Config, Target, RuleConfig),
+    Tokens = ktn_code:attr(tokens, Root),
+    TextNodes = lists:filter(fun is_text_node/1, Tokens),
+    {Src, #{encoding := Encoding}} = elvis_file:src(Target),
+    Lines = elvis_utils:split_all_lines(Src),
+    FlatMap = fun(Rule) ->
+                  check_spaces(Lines, TextNodes, Rule, Encoding, should_not_have)
+              end,
+    lists:flatmap(FlatMap, Rules).
+
+is_text_node(Node) ->
+    ktn_code:attr(text, Node) =/= "".
 
 %% @doc Returns true when the token is one of the ?PUNCTUATION_SYMBOLS
 -spec is_punctuation_token(ktn_code:tree_node()) -> boolean().
@@ -1144,26 +1176,34 @@ has_remote_call_parent(Zipper) ->
             has_remote_call_parent(zipper:up(Zipper))
     end.
 
-%% Operator Spaces
--spec check_operator_spaces(Lines :: [binary()],
-                            OperatorNodes :: [ktn_code:tree_node()],
-                            Rule :: {right | left, string()},
-                            Encoding :: latin1 | utf8) ->
+%% Operator (and Text) Spaces
+-spec check_spaces(Lines :: [binary()],
+                   Nodes :: [ktn_code:tree_node()],
+                   Rule :: {right | left, string()},
+                   Encoding :: latin1 | utf8,
+                   How :: should_have | should_not_have) ->
     [elvis_result:item()].
-check_operator_spaces(Lines, OperatorNodes, {Position, Operator}, Encoding) ->
-  FilterFun = fun(Node) -> ktn_code:attr(text, Node) =:= Operator end,
-  Nodes = lists:filter(FilterFun, OperatorNodes),
+check_spaces(Lines, UnfilteredNodes, {Position, Text}, Encoding, How) ->
+  FilterFun = fun(Node) -> ktn_code:attr(text, Node) =:= Text end,
+  Nodes = lists:filter(FilterFun, UnfilteredNodes),
   SpaceChar = $\s,
   FlatFun = fun(Node) ->
                 Location = ktn_code:attr(location, Node),
                 case
-                  character_at_location(Position, Lines, Operator, Location, Encoding)
+                  character_at_location(Position, Lines, Text, Location, Encoding, How)
                 of
-                  SpaceChar -> [];
-                  _         ->
-                    Msg = ?OPERATOR_SPACE_MSG,
+                  Char when Char =:= SpaceChar andalso How =:= should_have -> [];
+                  Char when Char =/= SpaceChar andalso How =:= should_not_have -> [];
+                  _ when How =:= should_have ->
+                    Msg = ?MISSING_SPACE_MSG,
                     {Line, _Col} = Location,
-                    Info = [Position, Operator, Line],
+                    Info = [Position, Text, Line],
+                    Result = elvis_result:new(item, Msg, Info, Line),
+                    [Result];
+                  _ when How =:= should_not_have ->
+                    Msg = ?UNEXPECTED_SPACE_MSG,
+                    {Line, _Col} = Location,
+                    Info = [Position, Text, Line],
                     Result = elvis_result:new(item, Msg, Info, Line),
                     [Result]
                 end
@@ -1172,26 +1212,29 @@ check_operator_spaces(Lines, OperatorNodes, {Position, Operator}, Encoding) ->
 
 -spec character_at_location(Position::atom(),
                             Lines::[binary()],
-                            Operator::string(),
+                            Text::string(),
                             Location::{integer(), integer()},
-                            Encoding::latin1|utf8) -> char().
-character_at_location(Position, Lines, Operator, {LineNo, Col}, Encoding) ->
+                            Encoding::latin1|utf8,
+                            How :: should_have | should_not_have) -> char().
+character_at_location(Position, Lines, Text, {LineNo, Col}, Encoding, How) ->
     Line = lists:nth(LineNo, Lines),
-    OperatorLineStr = unicode:characters_to_list(Line, Encoding),
+    TextLineStr = unicode:characters_to_list(Line, Encoding),
     ColToCheck = case Position of
         left  -> Col - 1;
-        right -> Col + length(Operator)
+        right -> Col + length(Text)
     end,
-    % If ColToCheck is greater than the length of OperatorLineStr variable, it
-    % means the end of line was reached so return " " to make the check pass,
+    % If ColToCheck is greater than the length of TextLineStr variable, it
+    % means the end of line was reached so return " " (or "") to make the check pass,
     % otherwise return the character at the given column.
     % NOTE: text below only applies when the given Position is equal to `right`,
     %       or Position is equal to `left` and Col is 1.
     SpaceChar = $\s,
-    case ColToCheck =:= 0 orelse {Position, (ColToCheck > length(OperatorLineStr))} of
-        true -> SpaceChar;
-        {right, true}  -> SpaceChar;
-        _ -> lists:nth(ColToCheck, OperatorLineStr)
+    case ColToCheck =:= 0 orelse {Position, (ColToCheck > length(TextLineStr))} of
+        true when How =:= should_have -> SpaceChar;
+        true when How =:= should_not_have -> "";
+        {right, true} when How =:= should_have -> SpaceChar;
+        {right, true} when How =:= should_not_have -> "";
+        _ -> lists:nth(ColToCheck, TextLineStr)
     end.
 
 %% Nesting Level
