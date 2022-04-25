@@ -31,7 +31,9 @@ function1(Should,Fail) ->
 
 function2( Shouldnt, Fail) ->
     _Unless = [we, consider]++ [operands, as, well],
-    _WithDash = Shouldnt - Fail.
+    _WithDash = Shouldnt - Fail,
+    fun (a
+    ) -> ok end. % only spaces between start of line and ')'
 
 function3(Shouldnt, Fail) ->
     {
@@ -67,6 +69,7 @@ function8(
 
 function9(
 ) ->
+    _ = $ ,
     [X|| X <- [fail]] ++ [X ||X <- [fail]] ++ [X || X <- [notfail]].
 
 tag_filters(DocName, #{conn := Conn} = State ) ->
@@ -108,4 +111,4 @@ this()
 -> -1.
 this(shouldnt_either)
 -> A = 1
-- 2, A.
+- 2, A, $ . % there's a space after $ that we should complain about :) 

@@ -50,9 +50,9 @@
 -define(NO_MACROS_MSG,
             "Unexpected macro (~p) used on line ~p.").
 
--define(MISSING_SPACE_MSG, "Missing space ~s ~p on line ~p").
+-define(MISSING_SPACE_MSG, "Missing space to the ~s of ~p on line ~p").
 
--define(UNEXPECTED_SPACE_MSG, "Unexpected space ~s ~p on line ~p").
+-define(UNEXPECTED_SPACE_MSG, "Unexpected space to the ~s of ~p on line ~p").
 
 -define(NESTING_LEVEL_MSG,
         "The expression on line ~p and column ~p is nested "
@@ -167,6 +167,7 @@ default(operator_spaces) ->
 default(no_space) ->
     #{ rules => [ {right, "("}
                 , {left, ")"}
+                , {left, ","}
                 ]
      };
 
@@ -424,7 +425,7 @@ operator_spaces(Config, Target, RuleConfig) ->
     AllNodes = OpNodes ++ PunctuationTokens,
 
     FlatMap = fun(Rule) ->
-                  check_spaces(Lines, AllNodes, Rule, Encoding, should_have)
+                  check_spaces(Lines, AllNodes, Rule, Encoding, {should_have, []})
               end,
     lists:flatmap(FlatMap, Rules).
 
@@ -448,8 +449,23 @@ no_space(Config, Target, RuleConfig) ->
     TextNodes = lists:filter(fun is_text_node/1, Tokens),
     {Src, #{encoding := Encoding}} = elvis_file:src(Target),
     Lines = elvis_utils:split_all_lines(Src),
+    AllSpaceUntilText
+        = [{Text,
+            re:compile("^[ ]+" ++ re:replace(
+                                      Text,
+                                      "(\\.|\\[|\\]|\\^|\\$|\\+|\\*|\\?|\\{|\\}|\\(|\\)|\\||\\\\)",
+                                      "\\\\\\1",
+                                      [{return, list}, global]
+                                  )
+            )} || {left, Text} <- Rules],
     FlatMap = fun(Rule) ->
-                  check_spaces(Lines, TextNodes, Rule, Encoding, should_not_have)
+                  check_spaces(
+                      Lines,
+                      TextNodes,
+                      Rule,
+                      Encoding,
+                      {should_not_have, AllSpaceUntilText}
+                  )
               end,
     lists:flatmap(FlatMap, Rules).
 
@@ -1181,9 +1197,11 @@ has_remote_call_parent(Zipper) ->
                    Nodes :: [ktn_code:tree_node()],
                    Rule :: {right | left, string()},
                    Encoding :: latin1 | utf8,
-                   How :: should_have | should_not_have) ->
+                   How :: {should_have, []}
+                        | {should_not_have, [{string(), {ok, _}}]})
+      -> % _ is re:mp()
     [elvis_result:item()].
-check_spaces(Lines, UnfilteredNodes, {Position, Text}, Encoding, How) ->
+check_spaces(Lines, UnfilteredNodes, {Position, Text}, Encoding, {How0, _} = How) ->
   FilterFun = fun(Node) -> ktn_code:attr(text, Node) =:= Text end,
   Nodes = lists:filter(FilterFun, UnfilteredNodes),
   SpaceChar = $\s,
@@ -1192,15 +1210,15 @@ check_spaces(Lines, UnfilteredNodes, {Position, Text}, Encoding, How) ->
                 case
                   character_at_location(Position, Lines, Text, Location, Encoding, How)
                 of
-                  Char when Char =:= SpaceChar andalso How =:= should_have -> [];
-                  Char when Char =/= SpaceChar andalso How =:= should_not_have -> [];
-                  _ when How =:= should_have ->
+                  Char when Char =:= SpaceChar andalso How0 =:= should_have -> [];
+                  Char when Char =/= SpaceChar andalso How0 =:= should_not_have -> [];
+                  _ when How0 =:= should_have ->
                     Msg = ?MISSING_SPACE_MSG,
                     {Line, _Col} = Location,
                     Info = [Position, Text, Line],
                     Result = elvis_result:new(item, Msg, Info, Line),
                     [Result];
-                  _ when How =:= should_not_have ->
+                  _ when How0 =:= should_not_have ->
                     Msg = ?UNEXPECTED_SPACE_MSG,
                     {Line, _Col} = Location,
                     Info = [Position, Text, Line],
@@ -1215,9 +1233,22 @@ check_spaces(Lines, UnfilteredNodes, {Position, Text}, Encoding, How) ->
                             Text::string(),
                             Location::{integer(), integer()},
                             Encoding::latin1|utf8,
-                            How :: should_have | should_not_have) -> char().
-character_at_location(Position, Lines, Text, {LineNo, Col}, Encoding, How) ->
+                            How :: {should_have, []}
+                                 | {should_not_have, [{string(), {ok, _}}]})
+      -> char(). % _ is re:mp()
+character_at_location(Position, Lines, Text, {LineNo, Col}, Encoding, {How, TextRegexes}) ->
     Line = lists:nth(LineNo, Lines),
+    TextRegex
+        = case TextRegexes of
+              [] ->
+                  false;
+              _ ->
+                  Regex0 = proplists:get_value(Text, TextRegexes),
+                  Regex0 =/= undefined andalso begin
+                      {ok, Regex} = Regex0,
+                      re:run(Line, Regex)
+                  end
+          end,
     TextLineStr = unicode:characters_to_list(Line, Encoding),
     ColToCheck = case Position of
         left  -> Col - 1;
@@ -1234,7 +1265,15 @@ character_at_location(Position, Lines, Text, {LineNo, Col}, Encoding, How) ->
         true when How =:= should_not_have -> "";
         {right, true} when How =:= should_have -> SpaceChar;
         {right, true} when How =:= should_not_have -> "";
-        _ -> lists:nth(ColToCheck, TextLineStr)
+        _ ->
+            case How of
+                should_have ->
+                    lists:nth(ColToCheck, TextLineStr);
+                should_not_have when TextRegex =:= false orelse TextRegex =:= nomatch ->
+                    lists:nth(ColToCheck, TextLineStr);
+                _ ->
+                    ""
+            end
     end.
 
 %% Nesting Level

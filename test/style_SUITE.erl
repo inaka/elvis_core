@@ -391,12 +391,11 @@ verify_no_space(Config) ->
     Path1 = "fail_no_space." ++ Ext,
     [#{info := [right, "(", 3]},
      #{info := [right, "(", 32]},
-     #{info := [right, "(", 46]},
-     #{info := [left,  ")", 46]},
-     #{info := [left,  ")", 65]},
-     #{info := [left,  ")", 72]},
-     #{info := [right, "(", 102]},
-     #{info := [left,  ")", 102]}]
+     #{info := [right, "(", 48]},
+     #{info := [left,  ")", 48]},
+     #{info := [left,  ")", 75]},
+     #{info := [right, "(", 105]},
+     #{info := [left,  ")", 105]}]
         = elvis_core_apply_rule(Config, elvis_style, no_space, #{rules=>[{right, "("}, {left, ")"}]}, Path1).
 
 -spec verify_operator_spaces_latin1(config()) -> any().
