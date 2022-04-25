@@ -22,6 +22,7 @@ rules(erl_files) ->
         , {elvis_style, macro_names}
         , {elvis_style, macro_module_names}
         , {elvis_style, operator_spaces}
+        , {elvis_style, no_space}
         , {elvis_style, nesting_level}
         , {elvis_style, god_modules}
         , {elvis_style, no_if_expression}
