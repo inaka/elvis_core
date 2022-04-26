@@ -94,10 +94,11 @@ accumulate(AccF, AccR, Res, AccG) ->
     end.
 
 cleanup(AccG) ->
-    [ begin
-          erlang:demonitor(MRef, [flush]),
-          erlang:exit(Pid, kill)
-      end || {Pid, MRef} <- AccG ].
+    [demonitor_and_exit(MRef, Pid) || {Pid, MRef} <- AccG ].
+
+demonitor_and_exit(MRef, Pid) ->
+    erlang:demonitor(MRef, [flush]),
+    erlang:exit(Pid, kill).
 
 gather(Timeout, AccG) ->
     Self = self(),

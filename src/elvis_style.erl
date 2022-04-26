@@ -1257,6 +1257,11 @@ check_spaces(Lines, UnfilteredNodes, {Position, Text}, Encoding, {How0, _} = How
             end,
   lists:flatmap(FlatFun, Nodes).
 
+maybe_run_regex(undefined = _Regex, _Line) ->
+    false;
+maybe_run_regex({ok, Regex}, Line) ->
+    re:run(Line, Regex).
+
 -spec character_at_location(Position::atom(),
                             Lines::[binary()],
                             Text::string(),
@@ -1272,11 +1277,7 @@ character_at_location(Position, Lines, Text, {LineNo, Col}, Encoding, {How, Text
               [] ->
                   false;
               _ ->
-                  Regex0 = proplists:get_value(Text, TextRegexes),
-                  Regex0 =/= undefined andalso begin
-                      {ok, Regex} = Regex0,
-                      re:run(Line, Regex)
-                  end
+                  maybe_run_regex(proplists:get_value(Text, TextRegexes), Line)
           end,
     TextLineStr = unicode:characters_to_list(Line, Encoding),
     ColToCheck = case Position of
