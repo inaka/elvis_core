@@ -7,6 +7,7 @@
          macro_names/3,
          macro_module_names/3,
          no_macros/3,
+         no_block_expressions/3,
          operator_spaces/3,
          no_space/3,
          nesting_level/3,
@@ -49,6 +50,9 @@
 
 -define(NO_MACROS_MSG,
             "Unexpected macro (~p) used on line ~p.").
+
+-define(NO_BLOCK_EXPRESSIONS_MSG,
+            "Unexpected block expression (begin-end) used on line ~p.").
 
 -define(MISSING_SPACE_MSG, "Missing space to the ~s of ~p on line ~p").
 
@@ -155,6 +159,9 @@ default(macro_module_names) ->
     #{};
 
 default(no_macros) ->
+    #{};
+
+default(no_block_expressions) ->
     #{};
 
 default(operator_spaces) ->
@@ -386,6 +393,28 @@ no_macros(ElvisConfig, RuleTarget, RuleConfig) ->
 
 is_macro_node(Node) ->
     ktn_code:type(Node) =:= macro.
+
+-type no_block_expressions_config() :: #{ ignore => [ignorable()] }.
+
+-spec no_block_expressions(elvis_config:config(),
+                           elvis_file:file(),
+                           no_block_expressions_config())
+      -> [elvis_result:item()].
+no_block_expressions(Config, Target, RuleConfig) ->
+    Root = get_root(Config, Target, RuleConfig),
+    Tokens = ktn_code:attr(tokens, Root),
+    BeginNodes = lists:filter(fun is_begin_node/1, Tokens),
+    lists:foldl(
+        fun (BeginNode, Acc) ->
+            {Line, _Col} = ktn_code:attr(location, BeginNode),
+            [elvis_result:new(item, ?NO_BLOCK_EXPRESSIONS_MSG, [Line], Line) | Acc]
+        end,
+        [],
+        BeginNodes
+    ).
+
+is_begin_node(Node) ->
+    ktn_code:type(Node) =:= 'begin'.
 
 eep_predef_macros() -> % From unexported eep:predef_macros/1
     [ 'BASE_MODULE'
