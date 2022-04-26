@@ -26,6 +26,7 @@
          verify_macro_names_rule/1,
          verify_macro_module_names/1,
          verify_no_macros/1,
+         verify_no_block_expressions/1,
          verify_operator_spaces/1,
          verify_no_space/1,
          verify_operator_spaces_latin1/1,
@@ -341,6 +342,14 @@ verify_no_macros(Config) ->
 
     PathPass = "pass_no_macros." ++ Ext,
     [] = elvis_core_apply_rule(Config, elvis_style, no_macros, #{ allow => ['ALLOWED_MACRO'] }, PathPass).
+
+-spec verify_no_block_expressions(config()) -> any().
+verify_no_block_expressions(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    Path = "fail_no_block_expressions." ++ Ext,
+    
+    [#{info := [9]}] = elvis_core_apply_rule(Config, elvis_style, no_block_expressions, #{}, Path).
 
 -spec verify_operator_spaces(config()) -> any().
 verify_operator_spaces(Config) ->
