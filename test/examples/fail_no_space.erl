@@ -111,4 +111,4 @@ this()
 -> -1.
 this(shouldnt_either)
 -> A = 1
-- 2, A, $ . % there's a space after $ that we should complain about :) 
+- 2, A, $ . 
