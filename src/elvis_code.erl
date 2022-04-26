@@ -179,7 +179,7 @@ print_node(Node) ->
 -spec print_node(ktn_code:tree_node(), integer()) -> ok.
 print_node(Node = #{type := Type}, CurrentLevel) ->
     Type = ktn_code:type(Node),
-    Indentation = lists:duplicate(CurrentLevel * 4, $ ),
+    Indentation = lists:duplicate(CurrentLevel * 4, $\s),
     Content = ktn_code:content(Node),
 
     ok = elvis_utils:info("~s - [~p] ~p~n", [Indentation, CurrentLevel, Type]),

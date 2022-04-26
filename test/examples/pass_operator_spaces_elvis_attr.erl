@@ -6,7 +6,7 @@
 
 -elvis([{elvis_style , operator_spaces , #{rules => [{right , "++"} ,
                                                      {left , ","}]}}]).
-
+-elvis([{elvis_style , no_space , #{rules => [{right , "("} , {left , ")"}]}}]).
 -export([ function1/2
         , function2/2
         , function3/2

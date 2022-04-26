@@ -1,6 +1,7 @@
 -module(pass_no_spaces_elvis_attr).
 
 -elvis([{elvis_text_style, no_spaces, disable}]).
+-elvis([{elvis_style, no_space, disable}]).
 -elvis([{elvis_text_style, no_tabs, disable}]).
 
 -export([one/0, two/0, three/0, four/0, five/0]).
