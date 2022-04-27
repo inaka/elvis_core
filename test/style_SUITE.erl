@@ -48,6 +48,7 @@
          verify_no_nested_try_catch/1,
          verify_atom_naming_convention/1,
          verify_no_throw/1,
+         verify_no_catch_expressions/1,
          verify_numeric_format/1,
          %% -elvis attribute
          verify_elvis_attr_atom_naming_convention/1,
@@ -127,6 +128,7 @@ groups() -> [
        , verify_no_nested_try_catch
        , verify_atom_naming_convention
        , verify_no_throw
+       , verify_no_catch_expressions
        , verify_no_macros
     ]}
 ].
@@ -932,6 +934,21 @@ verify_no_throw(Config) ->
     FailPath = atom_to_list(FailModule) ++ "." ++ Ext,
 
     [_, _, _, _] = elvis_core_apply_rule(Config, elvis_style, no_throw, #{}, FailPath).
+
+-spec verify_no_catch_expressions(config()) -> any().
+verify_no_catch_expressions(Config) ->
+    Group = proplists:get_value(group, Config, erl_files),
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    FailPath = "fail_no_catch_expressions." ++ Ext,
+
+    R = elvis_core_apply_rule(Config, elvis_style, no_catch_expressions, #{}, FailPath),
+    _ = case Group of
+        beam_files ->
+            [#{info := [18]}, #{info := [18]}, #{info := [7]}] = R;
+        erl_files ->    
+            [#{info := [24]}, #{info := [22]}, #{info := [7]}] = R
+    end.
 
 -spec verify_numeric_format(config()) -> any().
 verify_numeric_format(Config) ->
