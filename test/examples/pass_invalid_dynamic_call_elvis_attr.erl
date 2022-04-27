@@ -4,7 +4,7 @@
 -elvis([{elvis_text_style, line_length, #{limit => 100}}]).
 -elvis([{elvis_style, atom_naming_convention, #{regex => "^([a-z][a-z0-9]*_?_?)*(_SUITE)?$"}}]).
 
--dialyzer(no_match).
+-dialyzer(no_match). -elvis([{elvis_style, no_catch_expressions, disable}]).
 
 -ignore_xref({normal, call, 0}).
 -ignore_xref({a_module, call, 0}).

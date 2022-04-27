@@ -3,7 +3,7 @@
 -ignore_xref({normal, call, 0}).
 -ignore_xref({another_normal, call, 0}).
 
--dialyzer(no_match).
+-dialyzer(no_match). -elvis([{elvis_style, no_catch_expressions, disable}]).
 
 -export([
          dynamic_module_name_call/0,

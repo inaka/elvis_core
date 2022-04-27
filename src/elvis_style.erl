@@ -28,6 +28,7 @@
          no_nested_try_catch/3,
          atom_naming_convention/3,
          no_throw/3,
+         no_catch_expressions/3,
          numeric_format/3,
          behaviour_spelling/3,
          option/3
@@ -137,6 +138,9 @@
 
 -define(NO_THROW_MSG,
         "Usage of throw/1 on line ~p is not recommended").
+
+-define(NO_CATCH_EXPRESSIONS_MSG,
+        "Usage of catch expression on line ~p is not recommended").
 
 -define(NUMERIC_FORMAT_MSG,
         "Number ~p on line ~p does not respect the format "
@@ -262,6 +266,9 @@ default(atom_naming_convention) ->
      };
 
 default(no_throw) ->
+    #{};
+
+default(no_catch_expressions) ->
     #{};
 
 %% Not restrictive. Those who want more restrictions can set it like "^[^_]*$"
@@ -910,6 +917,25 @@ no_throw(Config, Target, RuleConfig) ->
         [],
         ThrowNodes
      ).
+
+-type no_catch_expressions_config() :: #{ ignore => [ignorable()] }.
+
+-spec no_catch_expressions(elvis_config:config(), elvis_file:file(), no_catch_expressions_config())
+      -> [elvis_result:item()].
+no_catch_expressions(Config, Target, RuleConfig) ->
+    Root = get_root(Config, Target, RuleConfig),
+    Opts = #{ mode => node, traverse => content },
+    CatchNodes = elvis_code:find(fun is_catch_node/1, Root, Opts),
+    lists:foldl(
+        fun (CatchNode, Acc) ->
+            {Line, _Col} = ktn_code:attr(location, CatchNode),
+            [elvis_result:new(item, ?NO_CATCH_EXPRESSIONS_MSG, [Line]) | Acc]
+        end,
+        [],
+        CatchNodes).
+
+is_catch_node(Node) ->
+    ktn_code:type(Node) =:= 'catch'.
 
 -type numeric_format_config() :: #{ ignore => [ignorable()]
                                   , regex => string()
