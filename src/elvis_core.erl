@@ -212,9 +212,9 @@ apply_rule({Module, Function, ConfigArgs}, {Result, Config, File}) ->
                     elvis_result:new(rule, Function, [])
             end
         catch
-            _:Reason ->
-                Msg = "'~p' while applying rule '~p'.",
-                elvis_result:new(error, Msg, [Reason, Function])
+            _:Reason:Stacktrace ->
+                Msg = "'~p' while applying rule '~p': ~p.",
+                elvis_result:new(error, Msg, [Reason, Function, Stacktrace])
         end,
     {[RuleResult | Result], Config, File}.
 
