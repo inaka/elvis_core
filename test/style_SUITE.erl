@@ -327,7 +327,16 @@ verify_macro_module_names(Config) ->
 
     Path = "fail_macro_module_names." ++ Ext,
 
-    [_, _, _, _] = elvis_core_apply_rule(Config, elvis_style, macro_module_names, #{}, Path).
+    [ #{line_num := 23}
+    , #{line_num := 23}
+    , #{line_num := 24}
+    , #{line_num := 25}
+    , #{line_num := 26}
+    , #{line_num := 26}
+    , #{line_num := 30}
+    , #{line_num := 31}
+    , #{line_num := 32}
+    ] = elvis_core_apply_rule(Config, elvis_style, macro_module_names, #{}, Path).
 
 -spec verify_no_macros(config()) -> any().
 verify_no_macros(Config) ->
