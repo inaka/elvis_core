@@ -20,12 +20,18 @@
 
 module_name() ->
     ?MODULE:function_name(),
-    ?module_name:?function_name().
+    ?module_name:?function_name(),
+    ?module_name:function_name(with, arguments),
+    ?MODULE:?function_name(with, arguments),
+    ?module_name:?function_name(with, arguments),
+    ?function_name(with, arguments).
 
 function_name() ->
     module:?FUN_NAME(params),
     module:?FUN_NAME (params),
     lists:?MODULE().
+
+function_name(with, arguments) -> "should fail anyway".
 
 build_binary() ->
     Bin = <<?BINARY:32>>,

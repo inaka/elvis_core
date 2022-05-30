@@ -47,13 +47,13 @@
         ["MODULE"]).
 
 -define(MACRO_AS_FUNCTION_NAME_MSG,
-            "Don't use macros (like ~s on line ~p) as function names.").
+        "Don't use macros (like ~s on line ~p) as function names.").
 
 -define(NO_MACROS_MSG,
-            "Unexpected macro (~p) used on line ~p.").
+        "Unexpected macro (~p) used on line ~p.").
 
 -define(NO_BLOCK_EXPRESSIONS_MSG,
-            "Unexpected block expression (begin-end) used on line ~p.").
+        "Unexpected block expression (begin-end) used on line ~p.").
 
 -define(MISSING_SPACE_MSG, "Missing space to the ~s of ~p on line ~p").
 
@@ -363,9 +363,40 @@ macro_names(Config, Target, RuleConfig) ->
                          empty_rule_config()) ->
     [elvis_result:item()].
 macro_module_names(Config, Target, RuleConfig) ->
-    {Src, _} = elvis_file:src(Target),
     Root = get_root(Config, Target, RuleConfig),
-    elvis_utils:check_lines(Src, fun check_macro_module_names/3, [Root]).
+    Calls = elvis_code:find(fun is_call/1, Root),
+    check_no_macro_calls(Calls).
+
+-spec check_no_macro_calls([ktn_code:tree_node()]) -> [elvis_result:item()].
+check_no_macro_calls(Calls) ->
+    TypeFun =
+        fun(Call) ->
+            FunctionSpec = ktn_code:node_attr(function, Call),
+            ModuleAttr = ktn_code:node_attr(module, FunctionSpec),
+            FuncAttr = ktn_code:node_attr(function, FunctionSpec),
+            M = ktn_code:type(ModuleAttr),
+            MN = ktn_code:attr(name, ModuleAttr),
+            F = ktn_code:type(FuncAttr),
+            FN = ktn_code:attr(name, FuncAttr),
+            #{call => Call, module_type => M, func_type => F, module_name => MN, func_name => FN}
+        end,
+    CallsWithTypes = lists:map(TypeFun, Calls),
+
+    MacroInM =
+        [ {?MACRO_AS_MODULE_NAME_MSG, MN, ktn_code:attr(location, Call)}
+        || #{module_type := macro, call := Call, module_name := MN} <- CallsWithTypes
+         , not lists:member(MN, ?MACRO_MODULE_NAMES_EXCEPTIONS)],
+    MacroInF =
+        [ {?MACRO_AS_FUNCTION_NAME_MSG, FN, ktn_code:attr(location, Call)}
+        || #{func_type := macro, call := Call, func_name := FN} <- CallsWithTypes],
+
+    ResultFun = fun({Msg, Subject, {Line, _}}) ->
+                    elvis_result:new(item,
+                                     Msg,
+                                     [Subject, Line],
+                                     Line)
+                end,
+    lists:map(ResultFun, MacroInM ++ MacroInF).
 
 -type no_macros_config() :: #{ allow => [atom()]
                              , ignore => [ignorable()]
@@ -1173,80 +1204,6 @@ macro_as_atom({call, _CallText, {Type, _AtomText, MacroAsAtom}, _VarArg}, _Types
 macro_as_atom(false, [Type | OtherTypes], MacroNodeValue) ->
     macro_as_atom(lists:keyfind(Type, _N = 1, MacroNodeValue), OtherTypes, MacroNodeValue).
 
-%% Macro in Function Call as Module or Function Name
-
--spec check_macro_module_names(binary(), integer(), [term()]) ->
-    no_result | {ok, elvis_result:item()}.
-check_macro_module_names(Line, Num, [Root]) ->
-    {ok, ModNameRegex} = re:compile("[?](\\w+)[:][?]?\\w+\\s*\\("),
-    {ok, FunNameRegex} = re:compile("[?]?\\w+[:][?](\\w+)\\s*\\("),
-
-    ModuleMsg = ?MACRO_AS_MODULE_NAME_MSG,
-    ModuleResults =
-        apply_macro_module_names(Line, Num, ModNameRegex, ModuleMsg, Root),
-
-    FunctionMsg = ?MACRO_AS_FUNCTION_NAME_MSG,
-    FunResults =
-        apply_macro_module_names(Line, Num, FunNameRegex, FunctionMsg, Root),
-
-    case FunResults ++ ModuleResults of
-        [] ->
-            no_result;
-        Results ->
-            {ok, Results}
-    end.
-
--spec apply_macro_module_names(Line::binary(),
-                               Num::integer(),
-                               Regex::{re_pattern, _, _, _, _},
-                               Msg::string(),
-                               Root::term()) ->
-    [elvis_result:item()].
-apply_macro_module_names(Line, Num, Regex, Msg, Root) ->
-    case re:run(Line, Regex, [{capture, all_but_first, index}]) of
-        nomatch ->
-            [];
-        {match, [{Col, Len}]} ->
-            MacroName = binary_to_list(binary:part(Line, Col, Len)),
-            case
-                lists:member(MacroName, ?MACRO_MODULE_NAMES_EXCEPTIONS)
-                orelse not is_remote_call({Num, Col}, Root)
-            of
-                true ->
-                    [];
-                false ->
-                    Result = elvis_result:new(item, Msg, [MacroName, Num], Num),
-                    [Result]
-            end
-    end.
-
-is_remote_call({Num, Col}, Root) ->
-    case elvis_code:find_by_location(Root, {Num, Col}) of
-        not_found ->
-            true;
-        {ok, Node0} ->
-            Pred =
-                fun(Zipper) ->
-                        (Node0 == zipper:node(Zipper))
-                            andalso has_remote_call_parent(Zipper)
-                end,
-            Opts = #{mode => zipper, traverse => all},
-            [] =/= elvis_code:find(Pred, Root, Opts)
-    end.
-
-has_remote_call_parent(undefined) ->
-    false;
-has_remote_call_parent(Zipper) ->
-    Node = zipper:node(Zipper),
-    case ktn_code:type(Node) of
-        remote ->
-            true;
-        call ->
-            ktn_code:type(zipper:node(zipper:down(Zipper))) =:= remote;
-        _ ->
-            has_remote_call_parent(zipper:up(Zipper))
-    end.
-
 %% Operator (and Text) Spaces
 -spec check_spaces(Lines :: [binary()],
                    Nodes :: [ktn_code:tree_node()],
@@ -1577,8 +1534,7 @@ is_children(Parent, Node) ->
 no_call_common(Config, Target, NoCallFuns, Msg, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
 
-    IsCall = fun(Node) -> ktn_code:type(Node) =:= 'call' end,
-    Calls = elvis_code:find(IsCall, Root),
+    Calls = elvis_code:find(fun is_call/1, Root),
     check_no_call(Calls, Msg, NoCallFuns).
 
 -spec check_no_call([ktn_code:tree_node()], string(), [function_spec()]) ->
@@ -1613,6 +1569,9 @@ is_call(Node, {F, A}) ->
         andalso length(ktn_code:content(Node)) =:= A;
 is_call(Node, {M, F, A}) ->
     call_mfa(Node) =:= {M, F, A}.
+
+is_call(Node) ->
+    ktn_code:type(Node) =:= 'call'.
 
 fun_spec_match({M, F}, {M, F, _}) -> true;
 fun_spec_match({M, F, A}, {M, F, A}) -> true;
