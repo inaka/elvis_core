@@ -40,14 +40,15 @@ jobs:
                 -otp-${{steps.setup-beam.outputs.otp-version}}\
                 -rebar3-${{steps.setup-beam.outputs.rebar3-version}}\
                 -hash-${{hashFiles('rebar.lock')}}"
-      - name: Compile
-        run: ERL_FLAGS="-enable-feature all" rebar3 compile
-      - name: Format check
+      - name: Run on Linux
         if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: ERL_FLAGS="-enable-feature all" rebar3 format --verify
-      - name: Run test
-        run: ERL_FLAGS="-enable-feature all" rebar3 test
-      - name: Run elvis on elvis
         run: |
-          ERL_FLAGS="-enable-feature all" rebar3 escriptize
-          ERL_FLAGS="-enable-feature all" _build/default/bin/elvis_core
+          export ERL_FLAGS="-enable-feature all"
+          rebar3 do compile, format --verify, test, escriptize
+          _build/default/bin/elvis_core
+      - name: Run on Windows
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          set ERL_FLAGS="-enable-feature all"
+          rebar3 do compile, format --verify, test, escriptize
+          _build/default/bin/elvis_core
