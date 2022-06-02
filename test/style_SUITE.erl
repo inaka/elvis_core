@@ -139,7 +139,6 @@ verify_function_naming_convention(Config) ->
 
     % fail
     PathFail = "fail_function_naming_convention." ++ Ext,
-
     [_CamelCaseError,
      _ALL_CAPSError,
      _InitialCapError,
@@ -352,7 +351,6 @@ verify_macro_module_names(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     Path = "fail_macro_module_names." ++ Ext,
-
     [#{line_num := 23},
      #{line_num := 23},
      #{line_num := 24},
