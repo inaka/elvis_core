@@ -57,5 +57,5 @@ jobs:
         env:
           ERL_FLAGS: "-enable-feature all"
         run: |
-          ERL_FLAGS="-enable-feature all" rebar3 escriptize
-          ERL_FLAGS="-enable-feature all" _build/default/bin/elvis_core
+          rebar3 escriptize
+          _build/default/bin/elvis_core
