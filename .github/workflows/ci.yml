@@ -13,7 +13,7 @@ jobs:
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
-        otp_vsn: [23.3, 24.3]
+        otp_vsn: [23.3, 24.3, 25.0]
         os: [ubuntu-latest, windows-latest]
     steps:
       - uses: actions/checkout@v3
@@ -41,13 +41,13 @@ jobs:
                 -rebar3-${{steps.setup-beam.outputs.rebar3-version}}\
                 -hash-${{hashFiles('rebar.lock')}}"
       - name: Compile
-        run: rebar3 compile
+        run: ERL_FLAGS="-enable-feature all" rebar3 compile
       - name: Format check
         if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: rebar3 format --verify
+        run: ERL_FLAGS="-enable-feature all" rebar3 format --verify
       - name: Run test
-        run: rebar3 test
+        run: ERL_FLAGS="-enable-feature all" rebar3 test
       - name: Run elvis on elvis
         run: |
-          rebar3 escriptize
-          _build/default/bin/elvis_core
+          ERL_FLAGS="-enable-feature all" rebar3 escriptize
+          ERL_FLAGS="-enable-feature all" _build/default/bin/elvis_core
