@@ -1,28 +1,21 @@
 -module(elvis_file).
 
--export([
-         src/1,
-         path/1,
-         parse_tree/2,
-         parse_tree/3,
-         load_file_data/2,
-
-         find_files/2,
-         filter_files/4,
-         module/1
-        ]).
+-export([src/1, path/1, parse_tree/2, parse_tree/3, load_file_data/2, find_files/2,
+         filter_files/4, module/1]).
 
 -export_type([file/0]).
 
--type file() :: #{path => string(), content => binary(), _ => _}.
+-type file() ::
+    #{path => string(),
+      content => binary(),
+      _ => _}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Public
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% @doc Returns a tuple with the contents of the file and the file itself.
--spec src(file()) ->
-    {binary(), file()} | {error, enoent}.
+-spec src(file()) -> {binary(), file()} | {error, enoent}.
 src(File = #{content := Content, encoding := _}) ->
     {Content, File};
 src(File = #{content := Content}) ->
@@ -31,9 +24,9 @@ src(File = #{path := Path}) ->
     case file:read_file(Path) of
         {ok, Content} ->
             Encoding = find_encoding(Content),
-            src(File#{content => Content,
-                      encoding => Encoding});
-        Error -> Error
+            src(File#{content => Content, encoding => Encoding});
+        Error ->
+            Error
     end;
 src(File) ->
     throw({invalid_file, File}).
@@ -47,13 +40,15 @@ path(File) ->
 
 %% @doc Add the root node of the parse tree to the file data.
 -spec parse_tree(elvis_config:configs() | elvis_config:config(), file()) ->
-  {ktn_code:tree_node(), file()}.
+                    {ktn_code:tree_node(), file()}.
 parse_tree(Config, Target) ->
     parse_tree(Config, Target, _RuleConfig = #{}).
 
 %% @doc Add the root node of the parse tree to the file data, with filtering.
--spec parse_tree(elvis_config:configs() | elvis_config:config(), file(), elvis_core:rule_config())
-    -> {ktn_code:tree_node(), file()}.
+-spec parse_tree(elvis_config:configs() | elvis_config:config(),
+                 file(),
+                 elvis_core:rule_config()) ->
+                    {ktn_code:tree_node(), file()}.
 parse_tree(_Config, File = #{parse_tree := ParseTree0}, RuleConfig) ->
     Ignore = maps:get(ignore, RuleConfig, []),
     Mod = module(File),
@@ -84,9 +79,13 @@ load_file_data(Config, File0 = #{path := _Path}) ->
 -spec find_files([string()], string()) -> [file()].
 find_files(Dirs, Pattern) ->
     Fun = fun(Dir) ->
-              filelib:wildcard(filename:join(Dir, Pattern))
+             filelib:wildcard(
+                 filename:join(Dir, Pattern))
           end,
-    [#{path => Path} || Path <- lists:usort(lists:flatmap(Fun, Dirs))].
+    [#{path => Path}
+     || Path
+            <- lists:usort(
+                   lists:flatmap(Fun, Dirs))].
 
 dir_to(Filter, _Dir = ".") ->
     Filter;
@@ -94,49 +93,36 @@ dir_to(Filter, Dir) ->
     filename:join(Dir, Filter).
 
 file_in(ExpandedFilter, Files) ->
-    lists:filter(fun (_File = #{ path := Path }) ->
-                     lists:member(Path, ExpandedFilter)
-                 end,
+    lists:filter(fun(_File = #{path := Path}) -> lists:member(Path, ExpandedFilter) end,
                  Files).
 
 %% @doc Filter files based on the glob provided.
 -spec filter_files([file()], [string()], string(), [string()]) -> [file()].
 filter_files(Files, Dirs, Filter, IgnoreList) ->
-    ExpandedFilters
-        = lists:map(
-              fun (Dir) ->
-                  filelib:wildcard(dir_to(Filter, Dir))
-              end,
-              Dirs),
-    Found
-        = lists:flatmap(
-              fun (ExpandedFilter) ->
-                  file_in(ExpandedFilter, Files)
-              end,
-              ExpandedFilters),
+    ExpandedFilters = lists:map(fun(Dir) -> filelib:wildcard(dir_to(Filter, Dir)) end, Dirs),
+    Found =
+        lists:flatmap(fun(ExpandedFilter) -> file_in(ExpandedFilter, Files) end, ExpandedFilters),
     % File src/sub/file.erl will match both src/ and src/sub/ folders. We can't have that!
     FoundUnique = lists:usort(Found),
-    lists:filter(
-        fun(#{ path := Path }) ->
-            not lists:any(
-                    fun(Regex) ->
-                        match == re:run(Path, Regex, [{capture, none}])
-                    end,
-                    IgnoreList)
-        end,
-        FoundUnique).
+
+    lists:filter(fun(#{path := Path}) ->
+                    MatchesPath = fun(Regex) -> match == re:run(Path, Regex, [{capture, none}]) end,
+                    not lists:any(MatchesPath, IgnoreList)
+                 end,
+                 FoundUnique).
 
 %% @doc Return module name corresponding to a given .erl/.beam file
 -spec module(file()) -> module().
-module(#{ path := Path }) ->
-    list_to_atom(filename:basename(filename:basename(Path, ".erl"), ".beam")).
+module(#{path := Path}) ->
+    list_to_atom(filename:basename(
+                     filename:basename(Path, ".erl"), ".beam")).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 -spec resolve_parse_tree(string(), string() | binary(), module(), list()) ->
-    undefined | ktn_code:tree_node().
+                            undefined | ktn_code:tree_node().
 resolve_parse_tree(".erl", Content, Mod, Ignore) ->
     Tree = ktn_code:parse_tree(Content),
     filter_tree_for(Tree, Mod, Ignore);
@@ -145,54 +131,54 @@ resolve_parse_tree(_, _, _, _) ->
 
 filter_tree_for(Tree, Mod, Ignore) when is_map(Tree) ->
     TreeContent = maps:get(content, Tree, []),
-    Tree#{ content =>
-               lists:filter(
-                   fun (#{ type := function
-                         , attrs := #{ name := FunName
-                                     , arity := FunArity
-                                     }
-                         }) ->
-                             not(lists:member({Mod, FunName}, Ignore)
-                                 orelse lists:member({Mod, FunName, FunArity}, Ignore));
-                       (_) -> true
-                   end,
-                   TreeContent) };
+    Tree#{content =>
+              lists:filter(fun (#{type := function,
+                                  attrs := #{name := FunName, arity := FunArity}}) ->
+                                   not lists:member({Mod, FunName}, Ignore)
+                                   andalso not lists:member({Mod, FunName, FunArity}, Ignore);
+                               (_) ->
+                                   true
+                           end,
+                           TreeContent)};
 filter_tree_for(Tree, _Mod, _Ignore) ->
     Tree.
 
--spec find_encoding(Content::binary()) ->
-  atom().
+-spec find_encoding(Content :: binary()) -> atom().
 find_encoding(Content) ->
     case epp:read_encoding_from_binary(Content) of
-        none -> utf8;
-        Enc  -> Enc
+        none ->
+            utf8;
+        Enc ->
+            Enc
     end.
 
--spec maybe_add_abstract_parse_tree(Config, File, Mod, Ignore) -> Res when
-      Config :: elvis_config:configs() | elvis_config:config(),
-      File :: file(),
-      Mod :: module(),
-      Ignore :: [elvis_style:ignorable()],
-      Res :: file().
+-spec maybe_add_abstract_parse_tree(Config, File, Mod, Ignore) -> Res
+    when Config :: elvis_config:configs() | elvis_config:config(),
+         File :: file(),
+         Mod :: module(),
+         Ignore :: [elvis_style:ignorable()],
+         Res :: file().
 maybe_add_abstract_parse_tree(#{ruleset := beam_files},
-                              File = #{path := Path}, Mod, Ignore) ->
+                              File = #{path := Path},
+                              Mod,
+                              Ignore) ->
     AbstractParseTree = get_abstract_parse_tree(Path, Mod, Ignore),
     File#{abstract_parse_tree => AbstractParseTree};
 maybe_add_abstract_parse_tree(_Config, File, _Mod, _Ignore) ->
     File.
 
--spec get_abstract_parse_tree(BeamPath, Mod, Ignore) -> Res when
-      BeamPath :: file:filename(),
-      Mod :: module(),
-      Ignore :: [elvis_style:ignorable()],
-      Res :: ktn_code:tree_node() | undefined.
+-spec get_abstract_parse_tree(BeamPath, Mod, Ignore) -> Res
+    when BeamPath :: file:filename(),
+         Mod :: module(),
+         Ignore :: [elvis_style:ignorable()],
+         Res :: ktn_code:tree_node() | undefined.
 get_abstract_parse_tree(BeamPath, Mod, Ignore) ->
     AbstractSrc = get_abstract_source(BeamPath),
     resolve_parse_tree(".erl", AbstractSrc, Mod, Ignore).
 
--spec get_abstract_source(BeamPath) -> Res when
-    BeamPath :: file:filename() | binary(),
-    Res :: string().
+-spec get_abstract_source(BeamPath) -> Res
+    when BeamPath :: file:filename() | binary(),
+         Res :: string().
 get_abstract_source(BeamPath) ->
     {ok, Src} = ktn_code:beam_to_string(BeamPath),
     Src.

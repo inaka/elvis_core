@@ -31,7 +31,7 @@ function1(Should,Fail) ->
 
 function2( Shouldnt, Fail) ->
     _Unless = [we, consider]++ [operands, as, well],
-    _WithDash = Shouldnt - Fail,
+    _ = Shouldnt - Fail,
     fun (a
     ) -> ok end. % only spaces between start of line and ')'
 

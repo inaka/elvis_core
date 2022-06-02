@@ -8,25 +8,28 @@
 %% with the result of successful execution as a first parameter and accumulator
 %% as a second parameter.
 -spec chunk_fold(FunWork :: {Module :: module(), Function :: atom()},
-                 FunAcc :: fun((NewElem :: term(), Acc :: term()) ->
-                                      Acc :: term()),
+                 FunAcc :: fun((NewElem :: term(), Acc :: term()) -> Acc :: term()),
                  InitialAcc :: term(),
                  ExtraArgs :: list(),
                  JoinItemList :: list(),
                  Concurrency :: non_neg_integer()) ->
-                        {ok, FinalAcc :: term()} | {error, term()}.
+                    {ok, FinalAcc :: term()} | {error, term()}.
 chunk_fold({M, F} = FunWork, FunAcc, InitialAcc, ExtraArgs, List, ChunkSize)
- when is_atom(M), is_atom(F),
-      is_function(FunAcc, 2),
-      is_list(ExtraArgs), is_list(List),
-      is_integer(ChunkSize) andalso ChunkSize > 0
-      ->
+    when is_atom(M), is_atom(F), is_function(FunAcc, 2), is_list(ExtraArgs), is_list(List),
+         is_integer(ChunkSize) andalso ChunkSize > 0 ->
     try
-        Term = do_in_parallel(FunWork, FunAcc, ExtraArgs, List,
-                              _MaxW = ChunkSize, _RemainW = ChunkSize,
-                              InitialAcc, []),
+        Term =
+            do_in_parallel(FunWork,
+                           FunAcc,
+                           ExtraArgs,
+                           List,
+                           _MaxW = ChunkSize,
+                           _RemainW = ChunkSize,
+                           InitialAcc,
+                           []),
         {ok, Term}
-    catch throw:{T, E} ->
+    catch
+        {T, E} ->
             {error, {T, E}}
     end.
 
@@ -34,19 +37,19 @@ do_in_parallel(_FunWork, FunAcc, _ExtraArgs, [], _MaxW, _RemainW, AccR, AccG) ->
     gather_all_results(FunAcc, AccR, AccG);
 do_in_parallel(FunWork, FunAcc, ExtraArgs, List, MaxW, 0, AccR, AccG) ->
     {AccR1, AccG1, N} = gather_results(FunAcc, AccR, AccG),
-    do_in_parallel(FunWork, FunAcc, ExtraArgs, List,
-                      MaxW, erlang:min(N, MaxW), AccR1, AccG1);
+    do_in_parallel(FunWork, FunAcc, ExtraArgs, List, MaxW, erlang:min(N, MaxW), AccR1, AccG1);
 do_in_parallel(FunWork, FunAcc, ExtraArgs, List, MaxW, RemainW, AccR, AccG) ->
     {WorkToBeDone, WorkRemain} =
         try lists:split(RemainW, List) of
-            Res -> Res
-        catch error:badarg -> {List, []}
+            Res ->
+                Res
+        catch
+            error:badarg ->
+                {List, []}
         end,
 
-    WrkRefs = [start_worker(FunWork, ExtraArgs, WorkPiece)
-              || WorkPiece <- WorkToBeDone],
-    do_in_parallel(FunWork, FunAcc, ExtraArgs, WorkRemain, MaxW, 0,
-                      AccR, WrkRefs ++ AccG).
+    WrkRefs = [start_worker(FunWork, ExtraArgs, WorkPiece) || WorkPiece <- WorkToBeDone],
+    do_in_parallel(FunWork, FunAcc, ExtraArgs, WorkRemain, MaxW, 0, AccR, WrkRefs ++ AccG).
 
 start_worker(FunWork, ExtraArgs, Arg) ->
     Parent = self(),
@@ -61,7 +64,8 @@ do_work(Parent, {M, F}, ExtraArgs, Arg) ->
         Unexpected ->
             Error = {error, {badreturn, Unexpected}},
             exit({Parent, {error, Error}})
-    catch T:E ->
+    catch
+        T:E ->
             exit({Parent, {error, {T, E}}})
     end.
 
@@ -78,7 +82,8 @@ gather_results0(_AccF, AccR, [], N, _Timeout) ->
     {AccR, [], N};
 gather_results0(AccF, AccR, AccG, N, Timeout) ->
     case gather(Timeout, AccG) of
-        timeout -> {AccR, AccG, N};
+        timeout ->
+            {AccR, AccG, N};
         {AccG1, Res} ->
             AccR1 = accumulate(AccF, AccR, Res, AccG1),
             gather_results0(AccF, AccR1, AccG1, N + 1, Timeout)
@@ -88,13 +93,14 @@ accumulate(AccF, AccR, Res, AccG) ->
     try
         {ok, AccR1} = AccF(Res, AccR),
         AccR1
-    catch T:E ->
+    catch
+        T:E ->
             _ = cleanup(AccG),
             throw({T, E})
     end.
 
 cleanup(AccG) ->
-    [demonitor_and_exit(MRef, Pid) || {Pid, MRef} <- AccG ].
+    [demonitor_and_exit(MRef, Pid) || {Pid, MRef} <- AccG].
 
 demonitor_and_exit(MRef, Pid) ->
     erlang:demonitor(MRef, [flush]),
@@ -113,5 +119,5 @@ gather(Timeout, AccG) ->
                     throw({T, E})
             end
     after Timeout ->
-            timeout
+        timeout
     end.

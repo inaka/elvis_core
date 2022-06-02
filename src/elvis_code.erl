@@ -1,38 +1,22 @@
 -module(elvis_code).
 
 %% General
--export([
-         find/2,
-         find/3,
-         find_by_location/2,
-         find_token/2,
-         code_zipper/1,
-         code_zipper/2
-        ]).
-
+-export([find/2, find/3, find_by_location/2, find_token/2, code_zipper/1, code_zipper/2]).
 %% Specific
--export([
-         past_nesting_limit/2,
-         exported_functions/1,
-         function_names/1,
-         module_name/1,
-         print_node/1,
-         print_node/2
-        ]).
+-export([past_nesting_limit/2, exported_functions/1, function_names/1, module_name/1,
+         print_node/1, print_node/2]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Public API
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--type find_options() :: #{mode => node | zipper,
-                          traverse => content | all}.
+-type find_options() :: #{mode => node | zipper, traverse => content | all}.
 
 %% @doc Same as calling find/3 with `#{mode => node, traverse => content}' as
 %%      the options map.
 %% @end
--spec find(fun((zipper:zipper(_)) -> boolean()),
-           ktn_code:tree_node()) ->
-    [ktn_code:tree_node()].
+-spec find(fun((zipper:zipper(_)) -> boolean()), ktn_code:tree_node()) ->
+              [ktn_code:tree_node()].
 find(Pred, Root) ->
     find(Pred, Root, #{mode => node, traverse => content}).
 
@@ -53,10 +37,8 @@ find(Pred, Root) ->
 %%      </ul>
 %% @end
 
--spec find(fun((zipper:zipper(_)) -> boolean()),
-           ktn_code:tree_node(),
-           find_options()) ->
-    [ktn_code:tree_node()].
+-spec find(fun((zipper:zipper(_)) -> boolean()), ktn_code:tree_node(), find_options()) ->
+              [ktn_code:tree_node()].
 find(Pred, Root, Opts) ->
     Mode = maps:get(mode, Opts, node),
     ZipperMode = maps:get(traverse, Opts, content),
@@ -71,34 +53,39 @@ code_zipper(Root) ->
 -spec code_zipper(ktn_code:tree_node(), content | all) -> zipper:zipper(_).
 code_zipper(Root, Mode) ->
     case Mode of
-        content -> content_zipper(Root);
-        all -> all_zipper(Root)
+        content ->
+            content_zipper(Root);
+        all ->
+            all_zipper(Root)
     end.
 
 -spec content_zipper(ktn_code:tree_node()) -> zipper:zipper(_).
 content_zipper(Root) ->
-    IsBranch = fun
-                   (#{content := [_ | _]}) -> true;
-                   (_) -> false
-               end,
-    Children = fun (#{content := Content}) -> Content end,
+    IsBranch =
+        fun (#{content := [_ | _]}) ->
+                true;
+            (_) ->
+                false
+        end,
+    Children = fun(#{content := Content}) -> Content end,
     MakeNode = fun(Node, Content) -> Node#{content => Content} end,
     zipper:new(IsBranch, Children, MakeNode, Root).
 
 -spec all_zipper(ktn_code:tree_node()) -> zipper:zipper(_).
 all_zipper(Root) ->
-    IsBranch = fun (Node = #{}) ->
-                   ktn_code:content(Node) =/= []
-                   orelse maps:is_key(node_attrs, Node)
-               end,
-    Children = fun
-                   (#{content := Content, node_attrs := NodeAttrs}) ->
-                       Content ++ lists:flatten(maps:values(NodeAttrs));
-                   (#{node_attrs := NodeAttrs}) ->
-                       lists:flatten(maps:values(NodeAttrs));
-                   (#{content := Content}) ->
-                       Content
-               end,
+    IsBranch =
+        fun(Node = #{}) -> ktn_code:content(Node) =/= [] orelse maps:is_key(node_attrs, Node) end,
+    Children =
+        fun (#{content := Content, node_attrs := NodeAttrs}) ->
+                Content
+                ++ lists:flatten(
+                       maps:values(NodeAttrs));
+            (#{node_attrs := NodeAttrs}) ->
+                lists:flatten(
+                    maps:values(NodeAttrs));
+            (#{content := Content}) ->
+                Content
+        end,
     MakeNode = fun(Node, _) -> Node end,
     zipper:new(IsBranch, Children, MakeNode, Root).
 
@@ -107,65 +94,67 @@ find(Pred, Zipper, Results, Mode) ->
         true ->
             Results;
         false ->
-            Value = case Mode of
-                        zipper -> Zipper;
-                        node -> zipper:node(Zipper)
-                    end,
-            NewResults = case Pred(Value) of
-                             true -> [zipper:node(Zipper) | Results];
-                             false -> Results
-                         end,
+            Value =
+                case Mode of
+                    zipper ->
+                        Zipper;
+                    node ->
+                        zipper:node(Zipper)
+                end,
+            NewResults =
+                case Pred(Value) of
+                    true ->
+                        [zipper:node(Zipper) | Results];
+                    false ->
+                        Results
+                end,
             find(Pred, zipper:next(Zipper), NewResults, Mode)
     end.
 
 -spec find_by_location(ktn_code:tree_node(), {integer(), integer()}) ->
-    not_found | {ok, ktn_code:tree_node()}.
+                          not_found | {ok, ktn_code:tree_node()}.
 find_by_location(Root, Location) ->
-    Fun = fun (Node) ->
-              is_at_location(Node, Location)
-          end,
+    Fun = fun(Node) -> is_at_location(Node, Location) end,
     case find(Fun, Root, #{traverse => all}) of
-        [] -> not_found;
-        [Node | _] -> {ok, Node}
+        [] ->
+            not_found;
+        [Node | _] ->
+            {ok, Node}
     end.
 
-is_at_location(Node = #{attrs := #{location := {Line, NodeCol}}},
-               {Line, Column}) ->
+is_at_location(Node = #{attrs := #{location := {Line, NodeCol}}}, {Line, Column}) ->
     Text = ktn_code:attr(text, Node),
     Length = length(Text),
-    (NodeCol =< Column) andalso (Column < NodeCol + Length);
+    NodeCol =< Column andalso Column < NodeCol + Length;
 is_at_location(_, _) ->
     false.
 
--spec find_token(ktn_code:tree_node(), {integer(), integer()}) ->
-    not_found | {ok, map()}.
+-spec find_token(ktn_code:tree_node(), {integer(), integer()}) -> not_found | {ok, map()}.
 find_token(Root, Location) ->
-    Fun = fun (Token) -> is_at_location(Token, Location) end,
+    Fun = fun(Token) -> is_at_location(Token, Location) end,
     Tokens = ktn_code:attr(tokens, Root),
     case lists:filter(Fun, Tokens) of
-        [] -> not_found;
-        [Token | _] -> {ok, Token}
+        [] ->
+            not_found;
+        [Token | _] ->
+            {ok, Token}
     end.
 
 %%% Processing functions
 
 %% @doc Takes a node and returns all nodes where the nesting limit is exceeded.
 -spec past_nesting_limit(ktn_code:tree_node(), integer()) ->
-    [{ktn_code:tree_node(), integer()}].
+                            [{ktn_code:tree_node(), integer()}].
 past_nesting_limit(Node, MaxLevel) ->
     ResultNodes = past_nesting_limit(Node, 1, MaxLevel),
     lists:reverse(ResultNodes).
 
 past_nesting_limit(Node, CurrentLevel, MaxLevel) when CurrentLevel > MaxLevel ->
     [Node];
-past_nesting_limit(#{content := Content},
-                   CurrentLevel,
-                   MaxLevel) ->
+past_nesting_limit(#{content := Content}, CurrentLevel, MaxLevel) ->
     Fun = fun(ChildNode) ->
-              Increment = level_increment(ChildNode),
-              past_nesting_limit(ChildNode,
-                                 Increment + CurrentLevel,
-                                 MaxLevel)
+             Increment = level_increment(ChildNode),
+             past_nesting_limit(ChildNode, Increment + CurrentLevel, MaxLevel)
           end,
     lists:flatmap(Fun, Content);
 past_nesting_limit(_Node, _CurrentLeve, _MaxLevel) ->
@@ -183,18 +172,18 @@ print_node(Node = #{type := Type}, CurrentLevel) ->
     Content = ktn_code:content(Node),
 
     ok = elvis_utils:info("~s - [~p] ~p~n", [Indentation, CurrentLevel, Type]),
-    _ = lists:map(fun(Child) -> print_node(Child, CurrentLevel + 1) end,
-                     Content),
+    _ = lists:map(fun(Child) -> print_node(Child, CurrentLevel + 1) end, Content),
     ok.
 
 %% @doc Takes the root node and returns the module's name.
 -spec module_name(ktn_code:tree_node()) -> atom().
 module_name(#{type := root, content := Content}) ->
-    Fun = fun (#{type := Type}) -> Type == module end,
+    Fun = fun(#{type := Type}) -> Type == module end,
     case lists:filter(Fun, Content) of
         [ModuleNode | _] ->
             ktn_code:attr(value, ModuleNode);
-        [] -> undefined
+        [] ->
+            undefined
     end.
 
 %% @doc Takes the root node of a parse_tree and returns name and arity
@@ -218,31 +207,30 @@ function_names(#{type := root, content := Content}) ->
 %% @private
 %% @doc Takes a node and determines its nesting level increment.
 level_increment(#{type := 'fun', content := _}) ->
-  1;
+    1;
 level_increment(#{type := 'fun'}) ->
-  0;
+    0;
 level_increment(#{type := Type}) ->
-    IncrementOne = [function,
-                    'case',
-                    'if',
-                    try_case,
-                    try_catch,
-                    named_fun,
-                    receive_case
-                   ],
+    IncrementOne = [function, 'case', 'if', try_case, try_catch, named_fun, receive_case],
     case lists:member(Type, IncrementOne) of
-        true -> 1;
-        false -> 0
+        true ->
+            1;
+        false ->
+            0
     end.
 
 %% @private
 %% @doc Returns an anonymous Fun to be flatmapped over node content, as
 %% appropriate for the exported function whose name is the argument given.
 make_extractor_fun(exported_functions) ->
-    fun (Node = #{type := export}) -> ktn_code:attr(value, Node);
-        (_) -> []
+    fun (Node = #{type := export}) ->
+            ktn_code:attr(value, Node);
+        (_) ->
+            []
     end;
 make_extractor_fun(function_names) ->
-    fun (Node = #{type := function}) -> [ktn_code:attr(name, Node)];
-        (_) -> []
+    fun (Node = #{type := function}) ->
+            [ktn_code:attr(name, Node)];
+        (_) ->
+            []
     end.
