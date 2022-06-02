@@ -13,8 +13,11 @@ jobs:
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
-        otp_vsn: [23.3, 24.3, 25.0]
+        otp_vsn: [23.3, 24.3]
         os: [ubuntu-latest, windows-latest]
+        include:
+          - otp_vsn: 25.0
+            os: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: erlef/setup-beam@v1
@@ -49,4 +52,8 @@ jobs:
       - name: Run on Windows
         if: ${{ matrix.os == 'windows-latest' }}
         run: |
-          SET ERL_FLAGS="-enable-feature all" && rebar3 compile && rebar3 format --verify && rebar3 test && rebar3 escriptize && _build/default/bin/elvis_core
+          rebar3 compile
+          rebar3 format --verify
+          rebar3 test
+          rebar3 escriptize
+          _build/default/bin/elvis_core
