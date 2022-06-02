@@ -739,7 +739,6 @@ no_nested_try_catch(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
     Predicate = fun(Node) -> ktn_code:type(Node) == 'try' end,
     ResultFun = result_node_line_fun(?NO_NESTED_TRY_CATCH),
-    erlang:display(Root),
     case elvis_code:find(Predicate, Root) of
         [] ->
             [];
