@@ -3,61 +3,25 @@
 -compile({no_auto_import, [error/2]}).
 
 %% API
--export([
-         new/3,
-         new/4,
-         status/1,
-         clean/1,
-         print_results/1
-        ]).
-
--export([
-         get_path/1,
-         get_rules/1,
-         get_name/1,
-         get_items/1,
-         get_message/1,
-         get_info/1,
-         get_line_num/1
-        ]).
+-export([new/3, new/4, status/1, clean/1, print_results/1]).
+-export([get_path/1, get_rules/1, get_name/1, get_items/1, get_message/1, get_info/1,
+         get_line_num/1]).
 
 %% Types
--export_type([
-              item/0,
-              rule/0,
-              file/0
-             ]).
+-export_type([item/0, rule/0, file/0]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Records
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 -type item() ::
-        #{
-           message => string(),
-           info => iodata(),
-           line_num => integer()
-         }.
--type rule() ::
-        #{
-           name => atom(),
-           items => [item()]
-         }.
--type file() ::
-        #{
-           file => string(),
-           rules => [rule()]
-         }.
--type elvis_error() ::
-        #{
-           error_msg => string(),
-           info => list()
-         }.
--type elvis_warn() ::
-        #{
-           warn_msg => string(),
-           info => list()
-         }.
+    #{message => string(),
+      info => iodata(),
+      line_num => integer()}.
+-type rule() :: #{name => atom(), items => [item()]}.
+-type file() :: #{file => string(), rules => [rule()]}.
+-type elvis_error() :: #{error_msg => string(), info => list()}.
+-type elvis_warn() :: #{warn_msg => string(), info => list()}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Public
@@ -65,11 +29,11 @@
 
 %% New
 
--spec new(item, string(), [term()]) -> item()
-       ; (rule, atom(), [item()]) -> rule()
-       ; (file, elvis_file:file(), [elvis_error() | rule()]) -> file()
-       ; (error, string(), string()) -> elvis_error()
-       ; (warn, string(), string()) -> elvis_warn().
+-spec new(item, string(), [term()]) -> item();
+         (rule, atom(), [item()]) -> rule();
+         (file, elvis_file:file(), [elvis_error() | rule()]) -> file();
+         (error, string(), string()) -> elvis_error();
+         (warn, string(), string()) -> elvis_warn().
 new(item, Msg, Info) ->
     new(item, Msg, Info, 0);
 new(rule, Name, Results) ->
@@ -90,26 +54,34 @@ new(item, Msg, Info, LineNum) ->
 %% Getters
 
 -spec get_path(file()) -> string().
-get_path(#{file := File}) -> File.
+get_path(#{file := File}) ->
+    File.
 
 -spec get_rules(file()) -> [rule()].
-get_rules(#{rules := Rules}) -> Rules.
+get_rules(#{rules := Rules}) ->
+    Rules.
 
 -spec get_name(rule()) -> atom().
-get_name(#{name := Name}) -> Name.
+get_name(#{name := Name}) ->
+    Name.
 
 -spec get_items(rule()) -> [item()].
-get_items(#{items := Items}) -> Items;
-get_items(_) -> [].
+get_items(#{items := Items}) ->
+    Items;
+get_items(_) ->
+    [].
 
 -spec get_message(item()) -> string().
-get_message(#{message := Message}) -> Message.
+get_message(#{message := Message}) ->
+    Message.
 
 -spec get_info(item()) -> string().
-get_info(#{info := Info}) -> Info.
+get_info(#{info := Info}) ->
+    Info.
 
 -spec get_line_num(item()) -> integer().
-get_line_num(#{line_num := LineNum}) -> LineNum.
+get_line_num(#{line_num := LineNum}) ->
+    LineNum.
 
 %% Print
 
@@ -127,7 +99,8 @@ print(Format, [Result | Results]) ->
 %% File
 print(Format, #{file := Path, rules := Rules}) ->
     case Format of
-        parsable -> ok;
+        parsable ->
+            ok;
         _ ->
             case status(Rules) of
                 ok ->
@@ -146,7 +119,8 @@ print_rules(Format, File, [#{items := []} | Items]) ->
     print_rules(Format, File, Items);
 print_rules(Format, File, [#{items := Items, name := Name} | EItems]) ->
     case Format of
-        parsable -> ok;
+        parsable ->
+            ok;
         _ ->
             elvis_utils:error("  - ~s", [atom_to_list(Name)])
     end,
@@ -157,7 +131,13 @@ print_rules(Format, File, [Error | Items]) ->
     print_rules(Format, File, Items).
 
 %% Item
-print_item(Format, File, Name, [#{message := Msg, line_num := Ln, info := Info} | Items]) ->
+print_item(Format,
+           File,
+           Name,
+           [#{message := Msg,
+              line_num := Ln,
+              info := Info}
+            | Items]) ->
     case Format of
         parsable ->
             FMsg = io_lib:format(Msg, Info),
@@ -166,7 +146,7 @@ print_item(Format, File, Name, [#{message := Msg, line_num := Ln, info := Info} 
             elvis_utils:error("    - " ++ Msg, Info)
     end,
     print_item(Format, File, Name, Items);
-print_item(Format, File, Name, [Error|Items]) ->
+print_item(Format, File, Name, [Error | Items]) ->
     print_error(Error),
     print_item(Format, File, Name, Items);
 print_item(_Format, _File, _Name, []) ->
@@ -182,18 +162,19 @@ status([]) ->
     ok;
 status([#{rules := Rules} | Files]) ->
     case status(Rules) of
-        fail -> fail;
-        ok -> status(Files)
+        fail ->
+            fail;
+        ok ->
+            status(Files)
     end;
 status([#{items := []} | Rules]) ->
     status(Rules);
 status(_Rules) ->
     fail.
 
-
 %% @doc Removes files that don't have any failures.
 -spec clean([file() | rule()]) -> [file() | rule()].
-clean(Files)->
+clean(Files) ->
     clean(Files, []).
 
 %% @private
