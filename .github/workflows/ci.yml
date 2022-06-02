@@ -50,5 +50,8 @@ jobs:
         if: ${{ matrix.os == 'windows-latest' }}
         run: |
           set ERL_FLAGS="-enable-feature all"
-          rebar3 do compile, format --verify, test, escriptize
+          rebar3 compile
+          rebar3 format --verify
+          rebar3 test
+          rebar3 escriptize
           _build/default/bin/elvis_core
