@@ -7,8 +7,8 @@
          module_naming_convention/3, state_record_and_type/3, no_spec_with_records/3,
          dont_repeat_yourself/3, max_module_length/3, max_function_length/3, no_call/3,
          no_debug_call/3, no_common_caveats_call/3, no_nested_try_catch/3,
-         atom_naming_convention/3, no_throw/3, no_catch_expressions/3, numeric_format/3,
-         behaviour_spelling/3, option/3]).
+         atom_naming_convention/3, no_throw/3, no_author/3, no_catch_expressions/3,
+         numeric_format/3, behaviour_spelling/3, option/3]).
 
 -export_type([empty_rule_config/0]).
 -export_type([ignorable/0]).
@@ -81,6 +81,7 @@
         "Atom ~p on line ~p does not respect the format "
         "defined by the regular expression '~p'.").
 -define(NO_THROW_MSG, "Usage of throw/1 on line ~p is not recommended").
+-define(NO_AUTHOR_MSG, "Unnecessary author attribute on line ~p").
 -define(NO_CATCH_EXPRESSIONS_MSG,
         "Usage of catch expression on line ~p is not recommended").
 -define(NUMERIC_FORMAT_MSG,
@@ -155,6 +156,8 @@ default(no_common_caveats_call) ->
 default(atom_naming_convention) ->
     #{regex => "^([a-z][a-z0-9]*_?)*(_SUITE)?$", enclosed_atoms => ".*"};
 default(no_throw) ->
+    #{};
+default(no_author) ->
     #{};
 default(no_catch_expressions) ->
     #{};
@@ -780,6 +783,22 @@ no_throw(Config, Target, RuleConfig) ->
                 end,
                 [],
                 ThrowNodes).
+
+-type no_author_config() :: #{ignore => [ignorable()]}.
+
+-spec no_author(elvis_config:config(), elvis_file:file(), no_author_config()) ->
+                   [elvis_result:item()].
+no_author(Config, Target, RuleConfig) ->
+    Zipper = fun(Node) -> ktn_code:type(Node) =:= author end,
+    Root = get_root(Config, Target, RuleConfig),
+    Opts = #{mode => node, traverse => content},
+    AuthorNodes = elvis_code:find(Zipper, Root, Opts),
+    lists:foldl(fun(AuthorNode, AccIn) ->
+                   {Line, _} = ktn_code:attr(location, AuthorNode),
+                   [elvis_result:new(item, ?NO_AUTHOR_MSG, [Line]) | AccIn]
+                end,
+                [],
+                AuthorNodes).
 
 -type no_catch_expressions_config() :: #{ignore => [ignorable()]}.
 

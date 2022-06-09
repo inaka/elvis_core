@@ -1,0 +1,3 @@
+-module(fail_no_author).
+-author("Unexpected author").
+-author(bad_author).
