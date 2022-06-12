@@ -8,7 +8,7 @@
          dont_repeat_yourself/3, max_module_length/3, max_function_length/3, no_call/3,
          no_debug_call/3, no_common_caveats_call/3, no_nested_try_catch/3,
          atom_naming_convention/3, no_throw/3, no_catch_expressions/3, numeric_format/3,
-         behaviour_spelling/3, option/3]).
+         behaviour_spelling/3, always_shortcircuit/3, option/3]).
 
 -export_type([empty_rule_config/0]).
 -export_type([ignorable/0]).
@@ -89,6 +89,9 @@
 -define(BEHAVIOUR_SPELLING,
         "The behavior/behaviour in line ~p is misspelt, please use the "
         "~p spelling.").
+-define(ALWAYS_SHORTCIRCUIT_MSG,
+        "Non-shortcircuiting operator (~p) found in line ~p. "
+        "It's recommended to use ~p, instead.").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
@@ -164,7 +167,9 @@ default(numeric_format) ->
       int_regex => same,
       float_regex => same};
 default(behaviour_spelling) ->
-    #{spelling => behaviour}.
+    #{spelling => behaviour};
+default(always_shortcircuit) ->
+    #{}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Rules
@@ -841,6 +846,34 @@ behaviour_spelling(Config, Target, RuleConfig) ->
                    elvis_result:new(item, ?BEHAVIOUR_SPELLING, Info, Line)
                 end,
             lists:map(ResultFun, InconsistentBehaviorNodes)
+    end.
+
+-spec always_shortcircuit(elvis_config:config(),
+                          elvis_file:file(),
+                          empty_rule_config()) ->
+                             [elvis_result:item()].
+always_shortcircuit(Config, Target, RuleConfig) ->
+    Operators = #{'and' => 'andalso', 'or' => 'orelse'},
+    Root = get_root(Config, Target, RuleConfig),
+    Predicate =
+        fun(Node) ->
+           ct:pal("Node: ~p", [Node]),
+           NodeType = ktn_code:type(Node),
+           lists:member(NodeType, maps:keys(Operators))
+        end,
+    case elvis_code:find(Predicate, Root) of
+        [] ->
+            [];
+        BadOperators ->
+            ResultFun =
+                fun(Node) ->
+                   {Line, _} = ktn_code:attr(location, Node),
+                   BadOperator = ktn_code:type(Node),
+                   #{BadOperator := GoodOperator} = Operators,
+                   Info = [BadOperator, Line, GoodOperator],
+                   elvis_result:new(item, ?ALWAYS_SHORTCIRCUIT_MSG, Info, Line)
+                end,
+            lists:map(ResultFun, BadOperators)
     end.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
