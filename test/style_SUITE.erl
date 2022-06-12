@@ -21,7 +21,8 @@
          verify_dont_repeat_yourself/1, verify_max_module_length/1, verify_max_function_length/1,
          verify_no_debug_call/1, verify_no_common_caveats_call/1, verify_no_call/1,
          verify_no_nested_try_catch/1, verify_atom_naming_convention/1, verify_no_throw/1,
-         verify_no_author/1, verify_no_catch_expressions/1, verify_numeric_format/1]).
+         verify_no_dollar_space/1, verify_no_author/1, verify_no_catch_expressions/1,
+         verify_numeric_format/1]).
 %% -elvis attribute
 -export([verify_elvis_attr_atom_naming_convention/1, verify_elvis_attr_numeric_format/1,
          verify_elvis_attr_dont_repeat_yourself/1, verify_elvis_attr_function_naming_convention/1,
@@ -1113,6 +1114,17 @@ verify_no_throw(Config) ->
     FailPath = atom_to_list(FailModule) ++ "." ++ Ext,
 
     [_, _, _, _] = elvis_core_apply_rule(Config, elvis_style, no_throw, #{}, FailPath).
+
+-spec verify_no_dollar_space(config()) -> any().
+verify_no_dollar_space(Config) ->
+    _Group = proplists:get_value(group, Config, erl_files),
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    % fail
+    FailModule = fail_no_dollar_space,
+    FailPath = atom_to_list(FailModule) ++ "." ++ Ext,
+
+    [_, _] = elvis_core_apply_rule(Config, elvis_style, no_dollar_space, #{}, FailPath).
 
 -spec verify_no_author(config()) -> any().
 verify_no_author(Config) ->

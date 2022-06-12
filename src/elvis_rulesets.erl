@@ -36,6 +36,7 @@ rules(erl_files) ->
                {elvis_style, no_nested_try_catch},
                {elvis_style, atom_naming_convention},
                {elvis_style, no_throw},
+               {elvis_style, no_dollar_space},
                {elvis_style, no_author},
                {elvis_style, no_catch_expressions},
                {elvis_style, numeric_format},
