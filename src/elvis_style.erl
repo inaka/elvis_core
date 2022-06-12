@@ -855,21 +855,22 @@ behaviour_spelling(Config, Target, RuleConfig) ->
 always_shortcircuit(Config, Target, RuleConfig) ->
     Operators = #{'and' => 'andalso', 'or' => 'orelse'},
     Root = get_root(Config, Target, RuleConfig),
+    ct:pal("Root: ~p", [Root]),
     Predicate =
         fun(Node) ->
-           ct:pal("Node: ~p", [Node]),
-           NodeType = ktn_code:type(Node),
-           lists:member(NodeType, maps:keys(Operators))
+           is_operator_node(Node)
+           andalso lists:member(
+                       ktn_code:attr(operation, Node), maps:keys(Operators))
         end,
-    case elvis_code:find(Predicate, Root) of
+    case elvis_code:find(Predicate, Root, #{traverse => all}) of
         [] ->
             [];
         BadOperators ->
             ResultFun =
                 fun(Node) ->
                    {Line, _} = ktn_code:attr(location, Node),
-                   BadOperator = ktn_code:type(Node),
-                   #{BadOperator := GoodOperator} = Operators,
+                   BadOperator = ktn_code:attr(operation, Node),
+                   GoodOperator = maps:get(BadOperator, Operators),
                    Info = [BadOperator, Line, GoodOperator],
                    elvis_result:new(item, ?ALWAYS_SHORTCIRCUIT_MSG, Info, Line)
                 end,
