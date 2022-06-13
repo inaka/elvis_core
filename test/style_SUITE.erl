@@ -11,7 +11,7 @@
 -export([verify_function_naming_convention/1, verify_variable_naming_convention/1,
          verify_line_length_rule/1, verify_line_length_rule_latin1/1,
          verify_unicode_line_length_rule/1, verify_no_tabs_rule/1, verify_no_spaces_rule/1,
-         verify_no_trailing_whitespace_rule/1, verify_no_trailing_whitespace_rule_crlf/1,
+         verify_no_trailing_whitespace_rule/1, verify_no_trailing_whitespace_rule_lf_crlf/1,
          verify_macro_names_rule/1, verify_macro_module_names/1, verify_no_macros/1,
          verify_no_block_expressions/1, verify_operator_spaces/1, verify_no_space/1,
          verify_operator_spaces_latin1/1, verify_nesting_level/1, verify_god_modules/1,
@@ -290,12 +290,14 @@ verify_no_trailing_whitespace_rule(Config) ->
     do_verify_no_trailing_whitespace(Path, Config, #{ignore_empty_lines => false}, 4),
     do_verify_no_trailing_whitespace(Path, Config, #{}, 4).
 
--spec verify_no_trailing_whitespace_rule_crlf(config()) -> any().
-verify_no_trailing_whitespace_rule_crlf(Config) ->
+-spec verify_no_trailing_whitespace_rule_lf_crlf(config()) -> any().
+verify_no_trailing_whitespace_rule_lf_crlf(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     PathCrLf = "pass_no_trailing_whitespace_crlf." ++ Ext,
+    do_verify_no_trailing_whitespace(PathCrLf, Config, #{ignore_empty_lines => false}, 0),
 
+    PathLf = "pass_no_trailing_whitespace_lf." ++ Ext,
     do_verify_no_trailing_whitespace(PathCrLf, Config, #{ignore_empty_lines => false}, 0).
 
 do_verify_no_trailing_whitespace(Path, Config, RuleConfig, ExpectedNumItems) ->

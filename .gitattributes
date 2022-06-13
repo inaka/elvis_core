@@ -1,4 +1,5 @@
 test/examples/pass_no_trailing_whitespace_crlf.erl auto eol=crlf
+test/examples/pass_no_trailing_whitespace_lf.erl auto eol=lf
 
 # Never modify line endings of our newline-covering test cases
 test/examples/fail_no_trailing_whitespace.erl auto eol=lf
