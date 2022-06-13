@@ -298,7 +298,7 @@ verify_no_trailing_whitespace_rule_lf_crlf(Config) ->
     do_verify_no_trailing_whitespace(PathCrLf, Config, #{ignore_empty_lines => false}, 0),
 
     PathLf = "pass_no_trailing_whitespace_lf." ++ Ext,
-    do_verify_no_trailing_whitespace(PathCrLf, Config, #{ignore_empty_lines => false}, 0).
+    do_verify_no_trailing_whitespace(PathLf, Config, #{ignore_empty_lines => false}, 0).
 
 do_verify_no_trailing_whitespace(Path, Config, RuleConfig, ExpectedNumItems) ->
     Items =
