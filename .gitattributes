@@ -1,10 +1,8 @@
 test/examples/pass_no_trailing_whitespace_crlf.erl auto eol=crlf
 test/examples/pass_no_trailing_whitespace_lf.erl auto eol=lf
 
-# File is "binary" to ensure git does NOT modify it.
+# Files are "binary" to ensure git does NOT modify it.
 # Contains in-line \r characters
 test/examples/fail_no_trailing_whitespace.erl binary
 test/examples/pass_no_trailing_whitespace_elvis_attr.erl binary
-
-# Never modify line endings of our newline-covering test cases
-test/examples/pass_operator_spaces_elvis_attr.erl auto eol=lf
+test/examples/pass_operator_spaces_elvis_attr.erl binary
