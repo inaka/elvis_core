@@ -11,7 +11,7 @@
 -export([verify_function_naming_convention/1, verify_variable_naming_convention/1,
          verify_line_length_rule/1, verify_line_length_rule_latin1/1,
          verify_unicode_line_length_rule/1, verify_no_tabs_rule/1, verify_no_spaces_rule/1,
-         verify_no_trailing_whitespace_rule/1, verify_no_trailing_whitespace_rule_crlf/1,
+         verify_no_trailing_whitespace_rule/1, verify_no_trailing_whitespace_rule_lf_crlf/1,
          verify_macro_names_rule/1, verify_macro_module_names/1, verify_no_macros/1,
          verify_no_block_expressions/1, verify_operator_spaces/1, verify_no_space/1,
          verify_operator_spaces_latin1/1, verify_nesting_level/1, verify_god_modules/1,
@@ -22,7 +22,7 @@
          verify_no_debug_call/1, verify_no_common_caveats_call/1, verify_no_call/1,
          verify_no_nested_try_catch/1, verify_atom_naming_convention/1, verify_no_throw/1,
          verify_no_dollar_space/1, verify_no_author/1, verify_no_catch_expressions/1,
-         verify_numeric_format/1]).
+         verify_numeric_format/1, verify_behaviour_spelling/1, verify_always_shortcircuit/1]).
 %% -elvis attribute
 -export([verify_elvis_attr_atom_naming_convention/1, verify_elvis_attr_numeric_format/1,
          verify_elvis_attr_dont_repeat_yourself/1, verify_elvis_attr_function_naming_convention/1,
@@ -37,7 +37,7 @@
          verify_elvis_attr_no_tabs/1, verify_elvis_attr_no_trailing_whitespace/1,
          verify_elvis_attr_operator_spaces/1, verify_elvis_attr_state_record_and_type/1,
          verify_elvis_attr_used_ignored_variable/1, verify_elvis_attr_variable_naming_convention/1,
-         verify_behaviour_spelling/1]).
+         verify_elvis_attr_behaviour_spelling/1]).
 %% Non-rule
 -export([results_are_ordered_by_line/1, oddities/1]).
 
@@ -85,6 +85,7 @@ groups() ->
        verify_atom_naming_convention,
        verify_no_throw,
        verify_no_author,
+       verify_always_shortcircuit,
        verify_no_catch_expressions,
        verify_no_macros]}].
 
@@ -291,13 +292,15 @@ verify_no_trailing_whitespace_rule(Config) ->
     do_verify_no_trailing_whitespace(Path, Config, #{ignore_empty_lines => false}, 4),
     do_verify_no_trailing_whitespace(Path, Config, #{}, 4).
 
--spec verify_no_trailing_whitespace_rule_crlf(config()) -> any().
-verify_no_trailing_whitespace_rule_crlf(Config) ->
+-spec verify_no_trailing_whitespace_rule_lf_crlf(config()) -> any().
+verify_no_trailing_whitespace_rule_lf_crlf(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     PathCrLf = "pass_no_trailing_whitespace_crlf." ++ Ext,
+    do_verify_no_trailing_whitespace(PathCrLf, Config, #{ignore_empty_lines => false}, 0),
 
-    do_verify_no_trailing_whitespace(PathCrLf, Config, #{ignore_empty_lines => false}, 0).
+    PathLf = "pass_no_trailing_whitespace_lf." ++ Ext,
+    do_verify_no_trailing_whitespace(PathLf, Config, #{ignore_empty_lines => false}, 0).
 
 do_verify_no_trailing_whitespace(Path, Config, RuleConfig, ExpectedNumItems) ->
     Items =
@@ -699,6 +702,17 @@ verify_behaviour_spelling(Config) ->
                               behaviour_spelling,
                               #{spelling => behavior},
                               PathPass1).
+
+-spec verify_always_shortcircuit(config()) -> any().
+verify_always_shortcircuit(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PathFail = "fail_always_shortcircuit." ++ Ext,
+    [_, _, _, _] =
+        elvis_core_apply_rule(Config, elvis_style, always_shortcircuit, #{}, PathFail),
+
+    PathPass = "pass_always_shortcircuit." ++ Ext,
+    [] = elvis_core_apply_rule(Config, elvis_style, always_shortcircuit, #{}, PathPass).
 
 -spec verify_no_spec_with_records(config()) -> any().
 verify_no_spec_with_records(Config) ->
@@ -1368,6 +1382,10 @@ verify_elvis_attr_used_ignored_variable(Config) ->
 -spec verify_elvis_attr_variable_naming_convention(config()) -> true.
 verify_elvis_attr_variable_naming_convention(Config) ->
     verify_elvis_attr(Config, "pass_variable_naming_convention_elvis_attr").
+
+-spec verify_elvis_attr_behaviour_spelling(config()) -> true.
+verify_elvis_attr_behaviour_spelling(Config) ->
+    verify_elvis_attr(Config, "pass_behaviour_spelling_elvis_attr").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
