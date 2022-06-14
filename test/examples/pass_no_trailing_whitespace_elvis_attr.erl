@@ -32,6 +32,7 @@ seven() ->
     %% Previous line ends with a Windows newline ("\r\n")
     ok.
 
+
 %% Previous (supposedly blank) line has a Windows newline ("\r\n")
 eight_and_rocking_alright() ->
     ok.
