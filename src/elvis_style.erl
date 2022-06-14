@@ -7,8 +7,9 @@
          module_naming_convention/3, state_record_and_type/3, no_spec_with_records/3,
          dont_repeat_yourself/3, max_module_length/3, max_function_length/3, no_call/3,
          no_debug_call/3, no_common_caveats_call/3, no_nested_try_catch/3,
-         atom_naming_convention/3, no_throw/3, no_author/3, no_catch_expressions/3,
-         numeric_format/3, behaviour_spelling/3, always_shortcircuit/3, option/3]).
+         atom_naming_convention/3, no_throw/3, no_dollar_space/3, no_author/3,
+         no_catch_expressions/3, numeric_format/3, behaviour_spelling/3, always_shortcircuit/3,
+         option/3]).
 
 -export_type([empty_rule_config/0]).
 -export_type([ignorable/0]).
@@ -81,6 +82,9 @@
         "Atom ~p on line ~p does not respect the format "
         "defined by the regular expression '~p'.").
 -define(NO_THROW_MSG, "Usage of throw/1 on line ~p is not recommended").
+-define(NO_DOLLAR_SPACE_MSG,
+        "'$ ' was found on line ~p. It's use is discouraged. "
+        "Use $\\s, instead.").
 -define(NO_AUTHOR_MSG, "Unnecessary author attribute on line ~p").
 -define(NO_CATCH_EXPRESSIONS_MSG,
         "Usage of catch expression on line ~p is not recommended").
@@ -101,12 +105,6 @@
 -spec default(Rule :: atom()) -> DefaultRuleConfig :: term().
 default(macro_names) ->
     #{regex => "^([A-Z][A-Z_0-9]+)$"};
-default(macro_module_names) ->
-    #{};
-default(no_macros) ->
-    #{};
-default(no_block_expressions) ->
-    #{};
 default(operator_spaces) ->
     #{rules => [{right, ","}, {right, "++"}, {left, "++"}]};
 default(no_space) ->
@@ -115,26 +113,12 @@ default(nesting_level) ->
     #{level => 4};
 default(god_modules) ->
     #{limit => 25};
-default(no_if_expression) ->
-    #{};
-default(no_nested_try_catch) ->
-    #{};
-default(invalid_dynamic_call) ->
-    #{};
-default(used_ignored_variable) ->
-    #{};
-default(no_behavior_info) ->
-    #{};
 default(function_naming_convention) ->
     #{regex => "^([a-z][a-z0-9]*_?)*(_SUITE)?$"};
 default(variable_naming_convention) ->
     #{regex => "^_?([A-Z][0-9a-zA-Z]*)$"};
 default(module_naming_convention) ->
     #{regex => "^([a-z][a-z0-9]*_?)*(_SUITE)?$"};
-default(state_record_and_type) ->
-    #{};
-default(no_spec_with_records) ->
-    #{};
 default(dont_repeat_yourself) ->
     #{min_complexity => 10};
 default(max_module_length) ->
@@ -158,12 +142,6 @@ default(no_common_caveats_call) ->
            {erlang, size, 1}]};
 default(atom_naming_convention) ->
     #{regex => "^([a-z][a-z0-9]*_?)*(_SUITE)?$", enclosed_atoms => ".*"};
-default(no_throw) ->
-    #{};
-default(no_author) ->
-    #{};
-default(no_catch_expressions) ->
-    #{};
 %% Not restrictive. Those who want more restrictions can set it like "^[^_]*$"
 default(numeric_format) ->
     #{regex => ".*",
@@ -171,7 +149,22 @@ default(numeric_format) ->
       float_regex => same};
 default(behaviour_spelling) ->
     #{spelling => behaviour};
-default(always_shortcircuit) ->
+default(RuleWithEmptyDefault)
+    when RuleWithEmptyDefault == macro_module_names;
+         RuleWithEmptyDefault == no_macros;
+         RuleWithEmptyDefault == no_block_expressions;
+         RuleWithEmptyDefault == no_if_expression;
+         RuleWithEmptyDefault == no_nested_try_catch;
+         RuleWithEmptyDefault == invalid_dynamic_call;
+         RuleWithEmptyDefault == used_ignored_variable;
+         RuleWithEmptyDefault == no_behavior_info;
+         RuleWithEmptyDefault == state_record_and_type;
+         RuleWithEmptyDefault == no_spec_with_records;
+         RuleWithEmptyDefault == no_throw;
+         RuleWithEmptyDefault == no_dollar_space;
+         RuleWithEmptyDefault == no_author;
+         RuleWithEmptyDefault == no_catch_expressions;
+         RuleWithEmptyDefault == always_shortcircuit ->
     #{}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -771,9 +764,7 @@ atom_naming_convention(Config, Target, RuleConfig) ->
     AtomNodes = elvis_code:find(fun is_atom_node/1, Root, #{traverse => all, mode => node}),
     check_atom_names(Regex, RegexEnclosed, AtomNodes, []).
 
--type no_throw_config() :: #{ignore => [ignorable()]}.
-
--spec no_throw(elvis_config:config(), elvis_file:file(), no_throw_config()) ->
+-spec no_throw(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
                   [elvis_result:item()].
 no_throw(Config, Target, RuleConfig) ->
     Zipper =
@@ -788,6 +779,20 @@ no_throw(Config, Target, RuleConfig) ->
                 end,
                 [],
                 ThrowNodes).
+
+-spec no_dollar_space(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
+                         [elvis_result:item()].
+no_dollar_space(Config, Target, RuleConfig) ->
+    IsDollarSpace =
+        fun(Node) -> ktn_code:type(Node) == char andalso ktn_code:attr(text, Node) == "$ " end,
+    Root = get_root(Config, Target, RuleConfig),
+    Opts = #{mode => node, traverse => all},
+    DollarSpaceNodes = elvis_code:find(IsDollarSpace, Root, Opts),
+    lists:map(fun(ThrowNode) ->
+                 {Line, _} = ktn_code:attr(location, ThrowNode),
+                 elvis_result:new(item, ?NO_DOLLAR_SPACE_MSG, [Line])
+              end,
+              DollarSpaceNodes).
 
 -type no_author_config() :: #{ignore => [ignorable()]}.
 
