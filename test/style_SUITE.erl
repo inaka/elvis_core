@@ -224,8 +224,7 @@ verify_line_length_rule(Config) ->
         elvis_core_apply_rule(Config, elvis_text_style, line_length, #{limit => 100}, Path),
     8 = length(Result),
     #{info := Info, message := Msg} = lists:nth(7, Result),
-    <<"Line 34 is too long:     gb_trees:from_orddict(", _/binary>> =
-        list_to_binary(io_lib:format(Msg, Info)),
+    <<"Line 34 is too long. It has ", _/binary>> = list_to_binary(io_lib:format(Msg, Info)),
 
     WholeLineResult =
         elvis_core_apply_rule(Config,
@@ -253,7 +252,7 @@ verify_line_length_rule_latin1(Config) ->
         elvis_core_apply_rule(Config, elvis_text_style, line_length, #{limit => 100}, Path),
     1 = length(Result),
     #{info := Info, message := Msg} = lists:nth(1, Result),
-    <<"Line 13 is too long:", _/binary>> = list_to_binary(io_lib:format(Msg, Info)).
+    <<"Line 13 is too long. It has", _/binary>> = list_to_binary(io_lib:format(Msg, Info)).
 
 -spec verify_unicode_line_length_rule(config()) -> any().
 verify_unicode_line_length_rule(Config) ->
