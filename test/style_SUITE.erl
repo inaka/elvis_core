@@ -1421,7 +1421,6 @@ verify_elvis_attr(Config, FilenameNoExt) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     {ok, File} = elvis_test_utils:find_file(SrcDirs, FilenameNoExt ++ "." ++ Ext),
-    ct:pal("File: ~p", [File]),
 
     {ok, #{rules := RuleResults}} = elvis_core:do_rock(File, ElvisConfig),
     [[] = Items || #{items := Items} <- RuleResults],
