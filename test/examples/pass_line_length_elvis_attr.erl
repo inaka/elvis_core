@@ -35,7 +35,7 @@ function_5() ->
     io:format("This line is 90 characters long and should be detected ~p!!!!!!!!!!!!!!!!!!!!!!!!!!", [yeah]),
     io:format("This line is 90 characters long and should be detected ~p and these two escaped ~p!!!!!!!!!!!!!!!!!!", [yeah, no]).
 
-function_6(Config, AntPositions)->
+function_6(Config, AntPositions) ->
     gb_trees:from_orddict([{Pos, #{pos => Pos, state => model:random_ant_state(Config)}} || Pos <- lists:sort(AntPositions)]). % {Pozycja, CałyAgent} - ew. do zmiany, jest zbalansowany [DG]
 
 function_7() ->

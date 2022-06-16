@@ -106,7 +106,15 @@
 default(macro_names) ->
     #{regex => "^([A-Z][A-Z_0-9]+)$"};
 default(operator_spaces) ->
-    #{rules => [{right, ","}, {right, "++"}, {left, "++"}]};
+    #{rules =>
+          [{right, "++"}, {left, "++"}, {right, "="}, {left, "="}, {right, "+"}, {left, "+"},
+           {right, "-"}, {left, "-"}, {right, "*"}, {left, "*"}, {right, "/"}, {left, "/"},
+           {right, "=<"}, {left, "=<"}, {right, "<"}, {left, "<"}, {right, ">"}, {left, ">"},
+           {right, ">="}, {left, ">="}, {right, "=="}, {left, "=="}, {right, "=:="}, {left, "=:="},
+           {right, "/="}, {left, "/="}, {right, "=/="}, {left, "=/="}, {right, "--"}, {left, "--"},
+           {right, "=>"}, {left, "=>"}, {right, ":="}, {left, ":="}, {right, "<-"}, {left, "<-"},
+           {right, "<="}, {left, "<="}, {right, "||"}, {left, "||"}, {right, "|"}, {left, "|"},
+           {right, "::"}, {left, "::"}, {right, "->"}, {left, "->"}, {right, ","}]};
 default(no_space) ->
     #{rules => [{right, "("}, {left, ")"}, {left, ","}]};
 default(nesting_level) ->
