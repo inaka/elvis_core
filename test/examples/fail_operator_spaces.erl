@@ -18,6 +18,8 @@
         , windows_newlines/0
         , this/0
         , this/1
+        , pass_more_operators/0
+        , fail_more_operators/0
         ]).
 
 %% No space before and after coma,on a comment.
@@ -102,3 +104,49 @@ this()
 this(shouldnt_either)
 -> A = 1
 - 2, A.
+
+
+-spec pass_more_operators() -> R when R :: tuple().
+pass_more_operators() ->
+    D = "Elvis should not complain this function "
+        "since operators are properly spaced out: "
+        "=,+,-,*,/,=<,<,>,>=,==,=:=,/=,=/=,--,=>,:=,<-,<=,||,|,::,->",
+    X = 1 + 2 - 3 * 4 / 5,
+    M = #{d => D, x => X},
+    {
+        X =< 1,
+        X < 2,
+        X > 3,
+        X >= 4,
+        X == 5,
+        X =:= 6,
+        X /= 7,
+        X =/= 8,
+        D -- "",
+        M#{d => D, x := X},
+        [A || A <- D],
+        << <<A>> || <<A>> <= list_to_binary(D) >>,
+        [X | D]
+    }.
+
+-spec fail_more_operators()->R when R::tuple().
+fail_more_operators()->
+    D="Elvis should complain this function "
+      "since operators have no space around them.",
+    X=1+2-3*4/5,
+    M=#{d=>D, x=>X},
+    {
+        X=<1,
+        X<2,
+        X>3,
+        X>=4,
+        X==5,
+        X=:=6,
+        X/=7,
+        X=/=8,
+        D--"",
+        M#{d=>D, x:=X},
+        [A||A<- D],
+        <<<<$>>>||<<$>>><=<<$>>>>>,
+        [X|D]
+    }.

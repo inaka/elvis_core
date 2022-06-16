@@ -412,35 +412,42 @@ verify_operator_spaces(Config) ->
     [_] = elvis_core_apply_rule(Config, elvis_style, operator_spaces, AppendOptions, Path),
 
     SumOperation = #{rules => [{right, "+"}, {left, "+"}]},
-    [_, _] = elvis_core_apply_rule(Config, elvis_style, operator_spaces, SumOperation, Path),
+    [_, _, _, _] =
+        elvis_core_apply_rule(Config, elvis_style, operator_spaces, SumOperation, Path),
 
     MinusOperation = #{rules => [{right, "-"}, {left, "-"}]},
-    [] = elvis_core_apply_rule(Config, elvis_style, operator_spaces, MinusOperation, Path),
+    [_, _] =
+        elvis_core_apply_rule(Config, elvis_style, operator_spaces, MinusOperation, Path),
 
     Arrow = #{rules => [{left, "->"}]},
-    [] = elvis_core_apply_rule(Config, elvis_style, operator_spaces, Arrow, Path),
+    [_, _] = elvis_core_apply_rule(Config, elvis_style, operator_spaces, Arrow, Path),
 
     BarOptions = #{rules => [{right, "|"}, {left, "|"}]},
-    [_, _] = elvis_core_apply_rule(Config, elvis_style, operator_spaces, BarOptions, Path),
+    [_, _, _, _] =
+        elvis_core_apply_rule(Config, elvis_style, operator_spaces, BarOptions, Path),
 
     ComprehensionOperation = #{rules => [{right, "||"}, {left, "||"}]},
-    [_, _] =
+    [_, _, _, _, _, _] =
         elvis_core_apply_rule(Config, elvis_style, operator_spaces, ComprehensionOperation, Path),
 
-    AllOptions =
-        #{rules =>
-              [{right, ","},
-               {right, "++"},
-               {left, "++"},
-               {right, "+"},
-               {left, "+"},
-               {left, "->"},
-               {right, "|"},
-               {left, "|"},
-               {right, "||"},
-               {left, "||"}]},
-    [_, _, _, _, _, _, _, _, _, _] =
-        elvis_core_apply_rule(Config, elvis_style, operator_spaces, AllOptions, Path).
+    DefaultOptions = #{},
+    [#{info := [right, "," | _]}, #{info := [right, "," | _]}, #{info := [left, "++" | _]},
+     #{info := [right, "," | _]}, #{info := [left, "+" | _]}, #{info := [right, "+" | _]},
+     #{info := [right, "|" | _]}, #{info := [left, "|" | _]}, #{info := [right, "||" | _]},
+     #{info := [left, "||" | _]}, #{info := [right, "::" | _]}, #{info := [left, "::" | _]},
+     #{info := [right, "->" | _]}, #{info := [left, "->" | _]}, #{info := [left, "->" | _]},
+     #{info := [right, "+" | _]}, #{info := [left, "+" | _]}, #{info := [right, "-" | _]},
+     #{info := [left, "-" | _]}, #{info := [right, "*" | _]}, #{info := [left, "*" | _]},
+     #{info := [right, "/" | _]}, #{info := [left, "/" | _]}, #{info := [right, "=<" | _]},
+     #{info := [left, "=<" | _]}, #{info := [right, "<" | _]}, #{info := [left, "<" | _]},
+     #{info := [right, ">" | _]}, #{info := [left, ">" | _]}, #{info := [right, ">=" | _]},
+     #{info := [left, ">=" | _]}, #{info := [right, "==" | _]}, #{info := [left, "==" | _]},
+     #{info := [right, "=:=" | _]}, #{info := [left, "=:=" | _]}, #{info := [right, "/=" | _]},
+     #{info := [left, "/=" | _]}, #{info := [right, "=/=" | _]}, #{info := [left, "=/=" | _]},
+     #{info := [right, "--" | _]}, #{info := [left, "--" | _]}, #{info := [right, "||" | _]},
+     #{info := [left, "||" | _]}, #{info := [right, "||" | _]}, #{info := [left, "||" | _]},
+     #{info := [right, "|" | _]}, #{info := [left, "|" | _]}] =
+        elvis_core_apply_rule(Config, elvis_style, operator_spaces, DefaultOptions, Path).
 
 -spec verify_no_space(config()) -> any().
 verify_no_space(Config) ->
@@ -1414,6 +1421,7 @@ verify_elvis_attr(Config, FilenameNoExt) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     {ok, File} = elvis_test_utils:find_file(SrcDirs, FilenameNoExt ++ "." ++ Ext),
+    ct:pal("File: ~p", [File]),
 
     {ok, #{rules := RuleResults}} = elvis_core:do_rock(File, ElvisConfig),
     [[] = Items || #{items := Items} <- RuleResults],
