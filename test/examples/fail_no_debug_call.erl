@@ -6,6 +6,7 @@
 
 -spec fail() -> any().
 fail() ->
+    erlang:display("debug print"),
     io:format("debug print~n"),
     io:format("debug print ~s~n", ["debug info"]),
     % Sending explicit io to a device is not considered debugging
