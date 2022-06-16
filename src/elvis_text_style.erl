@@ -2,7 +2,7 @@
 
 -export([default/1, line_length/3, no_tabs/3, no_spaces/3, no_trailing_whitespace/3]).
 
--define(LINE_LENGTH_MSG, "Line ~p is too long: ~s.").
+-define(LINE_LENGTH_MSG, "Line ~p is too long. It has ~p characters.").
 -define(NO_TABS_MSG, "Line ~p has a tab at column ~p.").
 -define(NO_SPACES_MSG, "Line ~p has a spaces at column ~p.").
 -define(NO_TRAILING_WHITESPACE_MSG, "Line ~b has ~b trailing whitespace characters.").
@@ -121,7 +121,7 @@ check_line_length(Line, Num, [Limit, Encoding]) ->
     case length(Chars) of
         Large when Large > Limit ->
             Msg = ?LINE_LENGTH_MSG,
-            Info = [Num, binary_to_list(Line)],
+            Info = [Num, Large],
             Result = elvis_result:new(item, Msg, Info, Num),
             {ok, Result};
         _ ->
