@@ -323,7 +323,7 @@ rock_with_rule_groups(_Config) ->
            filter => "Makefile",
            ruleset => makefiles,
            rules =>
-               [{elvis_project, no_deps_master_erlang_mk, disable}]}, % I like stable dependencies
+               [{elvis_project, no_deps_main_erlang_mk, disable}]}, % I like stable dependencies
          #{dirs => ["."],
            filter => "rebar.config",
            ruleset => rebar_config},

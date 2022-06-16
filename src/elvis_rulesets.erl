@@ -62,10 +62,10 @@ rules(beam_files) ->
                behaviour_spelling]);
 rules(makefiles) ->
     lists:map(fun(Rule) -> {elvis_project, Rule, elvis_project:default(Rule)} end,
-              [no_deps_master_erlang_mk, protocol_for_deps_erlang_mk]);
+              [no_deps_main_erlang_mk, protocol_for_deps_erlang_mk]);
 rules(rebar_config) ->
     lists:map(fun(Rule) -> {elvis_project, Rule, elvis_project:default(Rule)} end,
-              [no_deps_master_rebar, protocol_for_deps_rebar]);
+              [no_deps_main_rebar, protocol_for_deps_rebar]);
 rules(elvis_config) ->
     lists:map(fun(Rule) -> {elvis_project, Rule, elvis_project:default(Rule)} end,
               [old_configuration_format]);

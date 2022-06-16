@@ -1,11 +1,11 @@
 -module(elvis_project).
 
--export([default/1, no_deps_master_erlang_mk/3, no_deps_master_rebar/3,
+-export([default/1, no_deps_main_erlang_mk/3, no_deps_main_rebar/3,
          protocol_for_deps_erlang_mk/3, git_for_deps_erlang_mk/3, protocol_for_deps_rebar/3,
          git_for_deps_rebar/3, old_configuration_format/3]).
 
--define(DEP_MASTER,
-        "Dependency '~s' revision is specified 'master', "
+-define(DEP_MAIN,
+        "Dependency '~s' revision is specified 'main', "
         "please change this to a tag, branch or specific "
         "commit.").
 -define(DEP_NO_GIT,
@@ -22,8 +22,8 @@
 %  probably be messier than to ignore the warning
 -hank([{unnecessary_function_arguments,
         [{old_configuration_format, 3},
-         {no_deps_master_rebar, 3},
-         {no_deps_master_erlang_mk, 3},
+         {no_deps_main_rebar, 3},
+         {no_deps_main_erlang_mk, 3},
          {protocol_for_deps_rebar, 3},
          {protocol_for_deps_erlang_mk, 3}]}]).
 
@@ -32,11 +32,11 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 -spec default(Rule :: atom()) -> DefaultRuleConfig :: term().
-default(no_deps_master_erlang_mk) ->
+default(no_deps_main_erlang_mk) ->
     #{ignore => []};
 default(protocol_for_deps_erlang_mk) ->
     #{ignore => [], regex => "(https://.*|[0-9]+([.][0-9]+)*)"};
-default(no_deps_master_rebar) ->
+default(no_deps_main_rebar) ->
     #{ignore => []};
 default(protocol_for_deps_rebar) ->
     #{ignore => [], regex => "(https://.*|[0-9]+([.][0-9]+)*)"};
@@ -97,31 +97,30 @@ protocol_for_deps_rebar(_Config, Target, RuleConfig) ->
                   end,
                   BadDeps).
 
--type no_deps_master_erlang_mk_config() :: #{ignore => [module()]}.
+-type no_deps_main_erlang_mk_config() :: #{ignore => [module()]}.
 
--spec no_deps_master_erlang_mk(elvis_config:config(),
-                               elvis_file:file(),
-                               no_deps_master_erlang_mk_config()) ->
-                                  [elvis_result:item()].
-no_deps_master_erlang_mk(_Config, Target, RuleConfig) ->
-    IgnoreDeps = option(ignore, RuleConfig, no_deps_master_erlang_mk),
+-spec no_deps_main_erlang_mk(elvis_config:config(),
+                             elvis_file:file(),
+                             no_deps_main_erlang_mk_config()) ->
+                                [elvis_result:item()].
+no_deps_main_erlang_mk(_Config, Target, RuleConfig) ->
+    IgnoreDeps = option(ignore, RuleConfig, no_deps_main_erlang_mk),
     Deps = get_erlang_mk_deps(Target),
-    BadDeps = lists:filter(fun is_erlang_mk_master_dep/1, Deps),
-    lists:flatmap(fun(Line) -> erlang_mk_dep_to_result(Line, ?DEP_MASTER, IgnoreDeps) end,
+    BadDeps = lists:filter(fun is_erlang_mk_main_dep/1, Deps),
+    lists:flatmap(fun(Line) -> erlang_mk_dep_to_result(Line, ?DEP_MAIN, IgnoreDeps) end,
                   BadDeps).
 
--type no_deps_master_rebar_config() :: #{ignore => [module()]}.
+-type no_deps_main_rebar_config() :: #{ignore => [module()]}.
 
--spec no_deps_master_rebar(elvis_config:config(),
-                           elvis_file:file(),
-                           no_deps_master_rebar_config()) ->
-                              [elvis_result:item()].
-no_deps_master_rebar(_Config, Target, RuleConfig) ->
-    IgnoreDeps = option(ignore, RuleConfig, no_deps_master_rebar),
+-spec no_deps_main_rebar(elvis_config:config(),
+                         elvis_file:file(),
+                         no_deps_main_rebar_config()) ->
+                            [elvis_result:item()].
+no_deps_main_rebar(_Config, Target, RuleConfig) ->
+    IgnoreDeps = option(ignore, RuleConfig, no_deps_main_rebar),
     Deps = get_rebar_deps(Target),
-    BadDeps = lists:filter(fun is_rebar_master_dep/1, Deps),
-    lists:flatmap(fun(Line) -> rebar_dep_to_result(Line, ?DEP_MASTER, IgnoreDeps) end,
-                  BadDeps).
+    BadDeps = lists:filter(fun is_rebar_main_dep/1, Deps),
+    lists:flatmap(fun(Line) -> rebar_dep_to_result(Line, ?DEP_MAIN, IgnoreDeps) end, BadDeps).
 
 -type empty_rule_config() :: #{}.
 
@@ -167,18 +166,18 @@ get_rebar_deps(File) ->
     end.
 
 %% Rebar3
-is_rebar_master_dep({_AppName, {_SCM, _Location, "master"}}) ->
+is_rebar_main_dep({_AppName, {_SCM, _Location, "main"}}) ->
     true;
-is_rebar_master_dep({_AppName, {_SCM, _Location, {branch, "master"}}}) ->
+is_rebar_main_dep({_AppName, {_SCM, _Location, {branch, "main"}}}) ->
     true;
-is_rebar_master_dep({AppName, {raw, DepResourceSpecification}}) ->
-    is_rebar_master_dep({AppName, DepResourceSpecification});
+is_rebar_main_dep({AppName, {raw, DepResourceSpecification}}) ->
+    is_rebar_main_dep({AppName, DepResourceSpecification});
 %% Rebar2
-is_rebar_master_dep({_AppName, _Vsn, {_SCM, _Location, "master"}}) ->
+is_rebar_main_dep({_AppName, _Vsn, {_SCM, _Location, "main"}}) ->
     true;
-is_rebar_master_dep({_AppName, _Vsn, {_SCM, _Location, {branch, "master"}}}) ->
+is_rebar_main_dep({_AppName, _Vsn, {_SCM, _Location, {branch, "main"}}}) ->
     true;
-is_rebar_master_dep(_) ->
+is_rebar_main_dep(_) ->
     false.
 
 is_rebar_hex_dep(_AppName) when is_atom(_AppName) ->
@@ -225,8 +224,8 @@ rebar_dep_to_result({AppName, _, GitInfo}, Message, IgnoreDeps) ->
 
 %%% erlang.mk
 
-is_erlang_mk_master_dep(Line) ->
-    nomatch /= re:run(Line, "master *$", [{capture, none}]).
+is_erlang_mk_main_dep(Line) ->
+    nomatch /= re:run(Line, "main *$", [{capture, none}]).
 
 is_erlang_mk_not_git_dep(Line, Regex) ->
     [_DepName, Dependency] = binary:split(Line, <<"=">>),

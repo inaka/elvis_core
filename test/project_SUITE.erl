@@ -7,7 +7,7 @@
 -endif.
 
 -export([all/0, init_per_suite/1, end_per_suite/1]).
--export([verify_no_deps_master_erlang_mk/1, verify_no_deps_master_rebar/1,
+-export([verify_no_deps_main_erlang_mk/1, verify_no_deps_main_rebar/1,
          verify_hex_dep_rebar/1, verify_git_for_deps_erlang_mk/1,
          verify_protocol_for_deps_erlang_mk/1, verify_git_for_deps_rebar/1,
          verify_protocol_for_deps_rebar/1, verify_old_config_format/1]).
@@ -39,40 +39,40 @@ end_per_suite(Config) ->
 %% Test Cases
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec verify_no_deps_master_erlang_mk(config()) -> any().
-verify_no_deps_master_erlang_mk(_Config) ->
+-spec verify_no_deps_main_erlang_mk(config()) -> any().
+verify_no_deps_main_erlang_mk(_Config) ->
     ElvisConfig = elvis_test_utils:config(makefiles),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     Filename = "Makefile.fail",
     {ok, File} = elvis_test_utils:find_file(SrcDirs, Filename),
 
-    [_, _, _] = elvis_project:no_deps_master_erlang_mk(ElvisConfig, File, #{}),
+    [_, _, _] = elvis_project:no_deps_main_erlang_mk(ElvisConfig, File, #{}),
 
     RuleConfig = #{ignore => [sync]},
-    [_, _] = elvis_project:no_deps_master_erlang_mk(ElvisConfig, File, RuleConfig),
+    [_, _] = elvis_project:no_deps_main_erlang_mk(ElvisConfig, File, RuleConfig),
 
     RuleConfig1 = #{ignore => [sync, meck]},
-    [_] = elvis_project:no_deps_master_erlang_mk(ElvisConfig, File, RuleConfig1).
+    [_] = elvis_project:no_deps_main_erlang_mk(ElvisConfig, File, RuleConfig1).
 
--spec verify_no_deps_master_rebar(config()) -> any().
-verify_no_deps_master_rebar(_Config) ->
+-spec verify_no_deps_main_rebar(config()) -> any().
+verify_no_deps_main_rebar(_Config) ->
     ElvisConfig = elvis_test_utils:config(rebar_config),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     Filename = "rebar.config.fail",
     {ok, File} = elvis_test_utils:find_file(SrcDirs, Filename),
 
-    [_, _, _, _, _] = elvis_project:no_deps_master_rebar(ElvisConfig, File, #{}),
+    [_, _, _, _, _] = elvis_project:no_deps_main_rebar(ElvisConfig, File, #{}),
 
     RuleConfig = #{ignore => [aleppo]},
-    [_, _, _] = elvis_project:no_deps_master_rebar(ElvisConfig, File, RuleConfig),
+    [_, _, _] = elvis_project:no_deps_main_rebar(ElvisConfig, File, RuleConfig),
 
     RuleConfig1 = #{ignore => [aleppo, getopt]},
-    [_] = elvis_project:no_deps_master_rebar(ElvisConfig, File, RuleConfig1),
+    [_] = elvis_project:no_deps_main_rebar(ElvisConfig, File, RuleConfig1),
 
     RuleConfig2 = #{ignore => [jsx]},
-    [_, _, _, _] = elvis_project:no_deps_master_rebar(ElvisConfig, File, RuleConfig2).
+    [_, _, _, _] = elvis_project:no_deps_main_rebar(ElvisConfig, File, RuleConfig2).
 
 -spec verify_git_for_deps_erlang_mk(config()) -> any().
 verify_git_for_deps_erlang_mk(_Config) ->
