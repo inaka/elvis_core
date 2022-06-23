@@ -7,12 +7,10 @@ ebin
 *.plt
 erl_crash.dump
 log*/
-.erlang.mk.packages.*
 _build
 # Ignore elvis escript
 elvis
 rebar
-.erlang.mk/
 elvis.d
 doc
 rebar3.crashdump

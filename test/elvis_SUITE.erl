@@ -97,11 +97,7 @@ rock_with_incomplete_config(_Config) ->
 
 -spec rock_with_list_config(config()) -> any().
 rock_with_list_config(_Config) ->
-    ElvisConfig =
-        [#{src_dirs => ["src"], rules => []},
-         #{dirs => ["."],
-           filter => "Makefile",
-           rules => []}],
+    ElvisConfig = [#{src_dirs => ["src"], rules => []}],
     ok =
         try
             ok = elvis_core:rock(ElvisConfig)
@@ -282,9 +278,6 @@ rock_with_rule_groups(_Config) ->
            filter => "*.beam",
            ruleset => beam_files},
          #{dirs => ["."],
-           filter => "Makefile",
-           ruleset => makefiles},
-         #{dirs => ["."],
            filter => "rebar.config",
            ruleset => rebar_config},
          #{dirs => ["."],
@@ -319,11 +312,6 @@ rock_with_rule_groups(_Config) ->
            rules =>
                [{elvis_text_style, line_length, #{limit => 90}}, % I like 90 chars per line.
                 {elvis_text_style, no_tabs, disable}]}, % I like tabs so disable this rule.
-         #{dirs => ["."],
-           filter => "Makefile",
-           ruleset => makefiles,
-           rules =>
-               [{elvis_project, no_deps_master_erlang_mk, disable}]}, % I like stable dependencies
          #{dirs => ["."],
            filter => "rebar.config",
            ruleset => rebar_config},
