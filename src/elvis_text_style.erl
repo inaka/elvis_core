@@ -1,10 +1,9 @@
 -module(elvis_text_style).
 
--export([default/1, line_length/3, no_tabs/3, no_spaces/3, no_trailing_whitespace/3]).
+-export([default/1, line_length/3, no_tabs/3, no_trailing_whitespace/3]).
 
 -define(LINE_LENGTH_MSG, "Line ~p is too long. It has ~p characters.").
 -define(NO_TABS_MSG, "Line ~p has a tab at column ~p.").
--define(NO_SPACES_MSG, "Line ~p has a spaces at column ~p.").
 -define(NO_TRAILING_WHITESPACE_MSG, "Line ~b has ~b trailing whitespace characters.").
 
 % These are part of a non-declared "behaviour"
@@ -12,7 +11,7 @@
 %  that arguments are ignored in different positions (1 and 3) so that'd
 %  probably be messier than to ignore the warning
 -hank([{unnecessary_function_arguments,
-        [{no_trailing_whitespace, 3}, {no_spaces, 3}, {no_tabs, 3}, {line_length, 3}]}]).
+        [{no_trailing_whitespace, 3}, {no_tabs, 3}, {line_length, 3}]}]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
@@ -53,14 +52,6 @@ line_length(_Config, Target, RuleConfig) ->
 no_tabs(_Config, Target, _RuleConfig) ->
     {Src, _} = elvis_file:src(Target),
     elvis_utils:check_lines(Src, fun check_no_tabs/2, []).
-
--spec no_spaces(elvis_config:config(),
-                elvis_file:file(),
-                elvis_style:empty_rule_config()) ->
-                   [elvis_result:item()].
-no_spaces(_Config, Target, _RuleConfig) ->
-    {Src, _} = elvis_file:src(Target),
-    elvis_utils:check_lines(Src, fun check_no_spaces/2, []).
 
 -type no_trailing_whitespace_config() ::
     #{ignore => [module()], ignore_empty_lines => boolean()}.
@@ -137,20 +128,6 @@ check_no_tabs(Line, Num) ->
             no_result;
         {Index, _} ->
             Msg = ?NO_TABS_MSG,
-            Info = [Num, Index],
-            Result = elvis_result:new(item, Msg, Info, Num),
-            {ok, Result}
-    end.
-
-%% No Spaces
-
--spec check_no_spaces(binary(), integer()) -> no_result | {ok, elvis_result:item()}.
-check_no_spaces(Line, Num) ->
-    case re:run(Line, <<"^\t* ">>) of
-        nomatch ->
-            no_result;
-        {Index, _} ->
-            Msg = ?NO_SPACES_MSG,
             Info = [Num, Index],
             Result = elvis_result:new(item, Msg, Info, Num),
             {ok, Result}

@@ -10,7 +10,7 @@
          end_per_group/2]).
 -export([verify_function_naming_convention/1, verify_variable_naming_convention/1,
          verify_line_length_rule/1, verify_line_length_rule_latin1/1,
-         verify_unicode_line_length_rule/1, verify_no_tabs_rule/1, verify_no_spaces_rule/1,
+         verify_unicode_line_length_rule/1, verify_no_tabs_rule/1,
          verify_no_trailing_whitespace_rule/1, verify_no_trailing_whitespace_rule_lf_crlf/1,
          verify_macro_names_rule/1, verify_macro_module_names/1, verify_no_macros/1,
          verify_no_block_expressions/1, verify_operator_spaces/1, verify_no_space/1,
@@ -33,11 +33,10 @@
          verify_elvis_attr_nesting_level/1, verify_elvis_attr_no_behavior_info/1,
          verify_elvis_attr_no_call/1, verify_elvis_attr_no_debug_call/1,
          verify_elvis_attr_no_if_expression/1, verify_elvis_attr_no_nested_try_catch/1,
-         verify_elvis_attr_no_spaces/1, verify_elvis_attr_no_spec_with_records/1,
-         verify_elvis_attr_no_tabs/1, verify_elvis_attr_no_trailing_whitespace/1,
-         verify_elvis_attr_operator_spaces/1, verify_elvis_attr_state_record_and_type/1,
-         verify_elvis_attr_used_ignored_variable/1, verify_elvis_attr_variable_naming_convention/1,
-         verify_elvis_attr_behaviour_spelling/1]).
+         verify_elvis_attr_no_spec_with_records/1, verify_elvis_attr_no_tabs/1,
+         verify_elvis_attr_no_trailing_whitespace/1, verify_elvis_attr_operator_spaces/1,
+         verify_elvis_attr_state_record_and_type/1, verify_elvis_attr_used_ignored_variable/1,
+         verify_elvis_attr_variable_naming_convention/1, verify_elvis_attr_behaviour_spelling/1]).
 %% Non-rule
 -export([results_are_ordered_by_line/1, oddities/1]).
 
@@ -271,15 +270,6 @@ verify_no_tabs_rule(Config) ->
     Path = "fail_no_tabs." ++ Ext,
 
     [_, _] = elvis_core_apply_rule(Config, elvis_text_style, no_tabs, #{}, Path).
-
--spec verify_no_spaces_rule(config()) -> any().
-verify_no_spaces_rule(Config) ->
-    Ext = proplists:get_value(test_file_ext, Config, "erl"),
-
-    Path = "fail_no_spaces." ++ Ext,
-
-    [_, _, _, _, _, _] =
-        elvis_core_apply_rule(Config, elvis_text_style, no_spaces, #{}, Path).
 
 -spec verify_no_trailing_whitespace_rule(config()) -> any().
 verify_no_trailing_whitespace_rule(Config) ->
@@ -1356,10 +1346,6 @@ verify_elvis_attr_no_if_expression(Config) ->
 -spec verify_elvis_attr_no_nested_try_catch(config()) -> true.
 verify_elvis_attr_no_nested_try_catch(Config) ->
     verify_elvis_attr(Config, "pass_no_nested_try_catch_elvis_attr").
-
--spec verify_elvis_attr_no_spaces(config()) -> true.
-verify_elvis_attr_no_spaces(Config) ->
-    verify_elvis_attr(Config, "pass_no_spaces_elvis_attr").
 
 -spec verify_elvis_attr_no_spec_with_records(config()) -> true.
 verify_elvis_attr_no_spec_with_records(Config) ->

@@ -1,7 +1,6 @@
 -module(elvis_project).
 
--export([default/1, no_branch_deps/3, protocol_for_deps/3, git_for_deps/3,
-         old_configuration_format/3]).
+-export([default/1, no_branch_deps/3, protocol_for_deps/3, old_configuration_format/3]).
 
 -define(DEP_BRANCH,
         "Dependency '~s' uses a branch. "
@@ -38,15 +37,6 @@ default(old_configuration_format) ->
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 -type protocol_for_deps_config() :: #{ignore => [module()], regex => string()}.
-
--spec git_for_deps(elvis_config:config(),
-                   elvis_file:file(),
-                   protocol_for_deps_config()) ->
-                      [elvis_result:item()].
-git_for_deps(Config, Target, RuleConfig) ->
-    elvis_utils:error_prn("This rule has been deprecated please use "
-                          "'protocol_for_deps'."),
-    protocol_for_deps(Config, Target, RuleConfig).
 
 -spec protocol_for_deps(elvis_config:config(),
                         elvis_file:file(),
