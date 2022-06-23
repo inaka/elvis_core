@@ -7,10 +7,8 @@
 -endif.
 
 -export([all/0, init_per_suite/1, end_per_suite/1]).
--export([verify_no_deps_main_erlang_mk/1, verify_no_deps_main_rebar/1,
-         verify_hex_dep_rebar/1, verify_git_for_deps_erlang_mk/1,
-         verify_protocol_for_deps_erlang_mk/1, verify_git_for_deps_rebar/1,
-         verify_protocol_for_deps_rebar/1, verify_old_config_format/1]).
+-export([verify_no_branch_deps/1, verify_hex_dep/1, verify_git_for_deps/1,
+         verify_protocol_for_deps/1, verify_old_config_format/1]).
 
 -define(EXCLUDED_FUNS, [module_info, all, test, init_per_suite, end_per_suite]).
 
@@ -39,130 +37,73 @@ end_per_suite(Config) ->
 %% Test Cases
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec verify_no_deps_main_erlang_mk(config()) -> any().
-verify_no_deps_main_erlang_mk(_Config) ->
-    ElvisConfig = elvis_test_utils:config(makefiles),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-
-    Filename = "Makefile.fail",
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, Filename),
-
-    [_, _, _] = elvis_project:no_deps_main_erlang_mk(ElvisConfig, File, #{}),
-
-    RuleConfig = #{ignore => [sync]},
-    [_, _] = elvis_project:no_deps_main_erlang_mk(ElvisConfig, File, RuleConfig),
-
-    RuleConfig1 = #{ignore => [sync, meck]},
-    [_] = elvis_project:no_deps_main_erlang_mk(ElvisConfig, File, RuleConfig1).
-
--spec verify_no_deps_main_rebar(config()) -> any().
-verify_no_deps_main_rebar(_Config) ->
+-spec verify_no_branch_deps(config()) -> any().
+verify_no_branch_deps(_Config) ->
     ElvisConfig = elvis_test_utils:config(rebar_config),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     Filename = "rebar.config.fail",
     {ok, File} = elvis_test_utils:find_file(SrcDirs, Filename),
 
-    [_, _, _, _, _] = elvis_project:no_deps_main_rebar(ElvisConfig, File, #{}),
+    [_, _, _, _] = elvis_project:no_branch_deps(ElvisConfig, File, #{}),
 
-    RuleConfig = #{ignore => [aleppo]},
-    [_, _, _] = elvis_project:no_deps_main_rebar(ElvisConfig, File, RuleConfig),
+    RuleConfig = #{ignore => [jsx]},
+    [_, _] = elvis_project:no_branch_deps(ElvisConfig, File, RuleConfig),
 
-    RuleConfig1 = #{ignore => [aleppo, getopt]},
-    [_] = elvis_project:no_deps_main_rebar(ElvisConfig, File, RuleConfig1),
+    RuleConfig1 = #{ignore => [jsx, getopt]},
+    [] = elvis_project:no_branch_deps(ElvisConfig, File, RuleConfig1),
 
-    RuleConfig2 = #{ignore => [jsx]},
-    [_, _, _, _] = elvis_project:no_deps_main_rebar(ElvisConfig, File, RuleConfig2).
+    RuleConfig2 = #{ignore => [getopt]},
+    [_, _] = elvis_project:no_branch_deps(ElvisConfig, File, RuleConfig2).
 
--spec verify_git_for_deps_erlang_mk(config()) -> any().
-verify_git_for_deps_erlang_mk(_Config) ->
-    ElvisConfig = elvis_test_utils:config(makefiles),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-
-    Filename = "Makefile.fail",
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, Filename),
-
-    [_, _, _, _, _, _] = elvis_project:git_for_deps_erlang_mk(ElvisConfig, File, #{}),
-
-    RuleConfig = #{ignore => [sync]},
-    [_, _, _, _, _] = elvis_project:git_for_deps_erlang_mk(ElvisConfig, File, RuleConfig),
-
-    RuleConfig1 = #{ignore => [sync, meck], regex => "git://.*"},
-    [_] = elvis_project:git_for_deps_erlang_mk(ElvisConfig, File, RuleConfig1),
-
-    RuleConfig2 = #{ignore => [sync], regex => "https://.*"},
-    [_, _, _, _, _] = elvis_project:git_for_deps_erlang_mk(ElvisConfig, File, RuleConfig2).
-
--spec verify_protocol_for_deps_erlang_mk(config()) -> any().
-verify_protocol_for_deps_erlang_mk(_Config) ->
-    ElvisConfig = elvis_test_utils:config(makefiles),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-
-    Filename = "Makefile.fail",
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, Filename),
-
-    [_, _, _, _, _, _] = elvis_project:protocol_for_deps_erlang_mk(ElvisConfig, File, #{}),
-
-    RuleConfig = #{ignore => [sync]},
-    [_, _, _, _, _] =
-        elvis_project:protocol_for_deps_erlang_mk(ElvisConfig, File, RuleConfig),
-
-    RuleConfig1 = #{ignore => [sync, meck], regex => "git://.*"},
-    [_] = elvis_project:protocol_for_deps_erlang_mk(ElvisConfig, File, RuleConfig1),
-
-    RuleConfig2 = #{ignore => [sync], regex => "https://.*"},
-    [_, _, _, _, _] =
-        elvis_project:protocol_for_deps_erlang_mk(ElvisConfig, File, RuleConfig2).
-
--spec verify_git_for_deps_rebar(config()) -> any().
-verify_git_for_deps_rebar(_Config) ->
+-spec verify_git_for_deps(config()) -> any().
+verify_git_for_deps(_Config) ->
     ElvisConfig = elvis_test_utils:config(rebar_config),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     Filename = "rebar.config.fail",
     {ok, File} = elvis_test_utils:find_file(SrcDirs, Filename),
 
-    [_, _, _, _, _, _, _] = elvis_project:git_for_deps_rebar(ElvisConfig, File, #{}),
+    [_, _, _, _, _, _, _] = elvis_project:git_for_deps(ElvisConfig, File, #{}),
 
     RuleConfig = #{ignore => [getopt]},
-    [_, _, _, _, _] = elvis_project:git_for_deps_rebar(ElvisConfig, File, RuleConfig),
+    [_, _, _, _, _] = elvis_project:git_for_deps(ElvisConfig, File, RuleConfig),
 
     RuleConfig1 = #{ignore => [getopt, lager]},
-    [_, _, _] = elvis_project:git_for_deps_rebar(ElvisConfig, File, RuleConfig1),
+    [_, _, _] = elvis_project:git_for_deps(ElvisConfig, File, RuleConfig1),
 
     RuleConfig2 = #{ignore => [meck, jsx], regex => "git@.*"},
-    [_, _, _, _, _, _, _, _] =
-        elvis_project:git_for_deps_rebar(ElvisConfig, File, RuleConfig2).
+    [_, _, _, _, _, _, _, _] = elvis_project:git_for_deps(ElvisConfig, File, RuleConfig2).
 
--spec verify_protocol_for_deps_rebar(config()) -> any().
-verify_protocol_for_deps_rebar(_Config) ->
+-spec verify_protocol_for_deps(config()) -> any().
+verify_protocol_for_deps(_Config) ->
     ElvisConfig = elvis_test_utils:config(rebar_config),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     Filename = "rebar.config.fail",
     {ok, File} = elvis_test_utils:find_file(SrcDirs, Filename),
 
-    [_, _, _, _, _, _, _] = elvis_project:protocol_for_deps_rebar(ElvisConfig, File, #{}),
+    [_, _, _, _, _, _, _] = elvis_project:protocol_for_deps(ElvisConfig, File, #{}),
 
     RuleConfig = #{ignore => [getopt, jsx]},
-    [_, _, _, _] = elvis_project:protocol_for_deps_rebar(ElvisConfig, File, RuleConfig),
+    [_, _, _, _] = elvis_project:protocol_for_deps(ElvisConfig, File, RuleConfig),
 
     RuleConfig1 = #{ignore => [getopt, lager]},
-    [_, _, _] = elvis_project:protocol_for_deps_rebar(ElvisConfig, File, RuleConfig1),
+    [_, _, _] = elvis_project:protocol_for_deps(ElvisConfig, File, RuleConfig1),
 
     RuleConfig2 = #{ignore => [meck], regex => "git@.*"},
     [_, _, _, _, _, _, _, _, _] =
-        elvis_project:protocol_for_deps_rebar(ElvisConfig, File, RuleConfig2).
+        elvis_project:protocol_for_deps(ElvisConfig, File, RuleConfig2).
 
--spec verify_hex_dep_rebar(config()) -> any().
-verify_hex_dep_rebar(_Config) ->
+-spec verify_hex_dep(config()) -> any().
+verify_hex_dep(_Config) ->
     ElvisConfig = elvis_test_utils:config(rebar_config),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
     Filename = "rebar3.config.success",
     {ok, File} = elvis_test_utils:find_file(SrcDirs, Filename),
 
-    [] = elvis_project:protocol_for_deps_rebar(ElvisConfig, File, #{}).
+    [] = elvis_project:protocol_for_deps(ElvisConfig, File, #{}).
 
 -spec verify_old_config_format(config()) -> any().
 verify_old_config_format(_Config) ->
