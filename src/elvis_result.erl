@@ -122,7 +122,8 @@ print_rules(Format, File, [#{items := Items, name := Name} | EItems]) ->
         parsable ->
             ok;
         _ ->
-            elvis_utils:error("  - ~p (https://github.com/inaka/elvis_core/tree/main/doc_rules/~p.md)", [Name, Name])
+            elvis_utils:error("  - ~p (https://github.com/inaka/elvis_core/tree/main/doc_rules/~p.md)",
+                              [Name, Name])
     end,
     print_item(Format, File, Name, Items),
     print_rules(Format, File, EItems);
