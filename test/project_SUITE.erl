@@ -7,8 +7,8 @@
 -endif.
 
 -export([all/0, init_per_suite/1, end_per_suite/1]).
--export([verify_no_branch_deps/1, verify_hex_dep/1, verify_git_for_deps/1,
-         verify_protocol_for_deps/1, verify_old_config_format/1]).
+-export([verify_no_branch_deps/1, verify_hex_dep/1, verify_protocol_for_deps/1,
+         verify_old_config_format/1]).
 
 -define(EXCLUDED_FUNS, [module_info, all, test, init_per_suite, end_per_suite]).
 
@@ -55,25 +55,6 @@ verify_no_branch_deps(_Config) ->
 
     RuleConfig2 = #{ignore => [getopt]},
     [_, _] = elvis_project:no_branch_deps(ElvisConfig, File, RuleConfig2).
-
--spec verify_git_for_deps(config()) -> any().
-verify_git_for_deps(_Config) ->
-    ElvisConfig = elvis_test_utils:config(rebar_config),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-
-    Filename = "rebar.config.fail",
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, Filename),
-
-    [_, _, _, _, _, _, _] = elvis_project:git_for_deps(ElvisConfig, File, #{}),
-
-    RuleConfig = #{ignore => [getopt]},
-    [_, _, _, _, _] = elvis_project:git_for_deps(ElvisConfig, File, RuleConfig),
-
-    RuleConfig1 = #{ignore => [getopt, lager]},
-    [_, _, _] = elvis_project:git_for_deps(ElvisConfig, File, RuleConfig1),
-
-    RuleConfig2 = #{ignore => [meck, jsx], regex => "git@.*"},
-    [_, _, _, _, _, _, _, _] = elvis_project:git_for_deps(ElvisConfig, File, RuleConfig2).
 
 -spec verify_protocol_for_deps(config()) -> any().
 verify_protocol_for_deps(_Config) ->
