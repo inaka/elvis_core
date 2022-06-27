@@ -234,7 +234,7 @@ environment variables, i.e. as they would be found by `application:get_env/2,3`.
 ### Pre-defined rules
 
 A reference to all pre-defined rules (and some other information) implemented in `elvis_core` can be
-found in this repository's Wiki page [Rules](https://github.com/inaka/elvis_core/wiki/Rules).
+found in this repository's [RULES.md](RULES.md).
 
 ### User-defined rules
 

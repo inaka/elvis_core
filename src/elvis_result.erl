@@ -18,7 +18,10 @@
     #{message => string(),
       info => iodata(),
       line_num => integer()}.
--type rule() :: #{name => atom(), items => [item()]}.
+-type rule() ::
+    #{scope => atom(),
+      name => atom(),
+      items => [item()]}.
 -type file() :: #{file => string(), rules => [rule()]}.
 -type elvis_error() :: #{error_msg => string(), info => list()}.
 -type elvis_warn() :: #{warn_msg => string(), info => list()}.
@@ -30,14 +33,16 @@
 %% New
 
 -spec new(item, string(), [term()]) -> item();
-         (rule, atom(), [item()]) -> rule();
+         (rule, {atom(), atom()}, [item()]) -> rule();
          (file, elvis_file:file(), [elvis_error() | rule()]) -> file();
          (error, string(), string()) -> elvis_error();
          (warn, string(), string()) -> elvis_warn().
 new(item, Msg, Info) ->
     new(item, Msg, Info, 0);
-new(rule, Name, Results) ->
-    #{name => Name, items => Results};
+new(rule, {Scope, Name}, Results) ->
+    #{scope => Scope,
+      name => Name,
+      items => Results};
 new(file, #{path := Path}, Rules) ->
     #{file => Path, rules => Rules};
 new(error, Msg, Info) ->
@@ -117,12 +122,19 @@ print_rules(_Format, _File, []) ->
     ok;
 print_rules(Format, File, [#{items := []} | Items]) ->
     print_rules(Format, File, Items);
-print_rules(Format, File, [#{items := Items, name := Name} | EItems]) ->
+print_rules(Format,
+            File,
+            [#{scope := Scope,
+               items := Items,
+               name := Name}
+             | EItems]) ->
     case Format of
         parsable ->
             ok;
         _ ->
-            elvis_utils:error("  - ~s", [atom_to_list(Name)])
+            elvis_utils:error("  - ~p "
+                              "(https://github.com/inaka/elvis_core/tree/main/doc_rules/~p/~p.md)",
+                              [Name, Scope, Name])
     end,
     print_item(Format, File, Name, Items),
     print_rules(Format, File, EItems);
