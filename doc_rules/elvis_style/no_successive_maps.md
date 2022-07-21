@@ -1,5 +1,7 @@
 # No Successive Maps
 
+(since [2.0.0](https://github.com/inaka/elvis_core/releases/tag/2.0.0))
+
 The idea behind this rule comes from [this email](http://erlang.org/pipermail/erlang-questions/2017-April/092112.html) by @kvakvs.
 Basically, the warning is emitted if a developer _forgets a comma_ and writes something like the following:
 
