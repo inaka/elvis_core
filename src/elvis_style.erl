@@ -6,7 +6,7 @@
          invalid_dynamic_call/3, used_ignored_variable/3, no_behavior_info/3,
          module_naming_convention/3, state_record_and_type/3, no_spec_with_records/3,
          dont_repeat_yourself/3, max_module_length/3, max_function_length/3, no_call/3,
-         no_debug_call/3, no_common_caveats_call/3, no_nested_try_catch/3,
+         no_debug_call/3, no_common_caveats_call/3, no_nested_try_catch/3, no_successive_maps/3,
          atom_naming_convention/3, no_throw/3, no_dollar_space/3, no_author/3,
          no_catch_expressions/3, numeric_format/3, behaviour_spelling/3, always_shortcircuit/3,
          option/3]).
@@ -78,6 +78,8 @@
         "The call to ~p:~p/~p on line ~p is in the list of "
         "Erlang Efficiency Guide common caveats.").
 -define(NO_NESTED_TRY_CATCH, "Nested try...catch block starting at line ~p.").
+-define(NO_SUCCESSIVE_MAPS_MSG,
+        "Found map update after map construction/update at line ~p.").
 -define(ATOM_NAMING_CONVENTION_MSG,
         "Atom ~p on line ~p does not respect the format "
         "defined by the regular expression '~p'.").
@@ -164,6 +166,7 @@ default(RuleWithEmptyDefault)
          RuleWithEmptyDefault == no_block_expressions;
          RuleWithEmptyDefault == no_if_expression;
          RuleWithEmptyDefault == no_nested_try_catch;
+         RuleWithEmptyDefault == no_successive_maps;
          RuleWithEmptyDefault == invalid_dynamic_call;
          RuleWithEmptyDefault == used_ignored_variable;
          RuleWithEmptyDefault == no_behavior_info;
@@ -754,6 +757,19 @@ no_nested_try_catch(Config, Target, RuleConfig) ->
             [];
         TryExprs ->
             lists:flatmap(fun(TryExp) -> check_nested_try_catchs(ResultFun, TryExp) end, TryExprs)
+    end.
+
+-spec no_successive_maps(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
+                            [elvis_result:item()].
+no_successive_maps(Config, Target, RuleConfig) ->
+    Root = get_root(Config, Target, RuleConfig),
+    Predicate = fun(Node) -> ktn_code:type(Node) == map end,
+    ResultFun = result_node_line_fun(?NO_SUCCESSIVE_MAPS_MSG),
+    case elvis_code:find(Predicate, Root) of
+        [] ->
+            [];
+        MapExprs ->
+            lists:flatmap(fun(MapExp) -> check_successive_maps(ResultFun, MapExp) end, MapExprs)
     end.
 
 -type atom_naming_convention_config() ::
@@ -1484,8 +1500,7 @@ fun_spec_match({M, F, A}, {M, F, A}) ->
 fun_spec_match(_, _) ->
     false.
 
-%% No nested try...catch blocks
-
+%% @doc No nested try...catch blocks
 check_nested_try_catchs(ResultFun, TryExp) ->
     Predicate = fun(Node) -> ktn_code:type(Node) == 'try' end,
     lists:filtermap(fun (Node) when Node /= TryExp ->
@@ -1494,6 +1509,20 @@ check_nested_try_catchs(ResultFun, TryExp) ->
                             false
                     end,
                     elvis_code:find(Predicate, TryExp)).
+
+%% @doc No #{...}#{...}
+check_successive_maps(ResultFun, MapExp) ->
+    case ktn_code:node_attr(var, MapExp) of
+        undefined ->
+            [];
+        InnerVar ->
+            case ktn_code:type(InnerVar) of
+                map ->
+                    [ResultFun(InnerVar)];
+                _ ->
+                    []
+            end
+    end.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Internal Function Definitions

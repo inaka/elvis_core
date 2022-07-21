@@ -20,9 +20,10 @@
          verify_state_record_and_type/1, verify_no_spec_with_records/1,
          verify_dont_repeat_yourself/1, verify_max_module_length/1, verify_max_function_length/1,
          verify_no_debug_call/1, verify_no_common_caveats_call/1, verify_no_call/1,
-         verify_no_nested_try_catch/1, verify_atom_naming_convention/1, verify_no_throw/1,
-         verify_no_dollar_space/1, verify_no_author/1, verify_no_catch_expressions/1,
-         verify_numeric_format/1, verify_behaviour_spelling/1, verify_always_shortcircuit/1]).
+         verify_no_nested_try_catch/1, verify_no_successive_maps/1,
+         verify_atom_naming_convention/1, verify_no_throw/1, verify_no_dollar_space/1,
+         verify_no_author/1, verify_no_catch_expressions/1, verify_numeric_format/1,
+         verify_behaviour_spelling/1, verify_always_shortcircuit/1]).
 %% -elvis attribute
 -export([verify_elvis_attr_atom_naming_convention/1, verify_elvis_attr_numeric_format/1,
          verify_elvis_attr_dont_repeat_yourself/1, verify_elvis_attr_function_naming_convention/1,
@@ -33,10 +34,11 @@
          verify_elvis_attr_nesting_level/1, verify_elvis_attr_no_behavior_info/1,
          verify_elvis_attr_no_call/1, verify_elvis_attr_no_debug_call/1,
          verify_elvis_attr_no_if_expression/1, verify_elvis_attr_no_nested_try_catch/1,
-         verify_elvis_attr_no_spec_with_records/1, verify_elvis_attr_no_tabs/1,
-         verify_elvis_attr_no_trailing_whitespace/1, verify_elvis_attr_operator_spaces/1,
-         verify_elvis_attr_state_record_and_type/1, verify_elvis_attr_used_ignored_variable/1,
-         verify_elvis_attr_variable_naming_convention/1, verify_elvis_attr_behaviour_spelling/1]).
+         verify_elvis_attr_no_successive_maps/1, verify_elvis_attr_no_spec_with_records/1,
+         verify_elvis_attr_no_tabs/1, verify_elvis_attr_no_trailing_whitespace/1,
+         verify_elvis_attr_operator_spaces/1, verify_elvis_attr_state_record_and_type/1,
+         verify_elvis_attr_used_ignored_variable/1, verify_elvis_attr_variable_naming_convention/1,
+         verify_elvis_attr_behaviour_spelling/1]).
 %% Non-rule
 -export([results_are_ordered_by_line/1, oddities/1]).
 
@@ -81,6 +83,7 @@ groups() ->
        verify_no_common_caveats_call,
        verify_no_call,
        verify_no_nested_try_catch,
+       verify_no_successive_maps,
        verify_atom_naming_convention,
        verify_no_throw,
        verify_no_author,
@@ -988,6 +991,29 @@ verify_no_nested_try_catch(Config) ->
                               #{ignore => [Module]},
                               Path).
 
+-spec verify_no_successive_maps(config()) -> any().
+verify_no_successive_maps(Config) ->
+    Group = proplists:get_value(group, Config, erl_files),
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    Module = fail_no_successive_maps,
+    Path = atom_to_list(Module) ++ "." ++ Ext,
+    _ = case Group of
+            beam_files ->
+                [_, _, _] =
+                    elvis_core_apply_rule(Config, elvis_style, no_successive_maps, #{}, Path);
+            erl_files ->
+                [#{line_num := 6}, #{line_num := 7}, #{line_num := 8}] =
+                    elvis_core_apply_rule(Config, elvis_style, no_successive_maps, #{}, Path)
+        end,
+
+    [] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              no_successive_maps,
+                              #{ignore => [Module]},
+                              Path).
+
 -spec verify_atom_naming_convention(config()) -> any().
 verify_atom_naming_convention(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
@@ -1346,6 +1372,10 @@ verify_elvis_attr_no_if_expression(Config) ->
 -spec verify_elvis_attr_no_nested_try_catch(config()) -> true.
 verify_elvis_attr_no_nested_try_catch(Config) ->
     verify_elvis_attr(Config, "pass_no_nested_try_catch_elvis_attr").
+
+-spec verify_elvis_attr_no_successive_maps(config()) -> true.
+verify_elvis_attr_no_successive_maps(Config) ->
+    verify_elvis_attr(Config, "pass_no_successive_maps_elvis_attr").
 
 -spec verify_elvis_attr_no_spec_with_records(config()) -> true.
 verify_elvis_attr_no_spec_with_records(Config) ->
