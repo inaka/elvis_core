@@ -1,7 +1,4 @@
-# Prevent including *.hrl file 
-
-The idea behind this rule comes from [this email](http://erlang.org/pipermail/erlang-questions/2017-April/092112.html) by @kvakvs.
-Basically, the warning is emitted if a developer _forgets a comma_ and writes something like the following:
+# Prevent including *.hrl file
 
 With this rule we can raise warning/errors if developer includes restricted `*.hrl` files in non-allowed modules
 
