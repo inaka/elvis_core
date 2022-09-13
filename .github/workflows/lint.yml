@@ -1,10 +1,10 @@
 ---
-name: Lint
+name: lint
 
 on: [push, pull_request]
 
 jobs:
-  build:
+  md_and_yml:
     runs-on: ubuntu-latest
 
     steps:
