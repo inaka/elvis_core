@@ -84,6 +84,7 @@ groups() ->
        verify_no_call,
        verify_no_nested_try_catch,
        verify_no_successive_maps,
+       verify_no_hrl_include,
        verify_atom_naming_convention,
        verify_no_throw,
        verify_no_author,
@@ -630,6 +631,7 @@ verify_module_naming_convention(Config) ->
                               module_naming_convention,
                               RuleConfigIgnore,
                               PathFail).
+
 -spec verify_no_hrl_include(config()) -> any().
 verify_no_hrl_include(Config) ->
     [] =
@@ -640,10 +642,10 @@ verify_no_hrl_include(Config) ->
                               "pass_no_hrl_include.erl"),
     [_] =
         elvis_core_apply_rule(Config,
-                            elvis_style,
-                            no_hrl_include,
-                            #{restricted_hrl_files => ["private.hrl"]},
-                            "fail_no_hrl_include.erl").                    
+                              elvis_style,
+                              no_hrl_include,
+                              #{restricted_hrl_files => ["private.hrl"]},
+                              "fail_no_hrl_include.erl").
 
 -spec verify_state_record_and_type(config()) -> any().
 verify_state_record_and_type(Config) ->

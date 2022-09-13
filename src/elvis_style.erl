@@ -8,7 +8,7 @@
          dont_repeat_yourself/3, max_module_length/3, max_function_length/3, no_call/3,
          no_debug_call/3, no_common_caveats_call/3, no_nested_try_catch/3, no_successive_maps/3,
          atom_naming_convention/3, no_throw/3, no_dollar_space/3, no_author/3,
-         no_catch_expressions/3, numeric_format/3, behaviour_spelling/3, always_shortcircuit/3, 
+         no_catch_expressions/3, numeric_format/3, behaviour_spelling/3, always_shortcircuit/3,
          no_hrl_include/3, option/3]).
 
 -export_type([empty_rule_config/0]).
@@ -926,26 +926,22 @@ always_shortcircuit(Config, Target, RuleConfig) ->
     end.
 
 -spec no_hrl_include(elvis_config:config(),
-    elvis_file:file(),
-    elvis_core:rule_config()
-) ->
-   [elvis_result:item()].
+                     elvis_file:file(),
+                     elvis_core:rule_config()) ->
+                        [elvis_result:item()].
 no_hrl_include(Config, Target, RuleConfig) ->
-    #{type := root, content := Content} =
-        get_root(Config, Target, RuleConfig),
+    #{type := root, content := Content} = get_root(Config, Target, RuleConfig),
     #{restricted_hrl_files := HrlFiles} = RuleConfig,
-    Res =
-        lists:filtermap(
-            fun
-                (Node = #{type := include}) ->
-                    FilePath = ktn_code:attr(value, Node),
-                    FileName = lists:last(string:split(FilePath, "/", all)),
-                    lists:member(FileName, HrlFiles);
-                (_) ->
-                    false
-            end,
-            Content
-        ),
+    Res = lists:filtermap(fun (Node = #{type := include}) ->
+                                  FilePath = ktn_code:attr(value, Node),
+                                  FileName =
+                                      lists:last(
+                                          string:split(FilePath, "/", all)),
+                                  lists:member(FileName, HrlFiles);
+                              (_) ->
+                                  false
+                          end,
+                          Content),
     case Res of
         [] ->
             [];

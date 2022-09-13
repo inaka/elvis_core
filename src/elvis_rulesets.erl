@@ -35,6 +35,7 @@ rules(erl_files) ->
                {elvis_style, variable_naming_convention},
                {elvis_style, no_nested_try_catch},
                {elvis_style, no_successive_maps},
+               {elvis_style, no_hrl_include},
                {elvis_style, atom_naming_convention},
                {elvis_style, no_throw},
                {elvis_style, no_dollar_space},
