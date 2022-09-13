@@ -23,7 +23,7 @@
          verify_no_nested_try_catch/1, verify_no_successive_maps/1,
          verify_atom_naming_convention/1, verify_no_throw/1, verify_no_dollar_space/1,
          verify_no_author/1, verify_no_catch_expressions/1, verify_numeric_format/1,
-         verify_behaviour_spelling/1, verify_always_shortcircuit/1]).
+         verify_behaviour_spelling/1, verify_always_shortcircuit/1, verify_no_hrl_include/1]).
 %% -elvis attribute
 -export([verify_elvis_attr_atom_naming_convention/1, verify_elvis_attr_numeric_format/1,
          verify_elvis_attr_dont_repeat_yourself/1, verify_elvis_attr_function_naming_convention/1,
@@ -630,6 +630,20 @@ verify_module_naming_convention(Config) ->
                               module_naming_convention,
                               RuleConfigIgnore,
                               PathFail).
+-spec verify_no_hrl_include(config()) -> any().
+verify_no_hrl_include(Config) ->
+    [] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              no_hrl_include,
+                              #{restricted_hrl_files => ["private.hrl"]},
+                              "pass_no_hrl_include.erl"),
+    [_] =
+        elvis_core_apply_rule(Config,
+                            elvis_style,
+                            no_hrl_include,
+                            #{restricted_hrl_files => ["private.hrl"]},
+                            "fail_no_hrl_include.erl").                    
 
 -spec verify_state_record_and_type(config()) -> any().
 verify_state_record_and_type(Config) ->

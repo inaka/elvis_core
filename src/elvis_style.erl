@@ -933,7 +933,7 @@ always_shortcircuit(Config, Target, RuleConfig) ->
 no_hrl_include(Config, Target, RuleConfig) ->
     #{type := root, content := Content} =
         get_root(Config, Target, RuleConfig),
-    #{hrl_files := HrlFiles} = RuleConfig,
+    #{restricted_hrl_files := HrlFiles} = RuleConfig,
     Res =
         lists:filtermap(
             fun

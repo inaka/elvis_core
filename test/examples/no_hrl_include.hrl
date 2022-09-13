@@ -1,0 +1,1 @@
+-type test_type() :: binary().
