@@ -1,0 +1,31 @@
+---
+name: lint
+
+on: [push, pull_request]
+
+jobs:
+  md_and_yml:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # uses .markdownlint.yml for configuration
+      - name: markdownlint
+        uses: DavidAnson/markdownlint-cli2-action@v5
+        with:
+          globs: |
+            LICENSE
+            CONTRIBUTING.md
+            MIGRATION.md
+            README.md
+            RULES.md
+            doc_rules/**/*.md
+            .github/ISSUE_TEMPLATE/*.md
+
+      - name: yamllint
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          file_or_dir: .github/workflows/*.yml
+          strict: true
+          config_file: .yamllint.yml
