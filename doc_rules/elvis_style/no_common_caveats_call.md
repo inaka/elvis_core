@@ -20,7 +20,7 @@ alternatives.
               ]`.
 
 **Notice**: this rule is not enforced by default. Check the
-[example `elvis.config` file](#example-elvisconfig) below to see how you can enforce it.
+[example `elvis.config` file](../../README.md#configuration) to see how you can enforce it.
 
 ## Example
 

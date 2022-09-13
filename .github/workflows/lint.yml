@@ -10,13 +10,16 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # uses .markdownlint-cli2.yaml for configuration
+      # uses .markdownlint.yml for configuration
       - name: markdownlint
         uses: DavidAnson/markdownlint-cli2-action@v5
         with:
           globs: |
             LICENSE
-            *.md
+            CONTRIBUTING.md
+            MIGRATION.md
+            README.md
+            RULES.md
             doc_rules/**/*.md
             .github/ISSUE_TEMPLATE/*.md
 

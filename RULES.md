@@ -31,7 +31,9 @@ identified with `(since ...)` for convenience purposes.
 - [No catch expressions](doc_rules/elvis_style/no_catch_expressions.md)
 - [No Common Caveats](doc_rules/elvis_style/no_common_caveats_call.md)
 - [No debug call](doc_rules/elvis_style/no_debug_call.md)
+<!-- markdownlint-disable MD033 -->
 - [No <code>&&nbsp;</code>](doc_rules/elvis_style/no_dollar_space.md)
+<!-- markdownlint-enable MD033 -->
 - [No If Expression](doc_rules/elvis_style/no_if_expression.md)
 - [No Macros](doc_rules/elvis_style/no_macros.md)
 - [No Nested try...catch Blocks](doc_rules/elvis_style/no_nested_try_catch.md)
@@ -104,7 +106,7 @@ expected in `elvis.config`'s `rules` option, e.g.:
 -elvis([{elvis_style, no_nested_try_catch}]).
 ```
 
-**Note**: a single attribute with a list of rules is _the same_ as multiple attributes with a list
+**Note**: a single attribute with a list of rules is *the same* as multiple attributes with a list
 of rules each - the rules are "merged" - as in:
 
 ```erlang

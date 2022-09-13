@@ -188,12 +188,14 @@ Option `output_format` allows you to configure the output format. Possible value
 `plain` and `parsable`. The latter could be used for automated parsing and has a format very close
 to the one presented by `dialyzer`, like `<file>:<line>:<rule>:<message>`:
 
+<!-- markdownlint-disable MD013 -->
 ```shell
 src/example.erl:1:god_modules:This module has too many functions (56). Consider breaking it into a number of modules.
 src/example_a.erl:341:no_debug_call:Remove the debug call to io:format/2 on line 341.
 src/example_a.erl:511:used_ignored_variable:Ignored variable is being used on line 511 and column 54.
 src/example_a.erl:1252:used_ignored_variable:Ignored variable is being used on line 1252 and column 21.
 ```
+<!-- markdownlint-enable MD013 -->
 
 The default value for the `output_format` option is `colors`.
 

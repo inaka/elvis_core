@@ -12,7 +12,7 @@ No line should be longer than a given limit. Comments can be skipped.
   - default: `false`, means _emit a warning for every line that goes over `Limit`_
   - `any` means _don't emit a warning if the part of the line that goes over `Limit` belongs to a
   comment_
-  - `whole_line` means _don't emit a warning if the line that goes over `Limit` is *just* a comment_
+  - `whole_line` means _don't emit a warning if the line that goes over `Limit` is __just__ a comment_
 
 ## Example
 
