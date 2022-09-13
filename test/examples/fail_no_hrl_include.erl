@@ -1,7 +1,8 @@
 -module(fail_no_hrl_include).
 -include("no_hrl_include.hrl").
 
--export([hello/0]).
+-export([hello/1]).
 
-hello() ->
+-spec hello(test_type()) -> string().
+hello(_A) ->
     "Hello !".
