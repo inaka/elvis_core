@@ -1,6 +1,6 @@
-# Prevent including *.hrl file
+# No hrl include
 
-With this rule we can raise warning/errors if developer includes restricted `*.hrl` files in non-allowed modules
+This rule raises a warning if specific `hrl` files are included in chosen modules.
 
 
 
@@ -10,7 +10,7 @@ With this rule we can raise warning/errors if developer includes restricted `*.h
 .............
 ```
 
-It will raise style warning/error for above module 
+E.g. the following will raise a warning for `private.hrl` being included by module `user`.
 
 ## Options
 
@@ -19,5 +19,5 @@ It will raise style warning/error for above module
 ## Example
 
 ```erlang
-{elvis_style, no_hrl_include, #{restricted_hrl_files => ["private.hrl"]}}
+{elvis_style, no_hrl_include, #{ restricted_hrl_files => ["private.hrl"] }}
 ```
