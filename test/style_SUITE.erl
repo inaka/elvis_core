@@ -23,7 +23,7 @@
          verify_no_nested_try_catch/1, verify_no_successive_maps/1,
          verify_atom_naming_convention/1, verify_no_throw/1, verify_no_dollar_space/1,
          verify_no_author/1, verify_no_catch_expressions/1, verify_numeric_format/1,
-         verify_behaviour_spelling/1, verify_always_shortcircuit/1]).
+         verify_behaviour_spelling/1, verify_always_shortcircuit/1, verify_types_term_or_any/1]).
 %% -elvis attribute
 -export([verify_elvis_attr_atom_naming_convention/1, verify_elvis_attr_numeric_format/1,
          verify_elvis_attr_dont_repeat_yourself/1, verify_elvis_attr_function_naming_convention/1,
@@ -701,6 +701,75 @@ verify_behaviour_spelling(Config) ->
                               behaviour_spelling,
                               #{spelling => behavior},
                               PathPass1).
+
+-spec verify_types_term_or_any(config()) -> any().
+verify_types_term_or_any(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PathFail = "term_types_in_specs." ++ Ext,
+    [_] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              types_term_or_any,
+                              #{preference => any},
+                              PathFail),
+    PathFail1 = "any_types_in_specs." ++ Ext,
+    [_] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              types_term_or_any,
+                              #{preference => term},
+                              PathFail1),
+    PathFail2 = "term_and_any_types_in_specs." ++ Ext,
+    [_] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              types_term_or_any,
+                              #{preference => any},
+                              PathFail2),
+    PathFail3 = "term_and_any_types_in_specs." ++ Ext,
+    [_] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              types_term_or_any,
+                              #{preference => term},
+                              PathFail3),
+
+    PathPass = "term_types_in_specs." ++ Ext,
+    [] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              types_term_or_any,
+                              #{preference => term},
+                              PathPass),
+    PathPass1 = "any_types_in_specs." ++ Ext,
+    [] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              types_term_or_any,
+                              #{preference => any},
+                              PathPass1),
+    PathPass2 = "term_and_any_types_in_specs." ++ Ext,
+    [] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              types_term_or_any,
+                              #{preference => no_preference},
+                              PathPass2),
+    PathPass3 = "term_types_in_specs." ++ Ext,
+    [] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              types_term_or_any,
+                              #{preference => no_preference},
+                              PathPass3),
+    PathPass4 = "any_types_in_specs." ++ Ext,
+    [] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              types_term_or_any,
+                              #{preference => no_preference},
+                              PathPass4).
 
 -spec verify_always_shortcircuit(config()) -> any().
 verify_always_shortcircuit(Config) ->
