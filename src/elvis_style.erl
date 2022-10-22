@@ -99,9 +99,7 @@
 -define(ALWAYS_SHORTCIRCUIT_MSG,
         "Non-shortcircuiting operator (~p) found in line ~p. "
         "It's recommended to use ~p, instead.").
--define(TYPES_TERM_OR_ANY,
-        "The type in line ~p is not preferred, please use the "
-        "~p type.").
+-define(TYPES_TERM_OR_ANY, "Found ~p on line ~p, but your preferred type is ~p.").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
@@ -163,8 +161,6 @@ default(numeric_format) ->
       float_regex => same};
 default(behaviour_spelling) ->
     #{spelling => behaviour};
-default(types_term_or_any) ->
-    #{preference => no_preference};
 default(RuleWithEmptyDefault)
     when RuleWithEmptyDefault == macro_module_names;
          RuleWithEmptyDefault == no_macros;
@@ -181,7 +177,8 @@ default(RuleWithEmptyDefault)
          RuleWithEmptyDefault == no_dollar_space;
          RuleWithEmptyDefault == no_author;
          RuleWithEmptyDefault == no_catch_expressions;
-         RuleWithEmptyDefault == always_shortcircuit ->
+         RuleWithEmptyDefault == always_shortcircuit;
+         RuleWithEmptyDefault == types_term_or_any ->
     #{}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -905,32 +902,15 @@ behaviour_spelling(Config, Target, RuleConfig) ->
 -spec types_term_or_any(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
                            [elvis_result:item()].
 types_term_or_any(Config, Target, RuleConfig) ->
-    TypePreference = option(preference, RuleConfig, types_term_or_any),
-    case TypePreference of
-        no_preference ->
+    TypePreference = option(prefer, RuleConfig, types_term_or_any),
+    Root = get_root(Config, Target, RuleConfig),
+    Predicate = types_term_or_any_predicate(TypePreference),
+    case elvis_code:find(Predicate, Root, #{traverse => all, mode => node}) of
+        [] ->
             [];
-        _ ->
-            Root = get_root(Config, Target, RuleConfig),
-            Predicate =
-                fun(Node) ->
-                   NodeType = ktn_code:type(Node),
-                   NodeName = ktn_code:attr(name, Node),
-                   NodeType == type
-                   andalso lists:member(NodeName, [term, any])
-                   andalso NodeName /= TypePreference
-                end,
-            case elvis_code:find(Predicate, Root, #{traverse => all, mode => node}) of
-                [] ->
-                    [];
-                InconsistentTypeNodes ->
-                    ResultFun =
-                        fun(Node) ->
-                           {Line, _} = ktn_code:attr(location, Node),
-                           Info = [Line, TypePreference],
-                           elvis_result:new(item, ?TYPES_TERM_OR_ANY, Info, Line)
-                        end,
-                    lists:map(ResultFun, InconsistentTypeNodes)
-            end
+        InconsistentTypeNodes ->
+            ResultFun = types_term_or_any_result(TypePreference),
+            lists:map(ResultFun, InconsistentTypeNodes)
     end.
 
 -spec always_shortcircuit(elvis_config:config(),
@@ -1558,6 +1538,24 @@ check_successive_maps(ResultFun, MapExp) ->
                 _ ->
                     []
             end
+    end.
+
+%% Types `term()` or `any()`
+types_term_or_any_predicate(TypePreference) ->
+    fun(Node) ->
+       NodeType = ktn_code:type(Node),
+       NodeName = ktn_code:attr(name, Node),
+       NodeType == type
+       andalso lists:member(NodeName, [term, any])
+       andalso NodeName /= TypePreference
+    end.
+
+types_term_or_any_result(TypePreference) ->
+    fun(Node) ->
+       {Line, _} = ktn_code:attr(location, Node),
+       NodeName = ktn_code:attr(name, Node),
+       Info = [NodeName, Line, TypePreference],
+       elvis_result:new(item, ?TYPES_TERM_OR_ANY, Info, Line)
     end.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

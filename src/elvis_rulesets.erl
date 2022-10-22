@@ -41,8 +41,7 @@ rules(erl_files) ->
                {elvis_style, no_author},
                {elvis_style, no_catch_expressions},
                {elvis_style, numeric_format},
-               {elvis_style, behaviour_spelling},
-               {elvis_style, types_term_or_any}]);
+               {elvis_style, behaviour_spelling}]);
 rules(beam_files) ->
     lists:map(fun(Rule) -> {elvis_style, Rule, elvis_style:default(Rule)} end,
               [nesting_level,
@@ -62,8 +61,7 @@ rules(beam_files) ->
                no_throw,
                no_author,
                no_catch_expressions,
-               behaviour_spelling,
-               types_term_or_any]);
+               behaviour_spelling]);
 rules(rebar_config) ->
     lists:map(fun(Rule) -> {elvis_project, Rule, elvis_project:default(Rule)} end,
               [no_branch_deps, protocol_for_deps]);

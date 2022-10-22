@@ -1,16 +1,15 @@
-# Types Term vs Any
+# Types `term()` or `any()`
 
-Use `term()` or `any()` consistenttly for types in specs.
+Use `term()` or `any()` consistently for types in specs.
 
 > Works on `.beam` file? Yes.
 
 ## Options
 
-- `preference :: term | any`.
-  - default: `no_preference`.
+- `prefer :: term | any`.
 
 ## Example
 
 ```erlang
-{elvis_style, types_term_or_any, #{ preference => term }}
+{elvis_style, types_term_or_any, #{ prefer => term }}
 ```
