@@ -99,7 +99,8 @@
 -define(ALWAYS_SHORTCIRCUIT_MSG,
         "Non-shortcircuiting operator (~p) found in line ~p. "
         "It's recommended to use ~p, instead.").
--define(TYPES_TERM_OR_ANY, "Found ~p on line ~p, but your preferred type is ~p.").
+-define(TYPES_TERM_OR_ANY,
+        "Found usage of type ~p() on line ~p, but your preferred type is ~p().").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
