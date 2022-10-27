@@ -9,7 +9,7 @@
          no_debug_call/3, no_common_caveats_call/3, no_nested_try_catch/3, no_successive_maps/3,
          atom_naming_convention/3, no_throw/3, no_dollar_space/3, no_author/3,
          no_catch_expressions/3, numeric_format/3, behaviour_spelling/3, always_shortcircuit/3,
-         option/3]).
+         consistent_generic_type/3, option/3]).
 
 -export_type([empty_rule_config/0]).
 -export_type([ignorable/0]).
@@ -99,6 +99,8 @@
 -define(ALWAYS_SHORTCIRCUIT_MSG,
         "Non-shortcircuiting operator (~p) found in line ~p. "
         "It's recommended to use ~p, instead.").
+-define(CONSISTENT_GENERIC_TYPE,
+        "Found usage of type ~p/0 on line ~p. Please use ~p/0, instead.").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
@@ -160,6 +162,8 @@ default(numeric_format) ->
       float_regex => same};
 default(behaviour_spelling) ->
     #{spelling => behaviour};
+default(consistent_generic_type) ->
+    #{preferred_type => term};
 default(RuleWithEmptyDefault)
     when RuleWithEmptyDefault == macro_module_names;
          RuleWithEmptyDefault == no_macros;
@@ -897,6 +901,22 @@ behaviour_spelling(Config, Target, RuleConfig) ->
             lists:map(ResultFun, InconsistentBehaviorNodes)
     end.
 
+-spec consistent_generic_type(elvis_config:config(),
+                              elvis_file:file(),
+                              empty_rule_config()) ->
+                                 [elvis_result:item()].
+consistent_generic_type(Config, Target, RuleConfig) ->
+    TypePreference = option(preferred_type, RuleConfig, consistent_generic_type),
+    Root = get_root(Config, Target, RuleConfig),
+    Predicate = consistent_generic_type_predicate(TypePreference),
+    case elvis_code:find(Predicate, Root, #{traverse => all, mode => node}) of
+        [] ->
+            [];
+        InconsistentTypeNodes ->
+            ResultFun = consistent_generic_type_result(TypePreference),
+            lists:map(ResultFun, InconsistentTypeNodes)
+    end.
+
 -spec always_shortcircuit(elvis_config:config(),
                           elvis_file:file(),
                           empty_rule_config()) ->
@@ -1522,6 +1542,24 @@ check_successive_maps(ResultFun, MapExp) ->
                 _ ->
                     []
             end
+    end.
+
+%% Consistent Generic Type
+consistent_generic_type_predicate(TypePreference) ->
+    fun(Node) ->
+       NodeType = ktn_code:type(Node),
+       NodeName = ktn_code:attr(name, Node),
+       lists:member(NodeType, [type, callback])
+       andalso lists:member(NodeName, [term, any])
+       andalso NodeName /= TypePreference
+    end.
+
+consistent_generic_type_result(TypePreference) ->
+    fun(Node) ->
+       {Line, _} = ktn_code:attr(location, Node),
+       NodeName = ktn_code:attr(name, Node),
+       Info = [NodeName, Line, TypePreference],
+       elvis_result:new(item, ?CONSISTENT_GENERIC_TYPE, Info, Line)
     end.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

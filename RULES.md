@@ -46,6 +46,7 @@ identified with `(since ...)` for convenience purposes.
 - [Numeric Format](doc_rules/elvis_style/numeric_format.md)
 - [Operator Spaces](doc_rules/elvis_style/operator_spaces.md)
 - [State Record and Type](doc_rules/elvis_style/state_record_and_type.md)
+- [Consistent Generic Type](doc_rules/elvis_style/consistent_generic_type.md)
 - [Used Ignored Variable](doc_rules/elvis_style/used_ignored_variable.md)
 - [Variable Naming Convention](doc_rules/elvis_style/variable_naming_convention.md)
 

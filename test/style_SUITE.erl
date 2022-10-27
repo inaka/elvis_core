@@ -23,7 +23,8 @@
          verify_no_nested_try_catch/1, verify_no_successive_maps/1,
          verify_atom_naming_convention/1, verify_no_throw/1, verify_no_dollar_space/1,
          verify_no_author/1, verify_no_catch_expressions/1, verify_numeric_format/1,
-         verify_behaviour_spelling/1, verify_always_shortcircuit/1]).
+         verify_behaviour_spelling/1, verify_always_shortcircuit/1,
+         verify_consistent_generic_type/1]).
 %% -elvis attribute
 -export([verify_elvis_attr_atom_naming_convention/1, verify_elvis_attr_numeric_format/1,
          verify_elvis_attr_dont_repeat_yourself/1, verify_elvis_attr_function_naming_convention/1,
@@ -701,6 +702,68 @@ verify_behaviour_spelling(Config) ->
                               behaviour_spelling,
                               #{spelling => behavior},
                               PathPass1).
+
+-spec verify_consistent_generic_type(config()) -> any().
+verify_consistent_generic_type(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PathFail = "consistent_generic_type_term." ++ Ext,
+    [_, _, _, _, _] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              consistent_generic_type,
+                              #{preferred_type => any},
+                              PathFail),
+    PathFail1 = "consistent_generic_type_any." ++ Ext,
+    [_, _, _, _, _] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              consistent_generic_type,
+                              #{preferred_type => term},
+                              PathFail1),
+    PathFail2 = "consistent_generic_type_term_and_any." ++ Ext,
+    [_, _, _, _] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              consistent_generic_type,
+                              #{preferred_type => any},
+                              PathFail2),
+    PathFail3 = "consistent_generic_type_term_and_any." ++ Ext,
+    [_, _, _] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              consistent_generic_type,
+                              #{preferred_type => term},
+                              PathFail3),
+
+    PathPass = "consistent_generic_type_term." ++ Ext,
+    [] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              consistent_generic_type,
+                              #{preferred_type => term},
+                              PathPass),
+    PathPass1 = "consistent_generic_type_any." ++ Ext,
+    [] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              consistent_generic_type,
+                              #{preferred_type => any},
+                              PathPass1),
+    PathPass2 = "consistent_generic_type_no_checks." ++ Ext,
+    [] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              consistent_generic_type,
+                              #{preferred_type => term},
+                              PathPass2),
+    PathPass2 = "consistent_generic_type_no_checks." ++ Ext,
+    [] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              consistent_generic_type,
+                              #{preferred_type => any},
+                              PathPass2).
 
 -spec verify_always_shortcircuit(config()) -> any().
 verify_always_shortcircuit(Config) ->
