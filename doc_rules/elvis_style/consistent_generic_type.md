@@ -7,7 +7,7 @@ Use `term()` or `any()` consistently for types in specs.
 ## Options
 
 - `preferred_type :: term | any`.
-- default: `term`.
+  - default: `term`.
 
 ## Example
 
