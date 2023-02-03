@@ -1129,7 +1129,7 @@ is_macro_define_node(MaybeMacro) ->
 
 macro_name_from_node(MacroNode) ->
     MacroNodeValue = ktn_code:attr(value, MacroNode),
-    MacroAsAtom = macro_as_atom(false, [var, atom, call], MacroNodeValue),
+    MacroAsAtom = macro_as_atom(false, [call, var, atom], MacroNodeValue),
     MacroNameOriginal = atom_to_list(MacroAsAtom),
     MacroNameStripped = string:strip(MacroNameOriginal, both, $'),
     {MacroNameStripped, MacroNameOriginal}.

@@ -330,7 +330,7 @@ verify_macro_names_rule(Config) ->
                               #{regex => "^[A-Za-z_, \-]+$"},
                               Path),
 
-    [_, _, _, _, _, _, _] =
+    [_, _, _, _, _, _, _, _, _, _] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               macro_names,
