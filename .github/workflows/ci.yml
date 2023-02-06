@@ -13,15 +13,15 @@ jobs:
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
-        otp_vsn: [23.3, 24.3, 25.0]
-        os: [ubuntu-latest, windows-latest]
+        otp_vsn: [23, 24, 25]
+        os: [ubuntu-20.04, windows-latest]
     steps:
       - uses: actions/checkout@v3
       - uses: erlef/setup-beam@v1
         id: setup-beam
         with:
           otp-version: ${{matrix.otp_vsn}}
-          rebar3-version: '3.18'
+          rebar3-version: '3'
       - name: Restore _build
         uses: actions/cache@v3
         with:

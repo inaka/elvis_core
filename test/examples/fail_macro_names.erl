@@ -5,7 +5,10 @@
 -define(GOOD_NAME,  "(megusta)").
 -define(wtf_NAME,   "(yuno)").
 -define(GOOD_NAME(Arg), "(megusta)").
+-define(GOOD_NAME_WITH_ATOM_RESULT(Arg), some_atom).
+-define(GOOD_NAME_WITH_VAR_RESULT(Arg), Arg).
 -define(GOOD_NAME_TOO (Arg), "(megusta)").
+-define(CALLING_SOMETHING, call(1)).
 -define(  'POTENTIAL_BAD-NAME'  , nomegusta).
 -define('A,aZ', 2).
 
