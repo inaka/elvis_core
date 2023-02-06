@@ -45,7 +45,7 @@ jobs:
           ERL_FLAGS: "-enable-feature all"
         run: rebar3 compile
       - name: Format check
-        if: ${{ matrix.os == 'ubuntu-latest' }}
+        if: ${{ matrix.os == 'ubuntu-20.04' }}
         env:
           ERL_FLAGS: "-enable-feature all"
         run: rebar3 format --verify
