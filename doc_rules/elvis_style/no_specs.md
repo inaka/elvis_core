@@ -4,7 +4,7 @@
 
 Avoid `-spec` attributes.
 
-This rule is meant to be used on header files only.
+This rule is meant to be used in header files only.
 Defining specs in public header files (especially those intended for inclusion via `-include_lib(...)`)
 might lead to spec clashes between projects and even modules of a single big project.
 Instead, specs should be defined next to the functions they're specifying.
