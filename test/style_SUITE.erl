@@ -14,13 +14,13 @@
          verify_no_trailing_whitespace_rule/1, verify_no_trailing_whitespace_rule_lf_crlf/1,
          verify_macro_names_rule/1, verify_macro_module_names/1, verify_no_macros/1,
          verify_no_block_expressions/1, verify_operator_spaces/1, verify_no_space/1,
-         verify_operator_spaces_latin1/1, verify_nesting_level/1, verify_god_modules/1,
-         verify_no_if_expression/1, verify_invalid_dynamic_call/1, verify_used_ignored_variable/1,
-         verify_no_behavior_info/1, verify_module_naming_convention/1,
-         verify_state_record_and_type/1, verify_no_spec_with_records/1,
-         verify_dont_repeat_yourself/1, verify_max_module_length/1, verify_max_function_length/1,
-         verify_no_debug_call/1, verify_no_common_caveats_call/1, verify_no_call/1,
-         verify_no_nested_try_catch/1, verify_no_successive_maps/1,
+         verify_no_space_after_pound/1, verify_operator_spaces_latin1/1, verify_nesting_level/1,
+         verify_god_modules/1, verify_no_if_expression/1, verify_invalid_dynamic_call/1,
+         verify_used_ignored_variable/1, verify_no_behavior_info/1,
+         verify_module_naming_convention/1, verify_state_record_and_type/1,
+         verify_no_spec_with_records/1, verify_dont_repeat_yourself/1, verify_max_module_length/1,
+         verify_max_function_length/1, verify_no_debug_call/1, verify_no_common_caveats_call/1,
+         verify_no_call/1, verify_no_nested_try_catch/1, verify_no_successive_maps/1,
          verify_atom_naming_convention/1, verify_no_throw/1, verify_no_dollar_space/1,
          verify_no_author/1, verify_no_catch_expressions/1, verify_numeric_format/1,
          verify_behaviour_spelling/1, verify_always_shortcircuit/1,
@@ -475,6 +475,29 @@ verify_no_space(Config) ->
                               no_space,
                               #{rules => [{right, "("}, {left, ")"}]},
                               Path1).
+
+-spec verify_no_space_after_pound(config()) -> any().
+verify_no_space_after_pound(Config) ->
+    PathFail = "fail_no_space_after_pound.erl",
+    [#{line_num := 5},
+     #{line_num := 7},
+     #{line_num := 8},
+     #{line_num := 12},
+     #{line_num := 14},
+     #{line_num := 14},
+     #{line_num := 15},
+     #{line_num := 16},
+     #{line_num := 16},
+     #{line_num := 18},
+     #{line_num := 20},
+     #{line_num := 20},
+     #{line_num := 21},
+     #{line_num := 22}] =
+        elvis_core_apply_rule(Config, elvis_style, no_space_after_pound, #{}, PathFail),
+
+    PathPass = "pass_no_space_after_pound.erl",
+    [] = elvis_core_apply_rule(Config, elvis_style, no_space_after_pound, #{}, PathPass),
+    ok.
 
 -spec verify_operator_spaces_latin1(config()) -> any().
 verify_operator_spaces_latin1(Config) ->
