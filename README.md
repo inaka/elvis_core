@@ -102,6 +102,9 @@ An `elvis.config` file looks something like this:
         #{ dirs    => ["src"]
          , filter  => "*.erl"
          , ruleset => erl_files }
+      , #{ dirs    => ["include"]
+         , filter  => "*.hrl"
+         , ruleset => hrl_files }
       , #{ dirs    => ["."]
          , filter  => "rebar.config"
          , ruleset => rebar_config }

@@ -111,7 +111,7 @@ filter_files(Files, Dirs, Filter, IgnoreList) ->
                  end,
                  FoundUnique).
 
-%% @doc Return module name corresponding to a given .erl/.beam file
+%% @doc Return module name corresponding to a given .hrl/.erl/.beam file
 -spec module(file()) -> module().
 module(#{path := Path}) ->
     list_to_atom(filename:basename(
@@ -124,6 +124,9 @@ module(#{path := Path}) ->
 -spec resolve_parse_tree(string(), string() | binary(), module(), list()) ->
                             undefined | ktn_code:tree_node().
 resolve_parse_tree(".erl", Content, Mod, Ignore) ->
+    Tree = ktn_code:parse_tree(Content),
+    filter_tree_for(Tree, Mod, Ignore);
+resolve_parse_tree(".hrl", Content, Mod, Ignore) ->
     Tree = ktn_code:parse_tree(Content),
     filter_tree_for(Tree, Mod, Ignore);
 resolve_parse_tree(_, _, _, _) ->

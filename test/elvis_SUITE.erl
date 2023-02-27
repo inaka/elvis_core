@@ -14,13 +14,9 @@
          rock_with_non_parsable_file/1, rock_with_errors_has_output/1,
          rock_without_errors_has_no_output/1, rock_without_errors_and_with_verbose_has_output/1,
          rock_with_rule_groups/1, rock_this_skipping_files/1, rock_this_not_skipping_files/1,
-         rock_with_umbrella_apps/1, custom_ruleset/1, throw_configuration/1,
+         rock_with_umbrella_apps/1, custom_ruleset/1, hrl_ruleset/1, throw_configuration/1,
          find_file_and_check_src/1, find_file_with_ignore/1, invalid_file/1, to_string/1,
          chunk_fold/1]).
-
-                                 %% Rocking
-
-         %% Util & Config
 
 -define(EXCLUDED_FUNS,
         [module_info, all, test, init_per_suite, end_per_suite, chunk_fold_task]).
@@ -274,6 +270,9 @@ rock_with_rule_groups(_Config) ->
         [#{dirs => ["src"],
            filter => "*.erl",
            ruleset => erl_files},
+         #{dirs => ["include"],
+           filter => "*.erl",
+           ruleset => hrl_files},
          #{dirs => ["_build/test/lib/elvis_core/ebin"],
            filter => "*.beam",
            ruleset => beam_files},
@@ -383,6 +382,17 @@ custom_ruleset(_Config) ->
     ConfigPathMissing = "../../config/elvis-test-unknown-ruleset.config",
     ElvisConfigMissing = elvis_config:from_file(ConfigPathMissing),
     [[]] = elvis_config:rules(ElvisConfigMissing),
+    ok.
+
+-spec hrl_ruleset(config()) -> any().
+hrl_ruleset(_Config) ->
+    ConfigPath = "../../config/elvis-test-hrl-files.config",
+    ElvisConfig = elvis_config:from_file(ConfigPath),
+    {fail,
+     [#{file := "../../_build/test/lib/elvis_core/test/examples/good.hrl", rules := []},
+      #{file := "../../_build/test/lib/elvis_core/test/examples/bad.hrl",
+        rules := [#{name := line_length}]}]} =
+        elvis_core:rock(ElvisConfig),
     ok.
 
 -spec throw_configuration(config()) -> any().
