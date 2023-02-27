@@ -24,7 +24,7 @@
          verify_atom_naming_convention/1, verify_no_throw/1, verify_no_dollar_space/1,
          verify_no_author/1, verify_no_catch_expressions/1, verify_numeric_format/1,
          verify_behaviour_spelling/1, verify_always_shortcircuit/1,
-         verify_consistent_generic_type/1, verify_no_types/1]).
+         verify_consistent_generic_type/1, verify_no_types/1, verify_no_specs/1]).
 %% -elvis attribute
 -export([verify_elvis_attr_atom_naming_convention/1, verify_elvis_attr_numeric_format/1,
          verify_elvis_attr_dont_repeat_yourself/1, verify_elvis_attr_function_naming_convention/1,
@@ -388,6 +388,14 @@ verify_no_types(Config) ->
 
     PathPass = "pass_no_types.hrl",
     [] = elvis_core_apply_rule(Config, elvis_style, no_types, #{}, PathPass).
+
+-spec verify_no_specs(config()) -> any().
+verify_no_specs(Config) ->
+    PathFail = "fail_no_specs.hrl",
+    [#{line_num := 3}] = elvis_core_apply_rule(Config, elvis_style, no_specs, #{}, PathFail),
+
+    PathPass = "pass_no_specs.hrl",
+    [] = elvis_core_apply_rule(Config, elvis_style, no_specs, #{}, PathPass).
 
 -spec verify_no_block_expressions(config()) -> any().
 verify_no_block_expressions(Config) ->

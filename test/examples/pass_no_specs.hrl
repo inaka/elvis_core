@@ -1,0 +1,1 @@
+-define(THIS, {file, has, no, specs}).
