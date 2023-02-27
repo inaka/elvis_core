@@ -1,6 +1,6 @@
 # No Space after `#`
 
-There should be no spaces after the `#` symbol for maps nor records.
+There should be no spaces after the `#` symbol for maps or records.
 
 In Erlang, using spaces after the `#` symbol when dealing with maps or records, is valid.
 Still, it should be discouraged.
