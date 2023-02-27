@@ -39,6 +39,7 @@ identified with `(since ...)` for convenience purposes.
 - [No Nested try...catch Blocks](doc_rules/elvis_style/no_nested_try_catch.md)
 - [No Successive Maps](doc_rules/elvis_style/no_successive_maps.md)
 - [No Space](doc_rules/elvis_style/no_space.md)
+- [No Space after #](doc_rules/elvis_style/no_space_after_pount.md)
 - [No Spec With Records](doc_rules/elvis_style/no_spec_with_records.md)
 - [No Tabs](doc_rules/elvis_text_style/no_tabs.md)
 - [No throw](doc_rules/elvis_style/no_throw.md)
