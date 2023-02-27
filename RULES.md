@@ -41,6 +41,7 @@ identified with `(since ...)` for convenience purposes.
 - [No Space](doc_rules/elvis_style/no_space.md)
 - [No Space after #](doc_rules/elvis_style/no_space_after_pount.md)
 - [No Spec With Records](doc_rules/elvis_style/no_spec_with_records.md)
+- [No Specs](doc_rules/elvis_style/no_specs.md)
 - [No Tabs](doc_rules/elvis_text_style/no_tabs.md)
 - [No throw](doc_rules/elvis_style/no_throw.md)
 - [No Trailing Whitespace](doc_rules/elvis_text_style/no_trailing_whitespace.md)
