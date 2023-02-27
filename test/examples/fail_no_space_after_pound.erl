@@ -9,13 +9,13 @@
 
 -export([bad_records/0, bad_maps/0]).
 
--spec bad_records() -> # bad{}.
+-spec bad_records() -> # bad{} | bad_record().
 bad_records() ->
     R = # bad{record = # bad{}},
     # bad{record = R2} = R,
     R2# bad{record = element(# bad.record, R)}.
 
--spec bad_maps() -> # {bad => map}.
+-spec bad_maps() -> # {bad => map} | bad_map().
 bad_maps() ->
     M = # {bad => # {bad => map}},
     # {bad := M2} = M,
