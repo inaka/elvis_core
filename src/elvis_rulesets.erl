@@ -11,6 +11,30 @@ set_rulesets(Rulesets) ->
                   maps:to_list(Rulesets)).
 
 -spec rules(Group :: atom()) -> [elvis_core:rule()].
+rules(hrl_files) ->
+    lists:map(fun({Mod, Rule}) -> {Mod, Rule, apply(Mod, default, [Rule])} end,
+              [{elvis_text_style, line_length},
+               {elvis_text_style, no_tabs},
+               {elvis_text_style, no_trailing_whitespace},
+               {elvis_style, macro_names},
+               {elvis_style, macro_module_names},
+               {elvis_style, no_block_expressions},
+               {elvis_style, operator_spaces},
+               {elvis_style, no_space},
+               {elvis_style, nesting_level},
+               {elvis_style, no_if_expression},
+               {elvis_style, used_ignored_variable},
+               {elvis_style, no_behavior_info},
+               {elvis_style, no_debug_call},
+               {elvis_style, variable_naming_convention},
+               {elvis_style, no_nested_try_catch},
+               {elvis_style, no_successive_maps},
+               {elvis_style, atom_naming_convention},
+               {elvis_style, no_throw},
+               {elvis_style, no_dollar_space},
+               {elvis_style, no_author},
+               {elvis_style, no_catch_expressions},
+               {elvis_style, numeric_format}]);
 rules(erl_files) ->
     lists:map(fun({Mod, Rule}) -> {Mod, Rule, apply(Mod, default, [Rule])} end,
               [{elvis_text_style, line_length},

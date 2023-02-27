@@ -68,6 +68,7 @@ rulesets in the configuration file.
 
 The four pre-defined rulesets are:
 
+- `hrl_files`, for Erlang header files.
 - `erl_files`, for Erlang source files.
 - `makefiles`, for Makefiles.
 - `rebar_config`, for rebar configuration files.
@@ -169,6 +170,10 @@ line numbers will most surely not correspond with those in the source file.
          , rules => [{elvis_style, max_module_length, #{}}
                    , {elvis_style, no_common_caveats_call, #{}}
                     ]
+         }
+      , #{ dirs => ["include/**"]
+         , filter => "*.hrl"
+         , ruleset => hrl_files
          }
       , #{ dirs => ["."]
          , filter => "Makefile"
