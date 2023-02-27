@@ -40,6 +40,7 @@ identified with `(since ...)` for convenience purposes.
 - [No Successive Maps](doc_rules/elvis_style/no_successive_maps.md)
 - [No Space](doc_rules/elvis_style/no_space.md)
 - [No Spec With Records](doc_rules/elvis_style/no_spec_with_records.md)
+- [No Specs](doc_rules/elvis_style/no_specs.md)
 - [No Tabs](doc_rules/elvis_text_style/no_tabs.md)
 - [No throw](doc_rules/elvis_style/no_throw.md)
 - [No Trailing Whitespace](doc_rules/elvis_text_style/no_trailing_whitespace.md)
