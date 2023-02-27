@@ -7,7 +7,7 @@ Still, it should be discouraged.
 
 ## Examples
 
-```
+```erlang
 BadMap = #   {this => map, has => spaces, after => pound}.
 BadRecord =     #      this_record{has = spaces, after = pound}.
 
