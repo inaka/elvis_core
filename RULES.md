@@ -43,6 +43,7 @@ identified with `(since ...)` for convenience purposes.
 - [No Tabs](doc_rules/elvis_text_style/no_tabs.md)
 - [No throw](doc_rules/elvis_style/no_throw.md)
 - [No Trailing Whitespace](doc_rules/elvis_text_style/no_trailing_whitespace.md)
+- [No Types](doc_rules/elvis_style/no_types.md)
 - [Numeric Format](doc_rules/elvis_style/numeric_format.md)
 - [Operator Spaces](doc_rules/elvis_style/operator_spaces.md)
 - [State Record and Type](doc_rules/elvis_style/state_record_and_type.md)
@@ -63,10 +64,10 @@ identified with `(since ...)` for convenience purposes.
 ## Rulesets
 
 Rulesets in `elvis` are used to group individual rules together and can save a lot of duplication.
-`elvis` currently has four pre-defined rulesets, but gives you the ability to specify custom
+`elvis` currently has five pre-defined rulesets, but gives you the ability to specify custom
 rulesets in the configuration file.
 
-The four pre-defined rulesets are:
+The five pre-defined rulesets are:
 
 - `hrl_files`, for Erlang header files.
 - `erl_files`, for Erlang source files.

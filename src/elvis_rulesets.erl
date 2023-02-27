@@ -34,7 +34,8 @@ rules(hrl_files) ->
                {elvis_style, no_dollar_space},
                {elvis_style, no_author},
                {elvis_style, no_catch_expressions},
-               {elvis_style, numeric_format}]);
+               {elvis_style, numeric_format},
+               {elvis_style, no_types}]);
 rules(erl_files) ->
     lists:map(fun({Mod, Rule}) -> {Mod, Rule, apply(Mod, default, [Rule])} end,
               [{elvis_text_style, line_length},

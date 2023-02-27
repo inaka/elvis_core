@@ -1,7 +1,7 @@
 -module(elvis_style).
 
 -export([default/1, function_naming_convention/3, variable_naming_convention/3,
-         macro_names/3, macro_module_names/3, no_macros/3, no_block_expressions/3,
+         macro_names/3, macro_module_names/3, no_macros/3, no_types/3, no_block_expressions/3,
          operator_spaces/3, no_space/3, nesting_level/3, god_modules/3, no_if_expression/3,
          invalid_dynamic_call/3, used_ignored_variable/3, no_behavior_info/3,
          module_naming_convention/3, state_record_and_type/3, no_spec_with_records/3,
@@ -23,6 +23,7 @@
 -define(MACRO_AS_FUNCTION_NAME_MSG,
         "Don't use macros (like ~s on line ~p) as function names.").
 -define(NO_MACROS_MSG, "Unexpected macro (~p) used on line ~p.").
+-define(NO_TYPES_MSG, "Unexpected type (~p) defined on line ~p.").
 -define(NO_BLOCK_EXPRESSIONS_MSG,
         "Unexpected block expression (begin-end) used on line ~p.").
 -define(MISSING_SPACE_MSG, "Missing space to the ~s of ~p on line ~p").
@@ -167,6 +168,7 @@ default(consistent_generic_type) ->
 default(RuleWithEmptyDefault)
     when RuleWithEmptyDefault == macro_module_names;
          RuleWithEmptyDefault == no_macros;
+         RuleWithEmptyDefault == no_types;
          RuleWithEmptyDefault == no_block_expressions;
          RuleWithEmptyDefault == no_if_expression;
          RuleWithEmptyDefault == no_nested_try_catch;
@@ -320,6 +322,26 @@ no_macros(ElvisConfig, RuleTarget, RuleConfig) ->
 
 is_macro_node(Node) ->
     ktn_code:type(Node) =:= macro.
+
+-type no_types_config() :: #{allow => [atom()], ignore => [ignorable()]}.
+
+-spec no_types(elvis_config:config(), elvis_file:file(), no_types_config()) ->
+                  [elvis_result:item()].
+no_types(ElvisConfig, RuleTarget, RuleConfig) ->
+    TreeRootNode = get_root(ElvisConfig, RuleTarget, RuleConfig),
+    TypeNodes =
+        elvis_code:find(fun is_type_attribute/1, TreeRootNode, #{traverse => all, mode => node}),
+
+    lists:foldl(fun(TypeNode, Acc) ->
+                   Type = ktn_code:attr(name, TypeNode),
+                   {Line, _Col} = ktn_code:attr(location, TypeNode),
+                   [elvis_result:new(item, ?NO_TYPES_MSG, [Type, Line], Line) | Acc]
+                end,
+                [],
+                TypeNodes).
+
+is_type_attribute(Node) ->
+    ktn_code:type(Node) =:= type_attr.
 
 -type no_block_expressions_config() :: #{ignore => [ignorable()]}.
 
