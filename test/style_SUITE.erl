@@ -24,7 +24,8 @@
          verify_atom_naming_convention/1, verify_no_throw/1, verify_no_dollar_space/1,
          verify_no_author/1, verify_no_catch_expressions/1, verify_numeric_format/1,
          verify_behaviour_spelling/1, verify_always_shortcircuit/1,
-         verify_consistent_generic_type/1, verify_no_types/1, verify_no_specs/1]).
+         verify_consistent_generic_type/1, verify_no_types/1, verify_no_specs/1,
+         verify_export_used_types/1]).
 %% -elvis attribute
 -export([verify_elvis_attr_atom_naming_convention/1, verify_elvis_attr_numeric_format/1,
          verify_elvis_attr_dont_repeat_yourself/1, verify_elvis_attr_function_naming_convention/1,
@@ -1386,6 +1387,15 @@ verify_numeric_format(Config) ->
                               UglyPath),
 
     true.
+
+-spec verify_export_used_types(config()) -> any().
+verify_export_used_types(Config) ->
+    PathPass = "pass_export_used_types.erl",
+    [] = elvis_core_apply_rule(Config, elvis_style, export_used_types, #{}, PathPass),
+
+    PathFail = "fail_export_used_types.erl",
+    [#{line_num := 3}] =
+        elvis_core_apply_rule(Config, elvis_style, export_used_types, #{}, PathFail).
 
 -spec results_are_ordered_by_line(config()) -> true.
 results_are_ordered_by_line(_Config) ->

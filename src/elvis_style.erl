@@ -10,7 +10,7 @@
          no_common_caveats_call/3, no_nested_try_catch/3, no_successive_maps/3,
          atom_naming_convention/3, no_throw/3, no_dollar_space/3, no_author/3,
          no_catch_expressions/3, numeric_format/3, behaviour_spelling/3, always_shortcircuit/3,
-         consistent_generic_type/3, option/3]).
+         consistent_generic_type/3, export_used_types/3, option/3]).
 
 -export_type([empty_rule_config/0]).
 -export_type([ignorable/0]).
@@ -104,6 +104,8 @@
         "It's recommended to use ~p, instead.").
 -define(CONSISTENT_GENERIC_TYPE,
         "Found usage of type ~p/0 on line ~p. Please use ~p/0, instead.").
+-define(EXPORT_USED_TYPES,
+        "Type ~p, defined on line ~p, is used by an exported function but not exported itself").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
@@ -186,7 +188,8 @@ default(RuleWithEmptyDefault)
          RuleWithEmptyDefault == no_author;
          RuleWithEmptyDefault == no_catch_expressions;
          RuleWithEmptyDefault == always_shortcircuit;
-         RuleWithEmptyDefault == no_space_after_pound ->
+         RuleWithEmptyDefault == no_space_after_pound;
+         RuleWithEmptyDefault == export_used_types ->
     #{}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1004,6 +1007,53 @@ always_shortcircuit(Config, Target, RuleConfig) ->
                 end,
             lists:map(ResultFun, BadOperators)
     end.
+
+-spec export_used_types(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
+                           [elvis_result:item()].
+export_used_types(Config, Target, RuleConfig) ->
+    TreeRootNode = get_root(Config, Target, RuleConfig),
+    ExportedFunctions = elvis_code:exported_functions(TreeRootNode),
+    AllTypes =
+        elvis_code:find(fun is_type_attribute/1, TreeRootNode, #{traverse => all, mode => node}),
+    ExportedTypes = elvis_code:exported_types(TreeRootNode),
+    SpecNodes =
+        elvis_code:find(fun is_spec_attribute/1, TreeRootNode, #{traverse => all, mode => node}),
+    ExportedSpecs =
+        lists:filter(fun(#{attrs := #{arity := Arity, name := Name}}) ->
+                        lists:member({Name, Arity}, ExportedFunctions)
+                     end,
+                     SpecNodes),
+    UsedTypes =
+        lists:uniq(
+            lists:flatmap(fun(Spec) ->
+                             Types =
+                                 elvis_code:find(fun(Node) -> ktn_code:type(Node) =:= user_type end,
+                                                 Spec,
+                                                 #{mode => node, traverse => all}),
+                             [{Name, length(Vars)}
+                              || #{attrs := #{name := Name}, content := Vars} <- Types]
+                          end,
+                          ExportedSpecs)),
+    UnexportedUsedTypes = lists:subtract(UsedTypes, ExportedTypes),
+
+    % Get line numbers for all types
+    LineNumbers =
+        lists:foldl(fun (#{attrs := #{location := {Line, _}, name := Name},
+                           node_attrs := #{args := Args}},
+                         Acc) ->
+                            maps:put({Name, length(Args)}, Line, Acc);
+                        (_, Acc) ->
+                            Acc
+                    end,
+                    #{},
+                    AllTypes),
+
+    % Report
+    lists:map(fun({_Name, _Arity} = Info) ->
+                 Line = maps:get(Info, LineNumbers, unknown),
+                 elvis_result:new(item, ?EXPORT_USED_TYPES, Info, Line)
+              end,
+              UnexportedUsedTypes).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private

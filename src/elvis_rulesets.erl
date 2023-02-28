@@ -69,7 +69,8 @@ rules(erl_files) ->
                {elvis_style, no_author},
                {elvis_style, no_catch_expressions},
                {elvis_style, numeric_format},
-               {elvis_style, behaviour_spelling}]);
+               {elvis_style, behaviour_spelling},
+               {elvis_style, export_used_types}]);
 rules(beam_files) ->
     lists:map(fun(Rule) -> {elvis_style, Rule, elvis_style:default(Rule)} end,
               [nesting_level,
