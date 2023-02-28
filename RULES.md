@@ -52,6 +52,7 @@ identified with `(since ...)` for convenience purposes.
 - [Consistent Generic Type](doc_rules/elvis_style/consistent_generic_type.md)
 - [Used Ignored Variable](doc_rules/elvis_style/used_ignored_variable.md)
 - [Variable Naming Convention](doc_rules/elvis_style/variable_naming_convention.md)
+- [Consistent Variable Casing](doc_rules/elvis_style/consistent_variable_casing.md)
 
 ## Project rules
 
