@@ -1024,7 +1024,7 @@ export_used_types(Config, Target, RuleConfig) ->
                      end,
                      SpecNodes),
     UsedTypes =
-        lists:uniq(
+        lists:usort(
             lists:flatmap(fun(Spec) ->
                              Types =
                                  elvis_code:find(fun(Node) -> ktn_code:type(Node) =:= user_type end,
