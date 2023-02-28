@@ -227,22 +227,18 @@ verify_consistent_variable_casing(Config) ->
         elvis_core_apply_rule(Config, elvis_style, consistent_variable_casing, #{}, PathPass),
 
     PathFail = "fail_consistent_variable_casing." ++ Ext,
-    [#{info := ["TypeVar", _, "Typevar", _]},
-     #{info := ["TypeVar", _, "Typevar", _]},
-     #{info := ["SpecVar", _, "SPECVar", _]},
-     #{info := ["SpecVar", _, "SPECVar", _]},
-     #{info := ["FuncVar", _, "FUNCVar", _]},
-     #{info := ["FuncVar", _, "FUNCVar", _]},
-     #{info := ["GeneralInconsistency", _, "GENERALInconsistency", _]},
-     #{info := ["GeneralInconsistency", _, "GENERALInconsistency", _]},
-     #{info := ["GeneralInconsistency", _, "GENERALInconsistencY", _]},
-     #{info := ["GeneralInconsistency", _, "GENERALInconsistencY", _]},
-     #{info := ["FunVar", _, "FunVAR", _]},
-     #{info := ["FunVar", _, "FunVAR", _]},
-     #{info := ["GeneralInconsistency", _, "GeneralINCONSISTENCY", _]},
-     #{info := ["GeneralInconsistency", _, "GeneralINCONSISTENCY", _]},
-     #{info := ["IgnVar", _, "IGNVar", _]},
-     #{info := ["GeneralInconsistency", _, "GeNeRaLiNcOnSiStEnCy", _]}] =
+    [#{info := ["TypeVar", _, ["Typevar"]]},
+     #{info :=
+           ["GeneralInconsistency",
+            _,
+            ["GENERALInconsistencY",
+             "GENERALInconsistency",
+             "GeNeRaLiNcOnSiStEnCy",
+             "GeneralINCONSISTENCY"]]},
+     #{info := ["SpecVar", _, ["SPECVar"]]},
+     #{info := ["FuncVar", _, ["FUNCVar"]]},
+     #{info := ["FunVar", _, ["FunVAR"]]},
+     #{info := ["IgnVar", _, ["IGNVar"]]}] =
         elvis_core_apply_rule(Config, elvis_style, consistent_variable_casing, #{}, PathFail).
 
 -spec verify_line_length_rule(config()) -> any().

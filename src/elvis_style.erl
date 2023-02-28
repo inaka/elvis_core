@@ -55,7 +55,7 @@
         "The variable ~p on line ~p does not respect the format "
         "defined by the regular expression '~p'.").
 -define(CONSISTENT_VARIABLE_CASING_MSG,
-        "Variable ~ts (in line ~p) is also written as ~ts in line ~p.").
+        "Variable ~ts (first used in line ~p) is written in different ways within the module: ~p.").
 -define(MODULE_NAMING_CONVENTION_MSG,
         "The module ~p does not respect the format defined by the "
         "regular expression '~p'.").
@@ -269,22 +269,14 @@ canonical_variable_name(Var) ->
 
 check_variable_casing_consistency({_,
                                    [#{name := FirstName, var := FirstVar} | Others]}) ->
-    lists:filtermap(fun(#{name := OtherName, var := OtherVar}) ->
-                       case OtherName of
-                           FirstName ->
-                               false;
-                           OtherName ->
-                               {FirstLine, _} = ktn_code:attr(location, FirstVar),
-                               {OtherLine, _} = ktn_code:attr(location, OtherVar),
-                               Info = [FirstName, FirstLine, OtherName, OtherLine],
-                               {true,
-                                elvis_result:new(item,
-                                                 ?CONSISTENT_VARIABLE_CASING_MSG,
-                                                 Info,
-                                                 OtherLine)}
-                       end
-                    end,
-                    Others).
+    case lists:usort([OtherName || #{name := OtherName} <- Others, OtherName /= FirstName]) of
+        [] ->
+            [];
+        OtherNames ->
+            {Line, _} = ktn_code:attr(location, FirstVar),
+            Info = [FirstName, Line, OtherNames],
+            [elvis_result:new(item, ?CONSISTENT_VARIABLE_CASING_MSG, Info, Line)]
+    end.
 
 -type variable_naming_convention_config() ::
     #{ignore => [ignorable()], regex => string()}.
