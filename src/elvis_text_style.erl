@@ -2,6 +2,8 @@
 
 -export([default/1, line_length/3, no_tabs/3, no_trailing_whitespace/3]).
 
+-export_type([line_length_config/0, no_trailing_whitespace_config/0]).
+
 -define(LINE_LENGTH_MSG, "Line ~p is too long. It has ~p characters.").
 -define(NO_TABS_MSG, "Line ~p has a tab at column ~p.").
 -define(NO_TRAILING_WHITESPACE_MSG, "Line ~b has ~b trailing whitespace characters.").

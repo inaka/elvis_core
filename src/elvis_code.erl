@@ -6,6 +6,8 @@
 -export([past_nesting_limit/2, exported_functions/1, exported_types/1, function_names/1,
          module_name/1, print_node/1, print_node/2]).
 
+-export_type([find_options/0]).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Public API
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

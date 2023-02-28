@@ -14,6 +14,15 @@
 
 -export_type([empty_rule_config/0]).
 -export_type([ignorable/0]).
+-export_type([max_function_length_config/0, max_module_length_config/0,
+              function_naming_convention_config/0, variable_naming_convention_config/0,
+              macro_names_config/0, no_macros_config/0, no_types_config/0, no_specs_config/0,
+              no_block_expressions_config/0, no_space_after_pound_config/0,
+              operator_spaces_config/0, no_space_config/0, nesting_level_config/0,
+              god_modules_config/0, module_naming_convention_config/0,
+              dont_repeat_yourself_config/0, no_call_config/0, no_debug_call_config/0,
+              no_common_caveats_call_config/0, atom_naming_convention_config/0, no_author_config/0,
+              no_catch_expressions_config/0, numeric_format_config/0]).
 
 -define(INVALID_MACRO_NAME_REGEX_MSG,
         "The macro named ~p on line ~p does not respect the format "
