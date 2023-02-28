@@ -13,6 +13,7 @@ identified with `(since ...)` for convenience purposes.
 - [Always Shortcircuit](doc_rules/elvis_style/always_shortcircuit.md)
 - [Atom Naming Convention](doc_rules/elvis_style/atom_naming_convention.md)
 - [Behaviour Spelling](doc_rules/elvis_style/behaviour_spelling.md)
+- [Consistent Variable Casing](doc_rules/elvis_style/consistent_variable_casing.md)
 - [Don't Repeat Yourself](doc_rules/elvis_style/dont_repeat_yourself.md)
 - [Function Naming Convention](doc_rules/elvis_style/function_naming_convention.md)
 - [God Modules](doc_rules/elvis_style/god_modules.md)
@@ -52,7 +53,6 @@ identified with `(since ...)` for convenience purposes.
 - [Consistent Generic Type](doc_rules/elvis_style/consistent_generic_type.md)
 - [Used Ignored Variable](doc_rules/elvis_style/used_ignored_variable.md)
 - [Variable Naming Convention](doc_rules/elvis_style/variable_naming_convention.md)
-- [Consistent Variable Casing](doc_rules/elvis_style/consistent_variable_casing.md)
 
 ## Project rules
 
