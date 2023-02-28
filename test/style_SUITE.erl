@@ -91,7 +91,8 @@ groups() ->
        verify_no_author,
        verify_always_shortcircuit,
        verify_no_catch_expressions,
-       verify_no_macros]}].
+       verify_no_macros,
+       verify_export_used_types]}].
 
 -spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
@@ -1390,10 +1391,11 @@ verify_numeric_format(Config) ->
 
 -spec verify_export_used_types(config()) -> any().
 verify_export_used_types(Config) ->
-    PathPass = "pass_export_used_types.erl",
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+    PathPass = "pass_export_used_types." ++ Ext,
     [] = elvis_core_apply_rule(Config, elvis_style, export_used_types, #{}, PathPass),
 
-    PathFail = "fail_export_used_types.erl",
+    PathFail = "fail_export_used_types." ++ Ext,
     [#{line_num := 3}] =
         elvis_core_apply_rule(Config, elvis_style, export_used_types, #{}, PathFail).
 

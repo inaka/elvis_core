@@ -90,7 +90,8 @@ rules(beam_files) ->
                no_throw,
                no_author,
                no_catch_expressions,
-               behaviour_spelling]);
+               behaviour_spelling,
+               export_used_types]);
 rules(rebar_config) ->
     lists:map(fun(Rule) -> {elvis_project, Rule, elvis_project:default(Rule)} end,
               [no_branch_deps, protocol_for_deps]);
