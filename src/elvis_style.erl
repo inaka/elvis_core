@@ -105,7 +105,7 @@
 -define(CONSISTENT_GENERIC_TYPE,
         "Found usage of type ~p/0 on line ~p. Please use ~p/0, instead.").
 -define(EXPORT_USED_TYPES,
-        "Type ~p, defined on line ~p, is used by an exported function but not exported itself").
+        "Type ~p/~p, defined on line ~p, is used by an exported function but not exported itself").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
@@ -1049,9 +1049,9 @@ export_used_types(Config, Target, RuleConfig) ->
                     AllTypes),
 
     % Report
-    lists:map(fun({_Name, _Arity} = Info) ->
+    lists:map(fun({Name, Arity} = Info) ->
                  Line = maps:get(Info, LineNumbers, unknown),
-                 elvis_result:new(item, ?EXPORT_USED_TYPES, Info, Line)
+                 elvis_result:new(item, ?EXPORT_USED_TYPES, [Name, Arity, Line], Line)
               end,
               UnexportedUsedTypes).
 
