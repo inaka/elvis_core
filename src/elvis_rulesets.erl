@@ -5,10 +5,10 @@
 -export([rules/1, set_rulesets/1]).
 
 -spec set_rulesets(#{atom() => list()}) -> ok.
-set_rulesets(Rulesets) ->
+set_rulesets(RuleSets) ->
     Tid = ensure_clean_table(),
     lists:foreach(fun({Name, Rules}) -> true = ets:insert(Tid, {Name, Rules}) end,
-                  maps:to_list(Rulesets)).
+                  maps:to_list(RuleSets)).
 
 -spec rules(Group :: atom()) -> [elvis_core:rule()].
 rules(hrl_files) ->
@@ -28,6 +28,7 @@ rules(hrl_files) ->
                {elvis_style, no_behavior_info},
                {elvis_style, no_debug_call},
                {elvis_style, variable_naming_convention},
+               {elvis_style, consistent_variable_casing},
                {elvis_style, no_nested_try_catch},
                {elvis_style, no_successive_maps},
                {elvis_style, atom_naming_convention},
@@ -61,6 +62,7 @@ rules(erl_files) ->
                {elvis_style, dont_repeat_yourself},
                {elvis_style, no_debug_call},
                {elvis_style, variable_naming_convention},
+               {elvis_style, consistent_variable_casing},
                {elvis_style, no_nested_try_catch},
                {elvis_style, no_successive_maps},
                {elvis_style, atom_naming_convention},
@@ -83,6 +85,7 @@ rules(beam_files) ->
                dont_repeat_yourself,
                no_debug_call,
                variable_naming_convention,
+               consistent_variable_casing,
                no_nested_try_catch,
                no_successive_maps,
                atom_naming_convention,

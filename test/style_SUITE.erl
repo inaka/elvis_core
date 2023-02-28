@@ -24,7 +24,8 @@
          verify_atom_naming_convention/1, verify_no_throw/1, verify_no_dollar_space/1,
          verify_no_author/1, verify_no_catch_expressions/1, verify_numeric_format/1,
          verify_behaviour_spelling/1, verify_always_shortcircuit/1,
-         verify_consistent_generic_type/1, verify_no_types/1, verify_no_specs/1]).
+         verify_consistent_generic_type/1, verify_no_types/1, verify_no_specs/1,
+         verify_consistent_variable_casing/1]).
 %% -elvis attribute
 -export([verify_elvis_attr_atom_naming_convention/1, verify_elvis_attr_numeric_format/1,
          verify_elvis_attr_dont_repeat_yourself/1, verify_elvis_attr_function_naming_convention/1,
@@ -70,6 +71,7 @@ groups() ->
       [sequence],
       [verify_function_naming_convention,
        verify_variable_naming_convention,
+       verify_consistent_variable_casing,
        verify_nesting_level,
        verify_god_modules,
        verify_no_if_expression,
@@ -216,6 +218,28 @@ verify_variable_naming_convention(Config) ->
                               variable_naming_convention,
                               RuleConfig,
                               PathFail).
+
+-spec verify_consistent_variable_casing(config()) -> any().
+verify_consistent_variable_casing(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+    PathPass = "pass_consistent_variable_casing." ++ Ext,
+    [] =
+        elvis_core_apply_rule(Config, elvis_style, consistent_variable_casing, #{}, PathPass),
+
+    PathFail = "fail_consistent_variable_casing." ++ Ext,
+    [#{info := ["TypeVar", _, ["Typevar"]]},
+     #{info :=
+           ["GeneralInconsistency",
+            _,
+            ["GENERALInconsistencY",
+             "GENERALInconsistency",
+             "GeNeRaLiNcOnSiStEnCy",
+             "GeneralINCONSISTENCY"]]},
+     #{info := ["SpecVar", _, ["SPECVar"]]},
+     #{info := ["FuncVar", _, ["FUNCVar"]]},
+     #{info := ["FunVar", _, ["FunVAR"]]},
+     #{info := ["IgnVar", _, ["IGNVar"]]}] =
+        elvis_core_apply_rule(Config, elvis_style, consistent_variable_casing, #{}, PathFail).
 
 -spec verify_line_length_rule(config()) -> any().
 verify_line_length_rule(Config) ->
