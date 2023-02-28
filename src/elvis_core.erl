@@ -9,6 +9,8 @@
 %% for eating our own dogfood
 -export([main/1]).
 
+-export_type([target/0]).
+
 -ifdef(TEST).
 
 -export([apply_rule/2]).

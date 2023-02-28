@@ -2,6 +2,8 @@
 
 -export([default/1, no_branch_deps/3, protocol_for_deps/3, old_configuration_format/3]).
 
+-export_type([protocol_for_deps_config/0, empty_rule_config/0]).
+
 -define(DEP_BRANCH,
         "Dependency '~s' uses a branch. "
         "Please change this to a tag or specific commit.").

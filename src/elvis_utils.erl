@@ -10,7 +10,7 @@
 -export([info/1, info/2, notice/1, notice/2, error/1, error/2, error_prn/1, error_prn/2,
          warn_prn/2, parse_colors/1]).
 
--export_type([file/0]).
+-export_type([file/0, line_content/0]).
 
 -type file() :: #{path => string(), content => binary()}.
 -type line_content() :: {integer(), integer()}.

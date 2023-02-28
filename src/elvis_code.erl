@@ -3,8 +3,10 @@
 %% General
 -export([find/2, find/3, find_by_location/2, find_token/2, code_zipper/1, code_zipper/2]).
 %% Specific
--export([past_nesting_limit/2, exported_functions/1, function_names/1, module_name/1,
-         print_node/1, print_node/2]).
+-export([past_nesting_limit/2, exported_functions/1, exported_types/1, function_names/1,
+         module_name/1, print_node/1, print_node/2]).
+
+-export_type([find_options/0]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Public API
@@ -193,6 +195,11 @@ exported_functions(#{type := root, content := Content}) ->
     Fun = make_extractor_fun(exported_functions),
     lists:flatmap(Fun, Content).
 
+-spec exported_types(ktn_code:tree_node()) -> [{atom(), integer()}].
+exported_types(#{type := root, content := Content}) ->
+    Fun = make_extractor_fun(exported_types),
+    lists:flatmap(Fun, Content).
+
 %% @doc Takes the root node of a parse_tree and returns the name
 %%      of each function, whether exported or not.
 -spec function_names(ktn_code:tree_node()) -> [atom()].
@@ -224,6 +231,12 @@ level_increment(#{type := Type}) ->
 %% appropriate for the exported function whose name is the argument given.
 make_extractor_fun(exported_functions) ->
     fun (Node = #{type := export}) ->
+            ktn_code:attr(value, Node);
+        (_) ->
+            []
+    end;
+make_extractor_fun(exported_types) ->
+    fun (Node = #{type := export_type}) ->
             ktn_code:attr(value, Node);
         (_) ->
             []

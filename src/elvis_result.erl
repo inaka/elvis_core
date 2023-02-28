@@ -8,7 +8,7 @@
          get_line_num/1]).
 
 %% Types
--export_type([item/0, rule/0, file/0]).
+-export_type([item/0, rule/0, file/0, elvis_error/0, elvis_warn/0]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Records

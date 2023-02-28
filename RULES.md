@@ -53,6 +53,7 @@ identified with `(since ...)` for convenience purposes.
 - [State Record and Type](doc_rules/elvis_style/state_record_and_type.md)
 - [Used Ignored Variable](doc_rules/elvis_style/used_ignored_variable.md)
 - [Variable Naming Convention](doc_rules/elvis_style/variable_naming_convention.md)
+- [Export Used Types](doc_rules/elvis_style/export_used_types.md)
 
 ## Project rules
 
