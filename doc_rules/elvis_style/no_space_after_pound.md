@@ -1,5 +1,7 @@
 # No Space after `#`
 
+(since [3.0.0](https://github.com/inaka/elvis_core/releases/tag/3.0.0))
+
 There should be no spaces after the `#` symbol for maps or records.
 
 In Erlang, using spaces after the `#` symbol when dealing with maps or records, is valid.

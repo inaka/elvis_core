@@ -1,6 +1,6 @@
 # No Specs
 
-(since [2.1.0](https://github.com/inaka/elvis_core/releases/tag/2.1.0))
+(since [3.0.0](https://github.com/inaka/elvis_core/releases/tag/3.0.0))
 
 Avoid `-spec` attributes.
 
