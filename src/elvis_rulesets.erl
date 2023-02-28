@@ -5,10 +5,10 @@
 -export([rules/1, set_rulesets/1]).
 
 -spec set_rulesets(#{atom() => list()}) -> ok.
-set_rulesets(Rulesets) ->
+set_rulesets(RuleSets) ->
     Tid = ensure_clean_table(),
     lists:foreach(fun({Name, Rules}) -> true = ets:insert(Tid, {Name, Rules}) end,
-                  maps:to_list(Rulesets)).
+                  maps:to_list(RuleSets)).
 
 -spec rules(Group :: atom()) -> [elvis_core:rule()].
 rules(hrl_files) ->
