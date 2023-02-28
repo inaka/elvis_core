@@ -1,13 +1,13 @@
 -module(elvis_style).
 
 -export([default/1, function_naming_convention/3, variable_naming_convention/3,
-         macro_names/3, macro_module_names/3, no_macros/3, no_specs/3, no_types/3,
-         no_block_expressions/3, operator_spaces/3, no_space/3, no_space_after_pound/3,
-         nesting_level/3, god_modules/3, no_if_expression/3, invalid_dynamic_call/3,
-         used_ignored_variable/3, no_behavior_info/3, module_naming_convention/3,
-         state_record_and_type/3, no_spec_with_records/3, dont_repeat_yourself/3,
-         max_module_length/3, max_function_length/3, no_call/3, no_debug_call/3,
-         no_common_caveats_call/3, no_nested_try_catch/3, no_successive_maps/3,
+         consistent_variable_casing/3, macro_names/3, macro_module_names/3, no_macros/3,
+         no_specs/3, no_types/3, no_block_expressions/3, operator_spaces/3, no_space/3,
+         no_space_after_pound/3, nesting_level/3, god_modules/3, no_if_expression/3,
+         invalid_dynamic_call/3, used_ignored_variable/3, no_behavior_info/3,
+         module_naming_convention/3, state_record_and_type/3, no_spec_with_records/3,
+         dont_repeat_yourself/3, max_module_length/3, max_function_length/3, no_call/3,
+         no_debug_call/3, no_common_caveats_call/3, no_nested_try_catch/3, no_successive_maps/3,
          atom_naming_convention/3, no_throw/3, no_dollar_space/3, no_author/3,
          no_catch_expressions/3, numeric_format/3, behaviour_spelling/3, always_shortcircuit/3,
          consistent_generic_type/3, export_used_types/3, option/3]).
@@ -63,6 +63,8 @@
 -define(VARIABLE_NAMING_CONVENTION_MSG,
         "The variable ~p on line ~p does not respect the format "
         "defined by the regular expression '~p'.").
+-define(CONSISTENT_VARIABLE_CASING_MSG,
+        "Variable ~ts (first used in line ~p) is written in different ways within the module: ~p.").
 -define(MODULE_NAMING_CONVENTION_MSG,
         "The module ~p does not respect the format defined by the "
         "regular expression '~p'.").
@@ -198,7 +200,8 @@ default(RuleWithEmptyDefault)
          RuleWithEmptyDefault == no_catch_expressions;
          RuleWithEmptyDefault == always_shortcircuit;
          RuleWithEmptyDefault == no_space_after_pound;
-         RuleWithEmptyDefault == export_used_types ->
+         RuleWithEmptyDefault == export_used_types;
+         RuleWithEmptyDefault == consistent_variable_casing ->
     #{}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -242,6 +245,49 @@ errors_for_function_names(Regex, [FunctionName | RemainingFuncNames]) ->
             [Result | errors_for_function_names(Regex, RemainingFuncNames)];
         {match, _} ->
             errors_for_function_names(Regex, RemainingFuncNames)
+    end.
+
+-type consistent_variable_casing_config() :: #{ignore => [ignorable()]}.
+
+-spec consistent_variable_casing(elvis_config:config(),
+                                 elvis_file:file(),
+                                 consistent_variable_casing_config()) ->
+                                    [elvis_result:item()].
+%% @todo Use maps:groups_from_list/2 when we specify OTP25 as the minimum OTP version
+consistent_variable_casing(Config, Target, RuleConfig) ->
+    Root = get_root(Config, Target, RuleConfig),
+    Vars = elvis_code:find(fun is_var/1, Root, #{traverse => all, mode => zipper}),
+    Grouped =
+        maps:to_list(
+            lists:foldr(fun(Var, Acc) ->
+                           VarName = canonical_variable_name(Var),
+                           maps:update_with(
+                               string:uppercase(VarName),
+                               fun(Locations) -> [#{name => VarName, var => Var} | Locations] end,
+                               [#{name => VarName, var => Var}],
+                               Acc)
+                        end,
+                        #{},
+                        Vars)),
+    lists:flatmap(fun check_variable_casing_consistency/1, Grouped).
+
+canonical_variable_name(Var) ->
+    case atom_to_list(ktn_code:attr(name, Var)) of
+        [$_ | Rest] ->
+            Rest;
+        VarNameStr ->
+            VarNameStr
+    end.
+
+check_variable_casing_consistency({_,
+                                   [#{name := FirstName, var := FirstVar} | Others]}) ->
+    case lists:usort([OtherName || #{name := OtherName} <- Others, OtherName /= FirstName]) of
+        [] ->
+            [];
+        OtherNames ->
+            {Line, _} = ktn_code:attr(location, FirstVar),
+            Info = [FirstName, Line, OtherNames],
+            [elvis_result:new(item, ?CONSISTENT_VARIABLE_CASING_MSG, Info, Line)]
     end.
 
 -type variable_naming_convention_config() ::

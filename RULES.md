@@ -13,6 +13,8 @@ identified with `(since ...)` for convenience purposes.
 - [Always Shortcircuit](doc_rules/elvis_style/always_shortcircuit.md)
 - [Atom Naming Convention](doc_rules/elvis_style/atom_naming_convention.md)
 - [Behaviour Spelling](doc_rules/elvis_style/behaviour_spelling.md)
+- [Consistent Generic Type](doc_rules/elvis_style/consistent_generic_type.md)
+- [Consistent Variable Casing](doc_rules/elvis_style/consistent_variable_casing.md)
 - [Don't Repeat Yourself](doc_rules/elvis_style/dont_repeat_yourself.md)
 - [Function Naming Convention](doc_rules/elvis_style/function_naming_convention.md)
 - [God Modules](doc_rules/elvis_style/god_modules.md)
@@ -24,6 +26,9 @@ identified with `(since ...)` for convenience purposes.
 - [Max Module Length](doc_rules/elvis_style/max_module_length.md)
 - [Module Naming Convention](doc_rules/elvis_style/module_naming_convention.md)
 - [Nesting Level](doc_rules/elvis_style/nesting_level.md)
+<!-- markdownlint-disable MD033 -->
+- [No <code>&&nbsp;</code>](doc_rules/elvis_style/no_dollar_space.md)
+<!-- markdownlint-enable MD033 -->
 - [No author](doc_rules/elvis_style/no_author.md)
 - [No Behavior Info](doc_rules/elvis_style/no_behavior_info.md)
 - [No Block Expressions](doc_rules/elvis_style/no_block_expressions.md)
@@ -31,17 +36,14 @@ identified with `(since ...)` for convenience purposes.
 - [No catch expressions](doc_rules/elvis_style/no_catch_expressions.md)
 - [No Common Caveats](doc_rules/elvis_style/no_common_caveats_call.md)
 - [No debug call](doc_rules/elvis_style/no_debug_call.md)
-<!-- markdownlint-disable MD033 -->
-- [No <code>&&nbsp;</code>](doc_rules/elvis_style/no_dollar_space.md)
-<!-- markdownlint-enable MD033 -->
 - [No If Expression](doc_rules/elvis_style/no_if_expression.md)
 - [No Macros](doc_rules/elvis_style/no_macros.md)
 - [No Nested try...catch Blocks](doc_rules/elvis_style/no_nested_try_catch.md)
-- [No Successive Maps](doc_rules/elvis_style/no_successive_maps.md)
-- [No Space](doc_rules/elvis_style/no_space.md)
 - [No Space after #](doc_rules/elvis_style/no_space_after_pount.md)
+- [No Space](doc_rules/elvis_style/no_space.md)
 - [No Spec With Records](doc_rules/elvis_style/no_spec_with_records.md)
 - [No Specs](doc_rules/elvis_style/no_specs.md)
+- [No Successive Maps](doc_rules/elvis_style/no_successive_maps.md)
 - [No Tabs](doc_rules/elvis_text_style/no_tabs.md)
 - [No throw](doc_rules/elvis_style/no_throw.md)
 - [No Trailing Whitespace](doc_rules/elvis_text_style/no_trailing_whitespace.md)
@@ -49,20 +51,19 @@ identified with `(since ...)` for convenience purposes.
 - [Numeric Format](doc_rules/elvis_style/numeric_format.md)
 - [Operator Spaces](doc_rules/elvis_style/operator_spaces.md)
 - [State Record and Type](doc_rules/elvis_style/state_record_and_type.md)
-- [Consistent Generic Type](doc_rules/elvis_style/consistent_generic_type.md)
 - [Used Ignored Variable](doc_rules/elvis_style/used_ignored_variable.md)
 - [Variable Naming Convention](doc_rules/elvis_style/variable_naming_convention.md)
 - [Export Used Types](doc_rules/elvis_style/export_used_types.md)
 
 ## Project rules
 
-- [No deps with branches](doc_rules/elvis_project/no_branch_deps.md)
 - [No deps master erlang.mk - *deprecated*](doc_rules/elvis_project/no_deps_master_erlang_mk.md)
 - [No deps master rebar - *deprecated*](doc_rules/elvis_project/no_deps_master_rebar.md)
-- [Protocol for deps](doc_rules/elvis_project/protocol_for_deps.md)
+- [No deps with branches](doc_rules/elvis_project/no_branch_deps.md)
+- [Old configuration format](doc_rules/elvis_project/old_configuration_format.md)
 - [Protocol for deps erlang.mk - *deprecated*](doc_rules/elvis_project/protocol_for_deps_erlang_mk.md)
 - [Protocol for deps rebar - *deprecated*](doc_rules/elvis_project/protocol_for_deps_rebar.md)
-- [Old configuration format](doc_rules/elvis_project/old_configuration_format.md)
+- [Protocol for deps](doc_rules/elvis_project/protocol_for_deps.md)
 
 ## Rulesets
 
@@ -72,11 +73,11 @@ rulesets in the configuration file.
 
 The five pre-defined rulesets are:
 
-- `hrl_files`, for Erlang header files.
+- `elvis_config`, for elvis configuration files.
 - `erl_files`, for Erlang source files.
+- `hrl_files`, for Erlang header files.
 - `makefiles`, for Makefiles.
 - `rebar_config`, for rebar configuration files.
-- `elvis_config`, for elvis configuration files.
 
 Custom rulesets are defined in a `{<ruleset>, #{}}` tuple in `elvis`' configuration. Each key in the
 map represents the ruleset name and is mapped to a list of rules as otherwise defined in a standard

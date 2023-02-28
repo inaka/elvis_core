@@ -6,10 +6,10 @@
 config() ->
     application:get_env(elvis_core, config, []).
 
--spec config(Ruleset :: atom()) -> elvis_config:config().
-config(Ruleset) ->
-    RulesetCfgs = application:get_env(elvis_core, config, []),
-    [Config] = [Cfg || #{ruleset := R} = Cfg <- RulesetCfgs, R =:= Ruleset],
+-spec config(RuleSet :: atom()) -> elvis_config:config().
+config(RuleSet) ->
+    RuleSetCfgs = application:get_env(elvis_core, config, []),
+    [Config] = [Cfg || #{ruleset := R} = Cfg <- RuleSetCfgs, R =:= RuleSet],
     Config.
 
 -spec find_file([string()], string()) -> {ok, elvis_file:file()} | {error, enoent}.
