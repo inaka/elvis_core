@@ -35,7 +35,9 @@ rules(hrl_files) ->
                {elvis_style, no_throw},
                {elvis_style, no_dollar_space},
                {elvis_style, no_author},
+               {elvis_style, no_import},
                {elvis_style, no_catch_expressions},
+               {elvis_style, no_single_clause_case},
                {elvis_style, numeric_format},
                {elvis_style, no_specs},
                {elvis_style, no_types}]);
@@ -69,10 +71,14 @@ rules(erl_files) ->
                {elvis_style, no_throw},
                {elvis_style, no_dollar_space},
                {elvis_style, no_author},
+               {elvis_style, no_import},
                {elvis_style, no_catch_expressions},
+               {elvis_style, no_single_clause_case},
                {elvis_style, numeric_format},
                {elvis_style, behaviour_spelling},
                {elvis_style, export_used_types},
+               {elvis_style, max_function_arity},
+               {elvis_style, max_anonymous_function_arity},
                {elvis_style, private_data_types}]);
 rules(beam_files) ->
     lists:map(fun(Rule) -> {elvis_style, Rule, elvis_style:default(Rule)} end,
@@ -93,9 +99,13 @@ rules(beam_files) ->
                atom_naming_convention,
                no_throw,
                no_author,
+               no_import,
                no_catch_expressions,
+               no_single_clause_case,
                behaviour_spelling,
                export_used_types,
+               max_function_arity,
+               max_anonymous_function_arity,
                private_data_types]);
 rules(rebar_config) ->
     lists:map(fun(Rule) -> {elvis_project, Rule, elvis_project:default(Rule)} end,

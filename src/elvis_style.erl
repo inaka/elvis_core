@@ -6,15 +6,17 @@
          no_space_after_pound/3, nesting_level/3, god_modules/3, no_if_expression/3,
          invalid_dynamic_call/3, used_ignored_variable/3, no_behavior_info/3,
          module_naming_convention/3, state_record_and_type/3, no_spec_with_records/3,
-         dont_repeat_yourself/3, max_module_length/3, max_function_length/3, no_call/3,
-         no_debug_call/3, no_common_caveats_call/3, no_nested_try_catch/3, no_successive_maps/3,
-         atom_naming_convention/3, no_throw/3, no_dollar_space/3, no_author/3,
-         no_catch_expressions/3, numeric_format/3, behaviour_spelling/3, always_shortcircuit/3,
-         consistent_generic_type/3, export_used_types/3, private_data_types/3, option/3]).
+         dont_repeat_yourself/3, max_module_length/3, max_anonymous_function_arity/3,
+         max_function_arity/3, max_function_length/3, no_call/3, no_debug_call/3,
+         no_common_caveats_call/3, no_nested_try_catch/3, no_successive_maps/3,
+         atom_naming_convention/3, no_throw/3, no_dollar_space/3, no_author/3, no_import/3,
+         no_catch_expressions/3, no_single_clause_case/3, numeric_format/3, behaviour_spelling/3,
+         always_shortcircuit/3, consistent_generic_type/3, export_used_types/3, private_data_types/3, option/3]).
 
 -export_type([empty_rule_config/0]).
 -export_type([ignorable/0]).
--export_type([max_function_length_config/0, max_module_length_config/0,
+-export_type([max_anonymous_function_arity_config/0, max_function_arity_config/0,
+              max_function_length_config/0, max_module_length_config/0,
               function_naming_convention_config/0, variable_naming_convention_config/0,
               macro_names_config/0, no_macros_config/0, no_types_config/0, no_specs_config/0,
               no_block_expressions_config/0, no_space_after_pound_config/0,
@@ -22,8 +24,8 @@
               god_modules_config/0, module_naming_convention_config/0,
               dont_repeat_yourself_config/0, no_call_config/0, no_debug_call_config/0,
               no_common_caveats_call_config/0, atom_naming_convention_config/0, no_author_config/0,
-              no_catch_expressions_config/0, numeric_format_config/0,
-              consistent_variable_casing_config/0]).
+              no_import_config/0, no_catch_expressions_config/0, numeric_format_config/0,
+              no_single_clause_case_config/0, consistent_variable_casing_config/0]).
 
 -define(INVALID_MACRO_NAME_REGEX_MSG,
         "The macro named ~p on line ~p does not respect the format defined "
@@ -81,8 +83,12 @@
         "The code in the following (LINE, COL) locations has the same "
         "structure: ~s.").
 -define(MAX_MODULE_LENGTH,
-        "The code for module ~p has ~p lines which exceeds the maximum "
-        "of ~p.").
+        "The code for module ~p has ~p lines which exceeds the "
+        "maximum of ~p.").
+-define(MAX_ANONYMOUS_FUNCTION_ARITY_MSG,
+        "The arity of the anonymous function defined in line ~p (~w arguments) exceeds the "
+        "maximum of ~p.").
+-define(MAX_FUNCTION_ARITY_MSG, "The arity of function ~p/~w exceeds the maximum of ~p.").
 -define(MAX_FUNCTION_LENGTH,
         "The code for function ~p/~w has ~p lines which exceeds the "
         "maximum of ~p.").
@@ -102,8 +108,11 @@
         "'$ ' was found on line ~p. It's use is discouraged. Use $\\s, "
         "instead.").
 -define(NO_AUTHOR_MSG, "Unnecessary author attribute on line ~p").
+-define(NO_IMPORT_MSG, "Usage of the import attribute, on line ~p, is discouraged").
 -define(NO_CATCH_EXPRESSIONS_MSG,
         "Usage of catch expression on line ~p is not recommended").
+-define(NO_SINGLE_CLAUSE_CASE_MSG,
+        "Case statement with a single clause found on line ~p.").
 -define(NUMERIC_FORMAT_MSG,
         "Number ~p on line ~p does not respect the format defined by "
         "the regular expression '~p'.").
@@ -157,6 +166,10 @@ default(max_module_length) ->
     #{max_length => 500,
       count_comments => false,
       count_whitespace => false};
+default(max_anonymous_function_arity) ->
+    #{max_arity => 5};
+default(max_function_arity) ->
+    #{max_arity => 8};
 default(max_function_length) ->
     #{max_length => 30,
       count_comments => false,
@@ -203,7 +216,9 @@ default(RuleWithEmptyDefault)
          RuleWithEmptyDefault == no_throw;
          RuleWithEmptyDefault == no_dollar_space;
          RuleWithEmptyDefault == no_author;
+         RuleWithEmptyDefault == no_import;
          RuleWithEmptyDefault == no_catch_expressions;
+         RuleWithEmptyDefault == no_single_clause_case;
          RuleWithEmptyDefault == always_shortcircuit;
          RuleWithEmptyDefault == no_space_after_pound;
          RuleWithEmptyDefault == export_used_types;
@@ -779,6 +794,64 @@ max_module_length(Config, Target, RuleConfig) ->
             []
     end.
 
+-type max_anonymous_function_arity_config() :: #{max_arity => non_neg_integer()}.
+
+-spec max_anonymous_function_arity(elvis_config:config(),
+                                   elvis_file:file(),
+                                   max_anonymous_function_arity_config()) ->
+                                      [elvis_result:item()].
+max_anonymous_function_arity(Config, Target, RuleConfig) ->
+    MaxArity = option(max_arity, RuleConfig, max_anonymous_function_arity),
+    Root = get_root(Config, Target, RuleConfig),
+    IsClause = fun(Node) -> ktn_code:type(Node) == clause end,
+    IsFun =
+        fun(Node) ->
+           %% Not having clauses means it's something like fun mod:f/10 and we don't want
+           %% this rule to raise warnings for those. max_function_arity should take care of them.
+           ktn_code:type(Node) == 'fun' andalso [] /= elvis_code:find(IsClause, Node)
+        end,
+    Funs = elvis_code:find(IsFun, Root),
+    lists:filtermap(fun(Fun) ->
+                       [FirstClause | _] = elvis_code:find(IsClause, Fun),
+                       case length(ktn_code:node_attr(pattern, FirstClause)) of
+                           Arity when Arity =< MaxArity ->
+                               false;
+                           Arity ->
+                               {Line, _} = ktn_code:attr(location, Fun),
+                               Info = [Line, Arity, MaxArity],
+                               {true,
+                                elvis_result:new(item,
+                                                 ?MAX_ANONYMOUS_FUNCTION_ARITY_MSG,
+                                                 Info,
+                                                 Line)}
+                       end
+                    end,
+                    Funs).
+
+-type max_function_arity_config() :: #{max_arity => non_neg_integer()}.
+
+-spec max_function_arity(elvis_config:config(),
+                         elvis_file:file(),
+                         max_function_arity_config()) ->
+                            [elvis_result:item()].
+max_function_arity(Config, Target, RuleConfig) ->
+    MaxArity = option(max_arity, RuleConfig, max_function_arity),
+    Root = get_root(Config, Target, RuleConfig),
+    IsFunction = fun(Node) -> ktn_code:type(Node) == function end,
+    Functions = elvis_code:find(IsFunction, Root),
+    lists:filtermap(fun(Function) ->
+                       case ktn_code:attr(arity, Function) of
+                           Arity when Arity =< MaxArity ->
+                               false;
+                           Arity ->
+                               Name = ktn_code:attr(name, Function),
+                               {Line, _} = ktn_code:attr(location, Function),
+                               Info = [Name, Arity, MaxArity],
+                               {true, elvis_result:new(item, ?MAX_FUNCTION_ARITY_MSG, Info, Line)}
+                       end
+                    end,
+                    Functions).
+
 -spec max_function_length(elvis_config:config(),
                           elvis_file:file(),
                           max_function_length_config()) ->
@@ -952,16 +1025,25 @@ no_dollar_space(Config, Target, RuleConfig) ->
 -spec no_author(elvis_config:config(), elvis_file:file(), no_author_config()) ->
                    [elvis_result:item()].
 no_author(Config, Target, RuleConfig) ->
-    Zipper = fun(Node) -> ktn_code:type(Node) =:= author end,
+    no_attribute(author, ?NO_AUTHOR_MSG, Config, Target, RuleConfig).
+
+-type no_import_config() :: #{ignore => [ignorable()]}.
+
+-spec no_import(elvis_config:config(), elvis_file:file(), no_import_config()) ->
+                   [elvis_result:item()].
+no_import(Config, Target, RuleConfig) ->
+    no_attribute(import, ?NO_IMPORT_MSG, Config, Target, RuleConfig).
+
+no_attribute(Attribute, Msg, Config, Target, RuleConfig) ->
+    Zipper = fun(Node) -> ktn_code:type(Node) =:= Attribute end,
     Root = get_root(Config, Target, RuleConfig),
     Opts = #{mode => node, traverse => content},
-    AuthorNodes = elvis_code:find(Zipper, Root, Opts),
-    lists:foldl(fun(AuthorNode, AccIn) ->
-                   {Line, _} = ktn_code:attr(location, AuthorNode),
-                   [elvis_result:new(item, ?NO_AUTHOR_MSG, [Line]) | AccIn]
-                end,
-                [],
-                AuthorNodes).
+    Nodes = elvis_code:find(Zipper, Root, Opts),
+    lists:map(fun(Node) ->
+                 {Line, _} = ktn_code:attr(location, Node),
+                 elvis_result:new(item, Msg, [Line], Line)
+              end,
+              Nodes).
 
 -type no_catch_expressions_config() :: #{ignore => [ignorable()]}.
 
@@ -982,6 +1064,30 @@ no_catch_expressions(Config, Target, RuleConfig) ->
 
 is_catch_node(Node) ->
     ktn_code:type(Node) =:= 'catch'.
+
+-type no_single_clause_case_config() :: #{ignore => [ignorable()]}.
+
+-spec no_single_clause_case(elvis_config:config(),
+                            elvis_file:file(),
+                            no_single_clause_case_config()) ->
+                               [elvis_result:item()].
+no_single_clause_case(Config, Target, RuleConfig) ->
+    Root = get_root(Config, Target, RuleConfig),
+    Opts = #{mode => node, traverse => content},
+    CaseNodes = elvis_code:find(fun is_single_clause_case_statement/1, Root, Opts),
+    lists:map(fun(CaseNode) ->
+                 {Line, _Col} = ktn_code:attr(location, CaseNode),
+                 elvis_result:new(item, ?NO_SINGLE_CLAUSE_CASE_MSG, [Line], Line)
+              end,
+              CaseNodes).
+
+is_single_clause_case_statement(Node) ->
+    ktn_code:type(Node) == 'case'
+    andalso length([Clause
+                    || SubNode <- ktn_code:content(Node),
+                       ktn_code:type(SubNode) == case_clauses,
+                       Clause <- ktn_code:content(SubNode)])
+            == 1.
 
 -type numeric_format_config() ::
     #{ignore => [ignorable()],
