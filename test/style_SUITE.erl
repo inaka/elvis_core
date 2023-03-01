@@ -19,6 +19,7 @@
          verify_used_ignored_variable/1, verify_no_behavior_info/1,
          verify_module_naming_convention/1, verify_state_record_and_type/1,
          verify_no_spec_with_records/1, verify_dont_repeat_yourself/1, verify_max_module_length/1,
+         verify_max_anonymous_function_arity/1, verify_max_function_arity/1,
          verify_max_function_length/1, verify_no_debug_call/1, verify_no_common_caveats_call/1,
          verify_no_call/1, verify_no_nested_try_catch/1, verify_no_successive_maps/1,
          verify_atom_naming_convention/1, verify_no_throw/1, verify_no_dollar_space/1,
@@ -31,7 +32,8 @@
          verify_elvis_attr_dont_repeat_yourself/1, verify_elvis_attr_function_naming_convention/1,
          verify_elvis_attr_god_modules/1, verify_elvis_attr_invalid_dynamic_call/1,
          verify_elvis_attr_line_length/1, verify_elvis_attr_macro_module_names/1,
-         verify_elvis_attr_macro_names/1, verify_elvis_attr_max_function_length/1,
+         verify_elvis_attr_macro_names/1, verify_elvis_attr_max_anonymous_function_arity/1,
+         verify_elvis_attr_max_function_arity/1, verify_elvis_attr_max_function_length/1,
          verify_elvis_attr_max_module_length/1, verify_elvis_attr_module_naming_convention/1,
          verify_elvis_attr_nesting_level/1, verify_elvis_attr_no_behavior_info/1,
          verify_elvis_attr_no_call/1, verify_elvis_attr_no_debug_call/1,
@@ -69,31 +71,16 @@ all() ->
 groups() ->
     [{beam_files,
       [sequence],
-      [verify_function_naming_convention,
-       verify_variable_naming_convention,
-       verify_consistent_variable_casing,
-       verify_nesting_level,
-       verify_god_modules,
-       verify_no_if_expression,
-       verify_invalid_dynamic_call,
-       verify_used_ignored_variable,
-       verify_no_behavior_info,
-       verify_module_naming_convention,
-       verify_state_record_and_type,
-       verify_no_spec_with_records,
-       verify_dont_repeat_yourself,
-       verify_no_debug_call,
-       verify_no_common_caveats_call,
-       verify_no_call,
-       verify_no_nested_try_catch,
-       verify_no_successive_maps,
-       verify_atom_naming_convention,
-       verify_no_throw,
-       verify_no_author,
-       verify_always_shortcircuit,
-       verify_no_catch_expressions,
-       verify_no_macros,
-       verify_export_used_types]}].
+      [verify_function_naming_convention, verify_variable_naming_convention,
+       verify_consistent_variable_casing, verify_nesting_level, verify_god_modules,
+       verify_no_if_expression, verify_invalid_dynamic_call, verify_used_ignored_variable,
+       verify_no_behavior_info, verify_module_naming_convention, verify_state_record_and_type,
+       verify_no_spec_with_records, verify_dont_repeat_yourself, verify_no_debug_call,
+       verify_no_common_caveats_call, verify_no_call, verify_no_nested_try_catch,
+       verify_no_successive_maps, verify_atom_naming_convention, verify_no_throw,
+       verify_no_author, verify_always_shortcircuit, verify_no_catch_expressions,
+       verify_no_macros, verify_export_used_types, verify_max_anonymous_function_arity,
+       verify_max_function_arity]}].
 
 -spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
@@ -924,6 +911,90 @@ verify_max_module_length(Config) ->
 
     {comment, ""}.
 
+-spec verify_max_function_arity(config()) -> any().
+verify_max_function_arity(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PathPass = "pass_max_function_arity." ++ Ext,
+    RuleConfig = #{max_arity => 8},
+
+    [] = elvis_core_apply_rule(Config, elvis_style, max_function_arity, RuleConfig, PathPass),
+
+    %% This module has functions with 0, 1, 2, and 3 arguments
+    PathFail = "fail_max_function_arity." ++ Ext,
+    [] = elvis_core_apply_rule(Config, elvis_style, max_function_arity, #{}, PathFail),
+    [_] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              max_function_arity,
+                              #{max_arity => 2},
+                              PathFail),
+    [_, _] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              max_function_arity,
+                              #{max_arity => 1},
+                              PathFail),
+    [_, _, _] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              max_function_arity,
+                              #{max_arity => 0},
+                              PathFail),
+    [_, _, _, _] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              max_function_arity,
+                              #{max_arity => -1},
+                              PathFail),
+
+    ok.
+
+-spec verify_max_anonymous_function_arity(config()) -> any().
+verify_max_anonymous_function_arity(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PathPass = "pass_max_anonymous_function_arity." ++ Ext,
+    RuleConfig = #{max_arity => 3},
+
+    [] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              max_anonymous_function_arity,
+                              RuleConfig,
+                              PathPass),
+
+    %% This module has funs with 0, 1, 2, and 3 arguments
+    PathFail = "fail_max_anonymous_function_arity." ++ Ext,
+    [] =
+        elvis_core_apply_rule(Config, elvis_style, max_anonymous_function_arity, #{}, PathFail),
+    [_] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              max_anonymous_function_arity,
+                              #{max_arity => 2},
+                              PathFail),
+    [_, _] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              max_anonymous_function_arity,
+                              #{max_arity => 1},
+                              PathFail),
+    [_, _, _] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              max_anonymous_function_arity,
+                              #{max_arity => 0},
+                              PathFail),
+    [_, _, _, _] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              max_anonymous_function_arity,
+                              #{max_arity => -1},
+                              PathFail),
+
+    ok.
+
 -spec verify_max_function_length(config()) -> any().
 verify_max_function_length(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
@@ -1473,6 +1544,14 @@ verify_elvis_attr_macro_module_names(Config) ->
 -spec verify_elvis_attr_macro_names(config()) -> true.
 verify_elvis_attr_macro_names(Config) ->
     verify_elvis_attr(Config, "pass_macro_names_elvis_attr").
+
+-spec verify_elvis_attr_max_function_arity(config()) -> true.
+verify_elvis_attr_max_function_arity(Config) ->
+    verify_elvis_attr(Config, "pass_max_function_arity_elvis_attr").
+
+-spec verify_elvis_attr_max_anonymous_function_arity(config()) -> true.
+verify_elvis_attr_max_anonymous_function_arity(Config) ->
+    verify_elvis_attr(Config, "pass_max_anonymous_function_arity_elvis_attr").
 
 -spec verify_elvis_attr_max_function_length(config()) -> true.
 verify_elvis_attr_max_function_length(Config) ->
