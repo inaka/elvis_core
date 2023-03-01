@@ -7,6 +7,8 @@ f() ->
        fun(_) ->
           fun Two(1, 2) ->
                   Two(2, 3);
+              Two(2, 3) ->
+                  fun this:is_fine/10;
               Two(_, _) ->
                   fun(_, _, _) -> three_arguments end
           end

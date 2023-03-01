@@ -5,14 +5,14 @@
 This specifies an upper bound on anonymous function arity.
 This rule is similar to `max_function_arity`
 but it applies to anonymous functions (i.e., `fun(…) -> … end`)
-and it's usually stricter than its counterpart (it's default is `3` instead of `8`).
+and it's usually stricter than its counterpart (it's default is `5` instead of `8`).
 
 > Works on `.beam` file? Yes
 
 ## Options
 
 - `max_arity :: non_neg_integer()`.
-  - default: `3`.
+  - default: `5`.
 
 ## Example
 

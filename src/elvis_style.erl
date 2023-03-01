@@ -161,7 +161,7 @@ default(max_module_length) ->
       count_comments => false,
       count_whitespace => false};
 default(max_anonymous_function_arity) ->
-    #{max_arity => 3};
+    #{max_arity => 5};
 default(max_function_arity) ->
     #{max_arity => 8};
 default(max_function_length) ->
@@ -793,8 +793,13 @@ max_module_length(Config, Target, RuleConfig) ->
 max_anonymous_function_arity(Config, Target, RuleConfig) ->
     MaxArity = option(max_arity, RuleConfig, max_anonymous_function_arity),
     Root = get_root(Config, Target, RuleConfig),
-    IsFun = fun(Node) -> ktn_code:type(Node) == 'fun' end,
     IsClause = fun(Node) -> ktn_code:type(Node) == clause end,
+    IsFun =
+        fun(Node) ->
+           %% Not having clauses means it's something like fun mod:f/10 and we don't want
+           %% this rule to raise warnings for those. max_function_arity should take care of them.
+           ktn_code:type(Node) == 'fun' andalso [] /= elvis_code:find(IsClause, Node)
+        end,
     Funs = elvis_code:find(IsFun, Root),
     lists:filtermap(fun(Fun) ->
                        [FirstClause | _] = elvis_code:find(IsClause, Fun),
