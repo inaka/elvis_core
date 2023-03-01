@@ -4,7 +4,8 @@
 
 `import` attributes should not be used.
 The benefits of not writing fully-qualified names for some functions are largely
-outweighed by the complexity that this introduces when trying to debug the code.
+outweighed by the complexity that using `import` introduces when trying to debug
+code.
 
 > Works on `.beam` file? Yes!
 
