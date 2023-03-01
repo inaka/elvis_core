@@ -81,8 +81,8 @@ groups() ->
        verify_no_successive_maps, verify_atom_naming_convention, verify_no_throw,
        verify_no_author, verify_no_import, verify_always_shortcircuit,
        verify_no_catch_expressions, verify_no_single_clause_case, verify_no_macros,
-       verify_export_used_types, verify_max_anonymous_function_arity,
-       verify_max_function_arity, verify_private_data_types]}].
+       verify_export_used_types, verify_max_anonymous_function_arity, verify_max_function_arity,
+       verify_private_data_types]}].
 
 -spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->

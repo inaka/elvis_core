@@ -11,7 +11,8 @@
          no_common_caveats_call/3, no_nested_try_catch/3, no_successive_maps/3,
          atom_naming_convention/3, no_throw/3, no_dollar_space/3, no_author/3, no_import/3,
          no_catch_expressions/3, no_single_clause_case/3, numeric_format/3, behaviour_spelling/3,
-         always_shortcircuit/3, consistent_generic_type/3, export_used_types/3, private_data_types/3, option/3]).
+         always_shortcircuit/3, consistent_generic_type/3, export_used_types/3,
+         private_data_types/3, option/3]).
 
 -export_type([empty_rule_config/0]).
 -export_type([ignorable/0]).
