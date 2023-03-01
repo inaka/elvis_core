@@ -22,6 +22,8 @@ identified with `(since ...)` for convenience purposes.
 - [Line Length](doc_rules/elvis_text_style/line_length.md)
 - [Macro Module Names](doc_rules/elvis_style/macro_module_names.md)
 - [Macro Names](doc_rules/elvis_style/macro_names.md)
+- [Max Anonymous Function Arity](doc_rules/elvis_style/max_anonymous_function_arity.md)
+- [Max Function Arity](doc_rules/elvis_style/max_function_arity.md)
 - [Max Function Length](doc_rules/elvis_style/max_function_length.md)
 - [Max Module Length](doc_rules/elvis_style/max_module_length.md)
 - [Module Naming Convention](doc_rules/elvis_style/module_naming_convention.md)

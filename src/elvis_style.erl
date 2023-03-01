@@ -6,15 +6,17 @@
          no_space_after_pound/3, nesting_level/3, god_modules/3, no_if_expression/3,
          invalid_dynamic_call/3, used_ignored_variable/3, no_behavior_info/3,
          module_naming_convention/3, state_record_and_type/3, no_spec_with_records/3,
-         dont_repeat_yourself/3, max_module_length/3, max_function_length/3, no_call/3,
-         no_debug_call/3, no_common_caveats_call/3, no_nested_try_catch/3, no_successive_maps/3,
+         dont_repeat_yourself/3, max_module_length/3, max_anonymous_function_arity/3,
+         max_function_arity/3, max_function_length/3, no_call/3, no_debug_call/3,
+         no_common_caveats_call/3, no_nested_try_catch/3, no_successive_maps/3,
          atom_naming_convention/3, no_throw/3, no_dollar_space/3, no_author/3,
          no_catch_expressions/3, numeric_format/3, behaviour_spelling/3, always_shortcircuit/3,
          consistent_generic_type/3, export_used_types/3, option/3]).
 
 -export_type([empty_rule_config/0]).
 -export_type([ignorable/0]).
--export_type([max_function_length_config/0, max_module_length_config/0,
+-export_type([max_anonymous_function_arity_config/0, max_function_arity_config/0,
+              max_function_length_config/0, max_module_length_config/0,
               function_naming_convention_config/0, variable_naming_convention_config/0,
               macro_names_config/0, no_macros_config/0, no_types_config/0, no_specs_config/0,
               no_block_expressions_config/0, no_space_after_pound_config/0,
@@ -84,6 +86,10 @@
 -define(MAX_MODULE_LENGTH,
         "The code for module ~p has ~p lines which exceeds the "
         "maximum of ~p.").
+-define(MAX_ANONYMOUS_FUNCTION_ARITY_MSG,
+        "The arity of the anonymous function defined in line ~p (~w arguments) exceeds the "
+        "maximum of ~p.").
+-define(MAX_FUNCTION_ARITY_MSG, "The arity of function ~p/~w exceeds the maximum of ~p.").
 -define(MAX_FUNCTION_LENGTH,
         "The code for function ~p/~w has ~p lines which exceeds the "
         "maximum of ~p.").
@@ -154,6 +160,10 @@ default(max_module_length) ->
     #{max_length => 500,
       count_comments => false,
       count_whitespace => false};
+default(max_anonymous_function_arity) ->
+    #{max_arity => 5};
+default(max_function_arity) ->
+    #{max_arity => 8};
 default(max_function_length) ->
     #{max_length => 30,
       count_comments => false,
@@ -773,6 +783,64 @@ max_module_length(Config, Target, RuleConfig) ->
         _ ->
             []
     end.
+
+-type max_anonymous_function_arity_config() :: #{max_arity => non_neg_integer()}.
+
+-spec max_anonymous_function_arity(elvis_config:config(),
+                                   elvis_file:file(),
+                                   max_anonymous_function_arity_config()) ->
+                                      [elvis_result:item()].
+max_anonymous_function_arity(Config, Target, RuleConfig) ->
+    MaxArity = option(max_arity, RuleConfig, max_anonymous_function_arity),
+    Root = get_root(Config, Target, RuleConfig),
+    IsClause = fun(Node) -> ktn_code:type(Node) == clause end,
+    IsFun =
+        fun(Node) ->
+           %% Not having clauses means it's something like fun mod:f/10 and we don't want
+           %% this rule to raise warnings for those. max_function_arity should take care of them.
+           ktn_code:type(Node) == 'fun' andalso [] /= elvis_code:find(IsClause, Node)
+        end,
+    Funs = elvis_code:find(IsFun, Root),
+    lists:filtermap(fun(Fun) ->
+                       [FirstClause | _] = elvis_code:find(IsClause, Fun),
+                       case length(ktn_code:node_attr(pattern, FirstClause)) of
+                           Arity when Arity =< MaxArity ->
+                               false;
+                           Arity ->
+                               {Line, _} = ktn_code:attr(location, Fun),
+                               Info = [Line, Arity, MaxArity],
+                               {true,
+                                elvis_result:new(item,
+                                                 ?MAX_ANONYMOUS_FUNCTION_ARITY_MSG,
+                                                 Info,
+                                                 Line)}
+                       end
+                    end,
+                    Funs).
+
+-type max_function_arity_config() :: #{max_arity => non_neg_integer()}.
+
+-spec max_function_arity(elvis_config:config(),
+                         elvis_file:file(),
+                         max_function_arity_config()) ->
+                            [elvis_result:item()].
+max_function_arity(Config, Target, RuleConfig) ->
+    MaxArity = option(max_arity, RuleConfig, max_function_arity),
+    Root = get_root(Config, Target, RuleConfig),
+    IsFunction = fun(Node) -> ktn_code:type(Node) == function end,
+    Functions = elvis_code:find(IsFunction, Root),
+    lists:filtermap(fun(Function) ->
+                       case ktn_code:attr(arity, Function) of
+                           Arity when Arity =< MaxArity ->
+                               false;
+                           Arity ->
+                               Name = ktn_code:attr(name, Function),
+                               {Line, _} = ktn_code:attr(location, Function),
+                               Info = [Name, Arity, MaxArity],
+                               {true, elvis_result:new(item, ?MAX_FUNCTION_ARITY_MSG, Info, Line)}
+                       end
+                    end,
+                    Functions).
 
 -spec max_function_length(elvis_config:config(),
                           elvis_file:file(),
