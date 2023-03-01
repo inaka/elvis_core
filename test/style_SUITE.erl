@@ -25,7 +25,8 @@
          verify_no_author/1, verify_no_catch_expressions/1, verify_numeric_format/1,
          verify_behaviour_spelling/1, verify_always_shortcircuit/1,
          verify_consistent_generic_type/1, verify_no_types/1, verify_no_specs/1,
-         verify_export_used_types/1, verify_consistent_variable_casing/1]).
+         verify_export_used_types/1, verify_consistent_variable_casing/1,
+         verify_private_data_types/1]).
 %% -elvis attribute
 -export([verify_elvis_attr_atom_naming_convention/1, verify_elvis_attr_numeric_format/1,
          verify_elvis_attr_dont_repeat_yourself/1, verify_elvis_attr_function_naming_convention/1,
@@ -69,31 +70,15 @@ all() ->
 groups() ->
     [{beam_files,
       [sequence],
-      [verify_function_naming_convention,
-       verify_variable_naming_convention,
-       verify_consistent_variable_casing,
-       verify_nesting_level,
-       verify_god_modules,
-       verify_no_if_expression,
-       verify_invalid_dynamic_call,
-       verify_used_ignored_variable,
-       verify_no_behavior_info,
-       verify_module_naming_convention,
-       verify_state_record_and_type,
-       verify_no_spec_with_records,
-       verify_dont_repeat_yourself,
-       verify_no_debug_call,
-       verify_no_common_caveats_call,
-       verify_no_call,
-       verify_no_nested_try_catch,
-       verify_no_successive_maps,
-       verify_atom_naming_convention,
-       verify_no_throw,
-       verify_no_author,
-       verify_always_shortcircuit,
-       verify_no_catch_expressions,
-       verify_no_macros,
-       verify_export_used_types]}].
+      [verify_function_naming_convention, verify_variable_naming_convention,
+       verify_consistent_variable_casing, verify_nesting_level, verify_god_modules,
+       verify_no_if_expression, verify_invalid_dynamic_call, verify_used_ignored_variable,
+       verify_no_behavior_info, verify_module_naming_convention, verify_state_record_and_type,
+       verify_no_spec_with_records, verify_dont_repeat_yourself, verify_no_debug_call,
+       verify_no_common_caveats_call, verify_no_call, verify_no_nested_try_catch,
+       verify_no_successive_maps, verify_atom_naming_convention, verify_no_throw,
+       verify_no_author, verify_always_shortcircuit, verify_no_catch_expressions,
+       verify_no_macros, verify_export_used_types, verify_private_data_types]}].
 
 -spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
@@ -1421,6 +1406,46 @@ verify_export_used_types(Config) ->
     PathFail = "fail_export_used_types." ++ Ext,
     [#{line_num := 3}] =
         elvis_core_apply_rule(Config, elvis_style, export_used_types, #{}, PathFail).
+
+-spec verify_private_data_types(config()) -> any().
+verify_private_data_types(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+    PathPass = "pass_private_data_types2." ++ Ext,
+    [] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              private_data_types,
+                              #{applies_to => [record, map, tuple]},
+                              PathPass),
+    PathPass2 = "pass_private_data_types2." ++ Ext,
+    [] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              private_data_types,
+                              #{applies_to => [record, map, tuple]},
+                              PathPass2),
+    % Default applies only to records
+    PathFail = "fail_private_data_types." ++ Ext,
+    [#{line_num := 5}] =
+        elvis_core_apply_rule(Config, elvis_style, private_data_types, #{}, PathFail),
+    [#{line_num := 6}] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              private_data_types,
+                              #{applies_to => [tuple]},
+                              PathFail),
+    [#{line_num := 7}] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              private_data_types,
+                              #{applies_to => [map]},
+                              PathFail),
+    [#{line_num := 5}, #{line_num := 6}, #{line_num := 7}] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              private_data_types,
+                              #{applies_to => [record, tuple, map]},
+                              PathFail).
 
 -spec results_are_ordered_by_line(config()) -> true.
 results_are_ordered_by_line(_Config) ->

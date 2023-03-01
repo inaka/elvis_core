@@ -10,7 +10,7 @@
          no_debug_call/3, no_common_caveats_call/3, no_nested_try_catch/3, no_successive_maps/3,
          atom_naming_convention/3, no_throw/3, no_dollar_space/3, no_author/3,
          no_catch_expressions/3, numeric_format/3, behaviour_spelling/3, always_shortcircuit/3,
-         consistent_generic_type/3, export_used_types/3, option/3]).
+         consistent_generic_type/3, export_used_types/3, private_data_types/3, option/3]).
 
 -export_type([empty_rule_config/0]).
 -export_type([ignorable/0]).
@@ -26,8 +26,8 @@
               consistent_variable_casing_config/0]).
 
 -define(INVALID_MACRO_NAME_REGEX_MSG,
-        "The macro named ~p on line ~p does not respect the format "
-        "defined by the regular expression '~p'.").
+        "The macro named ~p on line ~p does not respect the format defined "
+        "by the regular expression '~p'.").
 -define(MACRO_AS_MODULE_NAME_MSG,
         "Don't use macros (like ~s on line ~p) as module names.").
 -define(MACRO_MODULE_NAMES_EXCEPTIONS, ["MODULE"]).
@@ -41,20 +41,18 @@
 -define(MISSING_SPACE_MSG, "Missing space to the ~s of ~p on line ~p").
 -define(UNEXPECTED_SPACE_MSG, "Unexpected space to the ~s of ~p on line ~p").
 -define(NESTING_LEVEL_MSG,
-        "The expression on line ~p and column ~p is nested "
-        "beyond the maximum level of ~p.").
+        "The expression on line ~p and column ~p is nested beyond the "
+        "maximum level of ~p.").
 -define(GOD_MODULES_MSG,
-        "This module has too many functions (~p). "
-        "Consider breaking it into a number of modules.").
+        "This module has too many functions (~p). Consider breaking "
+        "it into a number of modules.").
 -define(NO_IF_EXPRESSION_MSG,
-        "Replace the 'if' expression on line ~p with a 'case' "
-        "expression or function clauses.").
+        "Replace the 'if' expression on line ~p with a 'case' expression "
+        "or function clauses.").
 -define(INVALID_DYNAMIC_CALL_MSG,
-        "Remove the dynamic function call on line ~p. "
-        "Only modules that define callbacks should make dynamic calls.").
--define(USED_IGNORED_VAR_MSG,
-        "Ignored variable is being used on line ~p and "
-        "column ~p.").
+        "Remove the dynamic function call on line ~p. Only modules that "
+        "define callbacks should make dynamic calls.").
+-define(USED_IGNORED_VAR_MSG, "Ignored variable is being used on line ~p and column ~p.").
 -define(NO_BEHAVIOR_INFO,
         "Use the '-callback' attribute instead of 'behavior_info/1' "
         "on line ~p.").
@@ -62,62 +60,67 @@
         "The function ~p does not respect the format defined by the "
         "regular expression '~p'.").
 -define(VARIABLE_NAMING_CONVENTION_MSG,
-        "The variable ~p on line ~p does not respect the format "
-        "defined by the regular expression '~p'.").
+        "The variable ~p on line ~p does not respect the format defined "
+        "by the regular expression '~p'.").
 -define(CONSISTENT_VARIABLE_CASING_MSG,
-        "Variable ~ts (first used in line ~p) is written in different ways within the module: ~p.").
+        "Variable ~ts (first used in line ~p) is written in different "
+        "ways within the module: ~p.").
 -define(MODULE_NAMING_CONVENTION_MSG,
-        "The module ~p does not respect the format defined by the "
-        "regular expression '~p'.").
+        "The module ~p does not respect the format defined by the regular "
+        "expression '~p'.").
 -define(STATE_RECORD_MISSING_MSG,
-        "This module implements an OTP behavior but is missing "
-        "a 'state' record.").
+        "This module implements an OTP behavior but is missing a 'state' "
+        "record.").
 -define(STATE_TYPE_MISSING_MSG,
         "This module implements an OTP behavior and has a 'state' record "
         "but is missing a 'state()' type.").
 -define(NO_SPEC_WITH_RECORDS,
-        "The spec in line ~p uses a record, please define a type for the "
-        "record and use that instead.").
+        "The spec in line ~p uses a record, please define a type for "
+        "the record and use that instead.").
 -define(DONT_REPEAT_YOURSELF,
-        "The code in the following (LINE, COL) locations has "
-        "the same structure: ~s.").
+        "The code in the following (LINE, COL) locations has the same "
+        "structure: ~s.").
 -define(MAX_MODULE_LENGTH,
-        "The code for module ~p has ~p lines which exceeds the "
-        "maximum of ~p.").
+        "The code for module ~p has ~p lines which exceeds the maximum "
+        "of ~p.").
 -define(MAX_FUNCTION_LENGTH,
         "The code for function ~p/~w has ~p lines which exceeds the "
         "maximum of ~p.").
 -define(NO_CALL_MSG, "The call to ~p:~p/~p on line ~p is in the no_call list.").
 -define(NO_DEBUG_CALL_MSG, "Remove the debug call to ~p:~p/~p on line ~p.").
 -define(NO_COMMON_CAVEATS_CALL_MSG,
-        "The call to ~p:~p/~p on line ~p is in the list of "
-        "Erlang Efficiency Guide common caveats.").
+        "The call to ~p:~p/~p on line ~p is in the list of Erlang Efficiency "
+        "Guide common caveats.").
 -define(NO_NESTED_TRY_CATCH, "Nested try...catch block starting at line ~p.").
 -define(NO_SUCCESSIVE_MAPS_MSG,
         "Found map update after map construction/update at line ~p.").
 -define(ATOM_NAMING_CONVENTION_MSG,
-        "Atom ~p on line ~p does not respect the format "
-        "defined by the regular expression '~p'.").
+        "Atom ~p on line ~p does not respect the format defined by the "
+        "regular expression '~p'.").
 -define(NO_THROW_MSG, "Usage of throw/1 on line ~p is not recommended").
 -define(NO_DOLLAR_SPACE_MSG,
-        "'$ ' was found on line ~p. It's use is discouraged. "
-        "Use $\\s, instead.").
+        "'$ ' was found on line ~p. It's use is discouraged. Use $\\s, "
+        "instead.").
 -define(NO_AUTHOR_MSG, "Unnecessary author attribute on line ~p").
 -define(NO_CATCH_EXPRESSIONS_MSG,
         "Usage of catch expression on line ~p is not recommended").
 -define(NUMERIC_FORMAT_MSG,
-        "Number ~p on line ~p does not respect the format "
-        "defined by the regular expression '~p'.").
+        "Number ~p on line ~p does not respect the format defined by "
+        "the regular expression '~p'.").
 -define(BEHAVIOUR_SPELLING,
         "The behavior/behaviour in line ~p is misspelt, please use the "
         "~p spelling.").
 -define(ALWAYS_SHORTCIRCUIT_MSG,
-        "Non-shortcircuiting operator (~p) found in line ~p. "
-        "It's recommended to use ~p, instead.").
+        "Non-shortcircuiting operator (~p) found in line ~p. It's recommended "
+        "to use ~p, instead.").
 -define(CONSISTENT_GENERIC_TYPE,
         "Found usage of type ~p/0 on line ~p. Please use ~p/0, instead.").
 -define(EXPORT_USED_TYPES_MSG,
-        "Type ~p/~p, defined on line ~p, is used by an exported function but not exported itself").
+        "Type ~p/~p, defined on line ~p, is used by an exported function "
+        "but not exported itself").
+-define(PRIVATE_DATA_TYPES_MSG,
+        "Private data type ~p/~p, defined on line ~p, is exported. "
+        "Either don't export it or make it an opaque type.").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
@@ -181,6 +184,8 @@ default(behaviour_spelling) ->
     #{spelling => behaviour};
 default(consistent_generic_type) ->
     #{preferred_type => term};
+default(private_data_types) ->
+    #{applies_to => [record]};
 default(RuleWithEmptyDefault)
     when RuleWithEmptyDefault == macro_module_names;
          RuleWithEmptyDefault == no_macros;
@@ -1069,8 +1074,6 @@ always_shortcircuit(Config, Target, RuleConfig) ->
 export_used_types(Config, Target, RuleConfig) ->
     TreeRootNode = get_root(Config, Target, RuleConfig),
     ExportedFunctions = elvis_code:exported_functions(TreeRootNode),
-    AllTypes =
-        elvis_code:find(fun is_type_attribute/1, TreeRootNode, #{traverse => all, mode => node}),
     ExportedTypes = elvis_code:exported_types(TreeRootNode),
     SpecNodes =
         elvis_code:find(fun is_spec_attribute/1, TreeRootNode, #{traverse => all, mode => node}),
@@ -1091,18 +1094,7 @@ export_used_types(Config, Target, RuleConfig) ->
                           end,
                           ExportedSpecs)),
     UnexportedUsedTypes = lists:subtract(UsedTypes, ExportedTypes),
-
-    % Get line numbers for all types
-    LineNumbers =
-        lists:foldl(fun (#{attrs := #{location := {Line, _}, name := Name},
-                           node_attrs := #{args := Args}},
-                         Acc) ->
-                            maps:put({Name, length(Args)}, Line, Acc);
-                        (_, Acc) ->
-                            Acc
-                    end,
-                    #{},
-                    AllTypes),
+    LineNumbers = get_type_line_numbers(TreeRootNode),
 
     % Report
     lists:map(fun({Name, Arity} = Info) ->
@@ -1111,9 +1103,102 @@ export_used_types(Config, Target, RuleConfig) ->
               end,
               UnexportedUsedTypes).
 
+is_record_type(#{type := type_attr,
+                 node_attrs := #{type := #{attrs := #{name := record}}}}) ->
+    true;
+is_record_type(_Node) ->
+    false.
+
+is_tuple_type(#{type := type_attr,
+                node_attrs := #{type := #{attrs := #{name := tuple}}}}) ->
+    true;
+is_tuple_type(_Node) ->
+    false.
+
+is_map_type(#{type := type_attr, node_attrs := #{type := #{attrs := #{name := map}}}}) ->
+    true;
+is_map_type(_Node) ->
+    false.
+
+-type data_type() :: record | map | tuple.
+-type private_data_type_config() :: #{applies_to => [data_type()]}.
+
+-spec private_data_types(elvis_config:config(),
+                         elvis_file:file(),
+                         private_data_type_config()) ->
+                            [elvis_result:item()].
+private_data_types(Config, Target, RuleConfig) ->
+    TypesToCheck = option(applies_to, RuleConfig, private_data_types),
+    TreeRootNode = get_root(Config, Target, RuleConfig),
+    ExportedTypes = elvis_code:exported_types(TreeRootNode),
+    LineNumbers = get_type_line_numbers(TreeRootNode),
+
+    PublicDataTypes =
+        lists:flatmap(fun(Type) -> public_data_types(Type, TreeRootNode, ExportedTypes) end,
+                      TypesToCheck),
+
+    % Report
+    lists:map(fun({Name, Arity} = Info) ->
+                 Line = maps:get(Info, LineNumbers, unknown),
+                 elvis_result:new(item, ?PRIVATE_DATA_TYPES_MSG, [Name, Arity, Line], Line)
+              end,
+              PublicDataTypes).
+
+public_data_types(Type, TreeRootNode, ExportedTypes) ->
+    FunMap =
+        #{record => fun is_record_type/1,
+          map => fun is_map_type/1,
+          tuple => fun is_tuple_type/1},
+    Fun = maps:get(Type, FunMap),
+    Types =
+        [get_type_declared_name_arity(Node)
+         || Node <- elvis_code:find(Fun, TreeRootNode, #{traverse => all, mode => node})],
+    lists:filter(fun({Name, Arity}) -> lists:member({Name, Arity}, ExportedTypes) end, Types).
+
+% nonprivate_data_types(map, TreeRootNode, ExportedTypes) ->
+%     MapTypes =
+%         [get_type_declared_name_arity(Node)
+%             || Node
+%                 <- elvis_code:find(fun is_map_type/1,
+%                                     TreeRootNode,
+%                                     #{traverse => all, mode => node})],
+%     lists:filter(fun({Name, Arity}) ->
+%         lists:member({Name, Arity}, ExportedTypes)
+%         end,
+%         MapTypes);
+
+% nonprivate_data_types(tuple, TreeRootNode, ExportedTypes) ->
+%     TupleTypes =
+%         [get_type_declared_name_arity(Node)
+%             || Node
+%                 <- elvis_code:find(fun is_tuple_type/1,
+%                                     TreeRootNode,
+%                                     #{traverse => all, mode => node})],
+%     lists:filter(fun({Name, Arity}) ->
+%         lists:member({Name, Arity}, ExportedTypes)
+%         end,
+%         TupleTypes).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+get_type_declared_name_arity(#{attrs := #{name := Name},
+                               node_attrs := #{args := Args}}) ->
+    {Name, length(Args)}.
+
+-spec get_type_line_numbers(ktn_code:tree_node()) -> #{{atom(), number()} => number()}.
+get_type_line_numbers(TreeRootNode) ->
+    AllTypes =
+        elvis_code:find(fun is_type_attribute/1, TreeRootNode, #{traverse => all, mode => node}),
+    lists:foldl(fun (#{attrs := #{location := {Line, _}, name := Name},
+                       node_attrs := #{args := Args}},
+                     Acc) ->
+                        maps:put({Name, length(Args)}, Line, Acc);
+                    (_, Acc) ->
+                        Acc
+                end,
+                #{},
+                AllTypes).
 
 specific_or_default(same, Regex) ->
     Regex;

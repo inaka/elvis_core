@@ -54,6 +54,7 @@ identified with `(since ...)` for convenience purposes.
 - [Used Ignored Variable](doc_rules/elvis_style/used_ignored_variable.md)
 - [Variable Naming Convention](doc_rules/elvis_style/variable_naming_convention.md)
 - [Export Used Types](doc_rules/elvis_style/export_used_types.md)
+- [Private Data Types](doc_rules/elvis_style/private_data_types.md)
 
 ## Project rules
 
