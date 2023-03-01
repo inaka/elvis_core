@@ -9,7 +9,7 @@
          dont_repeat_yourself/3, max_module_length/3, max_anonymous_function_arity/3,
          max_function_arity/3, max_function_length/3, no_call/3, no_debug_call/3,
          no_common_caveats_call/3, no_nested_try_catch/3, no_successive_maps/3,
-         atom_naming_convention/3, no_throw/3, no_dollar_space/3, no_author/3,
+         atom_naming_convention/3, no_throw/3, no_dollar_space/3, no_author/3, no_import/3,
          no_catch_expressions/3, numeric_format/3, behaviour_spelling/3, always_shortcircuit/3,
          consistent_generic_type/3, export_used_types/3, option/3]).
 
@@ -24,7 +24,7 @@
               god_modules_config/0, module_naming_convention_config/0,
               dont_repeat_yourself_config/0, no_call_config/0, no_debug_call_config/0,
               no_common_caveats_call_config/0, atom_naming_convention_config/0, no_author_config/0,
-              no_catch_expressions_config/0, numeric_format_config/0,
+              no_import_config/0, no_catch_expressions_config/0, numeric_format_config/0,
               consistent_variable_casing_config/0]).
 
 -define(INVALID_MACRO_NAME_REGEX_MSG,
@@ -109,6 +109,7 @@
         "'$ ' was found on line ~p. It's use is discouraged. "
         "Use $\\s, instead.").
 -define(NO_AUTHOR_MSG, "Unnecessary author attribute on line ~p").
+-define(NO_IMPORT_MSG, "Usage of import attributes on line ~p is discouraged").
 -define(NO_CATCH_EXPRESSIONS_MSG,
         "Usage of catch expression on line ~p is not recommended").
 -define(NUMERIC_FORMAT_MSG,
@@ -208,6 +209,7 @@ default(RuleWithEmptyDefault)
          RuleWithEmptyDefault == no_throw;
          RuleWithEmptyDefault == no_dollar_space;
          RuleWithEmptyDefault == no_author;
+         RuleWithEmptyDefault == no_import;
          RuleWithEmptyDefault == no_catch_expressions;
          RuleWithEmptyDefault == always_shortcircuit;
          RuleWithEmptyDefault == no_space_after_pound;
@@ -1015,16 +1017,25 @@ no_dollar_space(Config, Target, RuleConfig) ->
 -spec no_author(elvis_config:config(), elvis_file:file(), no_author_config()) ->
                    [elvis_result:item()].
 no_author(Config, Target, RuleConfig) ->
-    Zipper = fun(Node) -> ktn_code:type(Node) =:= author end,
+    no_attribute(author, ?NO_AUTHOR_MSG, Config, Target, RuleConfig).
+
+-type no_import_config() :: #{ignore => [ignorable()]}.
+
+-spec no_import(elvis_config:config(), elvis_file:file(), no_import_config()) ->
+                   [elvis_result:item()].
+no_import(Config, Target, RuleConfig) ->
+    no_attribute(import, ?NO_IMPORT_MSG, Config, Target, RuleConfig).
+
+no_attribute(Attribute, Msg, Config, Target, RuleConfig) ->
+    Zipper = fun(Node) -> ktn_code:type(Node) =:= Attribute end,
     Root = get_root(Config, Target, RuleConfig),
     Opts = #{mode => node, traverse => content},
-    AuthorNodes = elvis_code:find(Zipper, Root, Opts),
-    lists:foldl(fun(AuthorNode, AccIn) ->
-                   {Line, _} = ktn_code:attr(location, AuthorNode),
-                   [elvis_result:new(item, ?NO_AUTHOR_MSG, [Line]) | AccIn]
-                end,
-                [],
-                AuthorNodes).
+    Nodes = elvis_code:find(Zipper, Root, Opts),
+    lists:map(fun(Node) ->
+                 {Line, _} = ktn_code:attr(location, Node),
+                 elvis_result:new(item, Msg, [Line], Line)
+              end,
+              Nodes).
 
 -type no_catch_expressions_config() :: #{ignore => [ignorable()]}.
 
