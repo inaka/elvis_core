@@ -109,7 +109,7 @@
         "'$ ' was found on line ~p. It's use is discouraged. "
         "Use $\\s, instead.").
 -define(NO_AUTHOR_MSG, "Unnecessary author attribute on line ~p").
--define(NO_IMPORT_MSG, "Usage of import attributes on line ~p is discouraged").
+-define(NO_IMPORT_MSG, "Usage of the import attribute, on line ~p, is discouraged").
 -define(NO_CATCH_EXPRESSIONS_MSG,
         "Usage of catch expression on line ~p is not recommended").
 -define(NUMERIC_FORMAT_MSG,
