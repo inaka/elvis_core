@@ -13,17 +13,24 @@ exceed_with_five_levels() ->
         1 -> case 2 of
                  2 -> case 3 of
                           3 -> case 4 of
-                                   4 -> four
-                               end
-                      end
-             end
+                                   4 -> four;
+                                   _ -> other
+                               end;
+                           _ -> other
+                      end;
+                 _ -> other
+             end;
+        _ -> other
     end,
     case 1 of
         1 -> case 2 of
                  2 -> case 3 of
-                          3 -> fourth
-                      end
-             end
+                          3 -> fourth;
+                          _ -> other
+                      end;
+                 _ -> other
+             end;
+        _ -> other
     end.
 
 exceed_at_diff_branches() ->

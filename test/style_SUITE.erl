@@ -24,9 +24,9 @@
          verify_no_call/1, verify_no_nested_try_catch/1, verify_no_successive_maps/1,
          verify_atom_naming_convention/1, verify_no_throw/1, verify_no_dollar_space/1,
          verify_no_author/1, verify_no_import/1, verify_no_catch_expressions/1,
-         verify_numeric_format/1, verify_behaviour_spelling/1, verify_always_shortcircuit/1,
-         verify_consistent_generic_type/1, verify_no_types/1, verify_no_specs/1,
-         verify_export_used_types/1, verify_consistent_variable_casing/1]).
+         verify_no_single_clause_case/1, verify_numeric_format/1, verify_behaviour_spelling/1,
+         verify_always_shortcircuit/1, verify_consistent_generic_type/1, verify_no_types/1,
+         verify_no_specs/1, verify_export_used_types/1, verify_consistent_variable_casing/1]).
 %% -elvis attribute
 -export([verify_elvis_attr_atom_naming_convention/1, verify_elvis_attr_numeric_format/1,
          verify_elvis_attr_dont_repeat_yourself/1, verify_elvis_attr_function_naming_convention/1,
@@ -79,8 +79,9 @@ groups() ->
        verify_no_common_caveats_call, verify_no_call, verify_no_nested_try_catch,
        verify_no_successive_maps, verify_atom_naming_convention, verify_no_throw,
        verify_no_author, verify_no_import, verify_always_shortcircuit,
-       verify_no_catch_expressions, verify_no_macros, verify_export_used_types,
-       verify_max_anonymous_function_arity, verify_max_function_arity]}].
+       verify_no_catch_expressions, verify_no_single_clause_case, verify_no_macros,
+       verify_export_used_types, verify_max_anonymous_function_arity,
+       verify_max_function_arity]}].
 
 -spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
@@ -1392,6 +1393,24 @@ verify_no_catch_expressions(Config) ->
                 [#{info := [18]}, #{info := [18]}, #{info := [7]}] = R;
             erl_files ->
                 [#{info := [24]}, #{info := [22]}, #{info := [7]}] = R
+        end.
+
+-spec verify_no_single_clause_case(config()) -> any().
+verify_no_single_clause_case(Config) ->
+    Group = proplists:get_value(group, Config, erl_files),
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PassPath = "pass_no_single_clause_case." ++ Ext,
+    [] = elvis_core_apply_rule(Config, elvis_style, no_single_clause_case, #{}, PassPath),
+
+    FailPath = "fail_no_single_clause_case." ++ Ext,
+
+    R = elvis_core_apply_rule(Config, elvis_style, no_single_clause_case, #{}, FailPath),
+    _ = case Group of
+            beam_files ->
+                [_, _, _] = R;
+            erl_files ->
+                [#{line_num := 6}, #{line_num := 14}, #{line_num := 16}] = R
         end.
 
 -spec verify_numeric_format(config()) -> any().

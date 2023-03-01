@@ -42,6 +42,7 @@ identified with `(since ...)` for convenience purposes.
 - [No Import](doc_rules/elvis_style/no_import.md)
 - [No Macros](doc_rules/elvis_style/no_macros.md)
 - [No Nested try...catch Blocks](doc_rules/elvis_style/no_nested_try_catch.md)
+- [No Single-Clause Case Statements](doc_rules/elvis_style/no_single_clause_case.md)
 - [No Space after #](doc_rules/elvis_style/no_space_after_pount.md)
 - [No Space](doc_rules/elvis_style/no_space.md)
 - [No Spec With Records](doc_rules/elvis_style/no_spec_with_records.md)
