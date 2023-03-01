@@ -1,5 +1,5 @@
 -module(fail_private_data_types).
-
+-hank ignore.
 -record(my_rec, {a, b, c}).
 
 -type my_rec() :: #my_rec{}.
