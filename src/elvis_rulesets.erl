@@ -36,6 +36,7 @@ rules(hrl_files) ->
                {elvis_style, no_dollar_space},
                {elvis_style, no_author},
                {elvis_style, no_catch_expressions},
+               {elvis_style, no_single_clause_case},
                {elvis_style, numeric_format},
                {elvis_style, no_specs},
                {elvis_style, no_types}]);
@@ -70,6 +71,7 @@ rules(erl_files) ->
                {elvis_style, no_dollar_space},
                {elvis_style, no_author},
                {elvis_style, no_catch_expressions},
+               {elvis_style, no_single_clause_case},
                {elvis_style, numeric_format},
                {elvis_style, behaviour_spelling},
                {elvis_style, export_used_types},
@@ -95,6 +97,7 @@ rules(beam_files) ->
                no_throw,
                no_author,
                no_catch_expressions,
+               no_single_clause_case,
                behaviour_spelling,
                export_used_types,
                max_function_arity,

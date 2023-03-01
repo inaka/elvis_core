@@ -10,8 +10,8 @@
          max_function_arity/3, max_function_length/3, no_call/3, no_debug_call/3,
          no_common_caveats_call/3, no_nested_try_catch/3, no_successive_maps/3,
          atom_naming_convention/3, no_throw/3, no_dollar_space/3, no_author/3,
-         no_catch_expressions/3, numeric_format/3, behaviour_spelling/3, always_shortcircuit/3,
-         consistent_generic_type/3, export_used_types/3, option/3]).
+         no_catch_expressions/3, no_single_clause_case/3, numeric_format/3, behaviour_spelling/3,
+         always_shortcircuit/3, consistent_generic_type/3, export_used_types/3, option/3]).
 
 -export_type([empty_rule_config/0]).
 -export_type([ignorable/0]).
@@ -25,7 +25,7 @@
               dont_repeat_yourself_config/0, no_call_config/0, no_debug_call_config/0,
               no_common_caveats_call_config/0, atom_naming_convention_config/0, no_author_config/0,
               no_catch_expressions_config/0, numeric_format_config/0,
-              consistent_variable_casing_config/0]).
+              no_single_clause_case_config/0, consistent_variable_casing_config/0]).
 
 -define(INVALID_MACRO_NAME_REGEX_MSG,
         "The macro named ~p on line ~p does not respect the format "
@@ -111,6 +111,8 @@
 -define(NO_AUTHOR_MSG, "Unnecessary author attribute on line ~p").
 -define(NO_CATCH_EXPRESSIONS_MSG,
         "Usage of catch expression on line ~p is not recommended").
+-define(NO_SINGLE_CLAUSE_CASE_MSG,
+        "Case statement with a single clause found on line ~p.").
 -define(NUMERIC_FORMAT_MSG,
         "Number ~p on line ~p does not respect the format "
         "defined by the regular expression '~p'.").
@@ -209,6 +211,7 @@ default(RuleWithEmptyDefault)
          RuleWithEmptyDefault == no_dollar_space;
          RuleWithEmptyDefault == no_author;
          RuleWithEmptyDefault == no_catch_expressions;
+         RuleWithEmptyDefault == no_single_clause_case;
          RuleWithEmptyDefault == always_shortcircuit;
          RuleWithEmptyDefault == no_space_after_pound;
          RuleWithEmptyDefault == export_used_types;
@@ -1045,6 +1048,30 @@ no_catch_expressions(Config, Target, RuleConfig) ->
 
 is_catch_node(Node) ->
     ktn_code:type(Node) =:= 'catch'.
+
+-type no_single_clause_case_config() :: #{ignore => [ignorable()]}.
+
+-spec no_single_clause_case(elvis_config:config(),
+                            elvis_file:file(),
+                            no_single_clause_case_config()) ->
+                               [elvis_result:item()].
+no_single_clause_case(Config, Target, RuleConfig) ->
+    Root = get_root(Config, Target, RuleConfig),
+    Opts = #{mode => node, traverse => content},
+    CaseNodes = elvis_code:find(fun is_single_clause_case_statement/1, Root, Opts),
+    lists:map(fun(CaseNode) ->
+                 {Line, _Col} = ktn_code:attr(location, CaseNode),
+                 elvis_result:new(item, ?NO_SINGLE_CLAUSE_CASE_MSG, [Line], Line)
+              end,
+              CaseNodes).
+
+is_single_clause_case_statement(Node) ->
+    ktn_code:type(Node) == 'case'
+    andalso length([Clause
+                    || SubNode <- ktn_code:content(Node),
+                       ktn_code:type(SubNode) == case_clauses,
+                       Clause <- ktn_code:content(SubNode)])
+            == 1.
 
 -type numeric_format_config() ::
     #{ignore => [ignorable()],

@@ -13,6 +13,8 @@
 use_ignored_var(_One, Two) ->
     Three = _One + Two,
     case Three of
+        3 ->
+            three;
         _Four ->
             _Four
     end.
