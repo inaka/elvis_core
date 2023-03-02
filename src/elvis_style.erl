@@ -26,7 +26,8 @@
               dont_repeat_yourself_config/0, no_call_config/0, no_debug_call_config/0,
               no_common_caveats_call_config/0, atom_naming_convention_config/0, no_author_config/0,
               no_import_config/0, no_catch_expressions_config/0, numeric_format_config/0,
-              no_single_clause_case_config/0, consistent_variable_casing_config/0]).
+              no_single_clause_case_config/0, consistent_variable_casing_config/0,
+              private_data_type_config/0]).
 
 -define(INVALID_MACRO_NAME_REGEX_MSG,
         "The macro named ~p on line ~p does not respect the format defined "
