@@ -12,7 +12,7 @@
          atom_naming_convention/3, no_throw/3, no_dollar_space/3, no_author/3, no_import/3,
          no_catch_expressions/3, no_single_clause_case/3, numeric_format/3, behaviour_spelling/3,
          always_shortcircuit/3, consistent_generic_type/3, export_used_types/3,
-         private_data_types/3, option/3]).
+         no_match_in_condition/3, param_pattern_matching/3, private_data_types/3, option/3]).
 
 -export_type([empty_rule_config/0]).
 -export_type([ignorable/0]).
@@ -27,7 +27,8 @@
               no_common_caveats_call_config/0, atom_naming_convention_config/0, no_author_config/0,
               no_import_config/0, no_catch_expressions_config/0, numeric_format_config/0,
               no_single_clause_case_config/0, consistent_variable_casing_config/0,
-              private_data_type_config/0]).
+              no_match_in_condition_config/0, behaviour_spelling_config/0,
+              param_pattern_matching_config/0, private_data_type_config/0]).
 
 -define(INVALID_MACRO_NAME_REGEX_MSG,
         "The macro named ~p on line ~p does not respect the format defined "
@@ -115,12 +116,17 @@
         "Usage of catch expression on line ~p is not recommended").
 -define(NO_SINGLE_CLAUSE_CASE_MSG,
         "Case statement with a single clause found on line ~p.").
+-define(NO_MATCH_IN_CONDITION_MSG,
+        "Case statement with a match in its condition found on line ~p.").
 -define(NUMERIC_FORMAT_MSG,
-        "Number ~p on line ~p does not respect the format defined by "
-        "the regular expression '~p'.").
--define(BEHAVIOUR_SPELLING,
+        "Number ~p on line ~p does not respect the format "
+        "defined by the regular expression '~p'.").
+-define(BEHAVIOUR_SPELLING_MSG,
         "The behavior/behaviour in line ~p is misspelt, please use the "
         "~p spelling.").
+-define(PARAM_PATTERN_MATCHING_MSG,
+        "Variable ~ts, used to match a parameter in line ~p, is placed on "
+        "the wrong side of the match. It was expected on the ~p side.").
 -define(ALWAYS_SHORTCIRCUIT_MSG,
         "Non-shortcircuiting operator (~p) found in line ~p. It's recommended "
         "to use ~p, instead.").
@@ -197,6 +203,8 @@ default(numeric_format) ->
       float_regex => same};
 default(behaviour_spelling) ->
     #{spelling => behaviour};
+default(param_pattern_matching) ->
+    #{side => right};
 default(consistent_generic_type) ->
     #{preferred_type => term};
 default(private_data_types) ->
@@ -221,6 +229,7 @@ default(RuleWithEmptyDefault)
          RuleWithEmptyDefault == no_import;
          RuleWithEmptyDefault == no_catch_expressions;
          RuleWithEmptyDefault == no_single_clause_case;
+         RuleWithEmptyDefault == no_match_in_condition;
          RuleWithEmptyDefault == always_shortcircuit;
          RuleWithEmptyDefault == no_space_after_pound;
          RuleWithEmptyDefault == export_used_types;
@@ -395,7 +404,8 @@ no_macros(ElvisConfig, RuleTarget, RuleConfig) ->
     lists:foldl(fun(MacroNode, Acc) ->
                    Macro = list_to_atom(ktn_code:attr(name, MacroNode)),
                    case lists:member(Macro, AllowedMacros) of
-                       true -> Acc;
+                       true ->
+                           Acc;
                        false ->
                            {Line, _Col} = ktn_code:attr(location, MacroNode),
                            [elvis_result:new(item, ?NO_MACROS_MSG, [Macro, Line], Line) | Acc]
@@ -647,7 +657,8 @@ no_behavior_info(Config, Target, RuleConfig) ->
                function ->
                    Name = ktn_code:attr(name, Node),
                    lists:member(Name, [behavior_info, behaviour_info]);
-               _ -> false
+               _ ->
+                   false
            end
         end,
 
@@ -814,7 +825,8 @@ max_anonymous_function_arity(Config, Target, RuleConfig) ->
     lists:filtermap(fun(Fun) ->
                        [FirstClause | _] = elvis_code:find(IsClause, Fun),
                        case length(ktn_code:node_attr(pattern, FirstClause)) of
-                           Arity when Arity =< MaxArity -> false;
+                           Arity when Arity =< MaxArity ->
+                               false;
                            Arity ->
                                {Line, _} = ktn_code:attr(location, Fun),
                                Info = [Line, Arity, MaxArity],
@@ -840,7 +852,8 @@ max_function_arity(Config, Target, RuleConfig) ->
     Functions = elvis_code:find(IsFunction, Root),
     lists:filtermap(fun(Function) ->
                        case ktn_code:attr(arity, Function) of
-                           Arity when Arity =< MaxArity -> false;
+                           Arity when Arity =< MaxArity ->
+                               false;
                            Arity ->
                                Name = ktn_code:attr(name, Function),
                                {Line, _} = ktn_code:attr(location, Function),
@@ -995,8 +1008,7 @@ no_throw(Config, Target, RuleConfig) ->
         fun(Node) -> lists:any(fun(T) -> is_call(Node, T) end, [{throw, 1}, {erlang, throw, 1}])
         end,
     Root = get_root(Config, Target, RuleConfig),
-    Opts = #{mode => node, traverse => content},
-    ThrowNodes = elvis_code:find(Zipper, Root, Opts),
+    ThrowNodes = elvis_code:find(Zipper, Root),
     lists:foldl(fun(ThrowNode, AccIn) ->
                    {Line, _} = ktn_code:attr(location, ThrowNode),
                    [elvis_result:new(item, ?NO_THROW_MSG, [Line]) | AccIn]
@@ -1035,8 +1047,7 @@ no_import(Config, Target, RuleConfig) ->
 no_attribute(Attribute, Msg, Config, Target, RuleConfig) ->
     Zipper = fun(Node) -> ktn_code:type(Node) =:= Attribute end,
     Root = get_root(Config, Target, RuleConfig),
-    Opts = #{mode => node, traverse => content},
-    Nodes = elvis_code:find(Zipper, Root, Opts),
+    Nodes = elvis_code:find(Zipper, Root),
     lists:map(fun(Node) ->
                  {Line, _} = ktn_code:attr(location, Node),
                  elvis_result:new(item, Msg, [Line], Line)
@@ -1051,8 +1062,7 @@ no_attribute(Attribute, Msg, Config, Target, RuleConfig) ->
                               [elvis_result:item()].
 no_catch_expressions(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    Opts = #{mode => node, traverse => content},
-    CatchNodes = elvis_code:find(fun is_catch_node/1, Root, Opts),
+    CatchNodes = elvis_code:find(fun is_catch_node/1, Root),
     lists:foldl(fun(CatchNode, Acc) ->
                    {Line, _Col} = ktn_code:attr(location, CatchNode),
                    [elvis_result:new(item, ?NO_CATCH_EXPRESSIONS_MSG, [Line]) | Acc]
@@ -1071,8 +1081,7 @@ is_catch_node(Node) ->
                                [elvis_result:item()].
 no_single_clause_case(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    Opts = #{mode => node, traverse => content},
-    CaseNodes = elvis_code:find(fun is_single_clause_case_statement/1, Root, Opts),
+    CaseNodes = elvis_code:find(fun is_single_clause_case_statement/1, Root),
     lists:map(fun(CaseNode) ->
                  {Line, _Col} = ktn_code:attr(location, CaseNode),
                  elvis_result:new(item, ?NO_SINGLE_CLAUSE_CASE_MSG, [Line], Line)
@@ -1086,6 +1095,27 @@ is_single_clause_case_statement(Node) ->
                        ktn_code:type(SubNode) == case_clauses,
                        Clause <- ktn_code:content(SubNode)])
             == 1.
+
+-type no_match_in_condition_config() :: #{ignore => [ignorable()]}.
+
+-spec no_match_in_condition(elvis_config:config(),
+                            elvis_file:file(),
+                            no_match_in_condition_config()) ->
+                               [elvis_result:item()].
+no_match_in_condition(Config, Target, RuleConfig) ->
+    Root = get_root(Config, Target, RuleConfig),
+    CaseNodes = elvis_code:find(fun is_match_in_condition/1, Root),
+    lists:map(fun(CaseNode) ->
+                 {Line, _Col} = ktn_code:attr(location, CaseNode),
+                 elvis_result:new(item, ?NO_MATCH_IN_CONDITION_MSG, [Line], Line)
+              end,
+              CaseNodes).
+
+is_match_in_condition(Node) ->
+    ktn_code:type(Node) == case_expr andalso [] =/= elvis_code:find(fun is_match/1, Node).
+
+is_match(Node) ->
+    ktn_code:type(Node) == match orelse ktn_code:type(Node) == maybe_match.
 
 -type numeric_format_config() ::
     #{ignore => [ignorable()],
@@ -1106,7 +1136,12 @@ numeric_format(Config, Target, RuleConfig) ->
                          IntNodes,
                          check_numeric_format(FloatRegex, FloatNodes, [])).
 
--spec behaviour_spelling(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
+-type behaviour_spelling_config() ::
+    #{ignore => [ignorable()], spelling => behaviour | behavior}.
+
+-spec behaviour_spelling(elvis_config:config(),
+                         elvis_file:file(),
+                         behaviour_spelling_config()) ->
                             [elvis_result:item()].
 behaviour_spelling(Config, Target, RuleConfig) ->
     Spelling = option(spelling, RuleConfig, behaviour_spelling),
@@ -1124,10 +1159,67 @@ behaviour_spelling(Config, Target, RuleConfig) ->
                 fun(Node) ->
                    {Line, _} = ktn_code:attr(location, Node),
                    Info = [Line, Spelling],
-                   elvis_result:new(item, ?BEHAVIOUR_SPELLING, Info, Line)
+                   elvis_result:new(item, ?BEHAVIOUR_SPELLING_MSG, Info, Line)
                 end,
             lists:map(ResultFun, InconsistentBehaviorNodes)
     end.
+
+-type param_pattern_matching_config() :: #{ignore => [ignorable()], side => left | right}.
+
+-spec param_pattern_matching(elvis_config:config(),
+                             elvis_file:file(),
+                             param_pattern_matching_config()) ->
+                                [elvis_result:item()].
+param_pattern_matching(Config, Target, RuleConfig) ->
+    Side = option(side, RuleConfig, param_pattern_matching),
+    Root = get_root(Config, Target, RuleConfig),
+
+    FunctionClausePatterns =
+        lists:flatmap(fun(Clause) -> ktn_code:node_attr(pattern, Clause) end,
+                      elvis_code:find(fun is_function_clause/1,
+                                      Root,
+                                      #{mode => zipper, traverse => all})),
+
+    MatchesInFunctionClauses =
+        lists:filter(fun(Pattern) -> ktn_code:type(Pattern) == match end, FunctionClausePatterns),
+
+    lists:filtermap(fun(Match) ->
+                       case lists:map(fun ktn_code:type/1, ktn_code:content(Match)) of
+                           [var, var] ->
+                               false;
+                           [var, _] when Side == right ->
+                               {Line, _} = ktn_code:attr(location, Match),
+                               [Var, _] = ktn_code:content(Match),
+                               VarName = ktn_code:attr(name, Var),
+                               Info = [VarName, Line, Side],
+                               {true,
+                                elvis_result:new(item, ?PARAM_PATTERN_MATCHING_MSG, Info, Line)};
+                           [_, var] when Side == left ->
+                               {Line, _} = ktn_code:attr(location, Match),
+                               [_, Var] = ktn_code:content(Match),
+                               VarName = ktn_code:attr(name, Var),
+                               Info = [VarName, Line, Side],
+                               {true,
+                                elvis_result:new(item, ?PARAM_PATTERN_MATCHING_MSG, Info, Line)};
+                           _ ->
+                               false
+                       end
+                    end,
+                    MatchesInFunctionClauses).
+
+is_function_clause(Zipper) ->
+    is_clause(Zipper) andalso is_function_or_fun(zipper:up(Zipper)).
+
+is_clause(Zipper) ->
+    ktn_code:type(
+        zipper:node(Zipper))
+    == clause.
+
+is_function_or_fun(Zipper) ->
+    lists:member(
+        ktn_code:type(
+            zipper:node(Zipper)),
+        [function, 'fun']).
 
 -spec consistent_generic_type(elvis_config:config(),
                               elvis_file:file(),
@@ -1333,7 +1425,9 @@ check_atom_names(Regex, RegexEnclosed, [AtomNode | RemainingAtomNodes], AccIn) -
     IsExceptionClass = is_exception_class(ValueAtomName),
     RE = re_compile_for_atom_type(IsEnclosed, Regex, RegexEnclosed),
     AccOut =
-        case re:run(_Subject = unicode:characters_to_list(AtomName, unicode), RE) of
+        case re:run(
+                 unicode:characters_to_list(AtomName, unicode), RE)
+        of
             _ when IsExceptionClass andalso not IsEnclosed ->
                 AccIn;
             nomatch when not IsEnclosed ->
@@ -1437,7 +1531,7 @@ check_macro_names(Regexp, [MacroNode | RemainingMacroNodes], ResultsIn) ->
     {MacroNameStripped0, MacroNameOriginal} = macro_name_from_node(MacroNode),
     MacroNameStripped = unicode:characters_to_list(MacroNameStripped0, unicode),
     ResultsOut =
-        case re:run(_Subject = MacroNameStripped, RE) of
+        case re:run(MacroNameStripped, RE) of
             nomatch ->
                 Msg = ?INVALID_MACRO_NAME_REGEX_MSG,
                 {Line, _} = ktn_code:attr(location, MacroNode),
@@ -1495,8 +1589,10 @@ check_spaces(Lines, UnfilteredNodes, {Position, Text}, Encoding, {How0, _} = How
         fun(Node) ->
            Location = ktn_code:attr(location, Node),
            case character_at_location(Position, Lines, Text, Location, Encoding, How) of
-               Char when Char =:= SpaceChar andalso How0 =:= should_have -> [];
-               Char when Char =/= SpaceChar andalso How0 =:= should_not_have -> [];
+               Char when Char =:= SpaceChar andalso How0 =:= should_have ->
+                   [];
+               Char when Char =/= SpaceChar andalso How0 =:= should_not_have ->
+                   [];
                _ when How0 =:= should_have ->
                    Msg = ?MISSING_SPACE_MSG,
                    {Line, _Col} = Location,
@@ -1669,6 +1765,8 @@ check_parent_match(Zipper) ->
             case ktn_code:type(Parent) of
                 match ->
                     zipper:down(ParentZipper) == Zipper;
+                maybe_match ->
+                    zipper:down(ParentZipper) == Zipper;
                 _ ->
                     check_parent_match(ParentZipper)
             end
@@ -1735,7 +1833,8 @@ find_repeated_nodes(Root, MinComplexity) ->
                    ValsSet = maps:get(StrippedNode, Map, sets:new()),
                    NewValsSet = sets:add_element(Loc, ValsSet),
                    maps:put(StrippedNode, NewValsSet, Map);
-               _ -> Map
+               _ ->
+                   Map
            end
         end,
     ZipperRoot = elvis_code:code_zipper(Root),

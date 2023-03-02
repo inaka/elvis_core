@@ -2,7 +2,7 @@
 
 -dialyzer({nowarn_function, bad2/0}).
 
--ignore_xref([{maybe, throw, 1}]).
+-ignore_xref([{it_may, throw, 1}]).
 -ignore_xref([{a_function, that_deals, 2}]).
 
 -export([
@@ -15,9 +15,9 @@
 -elvis([{elvis_style, no_nested_try_catch, disable}]).
 bad1() ->
   try
-    maybe:throw(exception1),
+    it_may:throw(exception1),
     try
-      maybe:throw(exception2),
+      it_may:throw(exception2),
       "We are safe!"
     catch
       _:exception2 ->
@@ -30,16 +30,16 @@ bad1() ->
 
 bad2() ->
   try
-    maybe:throw(exception1),
+    it_may:throw(exception1),
     try
-      maybe:throw(exception2),
+      it_may:throw(exception2),
       "We are safe!"
     catch
       _:exception2 ->
         "Oh, no! Exception #2"
     end,
     try
-      maybe:throw(exception3),
+      it_may:throw(exception3),
       "We are safe!"
     catch
       _:exception3 ->
@@ -52,8 +52,8 @@ bad2() ->
 
 good1() ->
   try
-    maybe:throw(exception1),
-    maybe:throw(exception2),
+    it_may:throw(exception1),
+    it_may:throw(exception2),
     "We are safe!"
   catch
     _:exception1 ->
@@ -64,7 +64,7 @@ good1() ->
 
 good2() ->
   try
-    maybe:throw(exception1),
+    it_may:throw(exception1),
     a_function:that_deals(with, exception2),
     "We are safe!"
   catch

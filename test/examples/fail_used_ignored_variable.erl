@@ -8,6 +8,19 @@
 
 -elvis([{elvis_style, no_macros, #{allow => ['__']}}]).
 
+-if(?OTP_RELEASE >= 25).
+
+-export([no_used_ignored_vars_in_maybe/2]).
+
+no_used_ignored_vars_in_maybe(One, _Two) ->
+    maybe
+        _ ?= do:something(One),
+        {ok, _Foo} ?= no:used_ignored_vars(here),
+        One
+    end.
+
+-endif.
+
 use_ignored_var(_One, Two) ->
     Three = _One + Two,
     case Three of

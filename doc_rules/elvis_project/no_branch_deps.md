@@ -5,7 +5,7 @@
 Don't use branches (i.e. `{branch, "my-branch"}`) for deps in `rebar.config` files.
 Prefer `tag` or `ref` instead.
 
-## Config
+## Options
 
 - None.
 

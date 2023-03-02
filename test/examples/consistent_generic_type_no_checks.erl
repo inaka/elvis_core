@@ -13,11 +13,11 @@
 
 
 % A function called any
--spec any() -> any.
+-spec any() -> term(any).
 any() -> any.
 
 % A function called term
--spec term() -> term.
+-spec term() -> any(term).
 term() -> term.
 
 
