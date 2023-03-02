@@ -76,7 +76,7 @@ content_zipper(Root) ->
 -spec all_zipper(ktn_code:tree_node()) -> zipper:zipper(_).
 all_zipper(Root) ->
     IsBranch =
-        fun(Node = #{}) -> ktn_code:content(Node) =/= [] orelse maps:is_key(node_attrs, Node) end,
+        fun(#{} = Node) -> ktn_code:content(Node) =/= [] orelse maps:is_key(node_attrs, Node) end,
     Children =
         fun (#{content := Content, node_attrs := NodeAttrs}) ->
                 Content
@@ -124,7 +124,7 @@ find_by_location(Root, Location) ->
             {ok, Node}
     end.
 
-is_at_location(Node = #{attrs := #{location := {Line, NodeCol}}}, {Line, Column}) ->
+is_at_location(#{attrs := #{location := {Line, NodeCol}}} = Node, {Line, Column}) ->
     Text = ktn_code:attr(text, Node),
     Length = length(Text),
     NodeCol =< Column andalso Column < NodeCol + Length;
@@ -168,7 +168,7 @@ print_node(Node) ->
     print_node(Node, 0).
 
 -spec print_node(ktn_code:tree_node(), integer()) -> ok.
-print_node(Node = #{type := Type}, CurrentLevel) ->
+print_node(#{type := Type} = Node, CurrentLevel) ->
     Type = ktn_code:type(Node),
     Indentation = lists:duplicate(CurrentLevel * 4, $\s),
     Content = ktn_code:content(Node),
@@ -230,19 +230,19 @@ level_increment(#{type := Type}) ->
 %% @doc Returns an anonymous Fun to be flatmapped over node content, as
 %% appropriate for the exported function whose name is the argument given.
 make_extractor_fun(exported_functions) ->
-    fun (Node = #{type := export}) ->
+    fun (#{type := export} = Node) ->
             ktn_code:attr(value, Node);
         (_) ->
             []
     end;
 make_extractor_fun(exported_types) ->
-    fun (Node = #{type := export_type}) ->
+    fun (#{type := export_type} = Node) ->
             ktn_code:attr(value, Node);
         (_) ->
             []
     end;
 make_extractor_fun(function_names) ->
-    fun (Node = #{type := function}) ->
+    fun (#{type := function} = Node) ->
             [ktn_code:attr(name, Node)];
         (_) ->
             []

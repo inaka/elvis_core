@@ -62,7 +62,7 @@ context(List, CtxCount) ->
 
 context([], _Past, _CtxCount, Results) ->
     lists:reverse(Results);
-context([Current | Future], Past, CtxCount = {PrevCount, NextCount}, Results) ->
+context([Current | Future], Past, {PrevCount, NextCount} = CtxCount, Results) ->
     Prev = lists:sublist(Past, PrevCount),
     Next = lists:sublist(Future, NextCount),
     Item = {Current, lists:reverse(Prev), Next},

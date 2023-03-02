@@ -12,7 +12,7 @@
          atom_naming_convention/3, no_throw/3, no_dollar_space/3, no_author/3, no_import/3,
          no_catch_expressions/3, no_single_clause_case/3, numeric_format/3, behaviour_spelling/3,
          always_shortcircuit/3, consistent_generic_type/3, export_used_types/3,
-         no_match_in_condition/3, option/3]).
+         no_match_in_condition/3, param_pattern_matching/3, option/3]).
 
 -export_type([empty_rule_config/0]).
 -export_type([ignorable/0]).
@@ -27,7 +27,8 @@
               no_common_caveats_call_config/0, atom_naming_convention_config/0, no_author_config/0,
               no_import_config/0, no_catch_expressions_config/0, numeric_format_config/0,
               no_single_clause_case_config/0, consistent_variable_casing_config/0,
-              no_match_in_condition_config/0]).
+              no_match_in_condition_config/0, behaviour_spelling_config/0,
+              param_pattern_matching_config/0]).
 
 -define(INVALID_MACRO_NAME_REGEX_MSG,
         "The macro named ~p on line ~p does not respect the format "
@@ -121,9 +122,12 @@
 -define(NUMERIC_FORMAT_MSG,
         "Number ~p on line ~p does not respect the format "
         "defined by the regular expression '~p'.").
--define(BEHAVIOUR_SPELLING,
+-define(BEHAVIOUR_SPELLING_MSG,
         "The behavior/behaviour in line ~p is misspelt, please use the "
         "~p spelling.").
+-define(PARAM_PATTERN_MATCHING_MSG,
+        "Variable ~ts, used to match a parameter in line ~p, is placed on "
+        "the wrong side of the match. It was expected on the ~p side.").
 -define(ALWAYS_SHORTCIRCUIT_MSG,
         "Non-shortcircuiting operator (~p) found in line ~p. "
         "It's recommended to use ~p, instead.").
@@ -196,6 +200,8 @@ default(numeric_format) ->
       float_regex => same};
 default(behaviour_spelling) ->
     #{spelling => behaviour};
+default(param_pattern_matching) ->
+    #{side => right};
 default(consistent_generic_type) ->
     #{preferred_type => term};
 default(RuleWithEmptyDefault)
@@ -1125,7 +1131,12 @@ numeric_format(Config, Target, RuleConfig) ->
                          IntNodes,
                          check_numeric_format(FloatRegex, FloatNodes, [])).
 
--spec behaviour_spelling(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
+-type behaviour_spelling_config() ::
+    #{ignore => [ignorable()], spelling => behaviour | behavior}.
+
+-spec behaviour_spelling(elvis_config:config(),
+                         elvis_file:file(),
+                         behaviour_spelling_config()) ->
                             [elvis_result:item()].
 behaviour_spelling(Config, Target, RuleConfig) ->
     Spelling = option(spelling, RuleConfig, behaviour_spelling),
@@ -1143,10 +1154,67 @@ behaviour_spelling(Config, Target, RuleConfig) ->
                 fun(Node) ->
                    {Line, _} = ktn_code:attr(location, Node),
                    Info = [Line, Spelling],
-                   elvis_result:new(item, ?BEHAVIOUR_SPELLING, Info, Line)
+                   elvis_result:new(item, ?BEHAVIOUR_SPELLING_MSG, Info, Line)
                 end,
             lists:map(ResultFun, InconsistentBehaviorNodes)
     end.
+
+-type param_pattern_matching_config() :: #{ignore => [ignorable()], side => left | right}.
+
+-spec param_pattern_matching(elvis_config:config(),
+                             elvis_file:file(),
+                             param_pattern_matching_config()) ->
+                                [elvis_result:item()].
+param_pattern_matching(Config, Target, RuleConfig) ->
+    Side = option(side, RuleConfig, param_pattern_matching),
+    Root = get_root(Config, Target, RuleConfig),
+
+    FunctionClausePatterns =
+        lists:flatmap(fun(Clause) -> ktn_code:node_attr(pattern, Clause) end,
+                      elvis_code:find(fun is_function_clause/1,
+                                      Root,
+                                      #{mode => zipper, traverse => all})),
+
+    MatchesInFunctionClauses =
+        lists:filter(fun(Pattern) -> ktn_code:type(Pattern) == match end, FunctionClausePatterns),
+
+    lists:filtermap(fun(Match) ->
+                       case lists:map(fun ktn_code:type/1, ktn_code:content(Match)) of
+                           [var, var] ->
+                               false;
+                           [var, _] when Side == right ->
+                               {Line, _} = ktn_code:attr(location, Match),
+                               [Var, _] = ktn_code:content(Match),
+                               VarName = ktn_code:attr(name, Var),
+                               Info = [VarName, Line, Side],
+                               {true,
+                                elvis_result:new(item, ?PARAM_PATTERN_MATCHING_MSG, Info, Line)};
+                           [_, var] when Side == left ->
+                               {Line, _} = ktn_code:attr(location, Match),
+                               [_, Var] = ktn_code:content(Match),
+                               VarName = ktn_code:attr(name, Var),
+                               Info = [VarName, Line, Side],
+                               {true,
+                                elvis_result:new(item, ?PARAM_PATTERN_MATCHING_MSG, Info, Line)};
+                           _ ->
+                               false
+                       end
+                    end,
+                    MatchesInFunctionClauses).
+
+is_function_clause(Zipper) ->
+    is_clause(Zipper) andalso is_function_or_fun(zipper:up(Zipper)).
+
+is_clause(Zipper) ->
+    ktn_code:type(
+        zipper:node(Zipper))
+    == clause.
+
+is_function_or_fun(Zipper) ->
+    lists:member(
+        ktn_code:type(
+            zipper:node(Zipper)),
+        [function, 'fun']).
 
 -spec consistent_generic_type(elvis_config:config(),
                               elvis_file:file(),

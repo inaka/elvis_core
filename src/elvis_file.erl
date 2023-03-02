@@ -16,11 +16,11 @@
 
 %% @doc Returns a tuple with the contents of the file and the file itself.
 -spec src(file()) -> {binary(), file()} | {error, enoent}.
-src(File = #{content := Content, encoding := _}) ->
+src(#{content := Content, encoding := _} = File) ->
     {Content, File};
-src(File = #{content := Content}) ->
+src(#{content := Content} = File) ->
     {Content, File#{encoding => find_encoding(Content)}};
-src(File = #{path := Path}) ->
+src(#{path := Path} = File) ->
     case file:read_file(Path) of
         {ok, Content} ->
             Encoding = find_encoding(Content),
@@ -49,11 +49,11 @@ parse_tree(Config, Target) ->
                  file(),
                  elvis_core:rule_config()) ->
                     {ktn_code:tree_node(), file()}.
-parse_tree(_Config, File = #{parse_tree := ParseTree0}, RuleConfig) ->
+parse_tree(_Config, #{parse_tree := ParseTree0} = File, RuleConfig) ->
     Ignore = maps:get(ignore, RuleConfig, []),
     Mod = module(File),
     {filter_tree_for(ParseTree0, Mod, Ignore), File};
-parse_tree(Config, File = #{path := Path, content := Content}, RuleConfig) ->
+parse_tree(Config, #{path := Path, content := Content} = File, RuleConfig) ->
     Ext = filename:extension(Path),
     ExtStr = elvis_utils:to_str(Ext),
     Mod = module(File),
@@ -61,7 +61,7 @@ parse_tree(Config, File = #{path := Path, content := Content}, RuleConfig) ->
     ParseTree = resolve_parse_tree(ExtStr, Content, Mod, Ignore),
     File1 = maybe_add_abstract_parse_tree(Config, File, Mod, Ignore),
     parse_tree(Config, File1#{parse_tree => ParseTree}, RuleConfig);
-parse_tree(Config, File0 = #{path := _Path}, RuleConfig) ->
+parse_tree(Config, #{path := _Path} = File0, RuleConfig) ->
     {_, File} = src(File0),
     parse_tree(Config, File, RuleConfig);
 parse_tree(_Config, File, _RuleConfig) ->
@@ -69,7 +69,7 @@ parse_tree(_Config, File, _RuleConfig) ->
 
 %% @doc Loads and adds all related file data.
 -spec load_file_data(elvis_config:configs() | elvis_config:config(), file()) -> file().
-load_file_data(Config, File0 = #{path := _Path}) ->
+load_file_data(Config, #{path := _Path} = File0) ->
     {_, File1} = src(File0),
     {_, File2} = parse_tree(Config, File1),
     File2.
@@ -87,14 +87,13 @@ find_files(Dirs, Pattern) ->
             <- lists:usort(
                    lists:flatmap(Fun, Dirs))].
 
-dir_to(Filter, _Dir = ".") ->
+dir_to(Filter, ".") ->
     Filter;
 dir_to(Filter, Dir) ->
     filename:join(Dir, Filter).
 
 file_in(ExpandedFilter, Files) ->
-    lists:filter(fun(_File = #{path := Path}) -> lists:member(Path, ExpandedFilter) end,
-                 Files).
+    lists:filter(fun(#{path := Path}) -> lists:member(Path, ExpandedFilter) end, Files).
 
 %% @doc Filter files based on the glob provided.
 -spec filter_files([file()], [string()], string(), [string()]) -> [file()].
@@ -162,7 +161,7 @@ find_encoding(Content) ->
          Ignore :: [elvis_style:ignorable()],
          Res :: file().
 maybe_add_abstract_parse_tree(#{ruleset := beam_files},
-                              File = #{path := Path},
+                              #{path := Path} = File,
                               Mod,
                               Ignore) ->
     AbstractParseTree = get_abstract_parse_tree(Path, Mod, Ignore),
