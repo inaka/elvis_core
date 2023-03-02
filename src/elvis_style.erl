@@ -1611,6 +1611,8 @@ check_parent_match(Zipper) ->
             case ktn_code:type(Parent) of
                 match ->
                     zipper:down(ParentZipper) == Zipper;
+                maybe_match ->
+                    zipper:down(ParentZipper) == Zipper;
                 _ ->
                     check_parent_match(ParentZipper)
             end
