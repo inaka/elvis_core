@@ -1295,7 +1295,7 @@ check_atom_names(Regex, RegexEnclosed, [AtomNode | RemainingAtomNodes], AccIn) -
     IsExceptionClass = is_exception_class(ValueAtomName),
     RE = re_compile_for_atom_type(IsEnclosed, Regex, RegexEnclosed),
     AccOut =
-        case re:run(_Subject = unicode:characters_to_list(AtomName, unicode), RE) of
+        case re:run(unicode:characters_to_list(AtomName, unicode), RE) of
             _ when IsExceptionClass andalso not IsEnclosed ->
                 AccIn;
             nomatch when not IsEnclosed ->
@@ -1399,7 +1399,7 @@ check_macro_names(Regexp, [MacroNode | RemainingMacroNodes], ResultsIn) ->
     {MacroNameStripped0, MacroNameOriginal} = macro_name_from_node(MacroNode),
     MacroNameStripped = unicode:characters_to_list(MacroNameStripped0, unicode),
     ResultsOut =
-        case re:run(_Subject = MacroNameStripped, RE) of
+        case re:run(MacroNameStripped, RE) of
             nomatch ->
                 Msg = ?INVALID_MACRO_NAME_REGEX_MSG,
                 {Line, _} = ktn_code:attr(location, MacroNode),
