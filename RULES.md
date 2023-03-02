@@ -55,6 +55,7 @@ identified with `(since ...)` for convenience purposes.
 - [No Types](doc_rules/elvis_style/no_types.md)
 - [Numeric Format](doc_rules/elvis_style/numeric_format.md)
 - [Operator Spaces](doc_rules/elvis_style/operator_spaces.md)
+- [Param Pattern Matching](doc_rules/elvis_style/param_pattern_matching.md)
 - [State Record and Type](doc_rules/elvis_style/state_record_and_type.md)
 - [Used Ignored Variable](doc_rules/elvis_style/used_ignored_variable.md)
 - [Variable Naming Convention](doc_rules/elvis_style/variable_naming_convention.md)

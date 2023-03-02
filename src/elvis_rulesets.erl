@@ -80,7 +80,8 @@ rules(erl_files) ->
                {elvis_style, behaviour_spelling},
                {elvis_style, export_used_types},
                {elvis_style, max_function_arity},
-               {elvis_style, max_anonymous_function_arity}]);
+               {elvis_style, max_anonymous_function_arity},
+               {elvis_style, param_pattern_matching}]);
 rules(beam_files) ->
     lists:map(fun(Rule) -> {elvis_style, Rule, elvis_style:default(Rule)} end,
               [nesting_level,
@@ -107,7 +108,8 @@ rules(beam_files) ->
                behaviour_spelling,
                export_used_types,
                max_function_arity,
-               max_anonymous_function_arity]);
+               max_anonymous_function_arity,
+               param_pattern_matching]);
 rules(rebar_config) ->
     lists:map(fun(Rule) -> {elvis_project, Rule, elvis_project:default(Rule)} end,
               [no_branch_deps, protocol_for_deps]);

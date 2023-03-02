@@ -23,7 +23,7 @@
          verify_no_single_clause_case/1, verify_numeric_format/1, verify_behaviour_spelling/1,
          verify_always_shortcircuit/1, verify_consistent_generic_type/1, verify_no_types/1,
          verify_no_specs/1, verify_export_used_types/1, verify_consistent_variable_casing/1,
-         verify_no_match_in_condition/1]).
+         verify_no_match_in_condition/1, verify_param_pattern_matching/1]).
 %% -elvis attribute
 -export([verify_elvis_attr_atom_naming_convention/1, verify_elvis_attr_numeric_format/1,
          verify_elvis_attr_dont_repeat_yourself/1, verify_elvis_attr_function_naming_convention/1,
@@ -39,7 +39,7 @@
          verify_elvis_attr_no_tabs/1, verify_elvis_attr_no_trailing_whitespace/1,
          verify_elvis_attr_operator_spaces/1, verify_elvis_attr_state_record_and_type/1,
          verify_elvis_attr_used_ignored_variable/1, verify_elvis_attr_variable_naming_convention/1,
-         verify_elvis_attr_behaviour_spelling/1]).
+         verify_elvis_attr_behaviour_spelling/1, verify_elvis_attr_param_pattern_matching/1]).
 %% Non-rule
 -export([results_are_ordered_by_line/1, oddities/1]).
 
@@ -78,7 +78,7 @@ groups() ->
        verify_no_author, verify_no_import, verify_always_shortcircuit,
        verify_no_catch_expressions, verify_no_single_clause_case, verify_no_macros,
        verify_export_used_types, verify_max_anonymous_function_arity, verify_max_function_arity,
-       verify_no_match_in_condition]}].
+       verify_no_match_in_condition, verify_behaviour_spelling, verify_param_pattern_matching]}].
 
 -spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
@@ -751,6 +751,51 @@ verify_behaviour_spelling(Config) ->
                               behaviour_spelling,
                               #{spelling => behavior},
                               PathPass1).
+
+-spec verify_param_pattern_matching(config()) -> any().
+verify_param_pattern_matching(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PathRight = "right_param_pattern_matching." ++ Ext,
+    PathLeft = "left_param_pattern_matching." ++ Ext,
+    [#{info := ['Simple' | _]},
+     #{info := ['SimpleToo' | _]},
+     #{info := ['The' | _]},
+     #{info := ['TheToo' | _]},
+     #{info := ['AsYoda' | _]},
+     #{info := ['AsYodaToo' | _]}] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              param_pattern_matching,
+                              #{side => left},
+                              PathRight),
+    [#{info := ['Simple' | _]},
+     #{info := ['SimpleToo' | _]},
+     #{info := ['Multiple' | _]},
+     #{info := ['MultipleToo' | _]},
+     #{info := ['TheSecond' | _]},
+     #{info := ['TheSecondToo' | _]},
+     #{info := ['But' | _]},
+     #{info := ['ButToo' | _]}] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              param_pattern_matching,
+                              #{side => right},
+                              PathLeft),
+
+    [] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              param_pattern_matching,
+                              #{side => right},
+                              PathRight),
+
+    [] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              param_pattern_matching,
+                              #{side => left},
+                              PathLeft).
 
 -spec verify_consistent_generic_type(config()) -> any().
 verify_consistent_generic_type(Config) ->
@@ -1667,6 +1712,10 @@ verify_elvis_attr_variable_naming_convention(Config) ->
 -spec verify_elvis_attr_behaviour_spelling(config()) -> true.
 verify_elvis_attr_behaviour_spelling(Config) ->
     verify_elvis_attr(Config, "pass_behaviour_spelling_elvis_attr").
+
+-spec verify_elvis_attr_param_pattern_matching(config()) -> true.
+verify_elvis_attr_param_pattern_matching(Config) ->
+    verify_elvis_attr(Config, "pass_param_pattern_matching_elvis_attr").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
