@@ -5,7 +5,7 @@
 When capturing a parameter using pattern matching you can either put the parameter
 name on the left (`Param = #{pattern := ToMatch}`) or right (`#{pattern := ToMatch} = Param`) side
 of the pattern that you use in the function clause.
-This rule will make sure you are consistent through your code and use always the same style.
+This rule will make sure you are consistent throughout your code and always use the same style.
 
 > Works on `.beam` file? Yes!
 
