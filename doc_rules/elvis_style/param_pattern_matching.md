@@ -12,10 +12,10 @@ This rule will make sure you are consistent through your code and use always the
 ## Options
 
 - `side :: left | right`.
-  - default: `left`.
+  - default: `right`.
 
 ## Example
 
 ```erlang
-{elvis_style, param_pattern_matching, #{side => right}}
+{elvis_style, param_pattern_matching, #{side => left}}
 ```

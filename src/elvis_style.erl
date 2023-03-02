@@ -201,7 +201,7 @@ default(numeric_format) ->
 default(behaviour_spelling) ->
     #{spelling => behaviour};
 default(param_pattern_matching) ->
-    #{side => left};
+    #{side => right};
 default(consistent_generic_type) ->
     #{preferred_type => term};
 default(RuleWithEmptyDefault)

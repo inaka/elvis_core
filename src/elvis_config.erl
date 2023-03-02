@@ -106,7 +106,7 @@ normalize(Config) when is_list(Config) ->
     lists:map(fun do_normalize/1, Config).
 
 %% @private
-do_normalize(Config = #{src_dirs := Dirs}) ->
+do_normalize(#{src_dirs := Dirs} = Config) ->
     %% NOTE: Provided for backwards compatibility.
     %% Rename 'src_dirs' key to 'dirs'.
     Config1 = maps:remove(src_dirs, Config),
@@ -117,7 +117,7 @@ do_normalize(Config) ->
 -spec dirs(Config :: configs() | config()) -> [string()].
 dirs(Config) when is_list(Config) ->
     lists:flatmap(fun dirs/1, Config);
-dirs(_RuleGroup = #{dirs := Dirs}) ->
+dirs(#{dirs := Dirs}) ->
     Dirs;
 dirs(#{}) ->
     [].
@@ -125,7 +125,7 @@ dirs(#{}) ->
 -spec ignore(configs() | config()) -> [string()].
 ignore(Config) when is_list(Config) ->
     lists:flatmap(fun ignore/1, Config);
-ignore(_RuleGroup = #{ignore := Ignore}) ->
+ignore(#{ignore := Ignore}) ->
     lists:map(fun ignore_to_regexp/1, Ignore);
 ignore(#{}) ->
     [].
@@ -133,7 +133,7 @@ ignore(#{}) ->
 -spec filter(configs() | config()) -> [string()].
 filter(Config) when is_list(Config) ->
     lists:flatmap(fun filter/1, Config);
-filter(_RuleGroup = #{filter := Filter}) ->
+filter(#{filter := Filter}) ->
     Filter;
 filter(#{}) ->
     ?DEFAULT_FILTER.
@@ -141,7 +141,7 @@ filter(#{}) ->
 -spec files(RuleGroup :: configs() | config()) -> [elvis_file:file()].
 files(RuleGroup) when is_list(RuleGroup) ->
     lists:map(fun files/1, RuleGroup);
-files(_RuleGroup = #{files := Files}) ->
+files(#{files := Files}) ->
     Files;
 files(#{}) ->
     [].
@@ -194,9 +194,9 @@ resolve_files(RuleGroup, Files) ->
 %%      end  'filter' key, or if not specified uses '*.erl'.
 %% @end
 -spec resolve_files(config()) -> config().
-resolve_files(RuleGroup = #{files := _Files}) ->
+resolve_files(#{files := _Files} = RuleGroup) ->
     RuleGroup;
-resolve_files(RuleGroup = #{dirs := Dirs}) ->
+resolve_files(#{dirs := Dirs} = RuleGroup) ->
     Filter = filter(RuleGroup),
     Files = elvis_file:find_files(Dirs, Filter),
     resolve_files(RuleGroup, Files).
@@ -209,7 +209,7 @@ resolve_files(RuleGroup = #{dirs := Dirs}) ->
 apply_to_files(Fun, Config) when is_list(Config) ->
     ApplyFun = fun(RuleGroup) -> apply_to_files(Fun, RuleGroup) end,
     lists:map(ApplyFun, Config);
-apply_to_files(Fun, RuleGroup = #{files := Files}) ->
+apply_to_files(Fun, #{files := Files} = RuleGroup) ->
     NewFiles = lists:map(Fun, Files),
     RuleGroup#{files => NewFiles}.
 
