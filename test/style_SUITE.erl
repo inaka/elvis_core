@@ -26,7 +26,8 @@
          verify_no_author/1, verify_no_import/1, verify_no_catch_expressions/1,
          verify_no_single_clause_case/1, verify_numeric_format/1, verify_behaviour_spelling/1,
          verify_always_shortcircuit/1, verify_consistent_generic_type/1, verify_no_types/1,
-         verify_no_specs/1, verify_export_used_types/1, verify_consistent_variable_casing/1]).
+         verify_no_specs/1, verify_export_used_types/1, verify_consistent_variable_casing/1,
+         verify_no_match_in_condition/1]).
 %% -elvis attribute
 -export([verify_elvis_attr_atom_naming_convention/1, verify_elvis_attr_numeric_format/1,
          verify_elvis_attr_dont_repeat_yourself/1, verify_elvis_attr_function_naming_convention/1,
@@ -80,8 +81,8 @@ groups() ->
        verify_no_successive_maps, verify_atom_naming_convention, verify_no_throw,
        verify_no_author, verify_no_import, verify_always_shortcircuit,
        verify_no_catch_expressions, verify_no_single_clause_case, verify_no_macros,
-       verify_export_used_types, verify_max_anonymous_function_arity,
-       verify_max_function_arity]}].
+       verify_export_used_types, verify_max_anonymous_function_arity, verify_max_function_arity,
+       verify_no_match_in_condition]}].
 
 -spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
@@ -1412,6 +1413,25 @@ verify_no_single_clause_case(Config) ->
             erl_files ->
                 [#{line_num := 6}, #{line_num := 14}, #{line_num := 16}] = R
         end.
+
+-spec verify_no_match_in_condition(config()) -> any().
+verify_no_match_in_condition(Config) ->
+    Group = proplists:get_value(group, Config, erl_files),
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PassPath = "pass_no_match_in_condition." ++ Ext,
+    [] = elvis_core_apply_rule(Config, elvis_style, no_match_in_condition, #{}, PassPath),
+
+    FailPath = "fail_no_match_in_condition." ++ Ext,
+
+    R = elvis_core_apply_rule(Config, elvis_style, no_match_in_condition, #{}, FailPath),
+    case Group of
+        beam_files ->
+            [_, _] = R;
+        erl_files ->
+            [#{line_num := 14}, #{line_num := 22}] = R
+    end,
+    ok.
 
 -spec verify_numeric_format(config()) -> any().
 verify_numeric_format(Config) ->
