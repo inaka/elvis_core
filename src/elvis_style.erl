@@ -1285,12 +1285,14 @@ export_used_types(Config, Target, RuleConfig) ->
                                  elvis_code:find(fun(Node) -> ktn_code:type(Node) =:= user_type end,
                                                  Spec,
                                                  #{mode => node, traverse => all}),
+                             % yes, on a -type line, the arity is based on `args`, but on
+                             % a -spec line, it's based on `content`
                              [{Name, length(Vars)}
                               || #{attrs := #{name := Name}, content := Vars} <- Types]
                           end,
                           ExportedSpecs)),
     UnexportedUsedTypes = lists:subtract(UsedTypes, ExportedTypes),
-    LineNumbers = get_type_line_numbers(TreeRootNode),
+    LineNumbers = map_type_declarations_to_line_numbers(TreeRootNode),
 
     % Report
     lists:map(fun({Name, Arity} = Info) ->
@@ -1299,11 +1301,11 @@ export_used_types(Config, Target, RuleConfig) ->
               end,
               UnexportedUsedTypes).
 
-is_type_of_type(TypeOfType, #{type := type_attr,
-                 node_attrs := #{type := #{attrs := #{name := TypeOfType}}}}) ->
-    true;
-is_type_of_type(_) ->
-    false.
+get_type_of_type(#{type := type_attr,
+                   node_attrs := #{type := #{attrs := #{name := TypeOfType}}}}) ->
+    TypeOfType;
+get_type_of_type(_) ->
+    undefined.
 
 -type data_type() :: record | map | tuple.
 -type private_data_type_config() :: #{apply_to => [data_type()]}.
@@ -1316,13 +1318,10 @@ private_data_types(Config, Target, RuleConfig) ->
     TypesToCheck = option(apply_to, RuleConfig, private_data_types),
     TreeRootNode = get_root(Config, Target, RuleConfig),
     ExportedTypes = elvis_code:exported_types(TreeRootNode),
-    LineNumbers = get_type_line_numbers(TreeRootNode),
+    LineNumbers = map_type_declarations_to_line_numbers(TreeRootNode),
 
-    PublicDataTypes =
-        lists:flatmap(fun(Type) -> public_data_types(Type, TreeRootNode, ExportedTypes) end,
-                      TypesToCheck),
+    PublicDataTypes = public_data_types(TypesToCheck, TreeRootNode, ExportedTypes),
 
-    % Report
     lists:map(fun({Name, Arity} = Info) ->
                  Line = maps:get(Info, LineNumbers, unknown),
                  elvis_result:new(item, ?PRIVATE_DATA_TYPES_MSG, [Name, Arity, Line], Line)
@@ -1332,7 +1331,7 @@ private_data_types(Config, Target, RuleConfig) ->
 public_data_types(TypesToCheck, TreeRootNode, ExportedTypes) ->
     Fun = fun(Node) -> lists:member(get_type_of_type(Node), TypesToCheck) end,
     Types =
-        [get_type_declared_name_arity(Node)
+        [name_arity_from_type_line(Node)
          || Node <- elvis_code:find(Fun, TreeRootNode, #{traverse => all, mode => node})],
     lists:filter(fun({Name, Arity}) -> lists:member({Name, Arity}, ExportedTypes) end, Types).
 
@@ -1340,12 +1339,13 @@ public_data_types(TypesToCheck, TreeRootNode, ExportedTypes) ->
 %% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-get_type_declared_name_arity(#{attrs := #{name := Name},
-                               node_attrs := #{args := Args}}) ->
+-spec name_arity_from_type_line(ktn_code:tree_node()) -> {atom(), integer()}.
+name_arity_from_type_line(#{attrs := #{name := Name}, node_attrs := #{args := Args}}) ->
     {Name, length(Args)}.
 
--spec get_type_line_numbers(ktn_code:tree_node()) -> #{{atom(), number()} => number()}.
-get_type_line_numbers(TreeRootNode) ->
+-spec map_type_declarations_to_line_numbers(ktn_code:tree_node()) ->
+                                               #{{atom(), number()} => number()}.
+map_type_declarations_to_line_numbers(TreeRootNode) ->
     AllTypes =
         elvis_code:find(fun is_type_attribute/1, TreeRootNode, #{traverse => all, mode => node}),
     lists:foldl(fun (#{attrs := #{location := {Line, _}, name := Name},
