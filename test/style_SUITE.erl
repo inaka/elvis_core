@@ -40,7 +40,8 @@
          verify_elvis_attr_no_tabs/1, verify_elvis_attr_no_trailing_whitespace/1,
          verify_elvis_attr_operator_spaces/1, verify_elvis_attr_state_record_and_type/1,
          verify_elvis_attr_used_ignored_variable/1, verify_elvis_attr_variable_naming_convention/1,
-         verify_elvis_attr_behaviour_spelling/1, verify_elvis_attr_param_pattern_matching/1]).
+         verify_elvis_attr_behaviour_spelling/1, verify_elvis_attr_param_pattern_matching/1,
+         verify_elvis_attr_private_data_types/1]).
 %% Non-rule
 -export([results_are_ordered_by_line/1, oddities/1]).
 
@@ -1758,6 +1759,10 @@ verify_elvis_attr_behaviour_spelling(Config) ->
 -spec verify_elvis_attr_param_pattern_matching(config()) -> true.
 verify_elvis_attr_param_pattern_matching(Config) ->
     verify_elvis_attr(Config, "pass_param_pattern_matching_elvis_attr").
+
+-spec verify_elvis_attr_private_data_types(config()) -> true.
+verify_elvis_attr_private_data_types(Config) ->
+    verify_elvis_attr(Config, "pass_private_data_types_elvis_attr").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
