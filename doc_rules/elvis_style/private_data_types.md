@@ -12,7 +12,7 @@ modules, they should be made
 
 ## Options
 
-- `applies_to :: [record | map | tuple]`
+- `apply_to :: [record | map | tuple]`
   - default: `record`.
 
 ## Example

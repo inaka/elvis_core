@@ -85,11 +85,11 @@
         "The code in the following (LINE, COL) locations has the same "
         "structure: ~s.").
 -define(MAX_MODULE_LENGTH,
-        "The code for module ~p has ~p lines which exceeds the "
-        "maximum of ~p.").
+        "The code for module ~p has ~p lines which exceeds the maximum "
+        "of ~p.").
 -define(MAX_ANONYMOUS_FUNCTION_ARITY_MSG,
-        "The arity of the anonymous function defined in line ~p (~w arguments) exceeds the "
-        "maximum of ~p.").
+        "The arity of the anonymous function defined in line ~p (~w "
+        "arguments) exceeds the maximum of ~p.").
 -define(MAX_FUNCTION_ARITY_MSG, "The arity of function ~p/~w exceeds the maximum of ~p.").
 -define(MAX_FUNCTION_LENGTH,
         "The code for function ~p/~w has ~p lines which exceeds the "
@@ -130,8 +130,8 @@
         "Type ~p/~p, defined on line ~p, is used by an exported function "
         "but not exported itself").
 -define(PRIVATE_DATA_TYPES_MSG,
-        "Private data type ~p/~p, defined on line ~p, is exported. "
-        "Either don't export it or make it an opaque type.").
+        "Private data type ~p/~p, defined on line ~p, is exported. Either "
+        "don't export it or make it an opaque type.").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
@@ -200,7 +200,7 @@ default(behaviour_spelling) ->
 default(consistent_generic_type) ->
     #{preferred_type => term};
 default(private_data_types) ->
-    #{applies_to => [record]};
+    #{apply_to => [record]};
 default(RuleWithEmptyDefault)
     when RuleWithEmptyDefault == macro_module_names;
          RuleWithEmptyDefault == no_macros;
@@ -395,8 +395,7 @@ no_macros(ElvisConfig, RuleTarget, RuleConfig) ->
     lists:foldl(fun(MacroNode, Acc) ->
                    Macro = list_to_atom(ktn_code:attr(name, MacroNode)),
                    case lists:member(Macro, AllowedMacros) of
-                       true ->
-                           Acc;
+                       true -> Acc;
                        false ->
                            {Line, _Col} = ktn_code:attr(location, MacroNode),
                            [elvis_result:new(item, ?NO_MACROS_MSG, [Macro, Line], Line) | Acc]
@@ -648,8 +647,7 @@ no_behavior_info(Config, Target, RuleConfig) ->
                function ->
                    Name = ktn_code:attr(name, Node),
                    lists:member(Name, [behavior_info, behaviour_info]);
-               _ ->
-                   false
+               _ -> false
            end
         end,
 
@@ -816,8 +814,7 @@ max_anonymous_function_arity(Config, Target, RuleConfig) ->
     lists:filtermap(fun(Fun) ->
                        [FirstClause | _] = elvis_code:find(IsClause, Fun),
                        case length(ktn_code:node_attr(pattern, FirstClause)) of
-                           Arity when Arity =< MaxArity ->
-                               false;
+                           Arity when Arity =< MaxArity -> false;
                            Arity ->
                                {Line, _} = ktn_code:attr(location, Fun),
                                Info = [Line, Arity, MaxArity],
@@ -843,8 +840,7 @@ max_function_arity(Config, Target, RuleConfig) ->
     Functions = elvis_code:find(IsFunction, Root),
     lists:filtermap(fun(Function) ->
                        case ktn_code:attr(arity, Function) of
-                           Arity when Arity =< MaxArity ->
-                               false;
+                           Arity when Arity =< MaxArity -> false;
                            Arity ->
                                Name = ktn_code:attr(name, Function),
                                {Line, _} = ktn_code:attr(location, Function),
@@ -1229,14 +1225,14 @@ is_map_type(_Node) ->
     false.
 
 -type data_type() :: record | map | tuple.
--type private_data_type_config() :: #{applies_to => [data_type()]}.
+-type private_data_type_config() :: #{apply_to => [data_type()]}.
 
 -spec private_data_types(elvis_config:config(),
                          elvis_file:file(),
                          private_data_type_config()) ->
                             [elvis_result:item()].
 private_data_types(Config, Target, RuleConfig) ->
-    TypesToCheck = option(applies_to, RuleConfig, private_data_types),
+    TypesToCheck = option(apply_to, RuleConfig, private_data_types),
     TreeRootNode = get_root(Config, Target, RuleConfig),
     ExportedTypes = elvis_code:exported_types(TreeRootNode),
     LineNumbers = get_type_line_numbers(TreeRootNode),
@@ -1499,10 +1495,8 @@ check_spaces(Lines, UnfilteredNodes, {Position, Text}, Encoding, {How0, _} = How
         fun(Node) ->
            Location = ktn_code:attr(location, Node),
            case character_at_location(Position, Lines, Text, Location, Encoding, How) of
-               Char when Char =:= SpaceChar andalso How0 =:= should_have ->
-                   [];
-               Char when Char =/= SpaceChar andalso How0 =:= should_not_have ->
-                   [];
+               Char when Char =:= SpaceChar andalso How0 =:= should_have -> [];
+               Char when Char =/= SpaceChar andalso How0 =:= should_not_have -> [];
                _ when How0 =:= should_have ->
                    Msg = ?MISSING_SPACE_MSG,
                    {Line, _Col} = Location,
@@ -1741,8 +1735,7 @@ find_repeated_nodes(Root, MinComplexity) ->
                    ValsSet = maps:get(StrippedNode, Map, sets:new()),
                    NewValsSet = sets:add_element(Loc, ValsSet),
                    maps:put(StrippedNode, NewValsSet, Map);
-               _ ->
-                   Map
+               _ -> Map
            end
         end,
     ZipperRoot = elvis_code:code_zipper(Root),

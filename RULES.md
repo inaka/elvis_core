@@ -16,6 +16,7 @@ identified with `(since ...)` for convenience purposes.
 - [Consistent Generic Type](doc_rules/elvis_style/consistent_generic_type.md)
 - [Consistent Variable Casing](doc_rules/elvis_style/consistent_variable_casing.md)
 - [Don't Repeat Yourself](doc_rules/elvis_style/dont_repeat_yourself.md)
+- [Export Used Types](doc_rules/elvis_style/export_used_types.md)
 - [Function Naming Convention](doc_rules/elvis_style/function_naming_convention.md)
 - [God Modules](doc_rules/elvis_style/god_modules.md)
 - [Invalid Dynamic Calls](doc_rules/elvis_style/invalid_dynamic_call.md)
@@ -54,11 +55,10 @@ identified with `(since ...)` for convenience purposes.
 - [No Types](doc_rules/elvis_style/no_types.md)
 - [Numeric Format](doc_rules/elvis_style/numeric_format.md)
 - [Operator Spaces](doc_rules/elvis_style/operator_spaces.md)
+- [Private Data Types](doc_rules/elvis_style/private_data_types.md)
 - [State Record and Type](doc_rules/elvis_style/state_record_and_type.md)
 - [Used Ignored Variable](doc_rules/elvis_style/used_ignored_variable.md)
 - [Variable Naming Convention](doc_rules/elvis_style/variable_naming_convention.md)
-- [Export Used Types](doc_rules/elvis_style/export_used_types.md)
-- [Private Data Types](doc_rules/elvis_style/private_data_types.md)
 
 ## Project rules
 

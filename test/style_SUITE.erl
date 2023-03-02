@@ -1529,14 +1529,14 @@ verify_private_data_types(Config) ->
         elvis_core_apply_rule(Config,
                               elvis_style,
                               private_data_types,
-                              #{applies_to => [record, map, tuple]},
+                              #{apply_to => [record, map, tuple]},
                               PathPass),
     PathPass2 = "pass_private_data_types2." ++ Ext,
     [] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               private_data_types,
-                              #{applies_to => [record, map, tuple]},
+                              #{apply_to => [record, map, tuple]},
                               PathPass2),
     % Default applies only to records
     PathFail = "fail_private_data_types." ++ Ext,
@@ -1546,19 +1546,19 @@ verify_private_data_types(Config) ->
         elvis_core_apply_rule(Config,
                               elvis_style,
                               private_data_types,
-                              #{applies_to => [tuple]},
+                              #{apply_to => [tuple]},
                               PathFail),
     [#{line_num := _}] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               private_data_types,
-                              #{applies_to => [map]},
+                              #{apply_to => [map]},
                               PathFail),
     [#{line_num := _}, #{line_num := _}, #{line_num := _}] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               private_data_types,
-                              #{applies_to => [record, tuple, map]},
+                              #{apply_to => [record, tuple, map]},
                               PathFail).
 
 -spec results_are_ordered_by_line(config()) -> true.
