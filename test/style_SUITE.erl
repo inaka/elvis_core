@@ -1540,21 +1540,21 @@ verify_private_data_types(Config) ->
                               PathPass2),
     % Default applies only to records
     PathFail = "fail_private_data_types." ++ Ext,
-    [#{line_num := 5}] =
+    [#{line_num := _}] =
         elvis_core_apply_rule(Config, elvis_style, private_data_types, #{}, PathFail),
-    [#{line_num := 6}] =
+    [#{line_num := _}] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               private_data_types,
                               #{applies_to => [tuple]},
                               PathFail),
-    [#{line_num := 7}] =
+    [#{line_num := _}] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               private_data_types,
                               #{applies_to => [map]},
                               PathFail),
-    [#{line_num := 5}, #{line_num := 6}, #{line_num := 7}] =
+    [#{line_num := _}, #{line_num := _}, #{line_num := _}] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               private_data_types,

@@ -1262,29 +1262,6 @@ public_data_types(Type, TreeRootNode, ExportedTypes) ->
          || Node <- elvis_code:find(Fun, TreeRootNode, #{traverse => all, mode => node})],
     lists:filter(fun({Name, Arity}) -> lists:member({Name, Arity}, ExportedTypes) end, Types).
 
-% nonprivate_data_types(map, TreeRootNode, ExportedTypes) ->
-%     MapTypes =
-%         [get_type_declared_name_arity(Node)
-%             || Node
-%                 <- elvis_code:find(fun is_map_type/1,
-%                                     TreeRootNode,
-%                                     #{traverse => all, mode => node})],
-%     lists:filter(fun({Name, Arity}) ->
-%         lists:member({Name, Arity}, ExportedTypes)
-%         end,
-%         MapTypes);
-
-% nonprivate_data_types(tuple, TreeRootNode, ExportedTypes) ->
-%     TupleTypes =
-%         [get_type_declared_name_arity(Node)
-%             || Node
-%                 <- elvis_code:find(fun is_tuple_type/1,
-%                                     TreeRootNode,
-%                                     #{traverse => all, mode => node})],
-%     lists:filter(fun({Name, Arity}) ->
-%         lists:member({Name, Arity}, ExportedTypes)
-%         end,
-%         TupleTypes).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
