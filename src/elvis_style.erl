@@ -1203,14 +1203,18 @@ param_pattern_matching(Config, Target, RuleConfig) ->
                     MatchesInFunctionClauses).
 
 is_function_clause(Zipper) ->
-    clause
-    == ktn_code:type(
-           zipper:node(Zipper))
-    andalso lists:member(
-                ktn_code:type(
-                    zipper:node(
-                        zipper:up(Zipper))),
-                [function, 'fun']).
+    is_clause(Zipper) andalso is_function_or_fun(zipper:up(Zipper)).
+
+is_clause(Zipper) ->
+    ktn_code:type(
+        zipper:node(Zipper))
+    == clause.
+
+is_function_or_fun(Zipper) ->
+    lists:member(
+        ktn_code:type(
+            zipper:node(Zipper)),
+        [function, 'fun']).
 
 -spec consistent_generic_type(elvis_config:config(),
                               elvis_file:file(),
