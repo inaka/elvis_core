@@ -1295,7 +1295,9 @@ check_atom_names(Regex, RegexEnclosed, [AtomNode | RemainingAtomNodes], AccIn) -
     IsExceptionClass = is_exception_class(ValueAtomName),
     RE = re_compile_for_atom_type(IsEnclosed, Regex, RegexEnclosed),
     AccOut =
-        case re:run(unicode:characters_to_list(AtomName, unicode), RE) of
+        case re:run(
+                 unicode:characters_to_list(AtomName, unicode), RE)
+        of
             _ when IsExceptionClass andalso not IsEnclosed ->
                 AccIn;
             nomatch when not IsEnclosed ->
