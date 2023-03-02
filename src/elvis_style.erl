@@ -126,7 +126,7 @@
         "The behavior/behaviour in line ~p is misspelt, please use the "
         "~p spelling.").
 -define(PARAM_PATTERN_MATCHING_MSG,
-        "Variable ~ts, used to match a parameter in line ~p is placed on "
+        "Variable ~ts, used to match a parameter in line ~p, is placed on "
         "the wrong side of the match. It was expected on the ~p side.").
 -define(ALWAYS_SHORTCIRCUIT_MSG,
         "Non-shortcircuiting operator (~p) found in line ~p. "
