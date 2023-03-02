@@ -5,7 +5,6 @@
 [support]: http://www.erlang.org
 [support-img]: https://img.shields.io/badge/Erlang/OTP-23+-blue
 
-
 `elvis_core` is the core library for the [`elvis`](https://github.com/inaka/elvis) Erlang style
 reviewer. It is also used by [`rebar3_lint`](https://github.com/project-fifo/rebar3_lint) for easier
 integration into your Erlang libraries or applications.
