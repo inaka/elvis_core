@@ -1299,21 +1299,10 @@ export_used_types(Config, Target, RuleConfig) ->
               end,
               UnexportedUsedTypes).
 
-is_record_type(#{type := type_attr,
-                 node_attrs := #{type := #{attrs := #{name := record}}}}) ->
+is_type_of_type(TypeOfType, #{type := type_attr,
+                 node_attrs := #{type := #{attrs := #{name := TypeOfType}}}}) ->
     true;
-is_record_type(_Node) ->
-    false.
-
-is_tuple_type(#{type := type_attr,
-                node_attrs := #{type := #{attrs := #{name := tuple}}}}) ->
-    true;
-is_tuple_type(_Node) ->
-    false.
-
-is_map_type(#{type := type_attr, node_attrs := #{type := #{attrs := #{name := map}}}}) ->
-    true;
-is_map_type(_Node) ->
+is_type_of_type(_) ->
     false.
 
 -type data_type() :: record | map | tuple.
@@ -1340,12 +1329,8 @@ private_data_types(Config, Target, RuleConfig) ->
               end,
               PublicDataTypes).
 
-public_data_types(Type, TreeRootNode, ExportedTypes) ->
-    FunMap =
-        #{record => fun is_record_type/1,
-          map => fun is_map_type/1,
-          tuple => fun is_tuple_type/1},
-    Fun = maps:get(Type, FunMap),
+public_data_types(TypesToCheck, TreeRootNode, ExportedTypes) ->
+    Fun = fun(Node) -> lists:member(get_type_of_type(Node), TypesToCheck) end,
     Types =
         [get_type_declared_name_arity(Node)
          || Node <- elvis_code:find(Fun, TreeRootNode, #{traverse => all, mode => node})],
