@@ -1,10 +1,6 @@
 -module(style_SUITE).
 
--if(?OTP_RELEASE >= 23).
-
 -behaviour(ct_suite).
-
--endif.
 
 -export([all/0, groups/0, init_per_suite/1, end_per_suite/1, init_per_group/2,
          end_per_group/2]).

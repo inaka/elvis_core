@@ -1,10 +1,6 @@
 -module(elvis_SUITE).
 
--if(?OTP_RELEASE >= 23).
-
 -behaviour(ct_suite).
-
--endif.
 
 -export([all/0, init_per_suite/1, end_per_suite/1, chunk_fold_task/2]).
 -export([rock_with_empty_map_config/1, rock_with_empty_list_config/1,

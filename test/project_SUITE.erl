@@ -1,10 +1,6 @@
 -module(project_SUITE).
 
--if(?OTP_RELEASE >= 23).
-
 -behaviour(ct_suite).
-
--endif.
 
 -export([all/0, init_per_suite/1, end_per_suite/1]).
 -export([verify_no_branch_deps/1, verify_hex_dep/1, verify_protocol_for_deps/1,
