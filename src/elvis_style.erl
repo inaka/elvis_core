@@ -31,8 +31,8 @@
               param_pattern_matching_config/0, private_data_type_config/0]).
 
 -define(INVALID_MACRO_NAME_REGEX_MSG,
-        "The macro named ~p on line ~p does not respect the format defined "
-        "by the regular expression '~p'.").
+        "The macro named ~p on line ~p does not respect the format "
+        "defined by the regular expression '~p'.").
 -define(MACRO_AS_MODULE_NAME_MSG,
         "Don't use macros (like ~s on line ~p) as module names.").
 -define(MACRO_MODULE_NAMES_EXCEPTIONS, ["MODULE"]).
@@ -46,18 +46,20 @@
 -define(MISSING_SPACE_MSG, "Missing space to the ~s of ~p on line ~p").
 -define(UNEXPECTED_SPACE_MSG, "Unexpected space to the ~s of ~p on line ~p").
 -define(NESTING_LEVEL_MSG,
-        "The expression on line ~p and column ~p is nested beyond the "
-        "maximum level of ~p.").
+        "The expression on line ~p and column ~p is nested "
+        "beyond the maximum level of ~p.").
 -define(GOD_MODULES_MSG,
-        "This module has too many functions (~p). Consider breaking "
-        "it into a number of modules.").
+        "This module has too many functions (~p). "
+        "Consider breaking it into a number of modules.").
 -define(NO_IF_EXPRESSION_MSG,
-        "Replace the 'if' expression on line ~p with a 'case' expression "
-        "or function clauses.").
+        "Replace the 'if' expression on line ~p with a 'case' "
+        "expression or function clauses.").
 -define(INVALID_DYNAMIC_CALL_MSG,
-        "Remove the dynamic function call on line ~p. Only modules that "
-        "define callbacks should make dynamic calls.").
--define(USED_IGNORED_VAR_MSG, "Ignored variable is being used on line ~p and column ~p.").
+        "Remove the dynamic function call on line ~p. "
+        "Only modules that define callbacks should make dynamic calls.").
+-define(USED_IGNORED_VAR_MSG,
+        "Ignored variable is being used on line ~p and "
+        "column ~p.").
 -define(NO_BEHAVIOR_INFO,
         "Use the '-callback' attribute instead of 'behavior_info/1' "
         "on line ~p.").
@@ -65,32 +67,31 @@
         "The function ~p does not respect the format defined by the "
         "regular expression '~p'.").
 -define(VARIABLE_NAMING_CONVENTION_MSG,
-        "The variable ~p on line ~p does not respect the format defined "
-        "by the regular expression '~p'.").
+        "The variable ~p on line ~p does not respect the format "
+        "defined by the regular expression '~p'.").
 -define(CONSISTENT_VARIABLE_CASING_MSG,
-        "Variable ~ts (first used in line ~p) is written in different "
-        "ways within the module: ~p.").
+        "Variable ~ts (first used in line ~p) is written in different ways within the module: ~p.").
 -define(MODULE_NAMING_CONVENTION_MSG,
-        "The module ~p does not respect the format defined by the regular "
-        "expression '~p'.").
+        "The module ~p does not respect the format defined by the "
+        "regular expression '~p'.").
 -define(STATE_RECORD_MISSING_MSG,
-        "This module implements an OTP behavior but is missing a 'state' "
-        "record.").
+        "This module implements an OTP behavior but is missing "
+        "a 'state' record.").
 -define(STATE_TYPE_MISSING_MSG,
         "This module implements an OTP behavior and has a 'state' record "
         "but is missing a 'state()' type.").
 -define(NO_SPEC_WITH_RECORDS,
-        "The spec in line ~p uses a record, please define a type for "
-        "the record and use that instead.").
+        "The spec in line ~p uses a record, please define a type for the "
+        "record and use that instead.").
 -define(DONT_REPEAT_YOURSELF,
-        "The code in the following (LINE, COL) locations has the same "
-        "structure: ~s.").
+        "The code in the following (LINE, COL) locations has "
+        "the same structure: ~s.").
 -define(MAX_MODULE_LENGTH,
-        "The code for module ~p has ~p lines which exceeds the maximum "
-        "of ~p.").
+        "The code for module ~p has ~p lines which exceeds the "
+        "maximum of ~p.").
 -define(MAX_ANONYMOUS_FUNCTION_ARITY_MSG,
-        "The arity of the anonymous function defined in line ~p (~w "
-        "arguments) exceeds the maximum of ~p.").
+        "The arity of the anonymous function defined in line ~p (~w arguments) exceeds the "
+        "maximum of ~p.").
 -define(MAX_FUNCTION_ARITY_MSG, "The arity of function ~p/~w exceeds the maximum of ~p.").
 -define(MAX_FUNCTION_LENGTH,
         "The code for function ~p/~w has ~p lines which exceeds the "
@@ -98,18 +99,18 @@
 -define(NO_CALL_MSG, "The call to ~p:~p/~p on line ~p is in the no_call list.").
 -define(NO_DEBUG_CALL_MSG, "Remove the debug call to ~p:~p/~p on line ~p.").
 -define(NO_COMMON_CAVEATS_CALL_MSG,
-        "The call to ~p:~p/~p on line ~p is in the list of Erlang Efficiency "
-        "Guide common caveats.").
+        "The call to ~p:~p/~p on line ~p is in the list of "
+        "Erlang Efficiency Guide common caveats.").
 -define(NO_NESTED_TRY_CATCH, "Nested try...catch block starting at line ~p.").
 -define(NO_SUCCESSIVE_MAPS_MSG,
         "Found map update after map construction/update at line ~p.").
 -define(ATOM_NAMING_CONVENTION_MSG,
-        "Atom ~p on line ~p does not respect the format defined by the "
-        "regular expression '~p'.").
+        "Atom ~p on line ~p does not respect the format "
+        "defined by the regular expression '~p'.").
 -define(NO_THROW_MSG, "Usage of throw/1 on line ~p is not recommended").
 -define(NO_DOLLAR_SPACE_MSG,
-        "'$ ' was found on line ~p. It's use is discouraged. Use $\\s, "
-        "instead.").
+        "'$ ' was found on line ~p. It's use is discouraged. "
+        "Use $\\s, instead.").
 -define(NO_AUTHOR_MSG, "Unnecessary author attribute on line ~p").
 -define(NO_IMPORT_MSG, "Usage of the import attribute, on line ~p, is discouraged").
 -define(NO_CATCH_EXPRESSIONS_MSG,
@@ -128,16 +129,15 @@
         "Variable ~ts, used to match a parameter in line ~p, is placed on "
         "the wrong side of the match. It was expected on the ~p side.").
 -define(ALWAYS_SHORTCIRCUIT_MSG,
-        "Non-shortcircuiting operator (~p) found in line ~p. It's recommended "
-        "to use ~p, instead.").
+        "Non-shortcircuiting operator (~p) found in line ~p. "
+        "It's recommended to use ~p, instead.").
 -define(CONSISTENT_GENERIC_TYPE,
         "Found usage of type ~p/0 on line ~p. Please use ~p/0, instead.").
 -define(EXPORT_USED_TYPES_MSG,
-        "Type ~p/~p, defined on line ~p, is used by an exported function "
-        "but not exported itself").
+        "Type ~p/~p, defined on line ~p, is used by an exported function but not exported itself").
 -define(PRIVATE_DATA_TYPES_MSG,
-        "Private data type ~p/~p, defined on line ~p, is exported. Either "
-        "don't export it or make it an opaque type.").
+        "Private data type ~p/~p, defined on line ~p, is exported. Either don't export it or make "
+        "it an opaque type.").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
