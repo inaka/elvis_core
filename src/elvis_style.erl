@@ -12,7 +12,7 @@
          atom_naming_convention/3, no_throw/3, no_dollar_space/3, no_author/3, no_import/3,
          no_catch_expressions/3, no_single_clause_case/3, numeric_format/3, behaviour_spelling/3,
          always_shortcircuit/3, consistent_generic_type/3, export_used_types/3,
-         no_match_in_condition/3, param_pattern_matching/3, option/3]).
+         no_match_in_condition/3, param_pattern_matching/3, private_data_types/3, option/3]).
 
 -export_type([empty_rule_config/0]).
 -export_type([ignorable/0]).
@@ -28,7 +28,7 @@
               no_import_config/0, no_catch_expressions_config/0, numeric_format_config/0,
               no_single_clause_case_config/0, consistent_variable_casing_config/0,
               no_match_in_condition_config/0, behaviour_spelling_config/0,
-              param_pattern_matching_config/0]).
+              param_pattern_matching_config/0, private_data_type_config/0]).
 
 -define(INVALID_MACRO_NAME_REGEX_MSG,
         "The macro named ~p on line ~p does not respect the format "
@@ -135,6 +135,9 @@
         "Found usage of type ~p/0 on line ~p. Please use ~p/0, instead.").
 -define(EXPORT_USED_TYPES_MSG,
         "Type ~p/~p, defined on line ~p, is used by an exported function but not exported itself").
+-define(PRIVATE_DATA_TYPES_MSG,
+        "Private data type ~p/~p, defined on line ~p, is exported. Either don't export it or make "
+        "it an opaque type.").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
@@ -204,6 +207,8 @@ default(param_pattern_matching) ->
     #{side => right};
 default(consistent_generic_type) ->
     #{preferred_type => term};
+default(private_data_types) ->
+    #{apply_to => [record]};
 default(RuleWithEmptyDefault)
     when RuleWithEmptyDefault == macro_module_names;
          RuleWithEmptyDefault == no_macros;
@@ -1265,8 +1270,6 @@ always_shortcircuit(Config, Target, RuleConfig) ->
 export_used_types(Config, Target, RuleConfig) ->
     TreeRootNode = get_root(Config, Target, RuleConfig),
     ExportedFunctions = elvis_code:exported_functions(TreeRootNode),
-    AllTypes =
-        elvis_code:find(fun is_type_attribute/1, TreeRootNode, #{traverse => all, mode => node}),
     ExportedTypes = elvis_code:exported_types(TreeRootNode),
     SpecNodes =
         elvis_code:find(fun is_spec_attribute/1, TreeRootNode, #{traverse => all, mode => node}),
@@ -1282,23 +1285,14 @@ export_used_types(Config, Target, RuleConfig) ->
                                  elvis_code:find(fun(Node) -> ktn_code:type(Node) =:= user_type end,
                                                  Spec,
                                                  #{mode => node, traverse => all}),
+                             % yes, on a -type line, the arity is based on `args`, but on
+                             % a -spec line, it's based on `content`
                              [{Name, length(Vars)}
                               || #{attrs := #{name := Name}, content := Vars} <- Types]
                           end,
                           ExportedSpecs)),
     UnexportedUsedTypes = lists:subtract(UsedTypes, ExportedTypes),
-
-    % Get line numbers for all types
-    LineNumbers =
-        lists:foldl(fun (#{attrs := #{location := {Line, _}, name := Name},
-                           node_attrs := #{args := Args}},
-                         Acc) ->
-                            maps:put({Name, length(Args)}, Line, Acc);
-                        (_, Acc) ->
-                            Acc
-                    end,
-                    #{},
-                    AllTypes),
+    LineNumbers = map_type_declarations_to_line_numbers(TreeRootNode),
 
     % Report
     lists:map(fun({Name, Arity} = Info) ->
@@ -1307,9 +1301,62 @@ export_used_types(Config, Target, RuleConfig) ->
               end,
               UnexportedUsedTypes).
 
+get_type_of_type(#{type := type_attr,
+                   node_attrs := #{type := #{attrs := #{name := TypeOfType}}}}) ->
+    TypeOfType;
+get_type_of_type(_) ->
+    undefined.
+
+-type data_type() :: record | map | tuple.
+-type private_data_type_config() :: #{apply_to => [data_type()]}.
+
+-spec private_data_types(elvis_config:config(),
+                         elvis_file:file(),
+                         private_data_type_config()) ->
+                            [elvis_result:item()].
+private_data_types(Config, Target, RuleConfig) ->
+    TypesToCheck = option(apply_to, RuleConfig, private_data_types),
+    TreeRootNode = get_root(Config, Target, RuleConfig),
+    ExportedTypes = elvis_code:exported_types(TreeRootNode),
+    LineNumbers = map_type_declarations_to_line_numbers(TreeRootNode),
+
+    PublicDataTypes = public_data_types(TypesToCheck, TreeRootNode, ExportedTypes),
+
+    lists:map(fun({Name, Arity} = Info) ->
+                 Line = maps:get(Info, LineNumbers, unknown),
+                 elvis_result:new(item, ?PRIVATE_DATA_TYPES_MSG, [Name, Arity, Line], Line)
+              end,
+              PublicDataTypes).
+
+public_data_types(TypesToCheck, TreeRootNode, ExportedTypes) ->
+    Fun = fun(Node) -> lists:member(get_type_of_type(Node), TypesToCheck) end,
+    Types =
+        [name_arity_from_type_line(Node)
+         || Node <- elvis_code:find(Fun, TreeRootNode, #{traverse => all, mode => node})],
+    lists:filter(fun({Name, Arity}) -> lists:member({Name, Arity}, ExportedTypes) end, Types).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+-spec name_arity_from_type_line(ktn_code:tree_node()) -> {atom(), integer()}.
+name_arity_from_type_line(#{attrs := #{name := Name}, node_attrs := #{args := Args}}) ->
+    {Name, length(Args)}.
+
+-spec map_type_declarations_to_line_numbers(ktn_code:tree_node()) ->
+                                               #{{atom(), number()} => number()}.
+map_type_declarations_to_line_numbers(TreeRootNode) ->
+    AllTypes =
+        elvis_code:find(fun is_type_attribute/1, TreeRootNode, #{traverse => all, mode => node}),
+    lists:foldl(fun (#{attrs := #{location := {Line, _}, name := Name},
+                       node_attrs := #{args := Args}},
+                     Acc) ->
+                        maps:put({Name, length(Args)}, Line, Acc);
+                    (_, Acc) ->
+                        Acc
+                end,
+                #{},
+                AllTypes).
 
 specific_or_default(same, Regex) ->
     Regex;

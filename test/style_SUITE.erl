@@ -23,7 +23,8 @@
          verify_no_single_clause_case/1, verify_numeric_format/1, verify_behaviour_spelling/1,
          verify_always_shortcircuit/1, verify_consistent_generic_type/1, verify_no_types/1,
          verify_no_specs/1, verify_export_used_types/1, verify_consistent_variable_casing/1,
-         verify_no_match_in_condition/1, verify_param_pattern_matching/1]).
+         verify_no_match_in_condition/1, verify_param_pattern_matching/1,
+         verify_private_data_types/1]).
 %% -elvis attribute
 -export([verify_elvis_attr_atom_naming_convention/1, verify_elvis_attr_numeric_format/1,
          verify_elvis_attr_dont_repeat_yourself/1, verify_elvis_attr_function_naming_convention/1,
@@ -39,7 +40,8 @@
          verify_elvis_attr_no_tabs/1, verify_elvis_attr_no_trailing_whitespace/1,
          verify_elvis_attr_operator_spaces/1, verify_elvis_attr_state_record_and_type/1,
          verify_elvis_attr_used_ignored_variable/1, verify_elvis_attr_variable_naming_convention/1,
-         verify_elvis_attr_behaviour_spelling/1, verify_elvis_attr_param_pattern_matching/1]).
+         verify_elvis_attr_behaviour_spelling/1, verify_elvis_attr_param_pattern_matching/1,
+         verify_elvis_attr_private_data_types/1]).
 %% Non-rule
 -export([results_are_ordered_by_line/1, oddities/1]).
 
@@ -78,7 +80,8 @@ groups() ->
        verify_no_author, verify_no_import, verify_always_shortcircuit,
        verify_no_catch_expressions, verify_no_single_clause_case, verify_no_macros,
        verify_export_used_types, verify_max_anonymous_function_arity, verify_max_function_arity,
-       verify_no_match_in_condition, verify_behaviour_spelling, verify_param_pattern_matching]}].
+       verify_no_match_in_condition, verify_behaviour_spelling, verify_param_pattern_matching,
+       verify_private_data_types]}].
 
 -spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
@@ -1581,6 +1584,46 @@ verify_export_used_types(Config) ->
     [#{line_num := 3}] =
         elvis_core_apply_rule(Config, elvis_style, export_used_types, #{}, PathFail).
 
+-spec verify_private_data_types(config()) -> any().
+verify_private_data_types(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+    PathPass = "pass_private_data_types2." ++ Ext,
+    [] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              private_data_types,
+                              #{apply_to => [record, map, tuple]},
+                              PathPass),
+    PathPass2 = "pass_private_data_types2." ++ Ext,
+    [] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              private_data_types,
+                              #{apply_to => [record, map, tuple]},
+                              PathPass2),
+    % Default applies only to records
+    PathFail = "fail_private_data_types." ++ Ext,
+    [#{line_num := _}] =
+        elvis_core_apply_rule(Config, elvis_style, private_data_types, #{}, PathFail),
+    [#{line_num := _}] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              private_data_types,
+                              #{apply_to => [tuple]},
+                              PathFail),
+    [#{line_num := _}] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              private_data_types,
+                              #{apply_to => [map]},
+                              PathFail),
+    [#{line_num := _}, #{line_num := _}, #{line_num := _}] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              private_data_types,
+                              #{apply_to => [record, tuple, map]},
+                              PathFail).
+
 -spec results_are_ordered_by_line(config()) -> true.
 results_are_ordered_by_line(_Config) ->
     ElvisConfig = elvis_test_utils:config(),
@@ -1716,6 +1759,10 @@ verify_elvis_attr_behaviour_spelling(Config) ->
 -spec verify_elvis_attr_param_pattern_matching(config()) -> true.
 verify_elvis_attr_param_pattern_matching(Config) ->
     verify_elvis_attr(Config, "pass_param_pattern_matching_elvis_attr").
+
+-spec verify_elvis_attr_private_data_types(config()) -> true.
+verify_elvis_attr_private_data_types(Config) ->
+    verify_elvis_attr(Config, "pass_private_data_types_elvis_attr").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
