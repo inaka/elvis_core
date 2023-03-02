@@ -11,7 +11,8 @@
          no_common_caveats_call/3, no_nested_try_catch/3, no_successive_maps/3,
          atom_naming_convention/3, no_throw/3, no_dollar_space/3, no_author/3, no_import/3,
          no_catch_expressions/3, no_single_clause_case/3, numeric_format/3, behaviour_spelling/3,
-         always_shortcircuit/3, consistent_generic_type/3, export_used_types/3, option/3]).
+         always_shortcircuit/3, consistent_generic_type/3, export_used_types/3,
+         no_match_in_condition/3, option/3]).
 
 -export_type([empty_rule_config/0]).
 -export_type([ignorable/0]).
@@ -25,7 +26,8 @@
               dont_repeat_yourself_config/0, no_call_config/0, no_debug_call_config/0,
               no_common_caveats_call_config/0, atom_naming_convention_config/0, no_author_config/0,
               no_import_config/0, no_catch_expressions_config/0, numeric_format_config/0,
-              no_single_clause_case_config/0, consistent_variable_casing_config/0]).
+              no_single_clause_case_config/0, consistent_variable_casing_config/0,
+              no_match_in_condition_config/0]).
 
 -define(INVALID_MACRO_NAME_REGEX_MSG,
         "The macro named ~p on line ~p does not respect the format "
@@ -114,6 +116,8 @@
         "Usage of catch expression on line ~p is not recommended").
 -define(NO_SINGLE_CLAUSE_CASE_MSG,
         "Case statement with a single clause found on line ~p.").
+-define(NO_MATCH_IN_CONDITION_MSG,
+        "Case statement with a match in its condition found on line ~p.").
 -define(NUMERIC_FORMAT_MSG,
         "Number ~p on line ~p does not respect the format "
         "defined by the regular expression '~p'.").
@@ -214,6 +218,7 @@ default(RuleWithEmptyDefault)
          RuleWithEmptyDefault == no_import;
          RuleWithEmptyDefault == no_catch_expressions;
          RuleWithEmptyDefault == no_single_clause_case;
+         RuleWithEmptyDefault == no_match_in_condition;
          RuleWithEmptyDefault == always_shortcircuit;
          RuleWithEmptyDefault == no_space_after_pound;
          RuleWithEmptyDefault == export_used_types;
@@ -992,8 +997,7 @@ no_throw(Config, Target, RuleConfig) ->
         fun(Node) -> lists:any(fun(T) -> is_call(Node, T) end, [{throw, 1}, {erlang, throw, 1}])
         end,
     Root = get_root(Config, Target, RuleConfig),
-    Opts = #{mode => node, traverse => content},
-    ThrowNodes = elvis_code:find(Zipper, Root, Opts),
+    ThrowNodes = elvis_code:find(Zipper, Root),
     lists:foldl(fun(ThrowNode, AccIn) ->
                    {Line, _} = ktn_code:attr(location, ThrowNode),
                    [elvis_result:new(item, ?NO_THROW_MSG, [Line]) | AccIn]
@@ -1032,8 +1036,7 @@ no_import(Config, Target, RuleConfig) ->
 no_attribute(Attribute, Msg, Config, Target, RuleConfig) ->
     Zipper = fun(Node) -> ktn_code:type(Node) =:= Attribute end,
     Root = get_root(Config, Target, RuleConfig),
-    Opts = #{mode => node, traverse => content},
-    Nodes = elvis_code:find(Zipper, Root, Opts),
+    Nodes = elvis_code:find(Zipper, Root),
     lists:map(fun(Node) ->
                  {Line, _} = ktn_code:attr(location, Node),
                  elvis_result:new(item, Msg, [Line], Line)
@@ -1048,8 +1051,7 @@ no_attribute(Attribute, Msg, Config, Target, RuleConfig) ->
                               [elvis_result:item()].
 no_catch_expressions(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    Opts = #{mode => node, traverse => content},
-    CatchNodes = elvis_code:find(fun is_catch_node/1, Root, Opts),
+    CatchNodes = elvis_code:find(fun is_catch_node/1, Root),
     lists:foldl(fun(CatchNode, Acc) ->
                    {Line, _Col} = ktn_code:attr(location, CatchNode),
                    [elvis_result:new(item, ?NO_CATCH_EXPRESSIONS_MSG, [Line]) | Acc]
@@ -1068,8 +1070,7 @@ is_catch_node(Node) ->
                                [elvis_result:item()].
 no_single_clause_case(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    Opts = #{mode => node, traverse => content},
-    CaseNodes = elvis_code:find(fun is_single_clause_case_statement/1, Root, Opts),
+    CaseNodes = elvis_code:find(fun is_single_clause_case_statement/1, Root),
     lists:map(fun(CaseNode) ->
                  {Line, _Col} = ktn_code:attr(location, CaseNode),
                  elvis_result:new(item, ?NO_SINGLE_CLAUSE_CASE_MSG, [Line], Line)
@@ -1083,6 +1084,27 @@ is_single_clause_case_statement(Node) ->
                        ktn_code:type(SubNode) == case_clauses,
                        Clause <- ktn_code:content(SubNode)])
             == 1.
+
+-type no_match_in_condition_config() :: #{ignore => [ignorable()]}.
+
+-spec no_match_in_condition(elvis_config:config(),
+                            elvis_file:file(),
+                            no_match_in_condition_config()) ->
+                               [elvis_result:item()].
+no_match_in_condition(Config, Target, RuleConfig) ->
+    Root = get_root(Config, Target, RuleConfig),
+    CaseNodes = elvis_code:find(fun is_match_in_condition/1, Root),
+    lists:map(fun(CaseNode) ->
+                 {Line, _Col} = ktn_code:attr(location, CaseNode),
+                 elvis_result:new(item, ?NO_MATCH_IN_CONDITION_MSG, [Line], Line)
+              end,
+              CaseNodes).
+
+is_match_in_condition(Node) ->
+    ktn_code:type(Node) == case_expr andalso [] =/= elvis_code:find(fun is_match/1, Node).
+
+is_match(Node) ->
+    ktn_code:type(Node) == match orelse ktn_code:type(Node) == maybe_match.
 
 -type numeric_format_config() ::
     #{ignore => [ignorable()],
@@ -1273,7 +1295,9 @@ check_atom_names(Regex, RegexEnclosed, [AtomNode | RemainingAtomNodes], AccIn) -
     IsExceptionClass = is_exception_class(ValueAtomName),
     RE = re_compile_for_atom_type(IsEnclosed, Regex, RegexEnclosed),
     AccOut =
-        case re:run(_Subject = unicode:characters_to_list(AtomName, unicode), RE) of
+        case re:run(
+                 unicode:characters_to_list(AtomName, unicode), RE)
+        of
             _ when IsExceptionClass andalso not IsEnclosed ->
                 AccIn;
             nomatch when not IsEnclosed ->
@@ -1377,7 +1401,7 @@ check_macro_names(Regexp, [MacroNode | RemainingMacroNodes], ResultsIn) ->
     {MacroNameStripped0, MacroNameOriginal} = macro_name_from_node(MacroNode),
     MacroNameStripped = unicode:characters_to_list(MacroNameStripped0, unicode),
     ResultsOut =
-        case re:run(_Subject = MacroNameStripped, RE) of
+        case re:run(MacroNameStripped, RE) of
             nomatch ->
                 Msg = ?INVALID_MACRO_NAME_REGEX_MSG,
                 {Line, _} = ktn_code:attr(location, MacroNode),
