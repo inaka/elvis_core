@@ -21,7 +21,7 @@ jobs:
         id: setup-beam
         with:
           otp-version: ${{matrix.otp_vsn}}
-          rebar3-version: '3'
+          rebar3-version: '3.20'
       - name: Restore _build
         uses: actions/cache@v3
         with:
