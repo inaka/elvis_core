@@ -10,6 +10,8 @@
 
 -if(?OTP_RELEASE >= 25).
 
+-feature(maybe_expr, enable).
+
 -export([no_used_ignored_vars_in_maybe/2]).
 
 no_used_ignored_vars_in_maybe(One, _Two) ->

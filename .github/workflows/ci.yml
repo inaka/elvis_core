@@ -41,21 +41,13 @@ jobs:
                 -rebar3-${{steps.setup-beam.outputs.rebar3-version}}\
                 -hash-${{hashFiles('rebar.lock')}}"
       - name: Compile
-        env:
-          ERL_FLAGS: "-enable-feature all"
         run: rebar3 compile
       - name: Format check
         if: ${{ matrix.os == 'ubuntu-20.04' }}
-        env:
-          ERL_FLAGS: "-enable-feature all"
         run: rebar3 format --verify
       - name: Run test
-        env:
-          ERL_FLAGS: "-enable-feature all"
         run: rebar3 test
       - name: Run elvis on elvis
-        env:
-          ERL_FLAGS: "-enable-feature all"
         run: |
           rebar3 escriptize
           _build/default/bin/elvis_core
