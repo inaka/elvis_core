@@ -629,7 +629,7 @@ verify_used_ignored_variable(Config) ->
                 [#{line_num := _}, #{line_num := _}, #{line_num := _}, #{line_num := _}] =
                     elvis_core_apply_rule(Config, elvis_style, used_ignored_variable, #{}, Path);
             erl_files ->
-                [#{line_num := 25}, #{line_num := 28}, #{line_num := 32}, #{line_num := 32}] =
+                [#{line_num := 31}, #{line_num := 34}, #{line_num := 38}, #{line_num := 38}] =
                     elvis_core_apply_rule(Config, elvis_style, used_ignored_variable, #{}, Path)
         end,
     [] =

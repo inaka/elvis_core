@@ -16,16 +16,15 @@ jobs:
         with:
           globs: |
             LICENSE
-            CONTRIBUTING.md
-            MIGRATION.md
-            README.md
-            RULES.md
+            *.md
             doc_rules/**/*.md
-            .github/ISSUE_TEMPLATE/*.md
+            .github/**/*.md
 
       - name: yamllint
         uses: ibiqlik/action-yamllint@v3
         with:
-          file_or_dir: .github/workflows/*.yml
+          file_or_dir: |
+            .github/**/*.yml
+            .*.yml
           strict: true
           config_file: .yamllint.yml

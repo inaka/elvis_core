@@ -83,7 +83,8 @@ rock_this(Path, Config) ->
 
 %% @private
 -spec do_parallel_rock(elvis_config:config()) ->
-                          ok | {fail, [elvis_result:file() | elvis_result:rule()]}.
+                          ok |
+                          {fail, [{throw, term()} | elvis_result:file() | elvis_result:rule()]}.
 do_parallel_rock(Config0) ->
     Parallel = elvis_config:from_application_or_config(parallel, 1),
     Config = elvis_config:resolve_files(Config0),
