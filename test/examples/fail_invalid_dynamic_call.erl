@@ -1,7 +1,5 @@
 -module(fail_invalid_dynamic_call).
 
--ignore_xref({normal, call, 0}).
--ignore_xref({another_normal, call, 0}).
 -elvis([{elvis_style, no_catch_expressions, disable}]).
 -dialyzer(no_match).
 

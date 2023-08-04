@@ -2,9 +2,6 @@
 
 -dialyzer({nowarn_function, bad2/0}).
 
--ignore_xref([{it_may, throw, 1}]).
--ignore_xref([{a_function, that_deals, 2}]).
-
 -export([
          bad1/0,
          bad2/0,

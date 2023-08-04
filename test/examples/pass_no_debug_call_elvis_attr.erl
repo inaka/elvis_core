@@ -3,9 +3,6 @@
 
 -elvis([{elvis_style, no_debug_call, #{debug_functions => [{ct, log}]}}]).
 
--ignore_xref({cthr, pal, 1}).
--ignore_xref({cthr, pal, 2}).
-
 -spec fail() -> any().
 fail() ->
     erlang:display("debug print"),

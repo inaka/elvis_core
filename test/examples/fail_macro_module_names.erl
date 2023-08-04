@@ -1,8 +1,5 @@
 -module(fail_macro_module_names).
 
--ignore_xref({module, function_name, 1}).
--ignore_xref({lists, fail_macro_module_names, 0}).
-
 -dialyzer({nowarn_function, [function_name/0, build_binary/0]}).
 
 -export([
