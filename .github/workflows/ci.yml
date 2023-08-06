@@ -1,12 +1,6 @@
 ---
 name: build
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+on: [push, pull_request]
 jobs:
   ci:
     name: OTP ${{matrix.otp_vsn}} on ${{matrix.os}}
