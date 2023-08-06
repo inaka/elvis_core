@@ -1,18 +1,10 @@
-.eunit
-.rebar
-deps
-ebin
-*.o
-*.beam
-*.plt
 erl_crash.dump
-log*/
-_build
+_*
+doc/
+rebar3.crashdump
+.rebar3
+logs
+test/**/*.beam
+
 # Ignore elvis escript
 elvis
-rebar
-elvis.d
-doc
-rebar3.crashdump
-.rebar3/
-rebar3
