@@ -33,4 +33,4 @@ file.
 ## Questions?
 
 If you have any questions or general comments regarding how to contribute, please use our public
-[hipchat room](http://inaka.net/hipchat).
+Erlanger Slack channel: [#elvis](https://erlanger.slack.com/archives/C01073W0E15).
