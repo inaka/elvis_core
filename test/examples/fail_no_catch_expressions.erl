@@ -2,6 +2,8 @@
 
 -export([catchf/0, try_catch/0, mixem/0]).
 
+-dialyzer({nowarn_function, [catchf/0, try_catch/0, mixem/0]}).
+
 catchf() ->
     F = fun (a) -> "catch" end,
     catch F(b).

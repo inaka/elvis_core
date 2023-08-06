@@ -2,6 +2,8 @@
 
 -export([f/0]).
 
+-dialyzer({nowarn_function, [f/0, thro/2]}).
+
 f() ->
     thro(exit, 2),
     throw = throw,

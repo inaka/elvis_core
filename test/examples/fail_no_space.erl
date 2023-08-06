@@ -108,7 +108,7 @@ this()
 -> should_not_crash.
 
 -spec this(shouldnt_either)
--> -1.
+-> 32.
 this(shouldnt_either)
 -> A = 1
 - 2, A, $ . 

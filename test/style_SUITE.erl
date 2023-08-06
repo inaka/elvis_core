@@ -1435,9 +1435,9 @@ verify_no_catch_expressions(Config) ->
     R = elvis_core_apply_rule(Config, elvis_style, no_catch_expressions, #{}, FailPath),
     _ = case Group of
             beam_files ->
-                [#{info := [18]}, #{info := [18]}, #{info := [7]}] = R;
+                [#{info := [21]}, #{info := [21]}, #{info := [10]}] = R;
             erl_files ->
-                [#{info := [24]}, #{info := [22]}, #{info := [7]}] = R
+                [#{info := [26]}, #{info := [24]}, #{info := [9]}] = R
         end.
 
 -spec verify_no_single_clause_case(config()) -> any().

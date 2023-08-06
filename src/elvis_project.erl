@@ -2,7 +2,7 @@
 
 -export([default/1, no_branch_deps/3, protocol_for_deps/3, old_configuration_format/3]).
 
--export_type([protocol_for_deps_config/0, empty_rule_config/0]).
+-export_type([protocol_for_deps_config/0]).
 
 -define(DEP_BRANCH,
         "Dependency '~s' uses a branch. "
@@ -53,7 +53,9 @@ protocol_for_deps(_Config, Target, RuleConfig) ->
     lists:flatmap(fun(Line) -> dep_to_result(Line, ?DEP_NO_GIT, {IgnoreDeps, Regex}) end,
                   BadDeps).
 
--spec no_branch_deps(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
+-spec no_branch_deps(elvis_config:config(),
+                     elvis_file:file(),
+                     elvis_style:empty_rule_config()) ->
                         [elvis_result:item()].
 no_branch_deps(_Config, Target, RuleConfig) ->
     IgnoreDeps = option(ignore, RuleConfig, no_branch_deps),
@@ -61,11 +63,9 @@ no_branch_deps(_Config, Target, RuleConfig) ->
     BadDeps = lists:filter(fun is_branch_dep/1, Deps),
     lists:flatmap(fun(Line) -> dep_to_result(Line, ?DEP_BRANCH, IgnoreDeps) end, BadDeps).
 
--type empty_rule_config() :: #{}.
-
 -spec old_configuration_format(elvis_config:config(),
                                elvis_file:file(),
-                               empty_rule_config()) ->
+                               elvis_style:empty_rule_config()) ->
                                   [elvis_result:item()].
 old_configuration_format(_Config, Target, _RuleConfig) ->
     {Content, _} = elvis_file:src(Target),

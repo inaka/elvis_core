@@ -2,7 +2,7 @@
 
 -format ignore.
 
--record(bad, {record :: # bad{}}).
+-record(bad, {record :: undefined | # bad{}}).
 
 -type bad_record() :: # bad{}.
 -type bad_map() :: # {bad => map}.
@@ -15,7 +15,7 @@ bad_records() ->
     # bad{record = R2} = R,
     R2# bad{record = element(# bad.record, R)}.
 
--spec bad_maps() -> # {bad => map} | bad_map().
+-spec bad_maps() -> # {bad := bad_map()}.
 bad_maps() ->
     M = # {bad => # {bad => map}},
     # {bad := M2} = M,

@@ -192,7 +192,7 @@ elvis_attr_rules(ElvisAttrs) ->
     when Mod :: module(),
          Fun :: atom(),
          RuleCfg :: rule_config(),
-         Results :: [elvis_result:rule()],
+         Results :: [elvis_result:rule() | elvis_result:elvis_error()],
          ElvisCfg :: elvis_config:config(),
          File :: elvis_file:file(),
          Result :: {Results, ElvisCfg, File}.
