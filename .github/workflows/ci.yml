@@ -13,15 +13,16 @@ jobs:
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
-        otp_vsn: [23, 24, 25]
-        os: [ubuntu-20.04, windows-latest]
+        otp_vsn: ['24', '25', '26']
+        rebar3_vsn: ['3.22']
+        os: [ubuntu-22.04, windows-2022]
     steps:
       - uses: actions/checkout@v3
       - uses: erlef/setup-beam@v1
         id: setup-beam
         with:
           otp-version: ${{matrix.otp_vsn}}
-          rebar3-version: '3.20'
+          rebar3-version: ${{matrix.rebar3_vsn}}
       - name: Restore _build
         uses: actions/cache@v3
         with:
@@ -43,7 +44,6 @@ jobs:
       - name: Compile
         run: rebar3 compile
       - name: Format check
-        if: ${{ matrix.os == 'ubuntu-20.04' }}
         run: rebar3 format --verify
       - name: Run test
         run: rebar3 test
