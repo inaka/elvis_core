@@ -1339,10 +1339,12 @@ public_data_types(TypesToCheck, TreeRootNode, ExportedTypes) ->
 %% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%% @private
 -spec name_arity_from_type_line(ktn_code:tree_node()) -> {atom(), integer()}.
 name_arity_from_type_line(#{attrs := #{name := Name}, node_attrs := #{args := Args}}) ->
     {Name, length(Args)}.
 
+%% @private
 -spec map_type_declarations_to_line_numbers(ktn_code:tree_node()) ->
                                                #{{atom(), number()} => number()}.
 map_type_declarations_to_line_numbers(TreeRootNode) ->
@@ -1358,11 +1360,13 @@ map_type_declarations_to_line_numbers(TreeRootNode) ->
                 #{},
                 AllTypes).
 
+%% @private
 specific_or_default(same, Regex) ->
     Regex;
 specific_or_default(RegexEnclosed, _Regex) ->
     RegexEnclosed.
 
+%% @private
 check_numeric_format(_Regex, [], Acc) ->
     lists:reverse(Acc);
 check_numeric_format(Regex, [NumNode | RemainingNumNodes], AccIn) ->
@@ -1386,12 +1390,15 @@ check_numeric_format(Regex, [NumNode | RemainingNumNodes], AccIn) ->
         end,
     check_numeric_format(Regex, RemainingNumNodes, AccOut).
 
+%% @private
 is_integer_node(Node) ->
     ktn_code:type(Node) =:= integer.
 
+%% @private
 is_float_node(Node) ->
     ktn_code:type(Node) =:= float.
 
+%% @private
 is_exception_class(error) ->
     true;
 is_exception_class(exit) ->
@@ -1401,6 +1408,7 @@ is_exception_class(throw) ->
 is_exception_class(_) ->
     false.
 
+%% @private
 check_atom_names(_Regex, _RegexEnclosed, [] = _AtomNodes, Acc) ->
     Acc;
 check_atom_names(Regex, RegexEnclosed, [AtomNode | RemainingAtomNodes], AccIn) ->
@@ -1432,6 +1440,7 @@ check_atom_names(Regex, RegexEnclosed, [AtomNode | RemainingAtomNodes], AccIn) -
         end,
     check_atom_names(Regex, RegexEnclosed, RemainingAtomNodes, AccOut).
 
+%% @private
 string_strip_enclosed([$' | Rest]) ->
     [$' | Reversed] = lists:reverse(Rest),
     IsEnclosed = true,
@@ -1441,6 +1450,7 @@ string_strip_enclosed(NonEnclosedAtomName) ->
     IsEnclosed = false,
     {IsEnclosed, NonEnclosedAtomName}.
 
+%% @private
 re_compile_for_atom_type(false = _IsEnclosed, Regex, _RegexEnclosed) ->
     {ok, RE} = re:compile(Regex, [unicode]),
     RE;
@@ -1448,10 +1458,12 @@ re_compile_for_atom_type(true = _IsEnclosed, _Regex, RegexEnclosed) ->
     {ok, RE} = re:compile(RegexEnclosed, [unicode]),
     RE.
 
+%% @private
 is_atom_node(MaybeAtom) ->
     ktn_code:type(MaybeAtom) =:= atom.
 
 %% Variables name
+%% @private
 check_variables_name(_Regex, []) ->
     [];
 check_variables_name(Regex, [Variable | RemainingVars]) ->
@@ -1471,6 +1483,7 @@ check_variables_name(Regex, [Variable | RemainingVars]) ->
 
 %% Result building
 
+%% @private
 result_node_line_fun(Msg) ->
     fun(Node) ->
        {Line, _} = ktn_code:attr(location, Node),
@@ -1478,6 +1491,7 @@ result_node_line_fun(Msg) ->
        elvis_result:new(item, Msg, Info, Line)
     end.
 
+%% @private
 result_node_line_col_fun(Msg) ->
     fun(Node) ->
        {Line, Col} = ktn_code:attr(location, Node),
@@ -1489,6 +1503,7 @@ result_node_line_col_fun(Msg) ->
 
 %% Line Length
 
+%% @private
 -spec line_is_comment(binary()) -> boolean().
 line_is_comment(Line) ->
     case re:run(Line, "^[ \t]*%") of
@@ -1498,6 +1513,7 @@ line_is_comment(Line) ->
             true
     end.
 
+%% @private
 -spec line_is_whitespace(binary()) -> boolean().
 line_is_whitespace(Line) ->
     case re:run(Line, "^[ \t]*$") of
@@ -1509,6 +1525,7 @@ line_is_whitespace(Line) ->
 
 %% Macro Names
 
+%% @private
 check_macro_names(_Regexp, [] = _MacroNodes, ResultsIn) ->
     ResultsIn;
 check_macro_names(Regexp, [MacroNode | RemainingMacroNodes], ResultsIn) ->
@@ -1530,6 +1547,7 @@ check_macro_names(Regexp, [MacroNode | RemainingMacroNodes], ResultsIn) ->
 
 -dialyzer({no_match, is_macro_define_node/1}).
 
+%% @private
 is_macro_define_node(MaybeMacro) ->
     case ktn_code:type(MaybeMacro) of
         {atom, [_, _], define} ->
@@ -1538,6 +1556,7 @@ is_macro_define_node(MaybeMacro) ->
             false
     end.
 
+%% @private
 macro_name_from_node(MacroNode) ->
     MacroNodeValue = ktn_code:attr(value, MacroNode),
     MacroAsAtom = macro_as_atom(false, [call, var, atom], MacroNodeValue),
@@ -1545,6 +1564,7 @@ macro_name_from_node(MacroNode) ->
     MacroNameStripped = string:strip(MacroNameOriginal, both, $'),
     {MacroNameStripped, MacroNameOriginal}.
 
+%% @private
 macro_as_atom({var, _Text, MacroAsAtom}, _Types, _MacroNodeValue) ->
     MacroAsAtom;
 macro_as_atom({atom, _Text, MacroAsAtom}, _Types, _MacroNodeValue) ->
@@ -1558,6 +1578,7 @@ macro_as_atom(false, [Type | OtherTypes], MacroNodeValue) ->
     macro_as_atom(lists:keyfind(Type, _N = 1, MacroNodeValue), OtherTypes, MacroNodeValue).
 
 %% Operator (and Text) Spaces
+%% @private
 -spec check_spaces(Lines :: [binary()],
                    Nodes :: [ktn_code:tree_node()],
                    Rule :: {right | left, string()},
@@ -1594,11 +1615,13 @@ check_spaces(Lines, UnfilteredNodes, {Position, Text}, Encoding, {How0, _} = How
         end,
     lists:flatmap(FlatFun, Nodes).
 
+%% @private
 maybe_run_regex(undefined = _Regex, _Line) ->
     false;
 maybe_run_regex({ok, Regex}, Line) ->
     re:run(Line, Regex).
 
+%% @private
 -spec character_at_location(Position :: atom(),
                             Lines :: [binary()],
                             Text :: string(),
@@ -1656,6 +1679,7 @@ character_at_location(Position,
     end.
 
 %% Nesting Level
+%% @private
 -spec check_nesting_level(ktn_code:tree_node(), [integer()]) -> [elvis_result:item()].
 check_nesting_level(ParentNode, [MaxLevel]) ->
     case elvis_code:past_nesting_limit(ParentNode, MaxLevel) of
@@ -1675,6 +1699,7 @@ check_nesting_level(ParentNode, [MaxLevel]) ->
 
 %% Invalid Dynamic Calls
 
+%% @private
 -spec check_invalid_dynamic_calls(ktn_code:tree_node()) -> [elvis_result:item()].
 check_invalid_dynamic_calls(Root) ->
     case elvis_code:find(fun is_dynamic_call/1, Root, #{traverse => all}) of
@@ -1685,6 +1710,7 @@ check_invalid_dynamic_calls(Root) ->
             lists:map(ResultFun, InvalidCalls)
     end.
 
+%% @private
 -spec is_dynamic_call(ktn_code:tree_node()) -> boolean().
 is_dynamic_call(Node) ->
     case ktn_code:type(Node) of
@@ -1702,6 +1728,7 @@ is_dynamic_call(Node) ->
     end.
 
 %% Plain Variable
+%% @private
 -spec is_var(zipper:zipper(_)) -> boolean().
 is_var(Zipper) ->
     case ktn_code:type(
@@ -1729,6 +1756,7 @@ is_var(Zipper) ->
 
 %% Ignored Variable
 
+%% @private
 -spec is_ignored_var(zipper:zipper(_)) -> boolean().
 is_ignored_var(Zipper) ->
     Node = zipper:node(Zipper),
@@ -1741,6 +1769,7 @@ is_ignored_var(Zipper) ->
             false
     end.
 
+%% @private
 check_parent_match(Zipper) ->
     case zipper:up(Zipper) of
         undefined ->
@@ -1759,6 +1788,7 @@ check_parent_match(Zipper) ->
 
 %% State record in OTP module
 
+%% @private
 -spec is_otp_module(ktn_code:tree_node()) -> boolean().
 is_otp_module(Root) ->
     OtpSet = sets:from_list([gen_server, gen_event, gen_fsm, gen_statem, supervisor_bridge]),
@@ -1776,6 +1806,7 @@ is_otp_module(Root) ->
                     sets:intersection(OtpSet, BehaviorsSet))
     end.
 
+%% @private
 -spec has_state_record(ktn_code:tree_node()) -> boolean().
 has_state_record(Root) ->
     IsStateRecord =
@@ -1783,6 +1814,7 @@ has_state_record(Root) ->
         end,
     [] /= elvis_code:find(IsStateRecord, Root).
 
+%% @private
 -spec has_state_type(ktn_code:tree_node()) -> boolean().
 has_state_type(Root) ->
     IsStateType =
@@ -1792,6 +1824,7 @@ has_state_type(Root) ->
 
 %% Spec includes records
 
+%% @private
 -spec spec_includes_record(ktn_code:tree_node()) -> boolean().
 spec_includes_record(Node) ->
     IsTypeRecord =
@@ -1802,6 +1835,7 @@ spec_includes_record(Node) ->
 
 %% Don't repeat yourself
 
+%% @private
 -spec find_repeated_nodes(ktn_code:tree_node(), non_neg_integer()) ->
                              [ktn_code:tree_node()].
 find_repeated_nodes(Root, MinComplexity) ->
@@ -1831,10 +1865,12 @@ find_repeated_nodes(Root, MinComplexity) ->
 
     lists:map(fun lists:sort/1, Locations).
 
+%% @private
 -spec remove_attrs_zipper(zipper:zipper(_), map()) -> ktn_code:tree_node().
 remove_attrs_zipper(Zipper, TypeAttrs) ->
     zipper:fmap(fun remove_attrs/2, [TypeAttrs], Zipper).
 
+%% @private
 -spec remove_attrs(ktn_code:tree_node() | [ktn_code:tree_node()], map()) ->
                       ktn_code:tree_node().
 remove_attrs(Nodes, TypeAttrs) when is_list(Nodes) ->
@@ -1858,6 +1894,7 @@ remove_attrs(#{attrs := Attrs, type := Type} = Node, TypeAttrs) ->
 remove_attrs(Node, _TypeAttrs) ->
     Node.
 
+%% @private
 -spec filter_repeated(map()) -> map().
 filter_repeated(NodesLocs) ->
     NotRepeated =
@@ -1875,11 +1912,13 @@ filter_repeated(NodesLocs) ->
 
     maps:without(Nested, RepeatedMap).
 
+%% @private
 is_children(Parent, Node) ->
     Zipper = elvis_code:code_zipper(Parent),
     [] =/= zipper:filter(fun(Child) -> Child == Node end, Zipper).
 
 %% No call
+%% @private
 -spec no_call_common(elvis_config:config(),
                      elvis_file:file(),
                      [function_spec()],
@@ -1892,6 +1931,7 @@ no_call_common(Config, Target, NoCallFuns, Msg, RuleConfig) ->
     Calls = elvis_code:find(fun is_call/1, Root),
     check_no_call(Calls, Msg, NoCallFuns).
 
+%% @private
 -spec check_no_call([ktn_code:tree_node()], string(), [function_spec()]) ->
                        [elvis_result:item()].
 check_no_call(Calls, Msg, NoCallFuns) ->
@@ -1904,11 +1944,13 @@ check_no_call(Calls, Msg, NoCallFuns) ->
         end,
     lists:map(ResultFun, DebugCalls).
 
+%% @private
 is_in_call_list(Call, DebugFuns) ->
     MFA = call_mfa(Call),
     MatchFun = fun(Spec) -> fun_spec_match(Spec, MFA) end,
     lists:any(MatchFun, DebugFuns).
 
+%% @private
 call_mfa(Call) ->
     FunctionSpec = ktn_code:node_attr(function, Call),
     M = ktn_code:attr(value, ktn_code:node_attr(module, FunctionSpec)),
@@ -1916,6 +1958,7 @@ call_mfa(Call) ->
     A = length(ktn_code:content(Call)),
     {M, F, A}.
 
+%% @private
 is_call(Node, {F, A}) ->
     ktn_code:type(Node) =:= call
     andalso list_to_atom(ktn_code:attr(text, Node)) =:= F
@@ -1923,9 +1966,11 @@ is_call(Node, {F, A}) ->
 is_call(Node, {M, F, A}) ->
     call_mfa(Node) =:= {M, F, A}.
 
+%% @private
 is_call(Node) ->
     ktn_code:type(Node) =:= call.
 
+%% @private
 fun_spec_match({M, F}, {M, F, _}) ->
     true;
 fun_spec_match({M, F, A}, {M, F, A}) ->
@@ -1933,6 +1978,7 @@ fun_spec_match({M, F, A}, {M, F, A}) ->
 fun_spec_match(_, _) ->
     false.
 
+%% @private
 %% @doc No nested try...catch blocks
 check_nested_try_catchs(ResultFun, TryExp) ->
     Predicate = fun(Node) -> ktn_code:type(Node) == 'try' end,
@@ -1943,6 +1989,7 @@ check_nested_try_catchs(ResultFun, TryExp) ->
                     end,
                     elvis_code:find(Predicate, TryExp)).
 
+%% @private
 %% @doc No #{...}#{...}
 check_successive_maps(ResultFun, MapExp) ->
     case ktn_code:node_attr(var, MapExp) of
@@ -1958,6 +2005,7 @@ check_successive_maps(ResultFun, MapExp) ->
     end.
 
 %% Consistent Generic Type
+%% @private
 consistent_generic_type_predicate(TypePreference) ->
     fun(Node) ->
        NodeType = ktn_code:type(Node),
@@ -1967,6 +2015,7 @@ consistent_generic_type_predicate(TypePreference) ->
        andalso NodeName /= TypePreference
     end.
 
+%% @private
 consistent_generic_type_result(TypePreference) ->
     fun(Node) ->
        {Line, _} = ktn_code:attr(location, Node),

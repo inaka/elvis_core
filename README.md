@@ -1,9 +1,4 @@
-# elvis_core [![GitHub Actions CI][ci-img]][ci] [![Erlang Support][support-img]][support]
-
-[ci]: https://github.com/inaka/elvis_core
-[ci-img]: https://github.com/inaka/elvis_core/workflows/build/badge.svg
-[support]: http://www.erlang.org
-[support-img]: https://img.shields.io/badge/Erlang/OTP-23+-blue
+# elvis_core [![GitHub Actions CI](https://github.com/inaka/elvis_core/workflows/build/badge.svg)](https://github.com/inaka/elvis_core) [![Erlang Support](https://img.shields.io/badge/Erlang/OTP-24+-blue)](https://www.erlang.org)
 
 `elvis_core` is the core library for the [`elvis`](https://github.com/inaka/elvis) Erlang style
 reviewer. It is also used by [`rebar3_lint`](https://github.com/project-fifo/rebar3_lint) for easier
@@ -59,7 +54,7 @@ current directory. If no configuration is found `{invalid_config, _}` is thrown.
 #### Providing configuration as a value
 
 Another option for using `elvis_core` from the shell is to explicitly provide the configuration as
-an argument to `rock/1`:
+an argument to `elvis_core:rock/1`:
 
 ```shell
 1> ElvisConfig = [#{dirs => ["src"], filter => "*.erl", rules => []}].
@@ -241,16 +236,16 @@ environment variables, i.e. as they would be found by `application:get_env/2,3`.
 ### Pre-defined rules
 
 A reference to all pre-defined rules (and some other information) implemented in `elvis_core` can be
-found in this repository's [RULES.md](RULES.md).
+found in this repository's [RULES.md](https://github.com/inaka/elvis_core/blob/main/RULES.md).
 
 ### User-defined rules
 
 The implementation of a new rule is a function that takes 3 arguments in the following order:
 
-1. `elvis_config:config()`: the value of option `config` as found in the
+1. `t:elvis_config:config()`: the value of option `config` as found in the
 [configuration](#configuration),
-1. `elvis_file:file()`: the file to be analyzed,
-1. `map()`: a configuration map specific to your user-defined rule.
+1. `t:elvis_file:file()`: the file to be analyzed,
+1. `t:erlang:map()`: a configuration map specific to your user-defined rule.
 
 This means you can define rules of your own (user-defined rules) as long as the functions that
 implement them respect this interface.

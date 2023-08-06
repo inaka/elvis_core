@@ -77,6 +77,7 @@ no_trailing_whitespace(_Config, Target, RuleConfig) ->
 
 %% Line Length
 
+%% @private
 -spec line_is_comment(binary()) -> boolean().
 line_is_comment(Line) ->
     case re:run(Line, "^[ \t]*%") of
@@ -86,6 +87,7 @@ line_is_comment(Line) ->
             true
     end.
 
+%% @private
 -spec remove_comment(binary()) -> binary().
 remove_comment(Line) ->
     case re:run(Line, "([^%]+)", [{capture, first, binary}]) of
@@ -95,6 +97,7 @@ remove_comment(Line) ->
             Without
     end.
 
+%% @private
 -spec check_line_length(binary(), integer(), [term()]) ->
                            no_result | {ok, elvis_result:item()}.
 check_line_length(Line, Num, [Limit, whole_line, Encoding]) ->
@@ -123,6 +126,7 @@ check_line_length(Line, Num, [Limit, Encoding]) ->
 
 %% No Tabs
 
+%% @private
 -spec check_no_tabs(binary(), integer()) -> no_result | {ok, elvis_result:item()}.
 check_no_tabs(Line, Num) ->
     case binary:match(Line, <<"\t">>) of
@@ -137,6 +141,7 @@ check_no_tabs(Line, Num) ->
 
 %% No Trailing Whitespace
 
+%% @private
 -spec check_no_trailing_whitespace(binary(), integer(), boolean()) ->
                                       no_result | {ok, elvis_result:item()}.
 check_no_trailing_whitespace(Line, Num, IgnoreEmptyLines) ->
