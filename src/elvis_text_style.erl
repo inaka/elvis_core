@@ -142,7 +142,7 @@ check_no_tabs(Line, Num) ->
 check_no_trailing_whitespace(Line, Num, IgnoreEmptyLines) ->
     Regex =
         case IgnoreEmptyLines of
-            %% Lookbehind assertion: http://erlang.org/doc/man/re.html#sect17
+            %% Lookbehind assertion: https://erlang.org/doc/man/re.html#sect17
             true ->
                 "(?<=\\S)\\s+$";
             false ->

@@ -1,6 +1,6 @@
 # Don't Repeat Yourself
 
-The *Don't Repeat Yourself* ([DRY](http://en.wikipedia.org/wiki/Don't_repeat_yourself)) rule checks
+The *Don't Repeat Yourself* ([DRY](https://en.wikipedia.org/wiki/Don't_repeat_yourself)) rule checks
 if there is repeated code within a module. A piece of code is considered repeated or duplicated when
 its structure can be found in at least another piece of code in the same module.
 
