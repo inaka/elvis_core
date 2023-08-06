@@ -38,6 +38,7 @@ jobs:
       - name: Compile
         run: rebar3 compile
       - name: Format check
+        if: ${{ matrix.os == 'ubuntu-22.04' }}
         run: rebar3 format --verify
       - name: Run test
         run: rebar3 test
