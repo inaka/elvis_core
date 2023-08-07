@@ -2,7 +2,7 @@
 
 -format ignore.
 
--record(good, {record :: #good{}}).
+-record(good, {record :: undefined | #good{}}).
 
 -type good_record() :: #good{}.
 -type good_map() :: #{good => map}.
@@ -15,7 +15,7 @@ good_records() ->
     #good{record = R2} = R,
     R2#good{record = element(#good.record, R)}.
 
--spec good_maps() -> #{good => map} | good_map().
+-spec good_maps() -> #{good => good_map()}.
 good_maps() ->
     M = #{good => #{good => map}},
     #{good := M2} = M,

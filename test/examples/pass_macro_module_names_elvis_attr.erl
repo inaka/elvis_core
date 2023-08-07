@@ -19,10 +19,6 @@
          build_binary/0
         ]).
 
--ignore_xref({pass_macro_module_names_elvis_attr, function_name, 0}).
--ignore_xref({module, function_name, 1}).
--ignore_xref({lists, pass_macro_module_names_elvis_attr, 0}).
-
 -define(FUN_NAME, function_name).
 -define(BINARY, "bla").
 -define(BINARY_SIZE, 3).

@@ -2,7 +2,7 @@
 
 (since [0.4.0](https://github.com/inaka/elvis_core/releases/tag/0.4.0))
 
-The [Erlang Efficiency Guide](http://erlang.org/doc/efficiency_guide/commoncaveats.html) has a list
+The [Erlang Efficiency Guide](https://erlang.org/doc/efficiency_guide/commoncaveats.html) has a list
 of "Common Caveats" suggesting more efficient alternatives to several common functions.  This rule
 provides warnings if you call "inefficient" functions with entirely equivalent (efficient)
 alternatives.

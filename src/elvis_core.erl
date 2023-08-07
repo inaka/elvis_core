@@ -142,6 +142,7 @@ main([]) ->
 %%% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%% @private
 -spec combine_results(ok | {fail, [elvis_result:file()]},
                       ok | {fail, [elvis_result:file()]}) ->
                          ok | {fail, [elvis_result:file()]}.
@@ -157,6 +158,7 @@ apply_rules_and_print(Config, File) ->
     elvis_result:print_results(Results),
     Results.
 
+%% @private
 -spec apply_rules(elvis_config:configs() | elvis_config:config(),
                   File :: elvis_file:file()) ->
                      elvis_result:file().
@@ -168,25 +170,29 @@ apply_rules(Config, File) ->
         lists:foldl(fun apply_rule/2, Acc, merge_rules({file, ParseTree}, lists:flatten(Rules))),
     elvis_result:new(file, File, RulesResults).
 
+%% @private
 merge_rules({file, ParseTree}, ElvisConfigRules) ->
     ElvisAttrs =
         elvis_code:find(fun is_elvis_attr/1, ParseTree, #{traverse => content, mode => node}),
     ElvisAttrRules = elvis_attr_rules(ElvisAttrs),
     elvis_config:merge_rules(ElvisAttrRules, ElvisConfigRules).
 
+%% @private
 is_elvis_attr(Node) ->
     ktn_code:type(Node) =:= elvis.
 
+%% @private
 elvis_attr_rules([] = _ElvisAttrs) ->
     [];
 elvis_attr_rules(ElvisAttrs) ->
     [Rule || ElvisAttr <- ElvisAttrs, Rule <- ktn_code:attr(value, ElvisAttr)].
 
+%% @private
 -spec apply_rule({Mod, Fun} | {Mod, Fun, RuleCfg}, {Results, ElvisCfg, File}) -> Result
     when Mod :: module(),
          Fun :: atom(),
          RuleCfg :: rule_config(),
-         Results :: [elvis_result:rule()],
+         Results :: [elvis_result:rule() | elvis_result:elvis_error()],
          ElvisCfg :: elvis_config:config(),
          File :: elvis_file:file(),
          Result :: {Results, ElvisCfg, File}.
@@ -223,6 +229,7 @@ apply_rule({Module, Function, ConfigArgs}, {Result, Config, File}) ->
         end,
     {[RuleResult | Result], Config, File}.
 
+%% @private
 %% @doc Process a tules configuration argument and converts it to a map.
 ensure_config_map(_, _, Map) when is_map(Map) ->
     Map;

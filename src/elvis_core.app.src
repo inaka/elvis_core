@@ -7,5 +7,5 @@
   {modules, [elvis_core, elvis_config, elvis_result, elvis_utils, elvis_style]},
   {registered, []},
   {licenses, ["Apache 2.0"]},
-  {links, [{"Github", "https://github.com/inaka/elvis_core"}]},
+  {links, [{"GitHub", "https://github.com/inaka/elvis_core"}]},
   {build_tools, ["rebar3"]}]}.

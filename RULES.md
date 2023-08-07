@@ -45,7 +45,7 @@ identified with `(since ...)` for convenience purposes.
 - [No Match in Condition](doc_rules/elvis_style/no_match_in_condition.md)
 - [No Nested try...catch Blocks](doc_rules/elvis_style/no_nested_try_catch.md)
 - [No Single-Clause Case Statements](doc_rules/elvis_style/no_single_clause_case.md)
-- [No Space after #](doc_rules/elvis_style/no_space_after_pount.md)
+- [No Space after #](doc_rules/elvis_style/no_space_after_pound.md)
 - [No Space](doc_rules/elvis_style/no_space.md)
 - [No Spec With Records](doc_rules/elvis_style/no_spec_with_records.md)
 - [No Specs](doc_rules/elvis_style/no_specs.md)

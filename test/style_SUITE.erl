@@ -240,7 +240,7 @@ verify_line_length_rule(Config) ->
         elvis_core_apply_rule(Config, elvis_text_style, line_length, #{limit => 100}, Path),
     8 = length(Result),
     #{info := Info, message := Msg} = lists:nth(7, Result),
-    <<"Line 34 is too long. It has ", _/binary>> = list_to_binary(io_lib:format(Msg, Info)),
+    <<"Line 32 is too long. It has ", _/binary>> = list_to_binary(io_lib:format(Msg, Info)),
 
     WholeLineResult =
         elvis_core_apply_rule(Config,
@@ -362,15 +362,15 @@ verify_macro_module_names(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     Path = "fail_macro_module_names." ++ Ext,
-    [#{line_num := 23},
+    [#{line_num := 20},
+     #{line_num := 20},
+     #{line_num := 21},
+     #{line_num := 22},
      #{line_num := 23},
-     #{line_num := 24},
-     #{line_num := 25},
-     #{line_num := 26},
-     #{line_num := 26},
-     #{line_num := 30},
-     #{line_num := 31},
-     #{line_num := 32}] =
+     #{line_num := 23},
+     #{line_num := 27},
+     #{line_num := 28},
+     #{line_num := 29}] =
         elvis_core_apply_rule(Config, elvis_style, macro_module_names, #{}, Path).
 
 -spec verify_no_macros(config()) -> any().
@@ -604,13 +604,13 @@ verify_invalid_dynamic_call(Config) ->
                  #{line_num := _}] =
                     elvis_core_apply_rule(Config, elvis_style, invalid_dynamic_call, #{}, PathFail);
             erl_files ->
-                [#{line_num := 21},
-                 #{line_num := 33},
-                 #{line_num := 34},
-                 #{line_num := 42},
-                 #{line_num := 50},
-                 #{line_num := 61},
-                 #{line_num := 68}] =
+                [#{line_num := 19},
+                 #{line_num := 31},
+                 #{line_num := 32},
+                 #{line_num := 40},
+                 #{line_num := 48},
+                 #{line_num := 59},
+                 #{line_num := 66}] =
                     elvis_core_apply_rule(Config, elvis_style, invalid_dynamic_call, #{}, PathFail)
         end,
 
@@ -1221,10 +1221,10 @@ verify_no_nested_try_catch(Config) ->
     Path = atom_to_list(Module) ++ "." ++ Ext,
     _ = case Group of
             beam_files ->
-                [#{line_num := 13}, #{line_num := 22}, #{line_num := 25}] =
+                [#{line_num := 9}, #{line_num := 18}, #{line_num := 21}] =
                     elvis_core_apply_rule(Config, elvis_style, no_nested_try_catch, #{}, Path);
             erl_files ->
-                [#{line_num := 18}, #{line_num := 33}, #{line_num := 40}] =
+                [#{line_num := 15}, #{line_num := 30}, #{line_num := 37}] =
                     elvis_core_apply_rule(Config, elvis_style, no_nested_try_catch, #{}, Path)
         end,
 
@@ -1435,9 +1435,9 @@ verify_no_catch_expressions(Config) ->
     R = elvis_core_apply_rule(Config, elvis_style, no_catch_expressions, #{}, FailPath),
     _ = case Group of
             beam_files ->
-                [#{info := [18]}, #{info := [18]}, #{info := [7]}] = R;
+                [#{info := [21]}, #{info := [21]}, #{info := [10]}] = R;
             erl_files ->
-                [#{info := [24]}, #{info := [22]}, #{info := [7]}] = R
+                [#{info := [26]}, #{info := [24]}, #{info := [9]}] = R
         end.
 
 -spec verify_no_single_clause_case(config()) -> any().

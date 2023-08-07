@@ -2,7 +2,7 @@
 
 -export([default/1, no_branch_deps/3, protocol_for_deps/3, old_configuration_format/3]).
 
--export_type([protocol_for_deps_config/0, empty_rule_config/0]).
+-export_type([protocol_for_deps_config/0]).
 
 -define(DEP_BRANCH,
         "Dependency '~s' uses a branch. "
@@ -53,7 +53,9 @@ protocol_for_deps(_Config, Target, RuleConfig) ->
     lists:flatmap(fun(Line) -> dep_to_result(Line, ?DEP_NO_GIT, {IgnoreDeps, Regex}) end,
                   BadDeps).
 
--spec no_branch_deps(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
+-spec no_branch_deps(elvis_config:config(),
+                     elvis_file:file(),
+                     elvis_style:empty_rule_config()) ->
                         [elvis_result:item()].
 no_branch_deps(_Config, Target, RuleConfig) ->
     IgnoreDeps = option(ignore, RuleConfig, no_branch_deps),
@@ -61,11 +63,9 @@ no_branch_deps(_Config, Target, RuleConfig) ->
     BadDeps = lists:filter(fun is_branch_dep/1, Deps),
     lists:flatmap(fun(Line) -> dep_to_result(Line, ?DEP_BRANCH, IgnoreDeps) end, BadDeps).
 
--type empty_rule_config() :: #{}.
-
 -spec old_configuration_format(elvis_config:config(),
                                elvis_file:file(),
-                               empty_rule_config()) ->
+                               elvis_style:empty_rule_config()) ->
                                   [elvis_result:item()].
 old_configuration_format(_Config, Target, _RuleConfig) ->
     {Content, _} = elvis_file:src(Target),
@@ -88,6 +88,7 @@ old_configuration_format(_Config, Target, _RuleConfig) ->
 
 %%% Rebar
 
+%% @private
 get_deps(File) ->
     {Src, _} = elvis_file:src(File),
     Terms = ktn_code:consult(Src),
@@ -105,16 +106,19 @@ get_deps(File) ->
     end.
 
 %% Rebar3
+%% @private
 is_branch_dep({_AppName, {_SCM, _Location, {branch, _}}}) ->
     true;
 is_branch_dep({AppName, {raw, DepResourceSpecification}}) ->
     is_branch_dep({AppName, DepResourceSpecification});
 %% Rebar2
+%% @private
 is_branch_dep({_AppName, _Vsn, {_SCM, _Location, {branch, _}}}) ->
     true;
 is_branch_dep(_) ->
     false.
 
+%% @private
 is_hex_dep(_AppName) when is_atom(_AppName) ->
     true;
 is_hex_dep({_AppName, _Vsn, {pkg, _PackageName}})
@@ -125,6 +129,7 @@ is_hex_dep({_AppName, _Vsn}) when is_atom(_AppName), is_list(_Vsn) ->
 is_hex_dep(_) ->
     false.
 
+%% @private
 is_not_git_dep({_AppName, {pkg, _OtherName}}, _Regex) ->
     false;
 is_not_git_dep({_AppName, {_SCM, Url, _Branch}}, Regex) ->
@@ -138,6 +143,7 @@ is_not_git_dep({_AppName, _Vsn, {_SCM, Url}}, Regex) ->
 is_not_git_dep({_AppName, _Vsn, {_SCM, Url, _Branch}}, Regex) ->
     nomatch == re:run(Url, Regex, []).
 
+%% @private
 dep_to_result({AppName, _}, Message, {IgnoreDeps, Regex}) ->
     case lists:member(AppName, IgnoreDeps) of
         true ->
@@ -159,6 +165,7 @@ dep_to_result({AppName, _, GitInfo}, Message, IgnoreDeps) ->
 
 %% Old config
 
+%% @private
 is_old_config(ElvisConfig) ->
     case proplists:get_value(config, ElvisConfig) of
         undefined ->
@@ -172,6 +179,7 @@ is_old_config(ElvisConfig) ->
             lists:filter(SrcDirsIsKey, Config) /= []
     end.
 
+%% @private
 exists_old_rule(#{rules := Rules}) ->
     Filter =
         fun ({_, _, Args}) when is_list(Args) ->

@@ -6,15 +6,6 @@
 -elvis([{elvis_style, no_catch_expressions, disable}]).
 -dialyzer(no_match).
 
--ignore_xref({normal, call, 0}).
--ignore_xref({a_module, call, 0}).
--ignore_xref({a_module, a_function, 0}).
--ignore_xref({another_normal, call, 0}).
--ignore_xref({another_normal, call_to__another_function, 0}).
--ignore_xref({yam, call_to_function, 0}).
--ignore_xref({yamm, call_to_function, 0}).
--ignore_xref({yammm, call_to_function, 0}).
-
 -export([
          dynamic_module_name_call/0,
          dynamic_function_name_call/0,

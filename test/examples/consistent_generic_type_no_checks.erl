@@ -22,6 +22,6 @@ term() -> term.
 
 
 % A function that calls the function called any
--spec my_function(Thing :: any | term) -> any | term.
+-spec my_function(Thing :: #my_record{}) -> any | term.
 my_function(#my_record{any = any}) -> any();
 my_function(#my_record{term = term}) -> term().

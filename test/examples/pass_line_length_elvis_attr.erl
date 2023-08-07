@@ -5,8 +5,6 @@
 -elvis([{elvis_style, function_naming_convention, #{regex => "^function_[0-9]+$"}}]).
 -elvis([{elvis_style, macro_module_names, disable}]).
 
--ignore_xref([{model, random_ant_state, 1}]).
-
 -export([
          function_1/0,
          function_2/0,
