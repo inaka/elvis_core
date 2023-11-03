@@ -1935,20 +1935,20 @@ no_call_common(Config, Target, NoCallFuns, Msg, RuleConfig) ->
 -spec check_no_call([ktn_code:tree_node()], string(), [function_spec()]) ->
                        [elvis_result:item()].
 check_no_call(Calls, Msg, NoCallFuns) ->
-    DebugCalls = [Call || Call <- Calls, is_in_call_list(Call, NoCallFuns)],
+    BadCalls = [Call || Call <- Calls, is_in_call_list(Call, NoCallFuns)],
     ResultFun =
         fun(Call) ->
            {M, F, A} = call_mfa(Call),
            {Line, _} = ktn_code:attr(location, Call),
            elvis_result:new(item, Msg, [M, F, A, Line], Line)
         end,
-    lists:map(ResultFun, DebugCalls).
+    lists:map(ResultFun, BadCalls).
 
 %% @private
-is_in_call_list(Call, DebugFuns) ->
+is_in_call_list(Call, DisallowedFuns) ->
     MFA = call_mfa(Call),
     MatchFun = fun(Spec) -> fun_spec_match(Spec, MFA) end,
-    lists:any(MatchFun, DebugFuns).
+    lists:any(MatchFun, DisallowedFuns).
 
 %% @private
 call_mfa(Call) ->
@@ -1971,12 +1971,16 @@ is_call(Node) ->
     ktn_code:type(Node) =:= call.
 
 %% @private
-fun_spec_match({M, F}, {M, F, _}) ->
+fun_spec_match({M, F}, MFA) ->
+    fun_spec_match({M, F, '_'}, MFA);
+fun_spec_match({M1, F1, A1}, {M2, F2, A2}) ->
+    wildcard_match(M1, M2) andalso wildcard_match(F1, F2) andalso wildcard_match(A1, A2).
+
+%% @private
+wildcard_match('_', _) ->
     true;
-fun_spec_match({M, F, A}, {M, F, A}) ->
-    true;
-fun_spec_match(_, _) ->
-    false.
+wildcard_match(X, Y) ->
+    X =:= Y.
 
 %% @private
 %% @doc No nested try...catch blocks
