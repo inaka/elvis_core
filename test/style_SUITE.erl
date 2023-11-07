@@ -1198,7 +1198,9 @@ verify_no_call_flavours(Config,
          {{timer, send_interval, 2}, 1},
          {{timer, send_interval, 3}, 1},
          {{erlang, size, 1}, 2},
-         {{timer, send_after}, 2}],
+         {{timer, send_after}, 2},
+         {{timer, '_', '_'}, 4},
+         {{'_', tuple_size, 1}, 1}],
 
     lists:foreach(fun({FunSpec, ExpectedCount}) ->
                      ThisRuleConfig = maps:from_list([{RuleConfigMapKey, [FunSpec]}]),

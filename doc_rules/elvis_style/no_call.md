@@ -15,8 +15,11 @@ functions).
 
 ## Options
 
-- `no_call_functions :: [{module(), function(), arity()} | {module(), function()}]`.
+- `no_call_functions :: [{module() | '_', function() | '_', arity() | '_'} |
+  {module() | '_', function() | '_'}]`.
   - default: `[]`.
+
+`'_'` wildcards supported since [3.2.0](https://github.com/inaka/elvis_core/releases/tag/3.2.0)
 
 ## Example
 
