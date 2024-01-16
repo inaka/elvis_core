@@ -78,10 +78,11 @@ Rulesets in `elvis` are used to group individual rules together and can save a l
 `elvis` currently has five pre-defined rulesets, but gives you the ability to specify custom
 rulesets in the configuration file.
 
-The five pre-defined rulesets are:
+The six pre-defined rulesets are:
 
 - `elvis_config`, for elvis configuration files.
-- `erl_files`, for Erlang source files.
+- `erl_files`, for Erlang source files (pre-defined rule set).
+- `erl_files_strict`, for Erlang source files (all available rules).
 - `hrl_files`, for Erlang header files.
 - `makefiles`, for Makefiles.
 - `rebar_config`, for rebar configuration files.

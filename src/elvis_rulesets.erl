@@ -83,6 +83,19 @@ rules(erl_files) ->
                              private_data_types,
                              used_ignored_variable,
                              variable_naming_convention]]);
+rules(erl_files_strict) ->
+    rules(erl_files)
+    ++ lists:map(fun({Mod, Rule}) -> {Mod, Rule, apply(Mod, default, [Rule])} end,
+                 [{elvis_style, Rule}
+                  || Rule
+                         <- [always_shortcircuit,
+                             consistent_generic_type,
+                             max_function_length,
+                             max_module_length,
+                             no_call,
+                             no_common_caveats_call,
+                             no_macros,
+                             state_record_and_type]]);
 rules(beam_files) ->
     lists:map(fun(Rule) -> {elvis_style, Rule, elvis_style:default(Rule)} end,
               [atom_naming_convention,
