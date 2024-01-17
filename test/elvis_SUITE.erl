@@ -12,7 +12,7 @@
          rock_with_rule_groups/1, rock_this_skipping_files/1, rock_this_not_skipping_files/1,
          rock_with_umbrella_apps/1, custom_ruleset/1, hrl_ruleset/1, throw_configuration/1,
          find_file_and_check_src/1, find_file_with_ignore/1, invalid_file/1, to_string/1,
-         chunk_fold/1]).
+         chunk_fold/1, erl_files_strict_ruleset/1]).
 
 -define(EXCLUDED_FUNS,
         [module_info, all, test, init_per_suite, end_per_suite, chunk_fold_task]).
@@ -390,6 +390,22 @@ hrl_ruleset(_Config) ->
         rules := [#{name := line_length}]}]} =
         elvis_core:rock(ElvisConfig),
     ok.
+
+-spec erl_files_strict_ruleset(config()) -> any().
+erl_files_strict_ruleset(_Config) ->
+    DefinedRules = elvis_rulesets:rules(erl_files_strict),
+    DefinedRuleNames = [DefinedRuleName || {elvis_style, DefinedRuleName, _} <- DefinedRules],
+    DefinedRuleNamesSorted = lists:sort(DefinedRuleNames),
+
+    FunctionsNotErlRuleNames = [no_specs, no_types, option],
+    AllRuleNames =
+        [Function
+         || {Function, Arity} <- elvis_style:module_info(exports),
+            Arity =:= 3,
+            not lists:member(Function, FunctionsNotErlRuleNames)],
+    AllRuleNamesSorted = lists:sort(AllRuleNames),
+
+    true = AllRuleNamesSorted =:= DefinedRuleNamesSorted.
 
 -spec throw_configuration(config()) -> any().
 throw_configuration(_Config) ->
