@@ -6,6 +6,6 @@
   {applications, [kernel, stdlib, zipper, katana_code]},
   {modules, [elvis_core, elvis_config, elvis_result, elvis_utils, elvis_style]},
   {registered, []},
-  {licenses, ["Apache 2.0"]},
+  {licenses, ["Apache-2.0"]},
   {links, [{"GitHub", "https://github.com/inaka/elvis_core"}]},
   {build_tools, ["rebar3"]}]}.
