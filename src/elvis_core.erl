@@ -38,7 +38,8 @@ start() ->
 
 %%% Rock Command
 
--spec rock(elvis_config:configs()) -> ok | {fail, [elvis_result:file()]}.
+-spec rock(elvis_config:configs()) ->
+              ok | {fail, [{throw, term()} | elvis_result:file() | elvis_result:rule()]}.
 rock(Config) ->
     ok = elvis_config:validate(Config),
     NewConfig = elvis_config:normalize(Config),
