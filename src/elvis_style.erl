@@ -478,10 +478,12 @@ is_begin_node(Node) ->
     ktn_code:type(Node) =:= 'begin'.
 
 eep_predef_macros() ->
-    % From unexported eep:predef_macros/1
+    % From unexported epp:predef_macros/1
     ['BASE_MODULE',
      'BASE_MODULE_STRING',
      'BEAM',
+     'FEATURE_AVAILABLE',
+     'FEATURE_ENABLED',
      'FILE',
      'FUNCTION_ARITY',
      'FUNCTION_NAME',
