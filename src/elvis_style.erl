@@ -396,7 +396,7 @@ check_no_macro_calls(Calls) ->
                    [elvis_result:item()].
 no_macros(ElvisConfig, RuleTarget, RuleConfig) ->
     TreeRootNode = get_root(ElvisConfig, RuleTarget, RuleConfig),
-    AllowedMacros = maps:get(allow, RuleConfig, []) ++ eep_predef_macros(),
+    AllowedMacros = maps:get(allow, RuleConfig, []) ++ eep_predef_macros() ++ logger_macros(),
 
     MacroNodes =
         elvis_code:find(fun is_macro_node/1, TreeRootNode, #{traverse => all, mode => node}),
@@ -492,6 +492,18 @@ eep_predef_macros() ->
      'MODULE',
      'MODULE_STRING',
      'OTP_RELEASE'].
+
+logger_macros() ->
+    % From logger.hrl
+    ['LOG',
+     'LOG_ALERT',
+     'LOG_CRITICAL',
+     'LOG_DEBUG',
+     'LOG_EMERGENCY',
+     'LOG_ERROR',
+     'LOG_INFO',
+     'LOG_NOTICE',
+     'LOG_WARNING'].
 
 -type no_space_after_pound_config() :: #{ignore => [ignorable()]}.
 
