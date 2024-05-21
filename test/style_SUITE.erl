@@ -1238,6 +1238,8 @@ verify_no_nested_try_catch(Config) ->
                               Path).
 
 -spec verify_no_successive_maps(config()) -> any().
+-if(?OTP_RELEASE < 27).
+
 verify_no_successive_maps(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
@@ -1259,6 +1261,13 @@ verify_no_successive_maps(Config) ->
                               no_successive_maps,
                               #{ignore => [Module]},
                               Path).
+
+- else .
+
+verify_no_successive_maps(_Config) ->
+    [].
+
+-endif.
 
 -spec verify_atom_naming_convention(config()) -> any().
 verify_atom_naming_convention(Config) ->
