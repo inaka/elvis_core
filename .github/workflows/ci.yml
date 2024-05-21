@@ -38,7 +38,7 @@ jobs:
       - name: Compile
         run: rebar3 compile
       - name: Format check
-        if: ${{ matrix.os == 'ubuntu-22.04' }}
+        if: ${{ matrix.os == 'ubuntu-22.04' && matrix.otp_vsn == '26' }}
         run: rebar3 format --verify
       - name: Run test
         run: rebar3 test
