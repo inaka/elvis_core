@@ -37,7 +37,8 @@
   {jiffy, {git, "git@github.com:davisp/jiffy.git"}},
   {ibrowse, {git, "https://github.com/cmullaparthi/ibrowse.git", "v4.1.1"}},
   {aleppo, {git, "https://github.com/inaka/aleppo.git", "main"}},
-  {jsx, {raw, {git, "https://github.com/talentdeficit.git", {branch, "main"}}}}
+  {jsx, {raw, {git, "https://github.com/talentdeficit.git", {branch, "main"}}}},
+  {opentelemetry_api, {git_subdir, "http://github.com/open-telemetry/opentelemetry-erlang", {branch, "main"}, "apps/opentelemetry_api"}}
  ]
 }.
 {escript_name, "elvis"}.
