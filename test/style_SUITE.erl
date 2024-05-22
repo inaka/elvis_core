@@ -1238,6 +1238,8 @@ verify_no_nested_try_catch(Config) ->
                               Path).
 
 -spec verify_no_successive_maps(config()) -> any().
+-if(?OTP_RELEASE < 27).
+
 verify_no_successive_maps(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
@@ -1249,7 +1251,7 @@ verify_no_successive_maps(Config) ->
                 [_, _, _] =
                     elvis_core_apply_rule(Config, elvis_style, no_successive_maps, #{}, Path);
             erl_files ->
-                [#{line_num := 6}, #{line_num := 7}, #{line_num := 8}] =
+                [#{line_num := 7}, #{line_num := 8}, #{line_num := 9}] =
                     elvis_core_apply_rule(Config, elvis_style, no_successive_maps, #{}, Path)
         end,
 
@@ -1259,6 +1261,13 @@ verify_no_successive_maps(Config) ->
                               no_successive_maps,
                               #{ignore => [Module]},
                               Path).
+
+-else.
+
+verify_no_successive_maps(_Config) ->
+    [].
+
+-endif.
 
 -spec verify_atom_naming_convention(config()) -> any().
 verify_atom_naming_convention(Config) ->
