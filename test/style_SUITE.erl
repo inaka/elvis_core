@@ -1281,6 +1281,8 @@ verify_atom_naming_convention(Config) ->
     PassPath = atom_to_list(PassModule) ++ "." ++ Ext,
     PassModule2 = pass_atom_naming_convention_exception_class,
     PassPath2 = atom_to_list(PassModule2) ++ "." ++ Ext,
+    PassModule3 = pass_maybe,
+    PassPath3 = atom_to_list(PassModule3) ++ "." ++ Ext,
 
     [] =
         elvis_core_apply_rule(Config,
@@ -1294,6 +1296,12 @@ verify_atom_naming_convention(Config) ->
                               atom_naming_convention,
                               #{regex => "^[^xwyhr]*$"},
                               PassPath2),
+    [] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              atom_naming_convention,
+                              #{regex => "^^[a-z]([a-zA-Z0-9@]*_?)*(_SUITE)?$"},
+                              PassPath3),
 
     % fail
     FailModule = fail_atom_naming_convention,

@@ -1413,13 +1413,15 @@ is_float_node(Node) ->
     ktn_code:type(Node) =:= float.
 
 %% @private
-is_exception_class(error) ->
+is_exception_or_non_reversible(error) ->
     true;
-is_exception_class(exit) ->
+is_exception_or_non_reversible(exit) ->
     true;
-is_exception_class(throw) ->
+is_exception_or_non_reversible(throw) ->
     true;
-is_exception_class(_) ->
+is_exception_or_non_reversible(non_reversible_form) ->
+    true;
+is_exception_or_non_reversible(_) ->
     false.
 
 %% @private
@@ -1429,7 +1431,7 @@ check_atom_names(Regex, RegexEnclosed, [AtomNode | RemainingAtomNodes], AccIn) -
     AtomName0 = ktn_code:attr(text, AtomNode),
     ValueAtomName = ktn_code:attr(value, AtomNode),
     {IsEnclosed, AtomName} = string_strip_enclosed(AtomName0),
-    IsExceptionClass = is_exception_class(ValueAtomName),
+    IsExceptionClass = is_exception_or_non_reversible(ValueAtomName),
     RE = re_compile_for_atom_type(IsEnclosed, Regex, RegexEnclosed),
     AccOut =
         case re:run(
