@@ -1,7 +1,14 @@
 ---
 name: lint
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - "*"
+  workflow_dispatch: {}
 
 jobs:
   md_and_yml:
