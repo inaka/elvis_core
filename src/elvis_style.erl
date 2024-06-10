@@ -1025,7 +1025,7 @@ no_throw(Config, Target, RuleConfig) ->
     ThrowNodes = elvis_code:find(Zipper, Root),
     lists:foldl(fun(ThrowNode, AccIn) ->
                    {Line, _} = ktn_code:attr(location, ThrowNode),
-                   [elvis_result:new(item, ?NO_THROW_MSG, [Line]) | AccIn]
+                   [elvis_result:new(item, ?NO_THROW_MSG, [Line], Line) | AccIn]
                 end,
                 [],
                 ThrowNodes).
@@ -1040,7 +1040,7 @@ no_dollar_space(Config, Target, RuleConfig) ->
     DollarSpaceNodes = elvis_code:find(IsDollarSpace, Root, Opts),
     lists:map(fun(ThrowNode) ->
                  {Line, _} = ktn_code:attr(location, ThrowNode),
-                 elvis_result:new(item, ?NO_DOLLAR_SPACE_MSG, [Line])
+                 elvis_result:new(item, ?NO_DOLLAR_SPACE_MSG, [Line], Line)
               end,
               DollarSpaceNodes).
 
@@ -1079,7 +1079,7 @@ no_catch_expressions(Config, Target, RuleConfig) ->
     CatchNodes = elvis_code:find(fun is_catch_node/1, Root),
     lists:foldl(fun(CatchNode, Acc) ->
                    {Line, _Col} = ktn_code:attr(location, CatchNode),
-                   [elvis_result:new(item, ?NO_CATCH_EXPRESSIONS_MSG, [Line]) | Acc]
+                   [elvis_result:new(item, ?NO_CATCH_EXPRESSIONS_MSG, [Line], Line) | Acc]
                 end,
                 [],
                 CatchNodes).
