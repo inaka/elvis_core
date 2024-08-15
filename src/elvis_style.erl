@@ -1834,7 +1834,20 @@ has_state_record(Root) ->
 -spec has_state_type(ktn_code:tree_node()) -> boolean().
 has_state_type(Root) ->
     IsStateType =
-        fun(Node) -> (type_attr == ktn_code:type(Node)) and (state == ktn_code:attr(name, Node))
+        fun(Node) ->
+           case ktn_code:type(Node) of
+               type_attr ->
+                   state == ktn_code:attr(name, Node);
+               opaque ->
+                   case ktn_code:attr(value, Node) of
+                       {state, _, _} ->
+                           true;
+                       _ ->
+                           false
+                   end;
+               _ ->
+                   false
+           end
         end,
     elvis_code:find(IsStateType, Root) /= [].
 
