@@ -1,4 +1,4 @@
--module(pass_state_record_and_type).
+-module(pass_state_record_and_type_plus_export_used_types).
 
 -dialyzer(no_behaviours).
 
@@ -10,9 +10,11 @@
          handle_cast/2
         ]).
 
+-export_type([state/0]).
+
 -record(state, {}).
 
--type state() :: #state{}.
+-opaque state() :: #state{}.
 
 -spec init(term()) -> state().
 init(_Args) ->

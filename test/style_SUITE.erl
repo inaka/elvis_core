@@ -14,7 +14,8 @@
          verify_god_modules/1, verify_no_if_expression/1, verify_invalid_dynamic_call/1,
          verify_used_ignored_variable/1, verify_no_behavior_info/1,
          verify_module_naming_convention/1, verify_state_record_and_type/1,
-         verify_no_spec_with_records/1, verify_dont_repeat_yourself/1, verify_max_module_length/1,
+         verify_state_record_and_type_plus_export_used_types/1, verify_no_spec_with_records/1,
+         verify_dont_repeat_yourself/1, verify_max_module_length/1,
          verify_max_anonymous_function_arity/1, verify_max_function_arity/1,
          verify_max_function_length/1, verify_no_debug_call/1, verify_no_common_caveats_call/1,
          verify_no_call/1, verify_no_nested_try_catch/1, verify_no_successive_maps/1,
@@ -74,14 +75,14 @@ groups() ->
        verify_consistent_variable_casing, verify_nesting_level, verify_god_modules,
        verify_no_if_expression, verify_invalid_dynamic_call, verify_used_ignored_variable,
        verify_no_behavior_info, verify_module_naming_convention, verify_state_record_and_type,
-       verify_no_spec_with_records, verify_dont_repeat_yourself, verify_no_debug_call,
-       verify_no_common_caveats_call, verify_no_call, verify_no_nested_try_catch,
-       verify_no_successive_maps, verify_atom_naming_convention, verify_no_throw,
-       verify_no_author, verify_no_import, verify_always_shortcircuit,
-       verify_no_catch_expressions, verify_no_single_clause_case, verify_no_macros,
-       verify_export_used_types, verify_max_anonymous_function_arity, verify_max_function_arity,
-       verify_no_match_in_condition, verify_behaviour_spelling, verify_param_pattern_matching,
-       verify_private_data_types]}].
+       verify_state_record_and_type_plus_export_used_types, verify_no_spec_with_records,
+       verify_dont_repeat_yourself, verify_no_debug_call, verify_no_common_caveats_call,
+       verify_no_call, verify_no_nested_try_catch, verify_no_successive_maps,
+       verify_atom_naming_convention, verify_no_throw, verify_no_author, verify_no_import,
+       verify_always_shortcircuit, verify_no_catch_expressions, verify_no_single_clause_case,
+       verify_no_macros, verify_export_used_types, verify_max_anonymous_function_arity,
+       verify_max_function_arity, verify_no_match_in_condition, verify_behaviour_spelling,
+       verify_param_pattern_matching, verify_private_data_types]}].
 
 -spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
@@ -691,6 +692,14 @@ verify_state_record_and_type(Config) ->
     PathPass = "pass_state_record_and_type." ++ Ext,
     [] = elvis_core_apply_rule(Config, elvis_style, state_record_and_type, #{}, PathPass),
 
+    PathPassWithOpaque = "pass_state_record_and_type_opaque." ++ Ext,
+    [] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              state_record_and_type,
+                              #{},
+                              PathPassWithOpaque),
+
     PathPassGenStateM = "pass_state_record_and_type_gen_statem." ++ Ext,
     [] =
         elvis_core_apply_rule(Config, elvis_style, state_record_and_type, #{}, PathPassGenStateM),
@@ -720,6 +729,25 @@ verify_state_record_and_type(Config) ->
                               state_record_and_type,
                               #{},
                               PathPassGenStateMState).
+
+-spec verify_state_record_and_type_plus_export_used_types(config()) -> any().
+verify_state_record_and_type_plus_export_used_types(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PathPass = "pass_state_record_and_type_plus_export_used_types." ++ Ext,
+    [] = elvis_core_apply_rule(Config, elvis_style, state_record_and_type, #{}, PathPass),
+    [] = elvis_core_apply_rule(Config, elvis_style, export_used_types, #{}, PathPass),
+
+    PathPassGenStateM =
+        "pass_state_record_and_type_plus_export_used_types_gen_statem." ++ Ext,
+    [] =
+        elvis_core_apply_rule(Config, elvis_style, state_record_and_type, #{}, PathPassGenStateM),
+    [] =
+        elvis_core_apply_rule(Config, elvis_style, export_used_types, #{}, PathPassGenStateM),
+
+    PathFail = "fail_state_record_and_type_plus_export_used_types." ++ Ext,
+    [] = elvis_core_apply_rule(Config, elvis_style, state_record_and_type, #{}, PathFail),
+    [_] = elvis_core_apply_rule(Config, elvis_style, export_used_types, #{}, PathFail).
 
 -spec verify_behaviour_spelling(config()) -> any().
 verify_behaviour_spelling(Config) ->

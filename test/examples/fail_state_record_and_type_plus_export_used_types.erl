@@ -1,4 +1,4 @@
--module(pass_state_record_and_type).
+-module(fail_state_record_and_type_plus_export_used_types).
 
 -dialyzer(no_behaviours).
 
