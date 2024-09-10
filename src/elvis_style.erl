@@ -12,8 +12,8 @@
          atom_naming_convention/3, no_throw/3, no_dollar_space/3, no_author/3, no_import/3,
          no_catch_expressions/3, no_single_clause_case/3, numeric_format/3, behaviour_spelling/3,
          always_shortcircuit/3, consistent_generic_type/3, export_used_types/3,
-         no_match_in_condition/3, param_pattern_matching/3, private_data_types/3, option/3
-         , prefer_unquoted_atoms/3]).
+         no_match_in_condition/3, param_pattern_matching/3, private_data_types/3, option/3,
+         prefer_unquoted_atoms/3]).
 
 -export_type([empty_rule_config/0]).
 -export_type([ignorable/0]).
@@ -109,8 +109,8 @@
         "Atom ~p on line ~p does not respect the format "
         "defined by the regular expression '~p'.").
 -define(ATOM_PREFERRED_QUOTES_MSG,
-        "Atom ~p on line ~p has quotes on them "
-        "but its not needed on it.").
+        "Atom ~p on line ~p is quoted "
+        "but quotes are not needed.").
 -define(NO_THROW_MSG, "Usage of throw/1 on line ~p is not recommended").
 -define(NO_DOLLAR_SPACE_MSG,
         "'$ ' was found on line ~p. It's use is discouraged. "
@@ -200,8 +200,6 @@ default(no_common_caveats_call) ->
            {erlang, size, 1}]};
 default(atom_naming_convention) ->
     #{regex => "^([a-z][a-z0-9]*_?)*(_SUITE)?$", enclosed_atoms => ".*"};
-default(prefer_unquoted_atoms) ->
-    #{regex => "^'([a-z_0-9)]+)'$", enclosed_atoms => ".*"};
 %% Not restrictive. Those who want more restrictions can set it like "^[^_]*$"
 default(numeric_format) ->
     #{regex => ".*",
@@ -1025,14 +1023,11 @@ atom_naming_convention(Config, Target, RuleConfig) ->
                             elvis_file:file(),
                             empty_rule_config()) ->
                                [elvis_result:item()].
-prefer_unquoted_atoms(_Config, Target, RuleConfig) ->
-    Regex = option(regex, RuleConfig, prefer_unquoted_atoms),
-    RegexEnclosed =
-        specific_or_default(option(enclosed_atoms, RuleConfig, atom_naming_convention), Regex),
+prefer_unquoted_atoms(_Config, Target, _RuleConfig) ->
     {Content, #{encoding := _Encoding}} = elvis_file:src(Target),
     Tree = ktn_code:parse_tree(Content),
     AtomNodes = elvis_code:find(fun is_atom_node/1, Tree, #{traverse => all, mode => node}),
-    check_atom_quotes(Regex, RegexEnclosed, AtomNodes, []).
+    check_atom_quotes(AtomNodes, []).
 
 -spec no_throw(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
                   [elvis_result:item()].
@@ -1476,32 +1471,39 @@ check_atom_names(Regex, RegexEnclosed, [AtomNode | RemainingAtomNodes], AccIn) -
     check_atom_names(Regex, RegexEnclosed, RemainingAtomNodes, AccOut).
 
 %% @private
-check_atom_quotes(_Regex, _RegexEnclosed, [] = _AtomNodes, Acc) ->
+check_atom_quotes([] = _AtomNodes, Acc) ->
     Acc;
-check_atom_quotes(Regex, RegexEnclosed, [AtomNode | RemainingAtomNodes], AccIn) ->
+check_atom_quotes([AtomNode | RemainingAtomNodes], AccIn) ->
+    Regex = "^'([a-z_0-9)]+)'$",
+    RegexEnclosed = ".*",
     AtomName0 = ktn_code:attr(text, AtomNode),
     ValueAtomName = ktn_code:attr(value, AtomNode),
     {IsEnclosed, AtomName} = string_strip_enclosed(AtomName0),
-    IsExceptionClass = is_exception_or_non_reversible(ValueAtomName),
+
+    IsException = is_exception_prefer_quoted(ValueAtomName),
     RE = re_compile_for_atom_type(IsEnclosed, Regex, RegexEnclosed),
     AccOut =
         case re:run(
                  unicode:characters_to_list(AtomName, unicode), RE)
         of
-            _ when IsExceptionClass andalso not IsEnclosed ->
-                AccIn;
-            nomatch when not IsEnclosed ->
-                AccIn;
-            nomatch when IsEnclosed ->
-                AccIn;
-            {match, _Captured} ->
+            {match, _Captured} when not IsException ->
                 Msg = ?ATOM_PREFERRED_QUOTES_MSG,
                 {Line, _} = ktn_code:attr(location, AtomNode),
                 Info = [AtomName0, Line, RegexEnclosed],
                 Result = elvis_result:new(item, Msg, Info, Line),
-                AccIn ++ [Result]
+                AccIn ++ [Result];
+            _ ->
+                AccIn
         end,
-    check_atom_quotes(Regex, RegexEnclosed, RemainingAtomNodes, AccOut).
+    check_atom_quotes(RemainingAtomNodes, AccOut).
+
+%% @private
+is_exception_prefer_quoted(Elem) ->
+    KeyWords =
+        ['after', 'and', 'andalso', 'band', 'begin', 'bnot', 'bor', 'bsl', 'bsr', 'bxor', 'case',
+         'catch', 'cond', 'div', 'end', 'fun', 'if', 'let', 'not', 'of', 'or', 'orelse', 'receive',
+         'rem', 'try', 'when', 'xor'],
+    lists:member(Elem, KeyWords).
 
 %% @private
 string_strip_enclosed([$' | Rest]) ->
