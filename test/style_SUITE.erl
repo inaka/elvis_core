@@ -1422,7 +1422,7 @@ verify_atom_naming_convention(Config) ->
                                             enclosed_atoms => "^([\\\\][\-a-z0-9A-Z_' \\\\]*)$"},
                                           FailPath);
             erl_files ->
-                [_, _, _, _, _, _] =
+                [_, _, _, _, _] =
                     elvis_core_apply_rule(Config,
                                           elvis_style,
                                           atom_naming_convention,
