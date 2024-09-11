@@ -12,4 +12,5 @@ for_test() ->
     '\'\'',
     '\'startswithbacktick',
     'backtick\'inside',
-    'backtick at the end\''.
+    'backtick at the end\'',
+    non200_.

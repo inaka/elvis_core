@@ -1302,7 +1302,7 @@ verify_atom_naming_convention(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    BaseRegex = "^([a-z][a-z0-9_]+)$",
+    BaseRegex = "^([a-z][a-z0-9_]+[a-z0-9])$",
 
     % pass
     PassModule = pass_atom_naming_convention,
@@ -1337,37 +1337,37 @@ verify_atom_naming_convention(Config) ->
     FailModule2 = fail_atom_naming_convention_exception_class,
     FailPath2 = atom_to_list(FailModule2) ++ "." ++ Ext,
 
-    [_, _, _, _, _, _, _, _, _, _] =
+    [_, _, _, _, _, _, _, _, _, _, _] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               atom_naming_convention,
                               #{regex => BaseRegex, enclosed_atoms => same},
                               FailPath),
-    [_, _, _, _, _, _, _, _] =
+    [_, _, _, _, _, _, _, _, _] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               atom_naming_convention,
                               #{regex => "^([a-zA-Z_]+)$", enclosed_atoms => same},
                               FailPath),
-    [_, _] =
+    [_, _, _] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               atom_naming_convention,
                               #{regex => "^([a-zA-Z_' \\\\]+)$", enclosed_atoms => same},
                               FailPath),
-    [_, _, _, _, _, _, _] =
+    [_, _, _, _, _, _, _, _] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               atom_naming_convention,
                               #{regex => "^([a-zA-Z\-_]+)$", enclosed_atoms => same},
                               FailPath),
-    [_] =
+    [_, _] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               atom_naming_convention,
                               #{regex => "^([a-zA-Z\-_' \\\\]+)$", enclosed_atoms => same},
                               FailPath),
-    [] =
+    [_] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               atom_naming_convention,
@@ -1422,7 +1422,7 @@ verify_atom_naming_convention(Config) ->
                                             enclosed_atoms => "^([\\\\][\-a-z0-9A-Z_' \\\\]*)$"},
                                           FailPath);
             erl_files ->
-                [_, _, _, _, _] =
+                [_, _, _, _, _, _] =
                     elvis_core_apply_rule(Config,
                                           elvis_style,
                                           atom_naming_convention,

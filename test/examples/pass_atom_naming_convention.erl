@@ -5,4 +5,5 @@
 for_test() ->
     this_is_an_ok_atom,
     'and_so_is_this',
-    'and_this_1_too'.
+    'and_this_1_too',
+    non_200.
