@@ -65,6 +65,7 @@ identified with `(since ...)` for convenience purposes.
 - [No Init Lists](doc_rules/elvis_style/no_init_lists.md)
 - [Prefer Unquoted Atoms](doc_rules/elvis_text_style/prefer_unquoted_atoms.md)
 - [ms_transform included](doc_rules/elvis_style/ms_transform_included.md)
+- [No Redundant Blank Lines](doc_rules/elvis_text_style/variable_naming_convention.md)
 
 ## `.gitignore` rules
 

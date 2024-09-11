@@ -27,7 +27,8 @@
          verify_export_used_types/1, verify_consistent_variable_casing/1,
          verify_no_match_in_condition/1, verify_param_pattern_matching/1,
          verify_private_data_types/1, verify_unquoted_atoms/1, verify_no_init_lists/1,
-         verify_ms_transform_included/1]).
+         verify_ms_transform_included/1, verify_redundant_blank_lines/1]).
+
 %% -elvis attribute
 -export([verify_elvis_attr_atom_naming_convention/1, verify_elvis_attr_numeric_format/1,
          verify_elvis_attr_dont_repeat_yourself/1, verify_elvis_attr_function_naming_convention/1,
@@ -1938,6 +1939,24 @@ oddities(_Config) ->
            rules => [{elvis_style, god_modules, #{limit => 0}}]}],
     {fail, [#{rules := [_, _, _, _]}]} = elvis_core:rock(ElvisConfig),
     true.
+
+-spec verify_redundant_blank_lines(config()) -> true.
+verify_redundant_blank_lines(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    % pass
+    PassModule = pass_redundant_blank_lines,
+    PassPath = atom_to_list(PassModule) ++ "." ++ Ext,
+
+    [] =
+        elvis_core_apply_rule(Config, elvis_text_style, no_redundant_blank_lines, #{}, PassPath),
+
+    % fail
+    FailModule = fail_redundant_blank_lines,
+    FailPath = atom_to_list(FailModule) ++ "." ++ Ext,
+
+    [_, _, _] =
+        elvis_core_apply_rule(Config, elvis_text_style, no_redundant_blank_lines, #{}, FailPath).
 
 -spec verify_elvis_attr_atom_naming_convention(config()) -> true.
 verify_elvis_attr_atom_naming_convention(Config) ->
