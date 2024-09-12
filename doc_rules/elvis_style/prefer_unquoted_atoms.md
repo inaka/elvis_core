@@ -1,6 +1,6 @@
 # Prefer unquoted atoms
 
-Do not use quotes on atoms that are not need it.
+Do not use quotes on atoms that don't need to be quoted.
 
 > Works on `.beam` file? No.
 

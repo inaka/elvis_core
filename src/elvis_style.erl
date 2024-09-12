@@ -1474,22 +1474,17 @@ check_atom_names(Regex, RegexEnclosed, [AtomNode | RemainingAtomNodes], AccIn) -
 check_atom_quotes([] = _AtomNodes, Acc) ->
     Acc;
 check_atom_quotes([AtomNode | RemainingAtomNodes], AccIn) ->
-    Regex = "^'([a-z_0-9)]+)'$",
-    RegexEnclosed = ".*",
-    AtomName0 = ktn_code:attr(text, AtomNode),
+    AtomName = ktn_code:attr(text, AtomNode),
     ValueAtomName = ktn_code:attr(value, AtomNode),
-    {IsEnclosed, AtomName} = string_strip_enclosed(AtomName0),
 
     IsException = is_exception_prefer_quoted(ValueAtomName),
-    RE = re_compile_for_atom_type(IsEnclosed, Regex, RegexEnclosed),
+
     AccOut =
-        case re:run(
-                 unicode:characters_to_list(AtomName, unicode), RE)
-        of
-            {match, _Captured} when not IsException ->
+        case unicode:characters_to_list(AtomName, unicode) of
+            [$' | _] when not IsException ->
                 Msg = ?ATOM_PREFERRED_QUOTES_MSG,
                 {Line, _} = ktn_code:attr(location, AtomNode),
-                Info = [AtomName0, Line, RegexEnclosed],
+                Info = [AtomName, Line],
                 Result = elvis_result:new(item, Msg, Info, Line),
                 AccIn ++ [Result];
             _ ->

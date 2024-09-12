@@ -5,5 +5,7 @@
 test(_Test) -> ok.
 
 test(_A, nice_atom_name) -> perfect_atomname;
-test(_A, _B) -> unquoted_atom.
+test(_Reserved, _Words) -> ['after', 'and', 'andalso', 'band', 'begin', 'bnot', 'bor', 'bsl', 'bsr', 'bxor', 'case',
+         'catch', 'cond', 'div', 'end', 'fun', 'if', 'let', 'not', 'of', 'or', 'orelse', 'receive',
+         'rem', 'try', 'when', 'xor'].
 
