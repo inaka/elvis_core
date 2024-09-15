@@ -1,6 +1,7 @@
 -module(elvis_project).
 
--export([default/1, no_branch_deps/3, protocol_for_deps/3, old_configuration_format/3]).
+-export([default/1, no_branch_deps/3, protocol_for_deps/3, old_configuration_format/3,
+         gitignore_patterns/3]).
 
 -export_type([protocol_for_deps_config/0]).
 
@@ -14,13 +15,17 @@
         "The current Elvis configuration file has an outdated format. "
         "Please check Elvis's GitHub repository to find out what the "
         "new format is.").
+-define(MISSING_GITIGNORE_PATTERN, "Your .gitignore file should contain pattern '~s'.").
 
 % These are part of a non-declared "behaviour"
 % The reason why we don't try to handle them with different arity is
 %  that arguments are ignored in different positions (1 and 3) so that'd
 %  probably be messier than to ignore the warning
 -hank([{unnecessary_function_arguments,
-        [{old_configuration_format, 3}, {no_branch_deps, 3}, {protocol_for_deps, 3}]}]).
+        [{old_configuration_format, 3},
+         {no_branch_deps, 3},
+         {protocol_for_deps, 3},
+         {gitignore_patterns, 3}]}]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
@@ -32,7 +37,16 @@ default(no_branch_deps) ->
 default(protocol_for_deps) ->
     #{ignore => [], regex => "(https://.*|[0-9]+([.][0-9]+)*)"};
 default(old_configuration_format) ->
-    #{}.
+    #{};
+default(gitignore_patterns) ->
+    #{all_of =>
+          ["^.rebar3/$",
+           "^_build/$",
+           "^_checkouts/$",
+           "^doc/$",
+           "^/erl_crash.dump$",
+           "^/rebar3.crashdump$",
+           "^test/logs/$"]}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Rules
@@ -80,6 +94,22 @@ old_configuration_format(_Config, Target, _RuleConfig) ->
                 true ->
                     [elvis_result:new(item, ?OLD_CONFIG_FORMAT, [])]
             end
+    end.
+
+-spec gitignore_patterns(elvis_config:config(),
+                         elvis_file:file(),
+                         elvis_style:empty_rule_config()) ->
+                            [elvis_result:item()].
+gitignore_patterns(_Config, #{path := Path}, RuleConfig) ->
+    AllOf = option(all_of, RuleConfig, gitignore_patterns),
+    case file:read_file(Path) of
+        {ok, PatternsBin} ->
+            PatternsStr = binary_to_list(PatternsBin),
+            PatternsNoR = string:replace(PatternsStr, "\r", ""),
+            Patterns = string:split(PatternsNoR, "\n", all),
+            check_patterns_in_lines(Patterns, AllOf, []);
+        {error, _} ->
+            []
     end.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -192,6 +222,21 @@ exists_old_rule(#{rules := Rules}) ->
     lists:filter(Filter, Rules) /= [];
 exists_old_rule(_) ->
     false.
+
+%% .gitignore
+%% @private
+check_patterns_in_lines(_Lines, [], Results) ->
+    {ok, Results};
+check_patterns_in_lines(Lines, [Pattern | Rest], Results0) ->
+    PatternFound = lists:any(fun(Line) -> re:run(Line, Pattern) =/= nomatch end, Lines),
+    Results =
+        case PatternFound of
+            true ->
+                Results0;
+            false ->
+                [elvis_result:new(item, ?MISSING_GITIGNORE_PATTERN, [Pattern]) | Results0]
+        end,
+    check_patterns_in_lines(Lines, Rest, Results).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Internal Function Definitions

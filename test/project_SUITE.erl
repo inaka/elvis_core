@@ -4,7 +4,7 @@
 
 -export([all/0, init_per_suite/1, end_per_suite/1]).
 -export([verify_no_branch_deps/1, verify_hex_dep/1, verify_protocol_for_deps/1,
-         verify_old_config_format/1]).
+         verify_old_config_format/1, verify_gitignore_patterns/1]).
 
 -define(EXCLUDED_FUNS, [module_info, all, test, init_per_suite, end_per_suite]).
 
@@ -110,3 +110,18 @@ verify_old_config_format(_Config) ->
     PathPass = "pass.elvis.config",
     {ok, FilePass} = elvis_test_utils:find_file(SrcDirs, PathPass),
     [] = elvis_project:old_configuration_format(ElvisConfig, FilePass, #{}).
+
+-spec verify_gitignore_patterns(config()) -> any().
+verify_gitignore_patterns(_Config) ->
+    GitIgnoreConfig = elvis_test_utils:config(gitignore),
+    [SrcDirPass, SrcDirFail] = elvis_config:dirs(GitIgnoreConfig),
+    NoRuleConfig = #{},
+
+    PathPass = ".gitignore",
+    {ok, FilePass} = elvis_test_utils:find_file([SrcDirPass], PathPass),
+    {ok, []} = elvis_project:gitignore_patterns(GitIgnoreConfig, FilePass, NoRuleConfig),
+
+    PathFail = ".gitignore",
+    {ok, FileFail} = elvis_test_utils:find_file([SrcDirFail], PathFail),
+    {ok, [Res]} = elvis_project:gitignore_patterns(GitIgnoreConfig, FileFail, NoRuleConfig),
+    #{info := ["^doc/$"]} = Res.

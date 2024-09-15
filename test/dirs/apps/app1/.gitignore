@@ -1,0 +1,9 @@
+.rebar3/
+_build/
+
+_checkouts/
+extra
+doc/
+/erl_crash.dump
+/rebar3.crashdump
+test/logs/

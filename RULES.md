@@ -65,6 +65,7 @@ identified with `(since ...)` for convenience purposes.
 
 ## Project rules
 
+- [`.gitignore` patterns](doc_rules/elvis_project/gitignore_patterns.md)
 - [No deps master erlang.mk - *deprecated*](doc_rules/elvis_project/no_deps_master_erlang_mk.md)
 - [No deps master rebar - *deprecated*](doc_rules/elvis_project/no_deps_master_rebar.md)
 - [No deps with branches](doc_rules/elvis_project/no_branch_deps.md)
@@ -84,6 +85,7 @@ The six pre-defined rulesets are:
 - `elvis_config`, for elvis configuration files.
 - `erl_files`, for Erlang source files (pre-defined rule set).
 - `erl_files_strict`, for Erlang source files (all available rules).
+- `gitignore`, for `.gitignore` files.
 - `hrl_files`, for Erlang header files.
 - `makefiles`, for Makefiles.
 - `rebar_config`, for rebar configuration files.
@@ -201,6 +203,9 @@ line numbers will most surely not correspond with those in the source file.
          , filter => "elvis.config"
          , ruleset => elvis_config
          , rules => [] }
+      , #{ dirs => ["."]
+         , filter => ".gitignore"
+         , ruleset => gitignore }
     ]}
   , {verbose, true}
 ]}].
