@@ -104,9 +104,7 @@ gitignore_patterns(_Config, #{path := Path}, RuleConfig) ->
     AllOf = option(all_of, RuleConfig, gitignore_patterns),
     case file:read_file(Path) of
         {ok, PatternsBin} ->
-            PatternsStr = binary_to_list(PatternsBin),
-            PatternsNoR = string:replace(PatternsStr, "\r", ""),
-            Patterns = string:split(PatternsNoR, "\n", all),
+            Patterns = elvis_utils:split_all_lines(PatternsBin),
             check_patterns_in_lines(Patterns, AllOf, []);
         {error, _} ->
             []
