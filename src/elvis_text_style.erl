@@ -93,9 +93,8 @@ check_atom_quotes([] = _AtomNodes, Acc) ->
     Acc;
 check_atom_quotes([AtomNode | RemainingAtomNodes], AccIn) ->
     AtomName = ktn_code:attr(text, AtomNode),
-    ValueAtomName = ktn_code:attr(value, AtomNode),
 
-    IsException = is_exception_prefer_quoted(ValueAtomName),
+    IsException = is_exception_prefer_quoted(AtomName),
 
     AccOut =
         case unicode:characters_to_list(AtomName, unicode) of
@@ -210,9 +209,10 @@ is_atom_node(MaybeAtom) ->
 %% @private
 is_exception_prefer_quoted(Elem) ->
     KeyWords =
-        ['after', 'and', 'andalso', 'band', 'begin', 'bnot', 'bor', 'bsl', 'bsr', 'bxor', 'case',
-         'catch', 'cond', 'div', 'end', 'fun', 'if', 'let', 'not', 'of', 'or', 'orelse', 'receive',
-         'rem', 'try', 'when', 'xor', maybe],
+        ["'after'", "'and'", "'andalso'", "'band'", "'begin'", "'bnot'", "'bor'", "'bsl'",
+         "'bsr'", "'bxor'", "'case'", "'catch'", "'cond'", "'div'", "'end'", "'fun'", "'if'",
+         "'let'", "'not'", "'of'", "'or'", "'orelse'", "'receive'", "'rem'", "'try'", "'when'",
+         "'xor'", "'maybe'"],
     lists:member(Elem, KeyWords).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
