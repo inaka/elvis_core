@@ -1302,7 +1302,7 @@ verify_atom_naming_convention(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    BaseRegex = "^[a-z]+((_?[a-z0-9])*[a-z0-9]+)*$",
+    BaseRegex = "^[a-z](_?[a-z0-9]+)*(_SUITE)?$",
 
     % pass
     PassModule = pass_atom_naming_convention,
@@ -1337,7 +1337,7 @@ verify_atom_naming_convention(Config) ->
     FailModule2 = fail_atom_naming_convention_exception_class,
     FailPath2 = atom_to_list(FailModule2) ++ "." ++ Ext,
 
-    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _] =
+    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               atom_naming_convention,

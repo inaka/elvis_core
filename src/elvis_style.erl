@@ -195,7 +195,7 @@ default(no_common_caveats_call) ->
            {timer, send_interval, 3},
            {erlang, size, 1}]};
 default(atom_naming_convention) ->
-    #{regex => "^[a-z]+((_?[a-z0-9])*[a-z0-9]+)*(_SUITE)?$", enclosed_atoms => ".*"};
+    #{regex => "^[a-z](_?[a-z0-9]+)*(_SUITE)?$", enclosed_atoms => ".*"};
 %% Not restrictive. Those who want more restrictions can set it like "^[^_]*$"
 default(numeric_format) ->
     #{regex => ".*",

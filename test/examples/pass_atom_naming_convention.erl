@@ -9,4 +9,6 @@ for_test() ->
     non_200,
     '_', % used by ets/mnesia/etc.
     non200, % valid, even without underscores
-    valid_200even_if_numb3rs_appear_between_letters.
+    valid_200even_if_numb3rs_appear_between_letters,
+    blahblah_SUITE,
+    x.
