@@ -25,7 +25,7 @@
          verify_always_shortcircuit/1, verify_consistent_generic_type/1, verify_no_types/1,
          verify_no_specs/1, verify_export_used_types/1, verify_consistent_variable_casing/1,
          verify_no_match_in_condition/1, verify_param_pattern_matching/1,
-         verify_private_data_types/1]).
+         verify_private_data_types/1, verify_unquoted_atoms/1]).
 %% -elvis attribute
 -export([verify_elvis_attr_atom_naming_convention/1, verify_elvis_attr_numeric_format/1,
          verify_elvis_attr_dont_repeat_yourself/1, verify_elvis_attr_function_naming_convention/1,
@@ -82,7 +82,7 @@ groups() ->
        verify_always_shortcircuit, verify_no_catch_expressions, verify_no_single_clause_case,
        verify_no_macros, verify_export_used_types, verify_max_anonymous_function_arity,
        verify_max_function_arity, verify_no_match_in_condition, verify_behaviour_spelling,
-       verify_param_pattern_matching, verify_private_data_types]}].
+       verify_param_pattern_matching, verify_private_data_types, verify_unquoted_atoms]}].
 
 -spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
@@ -1296,6 +1296,16 @@ verify_no_successive_maps(_Config) ->
     [].
 
 -endif.
+
+-spec verify_unquoted_atoms(config()) -> any().
+verify_unquoted_atoms(Config) ->
+    PassPath = "pass_unquoted_atoms." ++ "erl",
+    [] =
+        elvis_core_apply_rule(Config, elvis_text_style, prefer_unquoted_atoms, #{}, PassPath),
+
+    FailPath = "fail_quoted_atoms." ++ "erl",
+    [_, _] =
+        elvis_core_apply_rule(Config, elvis_text_style, prefer_unquoted_atoms, #{}, FailPath).
 
 -spec verify_atom_naming_convention(config()) -> any().
 verify_atom_naming_convention(Config) ->
