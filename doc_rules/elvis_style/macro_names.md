@@ -7,7 +7,7 @@ Macro names should only contain upper-case alphanumeric characters.
 ## Options
 
 - `regex :: string()`. (since [1.0.0](https://github.com/inaka/elvis_core/releases/tag/1.0.0))
-  - default: `"^([A-Z][A-Z_0-9]+)$"`.
+  - default: `"^[A-Z](_?[A-Z0-9]+)*$"`.
 
 ## Example
 

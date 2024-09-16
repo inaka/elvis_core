@@ -10,7 +10,7 @@ can be any string.
 ## Options
 
 - `rules :: [{right | left, string()}].`
-  - default: `[{right, "("}, {left, ")"}, {left, ","}]`
+  - default: `[{right, "("}, {left, ")"}, {left, ","}, {right, "#"}, {right, "?"}]`
 
 ## Example
 
