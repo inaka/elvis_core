@@ -212,7 +212,7 @@ is_exception_prefer_quoted(Elem) ->
     KeyWords =
         ['after', 'and', 'andalso', 'band', 'begin', 'bnot', 'bor', 'bsl', 'bsr', 'bxor', 'case',
          'catch', 'cond', 'div', 'end', 'fun', 'if', 'let', 'not', 'of', 'or', 'orelse', 'receive',
-         'rem', 'try', 'when', 'xor'],
+         'rem', 'try', 'when', 'xor', maybe],
     lists:member(Elem, KeyWords).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
