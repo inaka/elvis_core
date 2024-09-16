@@ -1150,14 +1150,12 @@ verify_no_debug_call(Config) ->
 
     PathFail = "fail_no_debug_call." ++ Ext,
 
-    PathFail = "fail_no_debug_call." ++ Ext,
-
     _ = case Group of
             beam_files -> % io:format is preprocessed
-                [_, _, _, _, _] =
+                [_, _, _, _, _, _] =
                     elvis_core_apply_rule(Config, elvis_style, no_debug_call, #{}, PathFail);
             erl_files ->
-                [_, _, _, _, _, _, _] =
+                [_, _, _, _, _, _, _, _] =
                     elvis_core_apply_rule(Config, elvis_style, no_debug_call, #{}, PathFail)
         end,
 

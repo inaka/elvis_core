@@ -188,7 +188,8 @@ default(no_call) ->
     #{no_call_functions => []};
 default(no_debug_call) ->
     #{debug_functions =>
-          [{ct, pal}, {ct, print}, {erlang, display, 1}, {io, format, 1}, {io, format, 2}]};
+          [{ct, pal}, {ct, print}, {erlang, display, 1}, {io, format, 1}, {io, format, 2},
+           {io, put_chars, 1}, {io, put_chars, 2}]};
 default(no_common_caveats_call) ->
     #{caveat_functions =>
           [{timer, send_after, 2},
