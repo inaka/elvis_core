@@ -155,7 +155,8 @@ default(operator_spaces) ->
            {right, "/="}, {left, "/="}, {right, "=/="}, {left, "=/="}, {right, "--"}, {left, "--"},
            {right, "=>"}, {left, "=>"}, {right, ":="}, {left, ":="}, {right, "<-"}, {left, "<-"},
            {right, "<="}, {left, "<="}, {right, "||"}, {left, "||"}, {right, "|"}, {left, "|"},
-           {right, "::"}, {left, "::"}, {right, "->"}, {left, "->"}, {right, ","}]};
+           {right, "::"}, {left, "::"}, {right, "->"}, {left, "->"}, {right, ","}, {left, "!"},
+           {right, "!"}]};
 default(no_space) ->
     #{rules => [{right, "("}, {left, ")"}, {left, ","}]};
 default(nesting_level) ->

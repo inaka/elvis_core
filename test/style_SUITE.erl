@@ -469,7 +469,8 @@ verify_operator_spaces(Config) ->
      #{info := [left, "/=" | _]}, #{info := [right, "=/=" | _]}, #{info := [left, "=/=" | _]},
      #{info := [right, "--" | _]}, #{info := [left, "--" | _]}, #{info := [right, "||" | _]},
      #{info := [left, "||" | _]}, #{info := [right, "||" | _]}, #{info := [left, "||" | _]},
-     #{info := [right, "|" | _]}, #{info := [left, "|" | _]}] =
+     #{info := [right, "|" | _]}, #{info := [left, "|" | _]}, #{info := [left, "!" | _]},
+     #{info := [right, "!" | _]}] =
         elvis_core_apply_rule(Config, elvis_style, operator_spaces, DefaultOptions, Path).
 
 -spec verify_no_space(config()) -> any().
