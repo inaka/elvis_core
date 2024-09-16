@@ -479,16 +479,19 @@ verify_no_space(Config) ->
 
     Path1 = "fail_no_space." ++ Ext,
     [#{info := [right, "(", 3]},
-     #{info := [right, "(", 32]},
-     #{info := [right, "(", 48]},
-     #{info := [left, ")", 48]},
-     #{info := [left, ")", 75]},
-     #{info := [right, "(", 105]},
-     #{info := [left, ")", 105]}] =
+     #{info := [right, "(", 36]},
+     #{info := [right, "(", 52]},
+     #{info := [left, ")", 52]},
+     #{info := [left, ",", 76]},
+     #{info := [left, ")", 79]},
+     #{info := [right, "(", 109]},
+     #{info := [left, ")", 109]},
+     #{info := [right, "#", 121]},
+     #{info := [right, "?", 121]}] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               no_space,
-                              #{rules => [{right, "("}, {left, ")"}]},
+                              elvis_style:default(no_space),
                               Path1).
 
 -spec verify_no_space_after_pound(config()) -> any().
