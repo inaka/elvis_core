@@ -145,7 +145,7 @@
 
 -spec default(Rule :: atom()) -> DefaultRuleConfig :: term().
 default(macro_names) ->
-    #{regex => "^([A-Z][A-Z_0-9]+)$"};
+    #{regex => "^[A-Z](_?[A-Z0-9]+)*$"};
 default(operator_spaces) ->
     #{rules =>
           [{right, "++"}, {left, "++"}, {right, "="}, {left, "="}, {right, "+"}, {left, "+"},
