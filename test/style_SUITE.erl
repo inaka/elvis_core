@@ -117,8 +117,9 @@ verify_function_naming_convention(Config) ->
 
     % pass
     PathPass = "pass_function_naming_convention." ++ Ext,
+    #{regex := DefaultRegex} = elvis_style:default(function_naming_convention),
 
-    RuleConfig = #{regex => "^([a-z][a-z0-9]*_?)*$"},
+    RuleConfig = #{regex => DefaultRegex},
     [] =
         elvis_core_apply_rule(Config,
                               elvis_style,
@@ -127,7 +128,7 @@ verify_function_naming_convention(Config) ->
                               PathPass),
 
     RuleConfig2 =
-        #{regex => "^([a-z][a-z0-9]*_?)*$", ignore => [fail_function_naming_convention]},
+        #{regex => DefaultRegex, ignore => [fail_function_naming_convention]},
     [] =
         elvis_core_apply_rule(Config,
                               elvis_style,
@@ -142,7 +143,8 @@ verify_function_naming_convention(Config) ->
      _InitialCapError,
      _HyphenError,
      _PredError,
-     _EmailError] =
+     _EmailError,
+     _BeforeAfter] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               function_naming_convention,
@@ -150,14 +152,14 @@ verify_function_naming_convention(Config) ->
                               PathFail),
 
     RuleConfig3 =
-        #{regex => "^([a-z][a-z0-9]*_?)*$",
+        #{regex => DefaultRegex,
           ignore =>
               [{fail_function_naming_convention, camelCase},
                {fail_function_naming_convention, 'ALL_CAPS'},
                {fail_function_naming_convention, 'Initial_cap'},
                {fail_function_naming_convention, 'ok-for-lisp'},
                {fail_function_naming_convention, 'no_predicates?'}]},
-    [_EmailError2] =
+    [_EmailError2, _BeforeAfter2] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               function_naming_convention,
@@ -168,7 +170,7 @@ verify_function_naming_convention(Config) ->
     PathIgnored = "fail_function_naming_convention_ignored_function." ++ Ext,
 
     RuleConfig4 =
-        #{regex => "^([a-z][a-z0-9]*_?)*$",
+        #{regex => DefaultRegex,
           ignore =>
               [{fail_function_naming_convention, camelCase},
                {fail_function_naming_convention, 'ALL_CAPS'},

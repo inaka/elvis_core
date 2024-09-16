@@ -15,7 +15,8 @@ bad_names_inside() ->
     'Initial_cap'(should, fail),
     'ok-for-lisp'(should, fail),
     'no_predicates?'(should, fail),
-    user@location(should, fail).
+    user@location(should, fail),
+    before__after(should, fail).
 
 %% Private / hidden functions still checked
 
@@ -35,4 +36,7 @@ camelCase(Should, Fail) ->
     [Should, Fail].
 
 user@location(Should, Fail) ->
+    [Should, Fail].
+
+before__after(Should, Fail) ->
     [Should, Fail].
