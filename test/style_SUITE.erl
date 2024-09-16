@@ -665,7 +665,8 @@ verify_no_behavior_info(Config) ->
 verify_module_naming_convention(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    RuleConfig = #{regex => "^([a-z][a-z0-9]*_?)*$", ignore => []},
+    #{regex := DefaultRegex} = elvis_style:default(module_naming_convention),
+    RuleConfig = #{regex => DefaultRegex, ignore => []},
 
     PathPass = "pass_module_naming_convention." ++ Ext,
     [] =
@@ -675,7 +676,7 @@ verify_module_naming_convention(Config) ->
                               RuleConfig,
                               PathPass),
 
-    PathFail = "fail_module_naming_1_convention_1." ++ Ext,
+    PathFail = "fail_module_naming_1_convention_1_." ++ Ext,
     [_] =
         elvis_core_apply_rule(Config,
                               elvis_style,
@@ -683,7 +684,7 @@ verify_module_naming_convention(Config) ->
                               RuleConfig,
                               PathFail),
 
-    RuleConfigIgnore = RuleConfig#{ignore => [fail_module_naming_1_convention_1]},
+    RuleConfigIgnore = RuleConfig#{ignore => [fail_module_naming_1_convention_1_]},
     [] =
         elvis_core_apply_rule(Config,
                               elvis_style,

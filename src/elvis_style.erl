@@ -169,7 +169,7 @@ default(function_naming_convention) ->
 default(variable_naming_convention) ->
     #{regex => "^_?([A-Z][0-9a-zA-Z]*)$"};
 default(module_naming_convention) ->
-    #{regex => "^([a-z][a-z0-9]*_?)*(_SUITE)?$"};
+    #{regex => "^[a-z](_?[a-z0-9]+)*(_SUITE)?$"};
 default(dont_repeat_yourself) ->
     #{min_complexity => 10};
 default(max_module_length) ->
