@@ -1,19 +1,26 @@
 -module(elvis_text_style).
 
--export([default/1, line_length/3, no_tabs/3, no_trailing_whitespace/3]).
+-export([default/1, line_length/3, no_tabs/3, no_trailing_whitespace/3,
+         prefer_unquoted_atoms/3]).
 
 -export_type([line_length_config/0, no_trailing_whitespace_config/0]).
 
 -define(LINE_LENGTH_MSG, "Line ~p is too long. It has ~p characters.").
 -define(NO_TABS_MSG, "Line ~p has a tab at column ~p.").
 -define(NO_TRAILING_WHITESPACE_MSG, "Line ~b has ~b trailing whitespace characters.").
+-define(ATOM_PREFERRED_QUOTES_MSG,
+        "Atom ~p on line ~p is quoted "
+        "but quotes are not needed.").
 
 % These are part of a non-declared "behaviour"
 % The reason why we don't try to handle them with different arity is
 %  that arguments are ignored in different positions (1 and 3) so that'd
 %  probably be messier than to ignore the warning
 -hank([{unnecessary_function_arguments,
-        [{no_trailing_whitespace, 3}, {no_tabs, 3}, {line_length, 3}]}]).
+        [{no_trailing_whitespace, 3},
+         {no_tabs, 3},
+         {line_length, 3},
+         {prefer_unquoted_atoms, 3}]}]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
@@ -70,6 +77,38 @@ no_trailing_whitespace(_Config, Target, RuleConfig) ->
                                check_no_trailing_whitespace(Src1, Fun, IgnoreEmptyLines)
                             end,
                             RuleConfig).
+
+-spec prefer_unquoted_atoms(elvis_config:config(),
+                            elvis_file:file(),
+                            elvis_style:empty_rule_config()) ->
+                               [elvis_result:item()].
+prefer_unquoted_atoms(_Config, Target, _RuleConfig) ->
+    {Content, #{encoding := _Encoding}} = elvis_file:src(Target),
+    Tree = ktn_code:parse_tree(Content),
+    AtomNodes = elvis_code:find(fun is_atom_node/1, Tree, #{traverse => all, mode => node}),
+    check_atom_quotes(AtomNodes, []).
+
+%% @private
+check_atom_quotes([] = _AtomNodes, Acc) ->
+    Acc;
+check_atom_quotes([AtomNode | RemainingAtomNodes], AccIn) ->
+    AtomName = ktn_code:attr(text, AtomNode),
+    ValueAtomName = ktn_code:attr(value, AtomNode),
+
+    IsException = is_exception_prefer_quoted(ValueAtomName),
+
+    AccOut =
+        case unicode:characters_to_list(AtomName, unicode) of
+            [$' | _] when not IsException ->
+                Msg = ?ATOM_PREFERRED_QUOTES_MSG,
+                {Line, _} = ktn_code:attr(location, AtomNode),
+                Info = [AtomName, Line],
+                Result = elvis_result:new(item, Msg, Info, Line),
+                AccIn ++ [Result];
+            _ ->
+                AccIn
+        end,
+    check_atom_quotes(RemainingAtomNodes, AccOut).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
@@ -163,6 +202,18 @@ check_no_trailing_whitespace(Line, Num, IgnoreEmptyLines) ->
             Result = elvis_result:new(item, Msg, Info, Num),
             {ok, Result}
     end.
+
+%% @private
+is_atom_node(MaybeAtom) ->
+    ktn_code:type(MaybeAtom) =:= atom.
+
+%% @private
+is_exception_prefer_quoted(Elem) ->
+    KeyWords =
+        ['after', 'and', 'andalso', 'band', 'begin', 'bnot', 'bor', 'bsl', 'bsr', 'bxor', 'case',
+         'catch', 'cond', 'div', 'end', 'fun', 'if', 'let', 'not', 'of', 'or', 'orelse', 'receive',
+         'rem', 'try', 'when', 'xor'],
+    lists:member(Elem, KeyWords).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Internal Function Definitions

@@ -1300,10 +1300,12 @@ verify_no_successive_maps(_Config) ->
 -spec verify_unquoted_atoms(config()) -> any().
 verify_unquoted_atoms(Config) ->
     PassPath = "pass_unquoted_atoms." ++ "erl",
-    [] = elvis_core_apply_rule(Config, elvis_style, prefer_unquoted_atoms, #{}, PassPath),
+    [] =
+        elvis_core_apply_rule(Config, elvis_text_style, prefer_unquoted_atoms, #{}, PassPath),
 
     FailPath = "fail_quoted_atoms." ++ "erl",
-    [_, _] = elvis_core_apply_rule(Config, elvis_style, prefer_unquoted_atoms, #{}, FailPath).
+    [_, _] =
+        elvis_core_apply_rule(Config, elvis_text_style, prefer_unquoted_atoms, #{}, FailPath).
 
 -spec verify_atom_naming_convention(config()) -> any().
 verify_atom_naming_convention(Config) ->
