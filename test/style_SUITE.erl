@@ -127,8 +127,7 @@ verify_function_naming_convention(Config) ->
                               RuleConfig,
                               PathPass),
 
-    RuleConfig2 =
-        #{regex => DefaultRegex, ignore => [fail_function_naming_convention]},
+    RuleConfig2 = #{regex => DefaultRegex, ignore => [fail_function_naming_convention]},
     [] =
         elvis_core_apply_rule(Config,
                               elvis_style,

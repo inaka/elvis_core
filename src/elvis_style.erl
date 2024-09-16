@@ -158,8 +158,14 @@ default(operator_spaces) ->
            {right, "::"}, {left, "::"}, {right, "->"}, {left, "->"}, {right, ","}, {left, "!"},
            {right, "!"}]};
 default(no_space) ->
-    #{rules => [{right, "("}, {left, ")"}, {left, ","}, {left, ":"}, {right, ":"},
-    {right, "#"}, {right, "?"}]};
+    #{rules =>
+          [{right, "("},
+           {left, ")"},
+           {left, ","},
+           {left, ":"},
+           {right, ":"},
+           {right, "#"},
+           {right, "?"}]};
 default(nesting_level) ->
     #{level => 4};
 default(god_modules) ->
@@ -188,8 +194,13 @@ default(no_call) ->
     #{no_call_functions => []};
 default(no_debug_call) ->
     #{debug_functions =>
-          [{ct, pal}, {ct, print}, {erlang, display, 1}, {io, format, 1}, {io, format, 2},
-           {io, put_chars, 1}, {io, put_chars, 2}]};
+          [{ct, pal},
+           {ct, print},
+           {erlang, display, 1},
+           {io, format, 1},
+           {io, format, 2},
+           {io, put_chars, 1},
+           {io, put_chars, 2}]};
 default(no_common_caveats_call) ->
     #{caveat_functions =>
           [{timer, send_after, 2},
