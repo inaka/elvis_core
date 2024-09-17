@@ -30,6 +30,11 @@ The following is a checklist you can follow when implementing a new Elvis rule:
 and in the [`config/elvis.config`](https://github.com/inaka/elvis/blob/HEAD/config/elvis.config)
 file.
 
+## Development
+
+CI for `elvis_core` is pretty simple, but in case you want to replicate it locally before
+pushing most issues will be found via `rebar3 do format --verify, test`.
+
 ## Questions?
 
 If you have any questions or general comments regarding how to contribute, please use our public
