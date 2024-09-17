@@ -21,7 +21,8 @@ operator can be any string.
            {right, "/="}, {left, "/="}, {right, "=/="}, {left, "=/="}, {right, "--"}, {left, "--"},
            {right, "=>"}, {left, "=>"}, {right, ":="}, {left, ":="}, {right, "<-"}, {left, "<-"},
            {right, "<="}, {left, "<="}, {right, "||"}, {left, "||"}, {right, "|"}, {left, "|"},
-           {right, "::"}, {left, "::"}, {right, "->"}, {left, "->"}, {right, ","}]
+           {right, "::"}, {left, "::"}, {right, "->"}, {left, "->"}, {right, ","}, {left, "!"},
+           {right, "!"}]
 ```
 
 ## Example

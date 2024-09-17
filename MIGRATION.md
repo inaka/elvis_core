@@ -8,6 +8,27 @@ since these are incremental.
 This file's format is influenced by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and
 [Make a README](https://www.makeareadme.com/).
 
+## Going from `3.x` to `4.x`
+
+### Update
+
+- your `atom_naming_convention`'s options to be the ones defined at
+<https://github.com/inaka/elvis_core/blob/3.2.5/doc_rules/elvis_style/atom_naming_convention.md#options>
+- your `macro_names`' options to be the ones defined at
+<https://github.com/inaka/elvis_core/blob/3.2.5/doc_rules/elvis_style/macro_names.md#options>
+- your `operator_spaces` options to be the ones defined at
+<https://github.com/inaka/elvis_core/blob/3.2.5/doc_rules/elvis_style/operator_spaces.md#options>
+- your `no_space` options to be the ones defined at
+<https://github.com/inaka/elvis_core/blob/3.2.5/doc_rules/elvis_style/no_space.md#options>
+- your `function_naming_convention` options to be the ones defined at
+<https://github.com/inaka/elvis_core/blob/3.2.5/doc_rules/elvis_style/function_naming_convention.md#options>
+- your `module_naming_convention` options to be the ones defined at
+<https://github.com/inaka/elvis_core/blob/3.2.5/doc_rules/elvis_style/module_naming_convention.md#options>
+- your `no_debug_call` options to be the ones defined at
+<https://github.com/inaka/elvis_core/blob/3.2.5/doc_rules/elvis_style/no_debug_call.md#options>
+
+On the other hand you may choose to not implement those changes and merely adapt your code.
+
 ## Going from `0.x` to `1.x`
 
 ### Update

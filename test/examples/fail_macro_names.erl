@@ -11,6 +11,7 @@
 -define(CALLING_SOMETHING, call(1)).
 -define(  'POTENTIAL_BAD-NAME'  , nomegusta).
 -define('A,aZ', 2).
+-define (BAD__NAME, "Stumble").
 
 -export([
          define/1,

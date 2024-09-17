@@ -7,7 +7,7 @@ All modules should be named according to the regular expression provided.
 ## Options
 
 - `regex :: string()`.
-  - default: `"^([a-z][a-z0-9]*_?)*(_SUITE)?$"`.
+  - default: `"^[a-z](_?[a-z0-9]+)*(_SUITE)?$"`.
 
 ## Example
 

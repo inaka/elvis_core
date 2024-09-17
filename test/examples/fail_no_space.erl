@@ -17,8 +17,12 @@
         , unicode_characters/0
         , windows_newlines/0
         , this/0
-        , this/1
+        , this/2
+        , use_record/0
         ]).
+
+-define(MACRO, "Brujo loves these").
+-record(a, {one, two}).
 
 %% No space before and after coma,on a comment.
 %% ( inside a comment
@@ -107,8 +111,11 @@ windows_newlines() ->
 this()
 -> should_not_crash.
 
--spec this(shouldnt_either)
+-spec this(shouldnt_either, A::integer())
 -> 32.
-this(shouldnt_either)
+this(shouldnt_either, _A)
 -> A = 1
 - 2, A, $ . 
+
+use_record() ->
+    # a{one = 1, two = ? MACRO}.

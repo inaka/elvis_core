@@ -11,4 +11,5 @@ fail() ->
     ct:pal("Debug"),
     ct:pal("Debug ~s", ["Debug Info"]),
     ct:print("Debug"),
-    ct:print("Debug ~s", ["Debug Info"]).
+    ct:print("Debug ~s", ["Debug Info"]),
+    io:put_chars("Debug").

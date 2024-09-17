@@ -145,7 +145,7 @@
 
 -spec default(Rule :: atom()) -> DefaultRuleConfig :: term().
 default(macro_names) ->
-    #{regex => "^([A-Z][A-Z_0-9]+)$"};
+    #{regex => "^[A-Z](_?[A-Z0-9]+)*$"};
 default(operator_spaces) ->
     #{rules =>
           [{right, "++"}, {left, "++"}, {right, "="}, {left, "="}, {right, "+"}, {left, "+"},
@@ -155,19 +155,27 @@ default(operator_spaces) ->
            {right, "/="}, {left, "/="}, {right, "=/="}, {left, "=/="}, {right, "--"}, {left, "--"},
            {right, "=>"}, {left, "=>"}, {right, ":="}, {left, ":="}, {right, "<-"}, {left, "<-"},
            {right, "<="}, {left, "<="}, {right, "||"}, {left, "||"}, {right, "|"}, {left, "|"},
-           {right, "::"}, {left, "::"}, {right, "->"}, {left, "->"}, {right, ","}]};
+           {right, "::"}, {left, "::"}, {right, "->"}, {left, "->"}, {right, ","}, {left, "!"},
+           {right, "!"}]};
 default(no_space) ->
-    #{rules => [{right, "("}, {left, ")"}, {left, ","}]};
+    #{rules =>
+          [{right, "("},
+           {left, ")"},
+           {left, ","},
+           {left, ":"},
+           {right, ":"},
+           {right, "#"},
+           {right, "?"}]};
 default(nesting_level) ->
     #{level => 4};
 default(god_modules) ->
     #{limit => 25};
 default(function_naming_convention) ->
-    #{regex => "^([a-z][a-z0-9]*_?)*(_SUITE)?$"};
+    #{regex => "^[a-z](_?[a-z0-9]+)*$"};
 default(variable_naming_convention) ->
     #{regex => "^_?([A-Z][0-9a-zA-Z]*)$"};
 default(module_naming_convention) ->
-    #{regex => "^([a-z][a-z0-9]*_?)*(_SUITE)?$"};
+    #{regex => "^[a-z](_?[a-z0-9]+)*(_SUITE)?$"};
 default(dont_repeat_yourself) ->
     #{min_complexity => 10};
 default(max_module_length) ->
@@ -186,7 +194,13 @@ default(no_call) ->
     #{no_call_functions => []};
 default(no_debug_call) ->
     #{debug_functions =>
-          [{ct, pal}, {ct, print}, {erlang, display, 1}, {io, format, 1}, {io, format, 2}]};
+          [{ct, pal},
+           {ct, print},
+           {erlang, display, 1},
+           {io, format, 1},
+           {io, format, 2},
+           {io, put_chars, 1},
+           {io, put_chars, 2}]};
 default(no_common_caveats_call) ->
     #{caveat_functions =>
           [{timer, send_after, 2},
