@@ -6,3 +6,4 @@ _checkouts/
 /erl_crash.dump
 /rebar3.crashdump
 test/logs/
+rebar.lock

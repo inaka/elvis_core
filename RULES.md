@@ -63,9 +63,13 @@ identified with `(since ...)` for convenience purposes.
 - [Variable Naming Convention](doc_rules/elvis_style/variable_naming_convention.md)
 - [Prefer Unquoted Atoms](doc_rules/elvis_text_style/prefer_unquoted_atoms.md)
 
+## `.gitignore` rules
+
+- [`.gitignore` required patterns](doc_rules/elvis_gitignore/required_patterns.md)
+- [`.gitignore` forbidden patterns](doc_rules/elvis_gitignore/forbidden_patterns.md)
+
 ## Project rules
 
-- [`.gitignore` patterns](doc_rules/elvis_project/gitignore_patterns.md)
 - [No deps master erlang.mk - *deprecated*](doc_rules/elvis_project/no_deps_master_erlang_mk.md)
 - [No deps master rebar - *deprecated*](doc_rules/elvis_project/no_deps_master_rebar.md)
 - [No deps with branches](doc_rules/elvis_project/no_branch_deps.md)
