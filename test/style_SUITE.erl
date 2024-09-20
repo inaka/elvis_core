@@ -1294,7 +1294,7 @@ verify_no_successive_maps(Config) ->
                               #{ignore => [Module]},
                               Path).
 
-- else .
+-else.
 
 verify_no_successive_maps(_Config) ->
     [].
