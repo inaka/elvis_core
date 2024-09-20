@@ -34,11 +34,11 @@ default(forbidden_patterns) ->
                         elvis_style:empty_rule_config()) ->
                            [elvis_result:item()].
 required_patterns(_Config, #{path := Path}, RuleConfig) ->
-    AllOf = option(regexes, RuleConfig, required_patterns),
+    Regexes = option(regexes, RuleConfig, required_patterns),
     case file:read_file(Path) of
         {ok, PatternsBin} ->
             Patterns = elvis_utils:split_all_lines(PatternsBin),
-            check_patterns_in_lines(Patterns, AllOf, [], required);
+            check_patterns_in_lines(Patterns, Regexes, [], required);
         {error, _} ->
             []
     end.
@@ -48,11 +48,11 @@ required_patterns(_Config, #{path := Path}, RuleConfig) ->
                          elvis_style:empty_rule_config()) ->
                             [elvis_result:item()].
 forbidden_patterns(_Config, #{path := Path}, RuleConfig) ->
-    AllOf = option(regexes, RuleConfig, forbidden_patterns),
+    Regexes = option(regexes, RuleConfig, forbidden_patterns),
     case file:read_file(Path) of
         {ok, PatternsBin} ->
             Patterns = elvis_utils:split_all_lines(PatternsBin),
-            check_patterns_in_lines(Patterns, AllOf, [], forbidden);
+            check_patterns_in_lines(Patterns, Regexes, [], forbidden);
         {error, _} ->
             []
     end.
