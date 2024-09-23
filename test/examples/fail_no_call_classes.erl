@@ -13,4 +13,13 @@ fail() ->
     _ = erlang:size(<<"fail_size">>),
 
     _ = erlang:tuple_size({1,2,3}),
-    _ = erlang:byte_size(<<"ok_size">>).
+    _ = erlang:byte_size(<<"ok_size">>),
+
+    _ = gen_server:call(self(), request),
+    _ = gen_server:call(self(), request, infinity),
+
+    _ = gen_event:call(self(), self(), request),
+    _ = gen_event:call(self(), self(), request, infinity),
+
+    _ = gen_statem:call(self(), request),
+    _ = gen_statem:call(self(), request, infinity).

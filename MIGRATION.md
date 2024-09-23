@@ -26,6 +26,8 @@ This file's format is influenced by [Keep a Changelog](https://keepachangelog.co
 <https://github.com/inaka/elvis_core/blob/3.2.5/doc_rules/elvis_style/module_naming_convention.md#options>
 - your `no_debug_call` options to be the ones defined at
 <https://github.com/inaka/elvis_core/blob/3.2.5/doc_rules/elvis_style/no_debug_call.md#options>
+- your `no_common_caveats_call` options to be the ones defined at
+<https://github.com/inaka/elvis_core/blob/3.2.5/doc_rules/elvis_style/no_common_caveats_call.md#options>
 
 On the other hand you may choose to not implement those changes and merely adapt your code.
 
