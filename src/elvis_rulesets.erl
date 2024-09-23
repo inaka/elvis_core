@@ -11,6 +11,9 @@ set_rulesets(RuleSets) ->
                   maps:to_list(RuleSets)).
 
 -spec rules(Group :: atom()) -> [elvis_core:rule()].
+rules(gitignore) ->
+    lists:map(fun({Mod, Rule}) -> {Mod, Rule, apply(Mod, default, [Rule])} end,
+              [{elvis_gitignore, Rule} || Rule <- [required_patterns, forbidden_patterns]]);
 rules(hrl_files) ->
     lists:map(fun({Mod, Rule}) -> {Mod, Rule, apply(Mod, default, [Rule])} end,
               [{elvis_text_style, Rule} || Rule <- [line_length, no_tabs, no_trailing_whitespace]]
