@@ -3,7 +3,7 @@
 (since [0.4.0](https://github.com/inaka/elvis_core/releases/tag/0.4.0))
 
 This rule raise a warning when certain functions are called. It is also used internally to implement
-`no_debug_call` and `no_common_caveats` but, on its own, makes no checks on your code (the default
+`no_debug_call` and `no_common_caveats_call` but, on its own, makes no checks on your code (the default
 `no_call_functions` list is empty).  However, it is a convenient place to add your own list of calls
 to avoid (especially calls to third party libraries, where you can't just deprecate undesired
 functions).
