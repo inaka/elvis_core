@@ -17,13 +17,14 @@
          verify_state_record_and_type_plus_export_used_types/1, verify_no_spec_with_records/1,
          verify_dont_repeat_yourself/1, verify_max_module_length/1,
          verify_max_anonymous_function_arity/1, verify_max_function_arity/1,
-         verify_max_function_length/1, verify_no_debug_call/1, verify_no_common_caveats_call/1,
-         verify_no_call/1, verify_no_nested_try_catch/1, verify_no_successive_maps/1,
-         verify_atom_naming_convention/1, verify_no_throw/1, verify_no_dollar_space/1,
-         verify_no_author/1, verify_no_import/1, verify_no_catch_expressions/1,
-         verify_no_single_clause_case/1, verify_numeric_format/1, verify_behaviour_spelling/1,
-         verify_always_shortcircuit/1, verify_consistent_generic_type/1, verify_no_types/1,
-         verify_no_specs/1, verify_export_used_types/1, verify_consistent_variable_casing/1,
+         verify_max_function_length/1, verify_max_function_clause_length/1, verify_no_debug_call/1,
+         verify_no_common_caveats_call/1, verify_no_call/1, verify_no_nested_try_catch/1,
+         verify_no_successive_maps/1, verify_atom_naming_convention/1, verify_no_throw/1,
+         verify_no_dollar_space/1, verify_no_author/1, verify_no_import/1,
+         verify_no_catch_expressions/1, verify_no_single_clause_case/1, verify_numeric_format/1,
+         verify_behaviour_spelling/1, verify_always_shortcircuit/1,
+         verify_consistent_generic_type/1, verify_no_types/1, verify_no_specs/1,
+         verify_export_used_types/1, verify_consistent_variable_casing/1,
          verify_no_match_in_condition/1, verify_param_pattern_matching/1,
          verify_private_data_types/1, verify_unquoted_atoms/1]).
 %% -elvis attribute
@@ -1141,6 +1142,78 @@ verify_max_function_length(Config) ->
         elvis_core_apply_rule(Config, elvis_style, max_function_length, RuleConfig11, PathFail),
 
     {comment, ""}.
+
+-spec verify_max_function_clause_length(config()) -> any().
+verify_max_function_clause_length(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PathFail = "fail_max_function_clause_length." ++ Ext,
+
+    CountAllRuleConfig = #{count_comments => true, count_whitespace => true},
+    RuleConfig = CountAllRuleConfig#{max_length => 10},
+
+    ct:comment("Count whitespace and comment lines"),
+    [_, _, _] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              max_function_clause_length,
+                              RuleConfig,
+                              PathFail),
+
+    PathSuccess = "pass_max_function_clause_length." ++ Ext,
+
+    [] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              max_function_clause_length,
+                              RuleConfig,
+                              PathSuccess),
+
+    RuleConfig2 = CountAllRuleConfig#{max_length => 15},
+    PathExtraSuccess = "fail_max_function_length." ++ Ext,
+
+    [] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              max_function_clause_length,
+                              RuleConfig2,
+                              PathExtraSuccess),
+
+    RuleConfig3 = CountAllRuleConfig#{max_length => 1},
+
+    [_, _, _, _, _, _, _, _, _, _] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              max_function_clause_length,
+                              RuleConfig3,
+                              PathFail),
+
+    RuleConfig4 = CountAllRuleConfig#{max_length => 1},
+    PathClauseNumbers = "function_clause_numbers." ++ Ext,
+
+    Result =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              max_function_clause_length,
+                              RuleConfig4,
+                              PathClauseNumbers),
+
+    Numbers = [Number || #{info := [Number, _, _, _, _]} <- Result],
+
+    ["1st",
+     "5th",
+     "6th",
+     "7th",
+     "11th",
+     "13th",
+     "19th",
+     "20th",
+     "21st",
+     "29th",
+     "30th",
+     "31st",
+     "33rd"] =
+        Numbers.
 
 -spec verify_no_debug_call(config()) -> any().
 verify_no_debug_call(Config) ->
