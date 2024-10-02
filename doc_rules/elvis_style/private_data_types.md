@@ -8,7 +8,7 @@ for defining their own internal data types. If these are needed outside the
 modules, they should be made
 [opaque](https://www.erlang.org/doc/reference_manual/opaques.html).
 
-> "Works on `.beam` file? Yes!"
+> Works on `.beam` file? Yes!
 
 ## Options
 

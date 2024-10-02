@@ -2,7 +2,7 @@
 
 Use `term()` or `any()` consistently for types in specs.
 
-> Works on `.beam` file? Yes.
+> Works on `.beam` file? Yes!
 
 ## Options
 

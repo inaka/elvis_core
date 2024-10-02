@@ -4,7 +4,7 @@
 
 Use short-circuiting operators instead of the regular ones.
 
-> Works on `.beam` file? Yes.
+> Works on `.beam` file? Yes!
 
 ## Options
 

@@ -6,7 +6,7 @@ There shouldn't be any modules that export a number of functions greater than th
 
 ## Options
 
-- `limit :: non_neg_integer().`
+- `limit :: non_neg_integer()`
   - default: `25`
 
 ## Example

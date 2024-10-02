@@ -2,13 +2,13 @@
 
 No line should be longer than a given limit. Comments can be skipped.
 
-> Works on `.beam` file? No!
+> Works on `.beam` file? No.
 
 ## Options
 
-- `limit :: pos_integer().`
+- `limit :: pos_integer()`
   - default: `100`
-- `skip_comments :: false | any | whole_line.`
+- `skip_comments :: false | any | whole_line`
   - default: `false`, means _emit a warning for every line that goes over `Limit`_
   - `any` means _don't emit a warning if the part of the line that goes over `Limit` belongs to a
   comment_
