@@ -4,7 +4,7 @@
 
 Block expressions should be avoided.
 
-> Works on `.beam` file? Yes.
+> Works on `.beam` file? Yes!
 
 ## Options
 

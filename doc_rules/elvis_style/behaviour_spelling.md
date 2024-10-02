@@ -2,7 +2,7 @@
 
 Use a consistent spelling for behaviour attributes in modules.
 
-> Works on `.beam` file? Yes.
+> Works on `.beam` file? Yes!
 
 ## Options
 
