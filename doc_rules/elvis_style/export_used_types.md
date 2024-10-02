@@ -6,7 +6,7 @@ Exporting a function without exporting the types it depends on can result in
 reimplementing the types in every module that uses those functions. To avoid
 this, when a function is exported, its types should be too.
 
-> "Works on `.beam` file? Yes!"
+> Works on `.beam` file? Yes!
 
 ## Options
 
