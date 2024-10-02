@@ -7,7 +7,7 @@ there's no notion of "whitespace" in BEAM files)
 
 ## Options
 
-- `ignore_empty_lines :: boolean().`
+- `ignore_empty_lines :: boolean()`
   - default: `false`
 
 ## Example

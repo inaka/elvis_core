@@ -7,7 +7,7 @@ operator can be any string.
 
 ## Options
 
-- `rules :: [{right | left, string()}].`
+- `rules :: [{right | left, string()}]`
   - default:
     - before [1.5.0](https://github.com/inaka/elvis_core/releases/tag/1.5.0): `[{right, ","},
     {right, "++"}, {left, "++"}]`
