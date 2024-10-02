@@ -8,7 +8,8 @@ By default, all numbers are valid. The goal of the rule is to allow developers t
 presence of numbers like `1_23_456_7890` and require them to be written either as `1_234_567_890` or
 `1234567890`, instead.
 
-> Works on `.beam` file? No. (numbers there are just numbers; they can't be formatted)
+> Works on `.beam` file? Not really! (it consumes results Ok, but these might be unexpected, since
+numbers there are just numbers; they can't be formatted)
 
 ## Options
 

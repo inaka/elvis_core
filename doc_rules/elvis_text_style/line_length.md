@@ -2,7 +2,7 @@
 
 No line should be longer than a given limit. Comments can be skipped.
 
-> Works on `.beam` file? No!
+> Works on `.beam` file? No.
 
 ## Options
 
