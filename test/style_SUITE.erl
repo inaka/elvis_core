@@ -25,7 +25,7 @@
          verify_always_shortcircuit/1, verify_consistent_generic_type/1, verify_no_types/1,
          verify_no_specs/1, verify_export_used_types/1, verify_consistent_variable_casing/1,
          verify_no_match_in_condition/1, verify_param_pattern_matching/1,
-         verify_private_data_types/1]).
+         verify_private_data_types/1, verify_no_init_lists/1]).
 %% -elvis attribute
 -export([verify_elvis_attr_atom_naming_convention/1, verify_elvis_attr_numeric_format/1,
          verify_elvis_attr_dont_repeat_yourself/1, verify_elvis_attr_function_naming_convention/1,
@@ -1430,6 +1430,18 @@ verify_atom_naming_convention(Config) ->
                                             enclosed_atoms => "^([\\\\][\-a-z0-9A-Z_' \\\\]*)$"},
                                           FailPath)
         end.
+
+-spec verify_no_init_lists(config()) -> any().
+verify_no_init_lists(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    FailPath = "fail_verify_no_init_lists." ++ Ext,
+
+    [_] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, FailPath),
+
+    PassPath = "pass_verify_no_init_lists." ++ Ext,
+
+    [] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, PassPath).
 
 -spec verify_no_throw(config()) -> any().
 verify_no_throw(Config) ->

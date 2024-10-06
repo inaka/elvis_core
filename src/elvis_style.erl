@@ -12,7 +12,8 @@
          atom_naming_convention/3, no_throw/3, no_dollar_space/3, no_author/3, no_import/3,
          no_catch_expressions/3, no_single_clause_case/3, numeric_format/3, behaviour_spelling/3,
          always_shortcircuit/3, consistent_generic_type/3, export_used_types/3,
-         no_match_in_condition/3, param_pattern_matching/3, private_data_types/3, option/3]).
+         no_match_in_condition/3, param_pattern_matching/3, private_data_types/3, option/3,
+         no_init_lists/3]).
 
 -export_type([empty_rule_config/0]).
 -export_type([ignorable/0]).
@@ -30,6 +31,7 @@
               no_match_in_condition_config/0, behaviour_spelling_config/0,
               param_pattern_matching_config/0, private_data_type_config/0]).
 
+-define(NO_INIT_LISTS_MSG, "TODO").
 -define(INVALID_MACRO_NAME_REGEX_MSG,
         "The macro named ~p on line ~p does not respect the format "
         "defined by the regular expression '~p'.").
@@ -146,6 +148,8 @@
 -spec default(Rule :: atom()) -> DefaultRuleConfig :: term().
 default(macro_names) ->
     #{regex => "^([A-Z][A-Z_0-9]+)$"};
+default(no_init_lists) ->
+    #{};
 default(operator_spaces) ->
     #{rules =>
           [{right, "++"}, {left, "++"}, {right, "="}, {left, "="}, {right, "+"}, {left, "+"},
@@ -1014,6 +1018,36 @@ atom_naming_convention(Config, Target, RuleConfig) ->
         specific_or_default(option(enclosed_atoms, RuleConfig, atom_naming_convention), Regex),
     AtomNodes = elvis_code:find(fun is_atom_node/1, Root, #{traverse => all, mode => node}),
     check_atom_names(Regex, RegexEnclosed, AtomNodes, []).
+
+-spec no_init_lists(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
+                       [elvis_result:item()].
+no_init_lists(Config, Target, RuleConfig) ->
+    Root = get_root(Config, Target, RuleConfig),
+
+    IsFunction = fun(Node) -> ktn_code:type(Node) == function end,
+    FunctionNodes = elvis_code:find(IsFunction, Root),
+
+    PairFun =
+        fun(FunctionNode) ->
+           Name = ktn_code:attr(name, FunctionNode),
+           Location = ktn_code:attr(location, FunctionNode),
+           [Content] = ktn_code:content(FunctionNode),
+           Attributes = ktn_code:node_attr(pattern, Content),
+           {Name, Location, [Attr || #{type := Type} = Attr <- Attributes, Type == cons]}
+        end,
+
+    FunListAttributeInfos = lists:map(PairFun, FunctionNodes),
+
+    FilterFun = fun({Name, _, C}) -> length(C) > 0 andalso Name =:= init end,
+    FunListAttributes = lists:filter(FilterFun, FunListAttributeInfos),
+
+    ResultFun =
+        fun({Name, Location, ConsList}) ->
+           Info = [Name, length(ConsList)],
+           Msg = ?NO_INIT_LISTS_MSG,
+           elvis_result:new(item, Msg, Info, Location)
+        end,
+    lists:map(ResultFun, FunListAttributes).
 
 -spec no_throw(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
                   [elvis_result:item()].

@@ -93,6 +93,7 @@ rules(erl_files_strict) ->
                              max_function_length,
                              max_module_length,
                              no_call,
+                             no_init_lists,
                              no_common_caveats_call,
                              no_macros,
                              state_record_and_type]]);
