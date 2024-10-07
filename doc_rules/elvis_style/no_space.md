@@ -9,8 +9,8 @@ can be any string.
 
 ## Options
 
-- `rules :: [{right | left, string()}].`
-  - default: `[{right, "("}, {left, ")"}, {left, ","}]`
+- `rules :: [{right | left, string()}]`
+  - default: `[{right, "("}, {left, ")"}, {left, ","}, {right, "#"}, {right, "?"}]`
 
 ## Example
 

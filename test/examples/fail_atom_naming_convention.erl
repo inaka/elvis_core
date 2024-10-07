@@ -12,4 +12,12 @@ for_test() ->
     '\'\'',
     '\'startswithbacktick',
     'backtick\'inside',
-    'backtick at the end\''.
+    'backtick at the end\'',
+    non200_,
+    '__', % invalid, even when '_' is actually valid
+    two_underscores__together_are_not_valid,
+    '_something', % invalid because it starts with underscore
+    '42_invalid_because_it_starts_with_a_number',
+    '42invalid', %% even without underscores
+    weDontSupportCamelCaseHere,
+    not_even_in_a__SUITE.

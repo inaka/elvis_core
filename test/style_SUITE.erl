@@ -25,7 +25,8 @@
          verify_always_shortcircuit/1, verify_consistent_generic_type/1, verify_no_types/1,
          verify_no_specs/1, verify_export_used_types/1, verify_consistent_variable_casing/1,
          verify_no_match_in_condition/1, verify_param_pattern_matching/1,
-         verify_private_data_types/1, verify_no_init_lists/1]).
+         verify_private_data_types/1, verify_unquoted_atoms/1, verify_no_init_lists/1]).
+
 %% -elvis attribute
 -export([verify_elvis_attr_atom_naming_convention/1, verify_elvis_attr_numeric_format/1,
          verify_elvis_attr_dont_repeat_yourself/1, verify_elvis_attr_function_naming_convention/1,
@@ -82,7 +83,7 @@ groups() ->
        verify_always_shortcircuit, verify_no_catch_expressions, verify_no_single_clause_case,
        verify_no_macros, verify_export_used_types, verify_max_anonymous_function_arity,
        verify_max_function_arity, verify_no_match_in_condition, verify_behaviour_spelling,
-       verify_param_pattern_matching, verify_private_data_types]}].
+       verify_param_pattern_matching, verify_private_data_types, verify_unquoted_atoms]}].
 
 -spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
@@ -117,8 +118,9 @@ verify_function_naming_convention(Config) ->
 
     % pass
     PathPass = "pass_function_naming_convention." ++ Ext,
+    #{regex := DefaultRegex} = elvis_style:default(function_naming_convention),
 
-    RuleConfig = #{regex => "^([a-z][a-z0-9]*_?)*$"},
+    RuleConfig = #{regex => DefaultRegex},
     [] =
         elvis_core_apply_rule(Config,
                               elvis_style,
@@ -126,8 +128,7 @@ verify_function_naming_convention(Config) ->
                               RuleConfig,
                               PathPass),
 
-    RuleConfig2 =
-        #{regex => "^([a-z][a-z0-9]*_?)*$", ignore => [fail_function_naming_convention]},
+    RuleConfig2 = #{regex => DefaultRegex, ignore => [fail_function_naming_convention]},
     [] =
         elvis_core_apply_rule(Config,
                               elvis_style,
@@ -142,7 +143,8 @@ verify_function_naming_convention(Config) ->
      _InitialCapError,
      _HyphenError,
      _PredError,
-     _EmailError] =
+     _EmailError,
+     _BeforeAfter] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               function_naming_convention,
@@ -150,14 +152,14 @@ verify_function_naming_convention(Config) ->
                               PathFail),
 
     RuleConfig3 =
-        #{regex => "^([a-z][a-z0-9]*_?)*$",
+        #{regex => DefaultRegex,
           ignore =>
               [{fail_function_naming_convention, camelCase},
                {fail_function_naming_convention, 'ALL_CAPS'},
                {fail_function_naming_convention, 'Initial_cap'},
                {fail_function_naming_convention, 'ok-for-lisp'},
                {fail_function_naming_convention, 'no_predicates?'}]},
-    [_EmailError2] =
+    [_EmailError2, _BeforeAfter2] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               function_naming_convention,
@@ -168,7 +170,7 @@ verify_function_naming_convention(Config) ->
     PathIgnored = "fail_function_naming_convention_ignored_function." ++ Ext,
 
     RuleConfig4 =
-        #{regex => "^([a-z][a-z0-9]*_?)*$",
+        #{regex => DefaultRegex,
           ignore =>
               [{fail_function_naming_convention, camelCase},
                {fail_function_naming_convention, 'ALL_CAPS'},
@@ -321,7 +323,7 @@ verify_macro_names_rule(Config) ->
 
     Path = "fail_macro_names." ++ Ext,
 
-    [_, _, _, _, _] = elvis_core_apply_rule(Config, elvis_style, macro_names, #{}, Path),
+    [_, _, _, _, _, _] = elvis_core_apply_rule(Config, elvis_style, macro_names, #{}, Path),
 
     [_, _] =
         elvis_core_apply_rule(Config,
@@ -344,7 +346,7 @@ verify_macro_names_rule(Config) ->
                               #{regex => "^[A-Za-z_, \-]+$"},
                               Path),
 
-    [_, _, _, _, _, _, _, _, _, _] =
+    [_, _, _, _, _, _, _, _, _, _, _] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               macro_names,
@@ -469,7 +471,8 @@ verify_operator_spaces(Config) ->
      #{info := [left, "/=" | _]}, #{info := [right, "=/=" | _]}, #{info := [left, "=/=" | _]},
      #{info := [right, "--" | _]}, #{info := [left, "--" | _]}, #{info := [right, "||" | _]},
      #{info := [left, "||" | _]}, #{info := [right, "||" | _]}, #{info := [left, "||" | _]},
-     #{info := [right, "|" | _]}, #{info := [left, "|" | _]}] =
+     #{info := [right, "|" | _]}, #{info := [left, "|" | _]}, #{info := [left, "!" | _]},
+     #{info := [right, "!" | _]}] =
         elvis_core_apply_rule(Config, elvis_style, operator_spaces, DefaultOptions, Path).
 
 -spec verify_no_space(config()) -> any().
@@ -478,16 +481,19 @@ verify_no_space(Config) ->
 
     Path1 = "fail_no_space." ++ Ext,
     [#{info := [right, "(", 3]},
-     #{info := [right, "(", 32]},
-     #{info := [right, "(", 48]},
-     #{info := [left, ")", 48]},
-     #{info := [left, ")", 75]},
-     #{info := [right, "(", 105]},
-     #{info := [left, ")", 105]}] =
+     #{info := [right, "(", 36]},
+     #{info := [right, "(", 52]},
+     #{info := [left, ")", 52]},
+     #{info := [left, ",", 76]},
+     #{info := [left, ")", 79]},
+     #{info := [right, "(", 109]},
+     #{info := [left, ")", 109]},
+     #{info := [right, "#", 121]},
+     #{info := [right, "?", 121]}] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               no_space,
-                              #{rules => [{right, "("}, {left, ")"}]},
+                              elvis_style:default(no_space),
                               Path1).
 
 -spec verify_no_space_after_pound(config()) -> any().
@@ -659,7 +665,8 @@ verify_no_behavior_info(Config) ->
 verify_module_naming_convention(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    RuleConfig = #{regex => "^([a-z][a-z0-9]*_?)*$", ignore => []},
+    #{regex := DefaultRegex} = elvis_style:default(module_naming_convention),
+    RuleConfig = #{regex => DefaultRegex, ignore => []},
 
     PathPass = "pass_module_naming_convention." ++ Ext,
     [] =
@@ -669,7 +676,7 @@ verify_module_naming_convention(Config) ->
                               RuleConfig,
                               PathPass),
 
-    PathFail = "fail_module_naming_1_convention_1." ++ Ext,
+    PathFail = "fail_module_naming_1_convention_1_." ++ Ext,
     [_] =
         elvis_core_apply_rule(Config,
                               elvis_style,
@@ -677,7 +684,7 @@ verify_module_naming_convention(Config) ->
                               RuleConfig,
                               PathFail),
 
-    RuleConfigIgnore = RuleConfig#{ignore => [fail_module_naming_1_convention_1]},
+    RuleConfigIgnore = RuleConfig#{ignore => [fail_module_naming_1_convention_1_]},
     [] =
         elvis_core_apply_rule(Config,
                               elvis_style,
@@ -1143,14 +1150,12 @@ verify_no_debug_call(Config) ->
 
     PathFail = "fail_no_debug_call." ++ Ext,
 
-    PathFail = "fail_no_debug_call." ++ Ext,
-
     _ = case Group of
             beam_files -> % io:format is preprocessed
-                [_, _, _, _, _] =
+                [_, _, _, _, _, _] =
                     elvis_core_apply_rule(Config, elvis_style, no_debug_call, #{}, PathFail);
             erl_files ->
-                [_, _, _, _, _, _, _] =
+                [_, _, _, _, _, _, _, _] =
                     elvis_core_apply_rule(Config, elvis_style, no_debug_call, #{}, PathFail)
         end,
 
@@ -1228,7 +1233,10 @@ verify_no_call_flavours(Config,
          {{erlang, size, 1}, 2},
          {{timer, send_after}, 2},
          {{timer, '_', '_'}, 4},
-         {{'_', tuple_size, 1}, 1}],
+         {{'_', tuple_size, 1}, 1},
+         {{gen_statem, call, 2}, 1},
+         {{gen_server, call, 2}, 1},
+         {{gen_event, call, 3}, 1}],
 
     lists:foreach(fun({FunSpec, ExpectedCount}) ->
                      ThisRuleConfig = maps:from_list([{RuleConfigMapKey, [FunSpec]}]),
@@ -1297,12 +1305,22 @@ verify_no_successive_maps(_Config) ->
 
 -endif.
 
+-spec verify_unquoted_atoms(config()) -> any().
+verify_unquoted_atoms(Config) ->
+    PassPath = "pass_unquoted_atoms." ++ "erl",
+    [] =
+        elvis_core_apply_rule(Config, elvis_text_style, prefer_unquoted_atoms, #{}, PassPath),
+
+    FailPath = "fail_quoted_atoms." ++ "erl",
+    [_, _] =
+        elvis_core_apply_rule(Config, elvis_text_style, prefer_unquoted_atoms, #{}, FailPath).
+
 -spec verify_atom_naming_convention(config()) -> any().
 verify_atom_naming_convention(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    BaseRegex = "^([a-z][a-z0-9_]+)$",
+    BaseRegex = "^[a-z](_?[a-z0-9]+)*(_SUITE)?$",
 
     % pass
     PassModule = pass_atom_naming_convention,
@@ -1337,37 +1355,37 @@ verify_atom_naming_convention(Config) ->
     FailModule2 = fail_atom_naming_convention_exception_class,
     FailPath2 = atom_to_list(FailModule2) ++ "." ++ Ext,
 
-    [_, _, _, _, _, _, _, _, _, _] =
+    [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               atom_naming_convention,
                               #{regex => BaseRegex, enclosed_atoms => same},
                               FailPath),
-    [_, _, _, _, _, _, _, _] =
+    [_, _, _, _, _, _, _, _, _, _, _] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               atom_naming_convention,
                               #{regex => "^([a-zA-Z_]+)$", enclosed_atoms => same},
                               FailPath),
-    [_, _] =
+    [_, _, _, _, _] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               atom_naming_convention,
                               #{regex => "^([a-zA-Z_' \\\\]+)$", enclosed_atoms => same},
                               FailPath),
-    [_, _, _, _, _, _, _] =
+    [_, _, _, _, _, _, _, _, _, _] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               atom_naming_convention,
                               #{regex => "^([a-zA-Z\-_]+)$", enclosed_atoms => same},
                               FailPath),
-    [_] =
+    [_, _, _, _] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               atom_naming_convention,
                               #{regex => "^([a-zA-Z\-_' \\\\]+)$", enclosed_atoms => same},
                               FailPath),
-    [] =
+    [_] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               atom_naming_convention,
@@ -1380,26 +1398,26 @@ verify_atom_naming_convention(Config) ->
                               #{regex => BaseRegex, ignore => [FailModule]},
                               FailPath),
     KeepRegex = "^([a-zA-Z0-9_]+)$",
-    [_, _, _, _, _, _, _, _] =
+    [_, _, _, _, _, _, _, _, _, _, _, _] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               atom_naming_convention,
                               #{regex => KeepRegex, enclosed_atoms => "^([a-z][a-z0-9A-Z_]*)$"},
                               FailPath),
-    [_, _, _, _, _, _] =
+    [_, _, _, _, _, _, _, _, _, _] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               atom_naming_convention,
                               #{regex => KeepRegex,
                                 enclosed_atoms => "^([a-z][a-z0-9A-Z_' \\\\]*)$"},
                               FailPath),
-    [_, _, _, _, _, _, _] =
+    [_, _, _, _, _, _, _, _, _, _, _] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               atom_naming_convention,
                               #{regex => KeepRegex, enclosed_atoms => "^([a-z][\-a-z0-9A-Z_]*)$"},
                               FailPath),
-    [_, _, _, _] =
+    [_, _, _, _, _, _] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               atom_naming_convention,
@@ -1414,7 +1432,7 @@ verify_atom_naming_convention(Config) ->
                               FailPath2),
     _ = case Group of
             beam_files -> % 'or_THIS' getting stripped of enclosing '
-                [_, _, _, _] =
+                [_, _, _, _, _, _, _, _] =
                     elvis_core_apply_rule(Config,
                                           elvis_style,
                                           atom_naming_convention,
@@ -1422,7 +1440,7 @@ verify_atom_naming_convention(Config) ->
                                             enclosed_atoms => "^([\\\\][\-a-z0-9A-Z_' \\\\]*)$"},
                                           FailPath);
             erl_files ->
-                [_, _, _, _, _] =
+                [_, _, _, _, _, _, _, _, _] =
                     elvis_core_apply_rule(Config,
                                           elvis_style,
                                           atom_naming_convention,

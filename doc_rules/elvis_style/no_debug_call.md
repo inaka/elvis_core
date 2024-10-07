@@ -7,7 +7,8 @@ Don't leave debugging function calls such as `io:format` or `ct:pal` in your sou
 ## Options
 
 - `debug_functions :: [{module(), function(), arity()} | {module(), function()}]`.
-  - default: `[{ct, pal}, {ct, print}, {io, format, 1}, {io, format, 2}, {erlang, display, 1}]`
+  - default: `[{ct, pal}, {ct, print}, {io, format, 1}, {io, format, 2}, {erlang, display, 1},
+    {io, put_chars, 1}, {io, put_chars, 2}]`
   (`{erlang, display, 1}` is only included since
   [1.5.0](https://github.com/inaka/elvis_core/releases/tag/1.5.0)).
 

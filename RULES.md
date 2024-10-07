@@ -62,6 +62,7 @@ identified with `(since ...)` for convenience purposes.
 - [Used Ignored Variable](doc_rules/elvis_style/used_ignored_variable.md)
 - [Variable Naming Convention](doc_rules/elvis_style/variable_naming_convention.md)
 - [Not Use List In Init Functions](doc_rules/elvis_style/no_init_lists.md)
+- [Prefer Unquoted Atoms](doc_rules/elvis_text_style/prefer_unquoted_atoms.md)
 
 ## Project rules
 
@@ -84,6 +85,7 @@ The six pre-defined rulesets are:
 - `elvis_config`, for elvis configuration files.
 - `erl_files`, for Erlang source files (pre-defined rule set).
 - `erl_files_strict`, for Erlang source files (all available rules).
+- `gitignore`, for `.gitignore` files.
 - `hrl_files`, for Erlang header files.
 - `makefiles`, for Makefiles.
 - `rebar_config`, for rebar configuration files.
@@ -201,6 +203,9 @@ line numbers will most surely not correspond with those in the source file.
          , filter => "elvis.config"
          , ruleset => elvis_config
          , rules => [] }
+      , #{ dirs => ["."]
+         , filter => ".gitignore"
+         , ruleset => gitignore }
     ]}
   , {verbose, true}
 ]}].

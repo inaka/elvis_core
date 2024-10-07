@@ -2,7 +2,7 @@
 
 Don't use attributes `behavior_info` or `behaviour_info`; use `callback` instead.
 
-> Works on `.beam` file? No.
+> Works on `.beam` file? Yes!
 
 ## Options
 

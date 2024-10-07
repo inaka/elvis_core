@@ -20,6 +20,7 @@
         , this/1
         , pass_more_operators/0
         , fail_more_operators/0
+        , fail_no_space_excl/0
         ]).
 
 %% No space before and after coma,on a comment.
@@ -150,3 +151,6 @@ fail_more_operators()->
         <<<<$>>>||<<$>>><=<<$>>>>>,
         [X|D]
     }.
+
+fail_no_space_excl() ->
+    self()!'a'.
