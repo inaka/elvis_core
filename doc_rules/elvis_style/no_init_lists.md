@@ -8,10 +8,10 @@ the files are pre-processed)
 
 ## Options
 
--
+- None.
 
 ## Example
 
 ```erlang
-{elvis_style, no_init_lists}
+{elvis_style, no_init_lists, #{}}
 ```
