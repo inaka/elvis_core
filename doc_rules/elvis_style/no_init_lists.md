@@ -1,4 +1,4 @@
-# No Init Lists 
+# No Init Lists
 
 This warns you if you use list as a parameter in an init function in a gen_* module.
 [Reasoning](https://erlangforums.com/t/args-in-gen-init-1/3169/4?u=elbrujohalcon)
