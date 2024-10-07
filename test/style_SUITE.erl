@@ -1437,7 +1437,12 @@ verify_no_init_lists(Config) ->
 
     FailPath = "fail_verify_no_init_lists." ++ Ext,
 
-    [_] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, FailPath),
+    [#{message := M, info := I}] =
+        elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, FailPath),
+
+    io:format(user, "-------------------~n", []),
+    io:format(user, M, I),
+    io:format(user, "-------------------~n", []),
 
     PassPath = "pass_verify_no_init_lists." ++ Ext,
 

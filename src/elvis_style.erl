@@ -31,7 +31,10 @@
               no_match_in_condition_config/0, behaviour_spelling_config/0,
               param_pattern_matching_config/0, private_data_type_config/0]).
 
--define(NO_INIT_LISTS_MSG, "TODO").
+-hank([{unnecessary_function_arguments, [{no_init_lists, 3}]}]).
+
+-define(NO_INIT_LISTS_MSG,
+        "Don't use a list as a parameter in 'init' function at position ~p.").
 -define(INVALID_MACRO_NAME_REGEX_MSG,
         "The macro named ~p on line ~p does not respect the format "
         "defined by the regular expression '~p'.").
@@ -148,8 +151,6 @@
 -spec default(Rule :: atom()) -> DefaultRuleConfig :: term().
 default(macro_names) ->
     #{regex => "^([A-Z][A-Z_0-9]+)$"};
-default(no_init_lists) ->
-    #{};
 default(operator_spaces) ->
     #{rules =>
           [{right, "++"}, {left, "++"}, {right, "="}, {left, "="}, {right, "+"}, {left, "+"},
@@ -237,7 +238,8 @@ default(RuleWithEmptyDefault)
          RuleWithEmptyDefault == always_shortcircuit;
          RuleWithEmptyDefault == no_space_after_pound;
          RuleWithEmptyDefault == export_used_types;
-         RuleWithEmptyDefault == consistent_variable_casing ->
+         RuleWithEmptyDefault == consistent_variable_casing;
+         RuleWithEmptyDefault == no_init_lists ->
     #{}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1021,8 +1023,8 @@ atom_naming_convention(Config, Target, RuleConfig) ->
 
 -spec no_init_lists(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
                        [elvis_result:item()].
-no_init_lists(Config, Target, RuleConfig) ->
-    Root = get_root(Config, Target, RuleConfig),
+no_init_lists(_Config, Target, _RuleConfig) ->
+    Root = get_root(#{}, Target, #{}),
 
     IsFunction = fun(Node) -> ktn_code:type(Node) == function end,
     FunctionNodes = elvis_code:find(IsFunction, Root),
@@ -1042,8 +1044,8 @@ no_init_lists(Config, Target, RuleConfig) ->
     FunListAttributes = lists:filter(FilterFun, FunListAttributeInfos),
 
     ResultFun =
-        fun({Name, Location, ConsList}) ->
-           Info = [Name, length(ConsList)],
+        fun({_, Location, _}) ->
+           Info = [Location],
            Msg = ?NO_INIT_LISTS_MSG,
            elvis_result:new(item, Msg, Info, Location)
         end,
