@@ -64,6 +64,11 @@ identified with `(since ...)` for convenience purposes.
 - [Not Use List In Init Functions](doc_rules/elvis_style/no_init_lists.md)
 - [Prefer Unquoted Atoms](doc_rules/elvis_text_style/prefer_unquoted_atoms.md)
 
+## `.gitignore` rules
+
+- [`.gitignore` required patterns](doc_rules/elvis_gitignore/required_patterns.md)
+- [`.gitignore` forbidden patterns](doc_rules/elvis_gitignore/forbidden_patterns.md)
+
 ## Project rules
 
 - [No deps master erlang.mk - *deprecated*](doc_rules/elvis_project/no_deps_master_erlang_mk.md)
