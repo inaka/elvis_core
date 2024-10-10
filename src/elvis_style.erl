@@ -7,8 +7,8 @@
          invalid_dynamic_call/3, used_ignored_variable/3, no_behavior_info/3,
          module_naming_convention/3, state_record_and_type/3, no_spec_with_records/3,
          dont_repeat_yourself/3, max_module_length/3, max_anonymous_function_arity/3,
-         max_function_arity/3, max_function_length/3, no_call/3, no_debug_call/3,
-         no_common_caveats_call/3, no_nested_try_catch/3, no_successive_maps/3,
+         max_function_arity/3, max_function_length/3, max_function_clause_length/3, no_call/3,
+         no_debug_call/3, no_common_caveats_call/3, no_nested_try_catch/3, no_successive_maps/3,
          atom_naming_convention/3, no_throw/3, no_dollar_space/3, no_author/3, no_import/3,
          no_catch_expressions/3, no_single_clause_case/3, numeric_format/3, behaviour_spelling/3,
          always_shortcircuit/3, consistent_generic_type/3, export_used_types/3,
@@ -95,6 +95,9 @@
 -define(MAX_FUNCTION_ARITY_MSG, "The arity of function ~p/~w exceeds the maximum of ~p.").
 -define(MAX_FUNCTION_LENGTH,
         "The code for function ~p/~w has ~p lines which exceeds the "
+        "maximum of ~p.").
+-define(MAX_FUNCTION_CLAUSE_LENGTH,
+        "The code for the ~ts clause of function ~p/~w has ~p lines which exceeds the "
         "maximum of ~p.").
 -define(NO_CALL_MSG, "The call to ~p:~p/~p on line ~p is in the no_call list.").
 -define(NO_DEBUG_CALL_MSG, "Remove the debug call to ~p:~p/~p on line ~p.").
@@ -187,6 +190,10 @@ default(max_anonymous_function_arity) ->
 default(max_function_arity) ->
     #{max_arity => 8};
 default(max_function_length) ->
+    #{max_length => 30,
+      count_comments => false,
+      count_whitespace => false};
+default(max_function_clause_length) ->
     #{max_length => 30,
       count_comments => false,
       count_whitespace => false};
@@ -890,6 +897,82 @@ max_function_arity(Config, Target, RuleConfig) ->
                        end
                     end,
                     Functions).
+
+-spec max_function_clause_length(elvis_config:config(),
+                                 elvis_file:file(),
+                                 max_function_length_config()) ->
+                                    [elvis_result:item()].
+max_function_clause_length(Config, Target, RuleConfig) ->
+    MaxLength = option(max_length, RuleConfig, max_function_length),
+    CountComments = option(count_comments, RuleConfig, max_function_length),
+    CountWhitespace = option(count_whitespace, RuleConfig, max_function_length),
+
+    Root = get_root(Config, Target, RuleConfig),
+    {Src, _} = elvis_file:src(Target),
+    Lines = elvis_utils:split_all_lines(Src, [trim]),
+
+    IsFunction = fun(Node) -> ktn_code:type(Node) == function end,
+    Functions0 = elvis_code:find(IsFunction, Root),
+
+    % clause
+    FilterClause =
+        fun(Line) ->
+           (CountComments orelse not line_is_comment(Line))
+           andalso (CountWhitespace orelse not line_is_whitespace(Line))
+        end,
+
+    PairClause =
+        fun(ClauseNode, {Result, PrevAccNum}) ->
+           {Min, Max} = node_line_limits(ClauseNode),
+           FunLines = lists:sublist(Lines, Min, Max - Min + 1),
+           FilteredLines = lists:filter(FilterClause, FunLines),
+           L = length(FilteredLines),
+           AccNum = PrevAccNum + 1,
+           ClauseNumber = parse_clause_num(AccNum),
+           {[{Min, ClauseNumber, L} | Result], AccNum}
+        end,
+
+    % fun
+    PairFun =
+        fun(FunctionNode) ->
+           Name = ktn_code:attr(name, FunctionNode),
+           Arity = ktn_code:attr(arity, FunctionNode),
+
+           IsClause = fun(Node) -> ktn_code:type(Node) == clause end,
+           Clauses = elvis_code:find(IsClause, FunctionNode),
+
+           {ClauseLenInfos, _} = lists:foldl(PairClause, {[], 0}, Clauses),
+
+           [{Name, Arity, Min, StringClauseNumber, L}
+            || {Min, StringClauseNumber, L} <- ClauseLenInfos]
+        end,
+
+    ClauseLenInfos =
+        lists:reverse(
+            lists:append(
+                lists:map(PairFun, Functions0))),
+
+    MaxLengthPred = fun({_, _, _, _, L}) -> L > MaxLength end,
+    ClauseLenMaxPairs = lists:filter(MaxLengthPred, ClauseLenInfos),
+
+    ResultFun =
+        fun({Name, Arity, StartPos, ClauseNumber, L}) ->
+           Info = [ClauseNumber, Name, Arity, L, MaxLength],
+           Msg = ?MAX_FUNCTION_CLAUSE_LENGTH,
+           elvis_result:new(item, Msg, Info, StartPos)
+        end,
+    lists:map(ResultFun, ClauseLenMaxPairs).
+
+parse_clause_num(Num) when Num rem 100 >= 11, Num rem 100 =< 13 ->
+    integer_to_list(Num) ++ "th";
+parse_clause_num(Num) when Num rem 10 == 1 ->
+    integer_to_list(Num) ++ "st";
+parse_clause_num(Num) when Num rem 10 == 2 ->
+    integer_to_list(Num) ++ "nd";
+parse_clause_num(Num) when Num rem 10 == 3 ->
+    integer_to_list(Num) ++ "rd";
+parse_clause_num(Num) ->
+    integer_to_list(Num) ++ "th".
 
 -spec max_function_length(elvis_config:config(),
                           elvis_file:file(),
