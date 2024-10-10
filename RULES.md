@@ -61,7 +61,7 @@ identified with `(since ...)` for convenience purposes.
 - [State Record and Type](doc_rules/elvis_style/state_record_and_type.md)
 - [Used Ignored Variable](doc_rules/elvis_style/used_ignored_variable.md)
 - [Variable Naming Convention](doc_rules/elvis_style/variable_naming_convention.md)
-- [Not Use List In Init Functions](doc_rules/elvis_style/no_init_lists.md)
+- [No Init Lists](doc_rules/elvis_style/no_init_lists.md)
 - [Prefer Unquoted Atoms](doc_rules/elvis_text_style/prefer_unquoted_atoms.md)
 
 ## `.gitignore` rules
