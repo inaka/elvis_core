@@ -97,7 +97,7 @@
         "The code for function ~p/~w has ~p lines which exceeds the "
         "maximum of ~p.").
 -define(MAX_FUNCTION_CLAUSE_LENGTH,
-        "The code for the ~ts  clause of function ~p/~w has ~p lines which exceeds the "
+        "The code for the ~ts clause of function ~p/~w has ~p lines which exceeds the "
         "maximum of ~p.").
 -define(NO_CALL_MSG, "The call to ~p:~p/~p on line ~p is in the no_call list.").
 -define(NO_DEBUG_CALL_MSG, "Remove the debug call to ~p:~p/~p on line ~p.").
