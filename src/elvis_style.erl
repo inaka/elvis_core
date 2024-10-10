@@ -34,7 +34,7 @@
 -hank([{unnecessary_function_arguments, [{no_init_lists, 3}]}]).
 
 -define(NO_INIT_LISTS_MSG,
-        "Don't use a list as a parameter in 'init' function at position ~p.").
+        "Do not use a list as the parameter for the 'init' callback at position ~p.").
 -define(INVALID_MACRO_NAME_REGEX_MSG,
         "The macro named ~p on line ~p does not respect the format "
         "defined by the regular expression '~p'.").
