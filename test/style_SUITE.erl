@@ -1452,13 +1452,21 @@ verify_atom_naming_convention(Config) ->
 verify_no_init_lists(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    FailPath = "fail_verify_no_init_lists." ++ Ext,
+    FailPath = "fail_no_init_lists." ++ Ext,
 
     [_] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, FailPath),
 
-    PassPath = "pass_verify_no_init_lists." ++ Ext,
+    PassPath = "pass_no_init_lists." ++ Ext,
 
-    [] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, PassPath).
+    [] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, PassPath),
+
+    PassPath2 = "pass_no_init_lists2." ++ Ext,
+
+    [] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, PassPath2),
+
+    FailPath3 = "pass_no_init_lists3." ++ Ext,
+
+    [_] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, FailPath3).
 
 -spec verify_no_throw(config()) -> any().
 verify_no_throw(Config) ->

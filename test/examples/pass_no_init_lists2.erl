@@ -1,9 +1,8 @@
--module(fail_verify_no_init_lists).
+-module(pass_no_init_lists2).
 
 -export([start_link/1, init/1]).
 
 start_link(AParam) ->
   gen_server:start_link(?MODULE, [AParam], []).
 
-init([_AParam]) ->
-  ok.
+init([_AParam]) -> ok.
