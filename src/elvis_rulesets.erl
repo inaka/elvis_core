@@ -119,6 +119,7 @@ rules(beam_files) ->
                no_debug_call,
                no_if_expression,
                no_import,
+               no_init_lists,
                no_match_in_condition,
                no_nested_try_catch,
                no_single_clause_case,

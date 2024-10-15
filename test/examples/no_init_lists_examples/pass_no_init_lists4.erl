@@ -1,4 +1,4 @@
--module(pass_no_init_lists2).
+-module(pass_no_init_lists4).
 
 -export([start_link/1, init/1]).
 

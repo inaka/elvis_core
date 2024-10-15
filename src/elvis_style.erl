@@ -255,7 +255,6 @@ default(RuleWithEmptyDefault)
          RuleWithEmptyDefault == no_space_after_pound;
          RuleWithEmptyDefault == export_used_types;
          RuleWithEmptyDefault == consistent_variable_casing ->
-    % RuleWithEmptyDefault == no_init_lists ->
     #{}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1041,16 +1040,54 @@ atom_naming_convention(Config, Target, RuleConfig) ->
 
 -spec no_init_lists(elvis_config:config(), elvis_file:file(), no_init_lists_config()) ->
                        [elvis_result:item()].
-no_init_lists( Config , Target , RuleConfig ) -> Root = get_root( Config , Target , RuleConfig ) , Behaviors = option( behaviours , RuleConfig , no_init_lists ) , IsBehaviour = fun ( Node ) -> ktn_code : type( Node ) == behaviour end , FunListAttributes = maybe [ BehaviourNode ] ?= elvis_code : find( IsBehaviour , Root ) , true ?= lists : member( ktn_code : attr( value , BehaviourNode ) , Behaviors ) , IsFunction = fun ( Node ) -> ktn_code : type( Node ) == function end , FunctionNodes = elvis_code : find( IsFunction , Root ) , PairFun = fun ( FunctionNode ) -> Name = ktn_code : attr( name , FunctionNode ) , Location = ktn_code : attr( location , FunctionNode ) , [ Content ] = ktn_code : content( FunctionNode ) , Attributes = ktn_code : node_attr( pattern , Content ) , { Name , Location , [ Attr || #{ type := Type } = Attr <- Attributes , Type == cons ] } end , FunListAttributeInfos = lists : map( PairFun , FunctionNodes ) , FilterFun = fun ( { Name , _ , Args } ) -> length( Args ) =:= 1 andalso Name =:= init end , lists : filter( FilterFun , FunListAttributeInfos ) else _ -> [ ] end , ResultFun = fun ( { _ , Location , _ } ) -> Info = [ Location ] , Msg = "asd" , elvis_result : new( item , Msg , Info , Location ) end , lists : map( ResultFun , FunListAttributes ) .
+no_init_lists(Config, Target, RuleConfig) ->
+    Root = get_root(Config, Target, RuleConfig),
+    FunListAttributes =
+        case is_rule_behaviour(Root, RuleConfig) of
+            true ->
+                IsFunction = fun(Node) -> ktn_code:type(Node) == function end,
+                FunctionNodes = elvis_code:find(IsFunction, Root),
+                PairFun =
+                    fun(FunctionNode) ->
+                       Name = ktn_code:attr(name, FunctionNode),
+                       Location = ktn_code:attr(location, FunctionNode),
+                       [Content] = ktn_code:content(FunctionNode),
+                       Attributes = ktn_code:node_attr(pattern, Content),
+                       {Name,
+                        Location,
+                        [Attr || #{type := Type} = Attr <- Attributes, Type == cons]}
+                    end,
+                FunListAttributeInfos = lists:map(PairFun, FunctionNodes),
+                FilterFun = fun({Name, _, Args}) -> length(Args) =:= 1 andalso Name =:= init end,
+                lists:filter(FilterFun, FunListAttributeInfos);
+            false ->
+                []
+        end,
 
-        % io:format(user, "-----~n", []),
-        % io:format(user, "~p~n", [ktn_code:attr(value, BehaviourNode)]),
-        % io:format(user, "~p~n", [lists:member(ktn_code:attr(value, BehaviourNode), Behaviors)]),
-        % io:format(user, "-----~n", []),
+    ResultFun =
+        fun({_, Location, _}) ->
+           Info = [Location],
+           Msg = "asd",
+           elvis_result:new(item, Msg, Info, Location)
+        end,
+    lists:map(ResultFun, FunListAttributes).
 
-        % --
-
-           % Msg = ?NO_INIT_LISTS_MSG,
+is_rule_behaviour(Root, RuleConfig) ->
+    Behaviors = option(behaviours, RuleConfig, no_init_lists),
+    IsBehaviour = fun(Node) -> ktn_code:type(Node) == behaviour end,
+    case elvis_code:find(IsBehaviour, Root) of
+        [BehaviourNode] ->
+            case lists:member(
+                     ktn_code:attr(value, BehaviourNode), Behaviors)
+            of
+                true ->
+                    true;
+                false ->
+                    false
+            end;
+        [] ->
+            false
+    end.
 
 -spec no_throw(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
                   [elvis_result:item()].

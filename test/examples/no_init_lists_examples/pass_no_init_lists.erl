@@ -7,7 +7,13 @@
 start_link() ->
   gen_server:start_link(?MODULE, undefined, []).
 
-init(_) ->
+init(1) ->
+  ok;
+
+init([undefined]) ->
+  ok;
+
+init([_]) ->
   ok.
 
 handle_cast(_, _) -> ok.
