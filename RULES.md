@@ -26,6 +26,7 @@ identified with `(since ...)` for convenience purposes.
 - [Max Anonymous Function Arity](doc_rules/elvis_style/max_anonymous_function_arity.md)
 - [Max Function Arity](doc_rules/elvis_style/max_function_arity.md)
 - [Max Function Length](doc_rules/elvis_style/max_function_length.md)
+- [Max Function Clause Length](doc_rules/elvis_style/max_function_clause_length.md)
 - [Max Module Length](doc_rules/elvis_style/max_module_length.md)
 - [Module Naming Convention](doc_rules/elvis_style/module_naming_convention.md)
 - [Nesting Level](doc_rules/elvis_style/nesting_level.md)
