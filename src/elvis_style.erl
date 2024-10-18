@@ -1158,7 +1158,8 @@ is_rule_behaviour(Root, RuleConfig) ->
     IsBehaviour = fun(Node) -> ktn_code:type(Node) == behaviour end,
     case elvis_code:find(IsBehaviour, Root) of
         [BehaviourNode] ->
-            lists:member(ktn_code:attr(value, BehaviourNode), Behaviors)
+            lists:member(
+                ktn_code:attr(value, BehaviourNode), Behaviors);
         [] ->
             false
     end.
