@@ -1131,12 +1131,11 @@ no_init_lists(Config, Target, RuleConfig) ->
                 FunctionNodes = elvis_code:find(IsFunction, Root),
                 ProcessFun =
                     fun(FunctionNode) ->
-                       Name = ktn_code:attr(name, FunctionNode),
                        Location = ktn_code:attr(location, FunctionNode),
                        Content = ktn_code:content(FunctionNode),
                        lists:map(fun(Elem) ->
                                     Attributes = ktn_code:node_attr(pattern, Elem),
-                                    {Name, Location, Attributes}
+                                    {Location, Attributes}
                                  end,
                                  Content)
                     end,
@@ -1157,13 +1156,13 @@ no_init_lists(Config, Target, RuleConfig) ->
         end,
 
     IsBreakRule =
-        lists:all(fun({_, _, Attributes}) ->
+        lists:all(fun({_, Attributes}) ->
                      length(lists:filter(fun(Elem) -> is_list_node(Elem) end, Attributes)) =:= 1
                   end,
                   InitFuns),
 
     ResultFun =
-        fun({_, Location, _}) ->
+        fun({Location, _}) ->
            Info = [Location],
            Msg = ?NO_INIT_LISTS_MSG,
            elvis_result:new(item, Msg, Info, Location)
