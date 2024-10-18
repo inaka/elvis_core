@@ -1123,27 +1123,44 @@ atom_naming_convention(Config, Target, RuleConfig) ->
                        [elvis_result:item()].
 no_init_lists(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    FunListAttributes =
+
+    InitFuns =
         case is_rule_behaviour(Root, RuleConfig) of
             true ->
                 IsFunction = fun(Node) -> ktn_code:type(Node) == function end,
                 FunctionNodes = elvis_code:find(IsFunction, Root),
-                PairFun =
+                ProcessFun =
                     fun(FunctionNode) ->
                        Name = ktn_code:attr(name, FunctionNode),
                        Location = ktn_code:attr(location, FunctionNode),
-                       [Content] = ktn_code:content(FunctionNode),
-                       Attributes = ktn_code:node_attr(pattern, Content),
-                       {Name,
-                        Location,
-                        [Attr || #{type := Type} = Attr <- Attributes, Type == cons]}
+                       Content = ktn_code:content(FunctionNode),
+                       lists:map(fun(Elem) ->
+                                    Attributes = ktn_code:node_attr(pattern, Elem),
+                                    {Name, Location, Attributes}
+                                 end,
+                                 Content)
                     end,
-                FunListAttributeInfos = lists:map(PairFun, FunctionNodes),
-                FilterFun = fun({Name, _, Args}) -> length(Args) =:= 1 andalso Name =:= init end,
-                lists:filter(FilterFun, FunListAttributeInfos);
+
+                lists:append(
+                    lists:filtermap(fun(FunctionNode) ->
+                                       Name = ktn_code:attr(name, FunctionNode),
+                                       case Name of
+                                           init ->
+                                               {true, ProcessFun(FunctionNode)};
+                                           _ ->
+                                               false
+                                       end
+                                    end,
+                                    FunctionNodes));
             false ->
                 []
         end,
+
+    IsBreakRule =
+        lists:all(fun({_, _, Attributes}) ->
+                     length(lists:filter(fun(Elem) -> is_list_node(Elem) end, Attributes)) =:= 1
+                  end,
+                  InitFuns),
 
     ResultFun =
         fun({_, Location, _}) ->
@@ -1151,18 +1168,31 @@ no_init_lists(Config, Target, RuleConfig) ->
            Msg = ?NO_INIT_LISTS_MSG,
            elvis_result:new(item, Msg, Info, Location)
         end,
-    lists:map(ResultFun, FunListAttributes).
+
+    case IsBreakRule of
+        true ->
+            lists:map(ResultFun, InitFuns);
+        false ->
+            []
+    end.
 
 is_rule_behaviour(Root, RuleConfig) ->
-    Behaviors = option(behaviours, RuleConfig, no_init_lists),
+    ConfigBehaviors = option(behaviours, RuleConfig, no_init_lists),
     IsBehaviour = fun(Node) -> ktn_code:type(Node) == behaviour end,
-    case elvis_code:find(IsBehaviour, Root) of
-        [BehaviourNode] ->
-            lists:member(
-                ktn_code:attr(value, BehaviourNode), Behaviors);
-        [] ->
-            false
-    end.
+    Behaviours = elvis_code:find(IsBehaviour, Root),
+    lists:any(fun(Elem) -> Elem =:= true end,
+              lists:map(fun(BehaviourNode) ->
+                           lists:member(
+                               ktn_code:attr(value, BehaviourNode), ConfigBehaviors)
+                        end,
+                        Behaviours)).
+
+is_list_node(#{type := cons}) ->
+    true;
+is_list_node(#{type := match, content := Content}) ->
+    lists:any(fun(Elem) -> is_list_node(Elem) end, Content);
+is_list_node(_) ->
+    false.
 
 -spec no_throw(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
                   [elvis_result:item()].
