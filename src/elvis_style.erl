@@ -29,7 +29,7 @@
               no_import_config/0, no_catch_expressions_config/0, numeric_format_config/0,
               no_single_clause_case_config/0, consistent_variable_casing_config/0,
               no_match_in_condition_config/0, behaviour_spelling_config/0,
-              param_pattern_matching_config/0, private_data_type_config/0]).
+              param_pattern_matching_config/0, private_data_type_config/0, no_init_lists_config/0]).
 
 -define(NO_INIT_LISTS_MSG,
         "Do not use a list as the parameter for the 'init' callback at position ~p.").
