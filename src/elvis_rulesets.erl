@@ -93,6 +93,7 @@ rules(erl_files_strict) ->
                   || Rule
                          <- [always_shortcircuit,
                              consistent_generic_type,
+                             max_function_clause_length,
                              max_function_length,
                              max_module_length,
                              no_call,
