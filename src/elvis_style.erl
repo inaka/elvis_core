@@ -1,7 +1,5 @@
 -module(elvis_style).
 
--feature(maybe_expr, enable).
-
 -export([default/1, function_naming_convention/3, variable_naming_convention/3,
          consistent_variable_casing/3, macro_names/3, macro_module_names/3, no_macros/3,
          no_specs/3, no_types/3, no_block_expressions/3, operator_spaces/3, no_space/3,
@@ -33,8 +31,8 @@
               no_match_in_condition_config/0, behaviour_spelling_config/0,
               param_pattern_matching_config/0, private_data_type_config/0]).
 
-% -define(NO_INIT_LISTS_MSG,
-%         "Do not use a list as the parameter for the 'init' callback at position ~p.").
+-define(NO_INIT_LISTS_MSG,
+        "Do not use a list as the parameter for the 'init' callback at position ~p.").
 -define(INVALID_MACRO_NAME_REGEX_MSG,
         "The macro named ~p on line ~p does not respect the format "
         "defined by the regular expression '~p'.").
@@ -1067,7 +1065,7 @@ no_init_lists(Config, Target, RuleConfig) ->
     ResultFun =
         fun({_, Location, _}) ->
            Info = [Location],
-           Msg = "asd",
+           Msg = ?NO_INIT_LISTS_MSG,
            elvis_result:new(item, Msg, Info, Location)
         end,
     lists:map(ResultFun, FunListAttributes).
