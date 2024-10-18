@@ -1125,7 +1125,7 @@ no_init_lists(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
 
     InitFuns =
-        case is_rule_behaviour(Root, RuleConfig) of
+        case is_relevant_behaviour(Root, RuleConfig) of
             true ->
                 IsFunction = fun(Node) -> ktn_code:type(Node) == function end,
                 FunctionNodes = elvis_code:find(IsFunction, Root),
@@ -1175,7 +1175,7 @@ no_init_lists(Config, Target, RuleConfig) ->
             []
     end.
 
-is_rule_behaviour(Root, RuleConfig) ->
+is_relevant_behaviour(Root, RuleConfig) ->
     ConfigBehaviors = option(behaviours, RuleConfig, no_init_lists),
     IsBehaviour = fun(Node) -> ktn_code:type(Node) == behaviour end,
     Behaviours = elvis_code:find(IsBehaviour, Root),
