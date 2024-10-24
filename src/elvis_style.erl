@@ -1124,56 +1124,48 @@ atom_naming_convention(Config, Target, RuleConfig) ->
 no_init_lists(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
 
-    InitFuns =
+    ListInitClauses =
         case is_relevant_behaviour(Root, RuleConfig) of
             true ->
-                IsFunction = fun(Node) -> ktn_code:type(Node) == function end,
-                FunctionNodes = elvis_code:find(IsFunction, Root),
-                ProcessFun =
-                    fun(FunctionNode) ->
-                       Location = ktn_code:attr(location, FunctionNode),
-                       Content = ktn_code:content(FunctionNode),
-                       lists:map(fun(Elem) ->
-                                    Attributes = ktn_code:node_attr(pattern, Elem),
-                                    {Location, Attributes}
-                                 end,
-                                 Content)
+                IsInit1Function =
+                    fun(Node) ->
+                       ktn_code:type(Node) == function
+                       andalso ktn_code:attr(name, Node) == init
+                       andalso ktn_code:attr(arity, Node) == 1
+                    end,
+                [Init1Fun] = elvis_code:find(IsInit1Function, Root),
+
+                FilterClauses =
+                    fun(Clause) ->
+                       [Attribute] = ktn_code:node_attr(pattern, Clause),
+                       case is_list_node(Attribute) of
+                           true ->
+                               {true, ktn_code:attr(location, Clause)};
+                           false ->
+                               false
+                       end
                     end,
 
-                lists:append(
-                    lists:filtermap(fun(FunctionNode) ->
-                                       Name = ktn_code:attr(name, FunctionNode),
-                                       case Name of
-                                           init ->
-                                               {true, ProcessFun(FunctionNode)};
-                                           _ ->
-                                               false
-                                       end
-                                    end,
-                                    FunctionNodes));
+                Content = ktn_code:content(Init1Fun),
+                ListAttrClauses = lists:filtermap(FilterClauses, Content),
+                case length(ListAttrClauses) =:= length(Content) of
+                    true ->
+                        ListAttrClauses;
+                    false ->
+                        []
+                end;
             false ->
                 []
         end,
 
-    IsBreakRule =
-        lists:all(fun({_, Attributes}) ->
-                     length(lists:filter(fun(Elem) -> is_list_node(Elem) end, Attributes)) =:= 1
-                  end,
-                  InitFuns),
-
     ResultFun =
-        fun({Location, _}) ->
+        fun(Location) ->
            Info = [Location],
            Msg = ?NO_INIT_LISTS_MSG,
            elvis_result:new(item, Msg, Info, Location)
         end,
 
-    case IsBreakRule of
-        true ->
-            lists:map(ResultFun, InitFuns);
-        false ->
-            []
-    end.
+    lists:map(ResultFun, ListInitClauses).
 
 is_relevant_behaviour(Root, RuleConfig) ->
     ConfigBehaviors = option(behaviours, RuleConfig, no_init_lists),
@@ -1187,6 +1179,8 @@ is_relevant_behaviour(Root, RuleConfig) ->
                         Behaviours)).
 
 is_list_node(#{type := cons}) ->
+    true;
+is_list_node(#{type := nil}) ->
     true;
 is_list_node(#{type := match, content := Content}) ->
     lists:any(fun(Elem) -> is_list_node(Elem) end, Content);

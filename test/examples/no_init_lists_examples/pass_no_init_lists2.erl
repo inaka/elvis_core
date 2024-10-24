@@ -10,7 +10,7 @@ start_link() ->
 init(#{}) ->
   ok.
 
-init([_], udnefined) ->
+init([_], undefined) ->
   ok.
 
 handle_cast(_, _) -> ok.
