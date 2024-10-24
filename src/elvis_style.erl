@@ -151,7 +151,8 @@
 
 -spec default(Rule :: atom()) -> DefaultRuleConfig :: term().
 default(no_init_lists) ->
-    #{behaviours => [gen_server, gen_statem]};
+    #{behaviours =>
+          [gen_server, gen_statem, gen_fsm, supervisor, supervisor_bridge, gen_event]};
 default(macro_names) ->
     #{regex => "^[A-Z](_?[A-Z0-9]+)*$"};
 default(operator_spaces) ->
@@ -1133,7 +1134,14 @@ no_init_lists(Config, Target, RuleConfig) ->
                        andalso ktn_code:attr(name, Node) == init
                        andalso ktn_code:attr(arity, Node) == 1
                     end,
-                [Init1Fun] = elvis_code:find(IsInit1Function, Root),
+
+                Init1Fun =
+                    case elvis_code:find(IsInit1Function, Root) of
+                        [] ->
+                            [];
+                        [Fun] ->
+                            Fun
+                    end,
 
                 FilterClauses =
                     fun(Clause) ->
