@@ -1135,32 +1135,19 @@ no_init_lists(Config, Target, RuleConfig) ->
                        andalso ktn_code:attr(arity, Node) == 1
                     end,
 
-                Init1Fun =
-                    case elvis_code:find(IsInit1Function, Root) of
-                        [] ->
-                            [];
-                        [Fun] ->
-                            Fun
-                    end,
-
-                FilterClauses =
-                    fun(Clause) ->
-                       [Attribute] = ktn_code:node_attr(pattern, Clause),
-                       case is_list_node(Attribute) of
-                           true ->
-                               {true, ktn_code:attr(location, Clause)};
-                           false ->
-                               false
-                       end
-                    end,
-
-                Content = ktn_code:content(Init1Fun),
-                ListAttrClauses = lists:filtermap(FilterClauses, Content),
-                case length(ListAttrClauses) =:= length(Content) of
-                    true ->
-                        ListAttrClauses;
-                    false ->
-                        []
+                case elvis_code:find(IsInit1Function, Root) of
+                    [] ->
+                        [];
+                    [Init1Fun] ->
+                        Content = ktn_code:content(Init1Fun),
+                        ListAttrClauses =
+                            lists:filtermap(fun(X) -> filter_list_clause_location(X) end, Content),
+                        case length(ListAttrClauses) =:= length(Content) of
+                            true ->
+                                ListAttrClauses;
+                            false ->
+                                []
+                        end
                 end;
             false ->
                 []
@@ -1185,6 +1172,15 @@ is_relevant_behaviour(Root, RuleConfig) ->
                                ktn_code:attr(value, BehaviourNode), ConfigBehaviors)
                         end,
                         Behaviours)).
+
+filter_list_clause_location(Clause) ->
+    [Attribute] = ktn_code:node_attr(pattern, Clause),
+    case is_list_node(Attribute) of
+        true ->
+            {true, ktn_code:attr(location, Clause)};
+        false ->
+            false
+    end.
 
 is_list_node(#{type := cons}) ->
     true;
