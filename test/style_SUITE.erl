@@ -26,7 +26,7 @@
          verify_consistent_generic_type/1, verify_no_types/1, verify_no_specs/1,
          verify_export_used_types/1, verify_consistent_variable_casing/1,
          verify_no_match_in_condition/1, verify_param_pattern_matching/1,
-         verify_private_data_types/1, verify_unquoted_atoms/1]).
+         verify_private_data_types/1, verify_unquoted_atoms/1, verify_no_init_lists/1]).
 %% -elvis attribute
 -export([verify_elvis_attr_atom_naming_convention/1, verify_elvis_attr_numeric_format/1,
          verify_elvis_attr_dont_repeat_yourself/1, verify_elvis_attr_function_naming_convention/1,
@@ -1520,6 +1520,42 @@ verify_atom_naming_convention(Config) ->
                                             enclosed_atoms => "^([\\\\][\-a-z0-9A-Z_' \\\\]*)$"},
                                           FailPath)
         end.
+
+-spec verify_no_init_lists(config()) -> any().
+verify_no_init_lists(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    ExamplesDir = "no_init_lists_examples/",
+    FailPath = ExamplesDir ++ "fail_no_init_lists." ++ Ext,
+    FailPath2 = ExamplesDir ++ "fail_no_init_lists2." ++ Ext,
+    FailPath3 = ExamplesDir ++ "fail_no_init_lists3." ++ Ext,
+    FailPath4 = ExamplesDir ++ "fail_no_init_lists4." ++ Ext,
+    FailPath5 = ExamplesDir ++ "fail_no_init_lists5." ++ Ext,
+    FailPath6 = ExamplesDir ++ "fail_no_init_lists6." ++ Ext,
+    FailPath7 = ExamplesDir ++ "fail_no_init_lists7." ++ Ext,
+    FailPath8 = ExamplesDir ++ "fail_no_init_lists8." ++ Ext,
+
+    [_] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, FailPath),
+    [_] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, FailPath2),
+    [_, _, _] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, FailPath3),
+    [_] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, FailPath4),
+    [_] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, FailPath5),
+    [_] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, FailPath6),
+    [_] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, FailPath7),
+    [_] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, FailPath8),
+
+    PassPath = ExamplesDir ++ "pass_no_init_lists." ++ Ext,
+    PassPath2 = ExamplesDir ++ "pass_no_init_lists2." ++ Ext,
+    PassPath3 = ExamplesDir ++ "pass_no_init_lists3." ++ Ext,
+    PassPath4 = ExamplesDir ++ "pass_no_init_lists4." ++ Ext,
+    PassPath5 = ExamplesDir ++ "pass_no_init_lists5." ++ Ext,
+
+    [] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, PassPath),
+    [] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, PassPath2),
+    [] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, PassPath3),
+    [] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, PassPath4),
+    [] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, PassPath5),
+    ok.
 
 -spec verify_no_throw(config()) -> any().
 verify_no_throw(Config) ->

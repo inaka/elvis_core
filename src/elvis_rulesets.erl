@@ -97,6 +97,7 @@ rules(erl_files_strict) ->
                              max_function_length,
                              max_module_length,
                              no_call,
+                             no_init_lists,
                              no_common_caveats_call,
                              no_macros,
                              state_record_and_type]]);
@@ -119,6 +120,7 @@ rules(beam_files) ->
                no_debug_call,
                no_if_expression,
                no_import,
+               no_init_lists,
                no_match_in_condition,
                no_nested_try_catch,
                no_single_clause_case,

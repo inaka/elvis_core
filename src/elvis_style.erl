@@ -12,7 +12,8 @@
          atom_naming_convention/3, no_throw/3, no_dollar_space/3, no_author/3, no_import/3,
          no_catch_expressions/3, no_single_clause_case/3, numeric_format/3, behaviour_spelling/3,
          always_shortcircuit/3, consistent_generic_type/3, export_used_types/3,
-         no_match_in_condition/3, param_pattern_matching/3, private_data_types/3, option/3]).
+         no_match_in_condition/3, param_pattern_matching/3, private_data_types/3, option/3,
+         no_init_lists/3]).
 
 -export_type([empty_rule_config/0]).
 -export_type([ignorable/0]).
@@ -28,8 +29,10 @@
               no_import_config/0, no_catch_expressions_config/0, numeric_format_config/0,
               no_single_clause_case_config/0, consistent_variable_casing_config/0,
               no_match_in_condition_config/0, behaviour_spelling_config/0,
-              param_pattern_matching_config/0, private_data_type_config/0]).
+              param_pattern_matching_config/0, private_data_type_config/0, no_init_lists_config/0]).
 
+-define(NO_INIT_LISTS_MSG,
+        "Do not use a list as the parameter for the 'init' callback at position ~p.").
 -define(INVALID_MACRO_NAME_REGEX_MSG,
         "The macro named ~p on line ~p does not respect the format "
         "defined by the regular expression '~p'.").
@@ -147,6 +150,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 -spec default(Rule :: atom()) -> DefaultRuleConfig :: term().
+default(no_init_lists) ->
+    #{behaviours =>
+          [gen_server, gen_statem, gen_fsm, supervisor, supervisor_bridge, gen_event]};
 default(macro_names) ->
     #{regex => "^[A-Z](_?[A-Z0-9]+)*$"};
 default(operator_spaces) ->
@@ -1111,6 +1117,79 @@ atom_naming_convention(Config, Target, RuleConfig) ->
         specific_or_default(option(enclosed_atoms, RuleConfig, atom_naming_convention), Regex),
     AtomNodes = elvis_code:find(fun is_atom_node/1, Root, #{traverse => all, mode => node}),
     check_atom_names(Regex, RegexEnclosed, AtomNodes, []).
+
+-type no_init_lists_config() :: #{behaviours => [atom()]}.
+
+-spec no_init_lists(elvis_config:config(), elvis_file:file(), no_init_lists_config()) ->
+                       [elvis_result:item()].
+no_init_lists(Config, Target, RuleConfig) ->
+    Root = get_root(Config, Target, RuleConfig),
+
+    ListInitClauses =
+        case is_relevant_behaviour(Root, RuleConfig) of
+            true ->
+                IsInit1Function =
+                    fun(Node) ->
+                       ktn_code:type(Node) == function
+                       andalso ktn_code:attr(name, Node) == init
+                       andalso ktn_code:attr(arity, Node) == 1
+                    end,
+
+                case elvis_code:find(IsInit1Function, Root) of
+                    [] ->
+                        [];
+                    [Init1Fun] ->
+                        Content = ktn_code:content(Init1Fun),
+                        ListAttrClauses =
+                            lists:filtermap(fun(X) -> filter_list_clause_location(X) end, Content),
+                        case length(ListAttrClauses) =:= length(Content) of
+                            true ->
+                                ListAttrClauses;
+                            false ->
+                                []
+                        end
+                end;
+            false ->
+                []
+        end,
+
+    ResultFun =
+        fun(Location) ->
+           Info = [Location],
+           Msg = ?NO_INIT_LISTS_MSG,
+           elvis_result:new(item, Msg, Info, Location)
+        end,
+
+    lists:map(ResultFun, ListInitClauses).
+
+is_relevant_behaviour(Root, RuleConfig) ->
+    ConfigBehaviors = option(behaviours, RuleConfig, no_init_lists),
+    IsBehaviour = fun(Node) -> ktn_code:type(Node) == behaviour end,
+    Behaviours = elvis_code:find(IsBehaviour, Root),
+    lists:any(fun(Elem) -> Elem =:= true end,
+              lists:map(fun(BehaviourNode) ->
+                           lists:member(
+                               ktn_code:attr(value, BehaviourNode), ConfigBehaviors)
+                        end,
+                        Behaviours)).
+
+filter_list_clause_location(Clause) ->
+    [Attribute] = ktn_code:node_attr(pattern, Clause),
+    case is_list_node(Attribute) of
+        true ->
+            {true, ktn_code:attr(location, Clause)};
+        false ->
+            false
+    end.
+
+is_list_node(#{type := cons}) ->
+    true;
+is_list_node(#{type := nil}) ->
+    true;
+is_list_node(#{type := match, content := Content}) ->
+    lists:any(fun(Elem) -> is_list_node(Elem) end, Content);
+is_list_node(_) ->
+    false.
 
 -spec no_throw(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
                   [elvis_result:item()].
