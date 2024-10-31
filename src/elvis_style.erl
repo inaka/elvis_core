@@ -2190,13 +2190,15 @@ wildcard_match(X, Y) ->
 %% @private
 %% @doc No nested try...catch blocks
 check_nested_try_catchs(ResultFun, TryExp) ->
-    Predicate = fun(Node) -> ktn_code:type(Node) == 'try' end,
-    lists:filtermap(fun (Node) when Node /= TryExp ->
-                            {true, ResultFun(Node)};
-                        (_) ->
-                            false
+    lists:filtermap(fun(Node) ->
+                       case ktn_code:type(Node) == 'try' of
+                           true ->
+                               {true, ResultFun(Node)};
+                           false ->
+                               false
+                       end
                     end,
-                    elvis_code:find(Predicate, TryExp)).
+                    ktn_code:content(TryExp)).
 
 %% @private
 %% @doc No #{...}#{...}
