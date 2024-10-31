@@ -1638,9 +1638,10 @@ verify_no_match_in_condition(Config) ->
 
     PassPath = "pass_no_match_in_condition." ++ Ext,
     [] = elvis_core_apply_rule(Config, elvis_style, no_match_in_condition, #{}, PassPath),
+    PassPath2 = "pass_no_match_in_condition2." ++ Ext,
+    [] = elvis_core_apply_rule(Config, elvis_style, no_match_in_condition, #{}, PassPath2),
 
     FailPath = "fail_no_match_in_condition." ++ Ext,
-
     R = elvis_core_apply_rule(Config, elvis_style, no_match_in_condition, #{}, FailPath),
     case Group of
         beam_files ->
