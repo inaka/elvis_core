@@ -1343,7 +1343,11 @@ verify_no_nested_try_catch(Config) ->
                               elvis_style,
                               no_nested_try_catch,
                               #{ignore => [Module]},
-                              Path).
+                              Path),
+
+    Module2 = pass_no_nested_try_catch,
+    Path2 = atom_to_list(Module2) ++ "." ++ Ext,
+    [] = elvis_core_apply_rule(Config, elvis_style, no_nested_try_catch, #{}, Path2).
 
 -spec verify_no_successive_maps(config()) -> any().
 -if(?OTP_RELEASE < 27).
