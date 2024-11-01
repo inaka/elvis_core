@@ -14,5 +14,7 @@ example() ->
             end
     catch
         Kind:Error ->
-            {Kind, Error}
+            try this:block(is, also, not_nested) catch _:_ -> {Kind, Error} end
+    after
+        try this:one(is, "not", nested, either) catch _:_ -> ok end
     end.
