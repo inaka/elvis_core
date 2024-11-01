@@ -1302,7 +1302,8 @@ no_match_in_condition(Config, Target, RuleConfig) ->
               CaseNodes).
 
 is_match_in_condition(Node) ->
-    ktn_code:type(Node) == case_expr andalso [] =/= elvis_code:find(fun is_match/1, Node).
+    (ktn_code:type(Node) == case_expr orelse ktn_code:type(Node) == block)
+    andalso lists:any(fun is_match/1, ktn_code:content(Node)).
 
 is_match(Node) ->
     ktn_code:type(Node) == match orelse ktn_code:type(Node) == maybe_match.
