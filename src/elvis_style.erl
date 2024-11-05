@@ -1497,11 +1497,11 @@ export_used_types(Config, Target, RuleConfig) ->
 get_behaviour_callbacks(Root) ->
     IsBehaviour = fun(Node) -> ktn_code:type(Node) == behaviour end,
     Behaviours = elvis_code:find(IsBehaviour, Root),
-    BehaviourNames = lists:map(fun(#{attrs := #{value := Behaviour}}) -> Behaviour end, Behaviours),
+    BehaviourNames =
+        lists:map(fun(#{attrs := #{value := Behaviour}}) -> Behaviour end, Behaviours),
 
     lists:append(
-      lists:map(fun(B) -> B:behaviour_info(callbacks) end, BehaviourNames
-    )).
+        lists:map(fun(B) -> B:behaviour_info(callbacks) end, BehaviourNames)).
 
 get_type_of_type(#{type := type_attr,
                    node_attrs := #{type := #{attrs := #{name := TypeOfType}}}}) ->
