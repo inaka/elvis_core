@@ -753,8 +753,7 @@ verify_state_record_and_type_plus_export_used_types(Config) ->
         elvis_core_apply_rule(Config, elvis_style, export_used_types, #{}, PathPassGenStateM),
 
     PathFail = "fail_state_record_and_type_plus_export_used_types." ++ Ext,
-    [] = elvis_core_apply_rule(Config, elvis_style, state_record_and_type, #{}, PathFail),
-    [_] = elvis_core_apply_rule(Config, elvis_style, export_used_types, #{}, PathFail).
+    [] = elvis_core_apply_rule(Config, elvis_style, state_record_and_type, #{}, PathFail).
 
 -spec verify_behaviour_spelling(config()) -> any().
 verify_behaviour_spelling(Config) ->
@@ -1753,6 +1752,9 @@ verify_export_used_types(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
     PathPass = "pass_export_used_types." ++ Ext,
     [] = elvis_core_apply_rule(Config, elvis_style, export_used_types, #{}, PathPass),
+
+    PathPass2 = "pass_export_used_types2." ++ Ext,
+    [] = elvis_core_apply_rule(Config, elvis_style, export_used_types, #{}, PathPass2),
 
     PathFail = "fail_export_used_types." ++ Ext,
     [#{line_num := 3}] =
