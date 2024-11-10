@@ -127,8 +127,7 @@ is_hex_dep(_AppName) when is_atom(_AppName) ->
 is_hex_dep({_AppName, _Vsn, {pkg, _PackageName}})
     when is_atom(_AppName), is_list(_Vsn), is_atom(_PackageName) ->
     true;
-is_hex_dep({_AppName, {pkg, _OtherName}})
-    when is_atom(_AppName), is_atom(_OtherName) ->
+is_hex_dep({_AppName, {pkg, _OtherName}}) when is_atom(_AppName), is_atom(_OtherName) ->
     true;
 is_hex_dep({_AppName, _Vsn}) when is_atom(_AppName), is_list(_Vsn) ->
     true;
@@ -154,6 +153,11 @@ is_not_git_dep({_AppName, {_SCM, Url}}, Regex) ->
 is_not_git_dep({_AppName, _Vsn, {_SCM, Url}}, Regex) ->
     nomatch == re:run(Url, Regex, []);
 is_not_git_dep({_AppName, _Vsn, {_SCM, Url, _Branch}}, Regex) ->
+    nomatch == re:run(Url, Regex, []);
+is_not_git_dep({_AppName, _Vsn, {_SCM, Url, {BranchTagOrRefType, _Branch}}, _Opts}, Regex)
+    when BranchTagOrRefType =:= branch;
+         BranchTagOrRefType =:= tag;
+         BranchTagOrRefType =:= ref ->
     nomatch == re:run(Url, Regex, []).
 
 %% @private
