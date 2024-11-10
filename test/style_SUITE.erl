@@ -1369,7 +1369,7 @@ verify_no_successive_maps(Config) ->
             erl_files ->
                 [#{line_num := 7}, #{line_num := 8}, #{line_num := 9}] =
                     elvis_core_apply_rule(Config, elvis_style, no_successive_maps, #{}, Path),
-                [#{line_num := 9}, #{line_num := 20}, #{line_num := 26}] =
+                [#{line_num := 10}, #{line_num := 26}, #{line_num := 32}] =
                     elvis_core_apply_rule(Config, elvis_style, no_successive_maps, #{}, Path2)
         end,
 

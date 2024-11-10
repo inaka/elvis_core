@@ -2,6 +2,7 @@
 
 -export([test1/0, test2/0]).
 
+-if(?OTP_RELEASE<27).
 test1() ->
   _ = #{
     x => [
@@ -11,7 +12,12 @@ test1() ->
         #{a => b, c => d}
     ]
 }.
+-else.
+test1() ->
+    #{}.
+-endif.
 
+-if(?OTP_RELEASE<27).
 test2() ->
   _ = #{
     map => #{
@@ -29,3 +35,7 @@ test2() ->
           ]
       }
 }.
+-else.
+test2() ->
+    #{}.
+-endif.
