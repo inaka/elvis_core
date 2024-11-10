@@ -126,14 +126,15 @@ is_hex_dep(_AppName) when is_atom(_AppName) ->
 is_hex_dep({_AppName, _Vsn, {pkg, _PackageName}})
     when is_atom(_AppName), is_list(_Vsn), is_atom(_PackageName) ->
     true;
+is_hex_dep({_AppName, {pkg, _OtherName}})
+    when is_atom(_AppName), is_atom(_OtherName) ->
+    true;
 is_hex_dep({_AppName, _Vsn}) when is_atom(_AppName), is_list(_Vsn) ->
     true;
 is_hex_dep(_) ->
     false.
 
 %% @private
-is_not_git_dep({_AppName, {pkg, _OtherName}}, _Regex) ->
-    false;
 is_not_git_dep({_AppName, {_SCM, Url, _Branch}}, Regex) ->
     nomatch == re:run(Url, Regex, []);
 is_not_git_dep({AppName, {raw, DepResourceSpecification}}, Regex) ->
