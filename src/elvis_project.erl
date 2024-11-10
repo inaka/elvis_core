@@ -178,6 +178,8 @@ dep_to_result({AppName, _}, Message, IgnoreDeps) ->
 dep_to_result({AppName, _, GitInfo}, Message, {IgnoreDeps, Regex}) ->
     dep_to_result({AppName, GitInfo}, Message, {IgnoreDeps, Regex});
 dep_to_result({AppName, _, GitInfo}, Message, IgnoreDeps) ->
+    dep_to_result({AppName, GitInfo}, Message, IgnoreDeps);
+dep_to_result({AppName, _Vsn, GitInfo, _Opts}, Message, IgnoreDeps) ->
     dep_to_result({AppName, GitInfo}, Message, IgnoreDeps).
 
 %% Old config

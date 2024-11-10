@@ -4,7 +4,6 @@
     {rebar, "1.0.0"},
     {rebar, {pkg, rebar_fork}},
     {rebar, "1.0.0", {pkg, rebar_fork}},
-    {rebar, {git, "git://github.com/rebar/rebar.git", {branch, "main"}}},
     {rebar, {git, "https://github.com/rebar/rebar.git", {branch, "main"}}},
     {rebar, {git, "https://github.com/rebar/rebar.git", {tag, "1.0.0"}}},
     {rebar, {git, "https://github.com/rebar/rebar.git", {ref, "7f73b8d6"}}},
@@ -13,8 +12,8 @@
     {rebar, {git_subdir, "https://github.com/rebar/rebar.git", {tag, "1.0.0"}, "sub/dir"}},
     {rebar, {git_subdir, "https://github.com/rebar/rebar.git", {ref, "7f73b8d6"}, "dir"}},
     %% Alternative formats, backwards compatible declarations
-    {rebar, {git, "git://github.com/rebar/rebar.git"}},
-    {rebar, "1.0.*", {git, "git://github.com/rebar/rebar.git"}},
-    {rebar, "1.0.*", {git, "git://github.com/rebar/rebar.git", "Rev"}},
-    {rebar, ".*", {git, "git://github.com/rebar/rebar.git", {branch, "main"}}, [raw]}
+    {rebar, {git, "https://github.com/rebar/rebar.git"}},
+    {rebar, "1.0.*", {git, "https://github.com/rebar/rebar.git"}},
+    {rebar, "1.0.*", {git, "https://github.com/rebar/rebar.git", "Rev"}},
+    {rebar, ".*", {git, "https://github.com/rebar/rebar.git", {branch, "main"}}, [raw]}
  ]}.
