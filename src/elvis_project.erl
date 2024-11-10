@@ -109,6 +109,8 @@ get_deps(File) ->
 %% @private
 is_branch_dep({_AppName, {_SCM, _Location, {branch, _}}}) ->
     true;
+is_branch_dep({_AppName, {git_subdir, _Url, {branch, _}, _SubDir}}) ->
+    true;
 is_branch_dep({AppName, {raw, DepResourceSpecification}}) ->
     is_branch_dep({AppName, DepResourceSpecification});
 %% Rebar2
