@@ -111,6 +111,7 @@ is_branch_dep({_AppName, {_SCM, _Location, {branch, _}}}) ->
     true;
 is_branch_dep({_AppName, {git_subdir, _Url, {branch, _}, _SubDir}}) ->
     true;
+%% Specific to plugin rebar_raw_resource
 is_branch_dep({AppName, {raw, DepResourceSpecification}}) ->
     is_branch_dep({AppName, DepResourceSpecification});
 %% Rebar2
@@ -137,6 +138,7 @@ is_hex_dep(_) ->
 %% @private
 is_not_git_dep({_AppName, {_SCM, Url, _Branch}}, Regex) ->
     nomatch == re:run(Url, Regex, []);
+%% Specific to plugin rebar_raw_resource
 is_not_git_dep({AppName, {raw, DepResourceSpecification}}, Regex) ->
     is_not_git_dep({AppName, DepResourceSpecification}, Regex);
 %% Alternative formats, backwards compatible declarations
