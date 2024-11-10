@@ -41,16 +41,16 @@ verify_no_branch_deps(_Config) ->
     Filename = "rebar.config.fail",
     {ok, File} = elvis_test_utils:find_file(SrcDirs, Filename),
 
-    [_, _, _, _] = elvis_project:no_branch_deps(ElvisConfig, File, #{}),
+    [_, _, _, _, _] = elvis_project:no_branch_deps(ElvisConfig, File, #{}),
 
     RuleConfig = #{ignore => [jsx]},
-    [_, _] = elvis_project:no_branch_deps(ElvisConfig, File, RuleConfig),
+    [_, _, _] = elvis_project:no_branch_deps(ElvisConfig, File, RuleConfig),
 
     RuleConfig1 = #{ignore => [jsx, getopt]},
-    [] = elvis_project:no_branch_deps(ElvisConfig, File, RuleConfig1),
+    [_] = elvis_project:no_branch_deps(ElvisConfig, File, RuleConfig1),
 
     RuleConfig2 = #{ignore => [getopt]},
-    [_, _] = elvis_project:no_branch_deps(ElvisConfig, File, RuleConfig2).
+    [_, _, _] = elvis_project:no_branch_deps(ElvisConfig, File, RuleConfig2).
 
 -spec verify_protocol_for_deps(config()) -> any().
 verify_protocol_for_deps(_Config) ->
