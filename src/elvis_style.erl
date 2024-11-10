@@ -1094,7 +1094,8 @@ no_successive_maps(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
     Predicate = fun(Node) -> ktn_code:type(Node) == map end,
     ResultFun = result_node_line_fun(?NO_SUCCESSIVE_MAPS_MSG),
-    case elvis_code:find(Predicate, Root) of
+    FindOpts = #{mode => node, traverse => all},
+    case elvis_code:find(Predicate, Root, FindOpts) of
         [] ->
             [];
         MapExprs ->

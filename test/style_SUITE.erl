@@ -1358,13 +1358,19 @@ verify_no_successive_maps(Config) ->
 
     Module = fail_no_successive_maps,
     Path = atom_to_list(Module) ++ "." ++ Ext,
+
+    Path2 = "fail_no_successive_maps2." ++ Ext,
     _ = case Group of
             beam_files ->
                 [_, _, _] =
-                    elvis_core_apply_rule(Config, elvis_style, no_successive_maps, #{}, Path);
+                    elvis_core_apply_rule(Config, elvis_style, no_successive_maps, #{}, Path),
+                [_, _, _] =
+                    elvis_core_apply_rule(Config, elvis_style, no_successive_maps, #{}, Path2);
             erl_files ->
                 [#{line_num := 7}, #{line_num := 8}, #{line_num := 9}] =
-                    elvis_core_apply_rule(Config, elvis_style, no_successive_maps, #{}, Path)
+                    elvis_core_apply_rule(Config, elvis_style, no_successive_maps, #{}, Path),
+                [#{line_num := 9}, #{line_num := 20}, #{line_num := 26}] =
+                    elvis_core_apply_rule(Config, elvis_style, no_successive_maps, #{}, Path2)
         end,
 
     [] =
