@@ -85,10 +85,15 @@ verify_hex_dep(_Config) ->
     ElvisConfig = elvis_test_utils:config(rebar_config),
     SrcDirs = elvis_config:dirs(ElvisConfig),
 
-    Filename = "rebar3.config.success",
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, Filename),
+    Filename1 = "rebar3.config.success",
+    {ok, File1} = elvis_test_utils:find_file(SrcDirs, Filename1),
 
-    [] = elvis_project:protocol_for_deps(ElvisConfig, File, #{}).
+    [] = elvis_project:protocol_for_deps(ElvisConfig, File1, #{}),
+
+    Filename2 = "rebar3_2.config.success",
+    {ok, File2} = elvis_test_utils:find_file(SrcDirs, Filename2),
+
+    [] = elvis_project:protocol_for_deps(ElvisConfig, File2, #{}).
 
 -spec verify_old_config_format(config()) -> any().
 verify_old_config_format(_Config) ->
