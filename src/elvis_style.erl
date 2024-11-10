@@ -1500,8 +1500,13 @@ get_behaviour_callbacks(Root) ->
     BehaviourNames =
         lists:map(fun(#{attrs := #{value := Behaviour}}) -> Behaviour end, Behaviours),
 
-    lists:append(
-        lists:map(fun(B) -> apply(B, behaviour_info, [callbacks]) end, BehaviourNames)).
+    try lists:map(fun(B) -> apply(B, behaviour_info, [callbacks]) end, BehaviourNames) of
+        DeepList ->
+            lists:append(DeepList)
+    catch
+        _ ->
+            []
+    end.
 
 get_type_of_type(#{type := type_attr,
                    node_attrs := #{type := #{attrs := #{name := TypeOfType}}}}) ->
