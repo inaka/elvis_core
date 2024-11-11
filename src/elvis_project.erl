@@ -30,7 +30,7 @@
 default(no_branch_deps) ->
     #{ignore => []};
 default(protocol_for_deps) ->
-    #{ignore => [], regex => "(https://.*|[0-9]+([.][0-9]+)*)"};
+    #{ignore => [], regex => "^(https://|git://|\\d+(\\.\\d+)*)"};
 default(old_configuration_format) ->
     #{}.
 
