@@ -8,7 +8,7 @@ This rule was called `protocol_for_deps_rebar` before
 ## Options
 
 - `regex :: string()`.
-  - default: `(https://.*|[0-9]+([.][0-9]+)*)`.
+  - default: `^(https://|git://|\\d+(\\.\\d+)*)`.
 
 ## Example
 
@@ -21,5 +21,5 @@ This rule was called `protocol_for_deps_rebar` before
 - since [2.0.0](https://github.com/inaka/elvis_core/releases/tag/2.0.0)
 
 ```erlang
-{elvis_project, protocol_for_deps, #{ regex => "(https://.*|[0-9]+([.][0-9]+)*)" }}
+{elvis_project, protocol_for_deps, #{ regex => "^(https://|git://|\\d+(\\.\\d+)*)" }}
 ```
