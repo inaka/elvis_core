@@ -1461,13 +1461,15 @@ always_shortcircuit(Config, Target, RuleConfig) ->
                            [elvis_result:item()].
 export_used_types(Config, Target, RuleConfig) ->
     TreeRootNode = get_root(Config, Target, RuleConfig),
+    IgnoredFunctions = get_behaviour_callbacks(TreeRootNode),
     ExportedFunctions = elvis_code:exported_functions(TreeRootNode),
+    FilteredExportedFunctions = lists:subtract(ExportedFunctions, IgnoredFunctions),
     ExportedTypes = elvis_code:exported_types(TreeRootNode),
     SpecNodes =
         elvis_code:find(fun is_spec_attribute/1, TreeRootNode, #{traverse => all, mode => node}),
     ExportedSpecs =
         lists:filter(fun(#{attrs := #{arity := Arity, name := Name}}) ->
-                        lists:member({Name, Arity}, ExportedFunctions)
+                        lists:member({Name, Arity}, FilteredExportedFunctions)
                      end,
                      SpecNodes),
     UsedTypes =
@@ -1492,6 +1494,20 @@ export_used_types(Config, Target, RuleConfig) ->
                  elvis_result:new(item, ?EXPORT_USED_TYPES_MSG, [Name, Arity, Line], Line)
               end,
               UnexportedUsedTypes).
+
+get_behaviour_callbacks(Root) ->
+    IsBehaviour = fun(Node) -> ktn_code:type(Node) == behaviour end,
+    Behaviours = elvis_code:find(IsBehaviour, Root),
+    BehaviourNames =
+        lists:map(fun(#{attrs := #{value := Behaviour}}) -> Behaviour end, Behaviours),
+
+    try lists:map(fun(B) -> apply(B, behaviour_info, [callbacks]) end, BehaviourNames) of
+        DeepList ->
+            lists:append(DeepList)
+    catch
+        _:_ ->
+            []
+    end.
 
 get_type_of_type(#{type := type_attr,
                    node_attrs := #{type := #{attrs := #{name := TypeOfType}}}}) ->
