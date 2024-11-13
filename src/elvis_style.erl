@@ -1504,7 +1504,7 @@ get_behaviour_callbacks(Root) ->
         DeepList ->
             lists:append(DeepList)
     catch
-        _ ->
+        _:_ ->
             []
     end.
 
