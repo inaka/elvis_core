@@ -27,7 +27,7 @@
          verify_export_used_types/1, verify_consistent_variable_casing/1,
          verify_no_match_in_condition/1, verify_param_pattern_matching/1,
          verify_private_data_types/1, verify_unquoted_atoms/1, verify_no_init_lists/1,
-         verify_ms_transform/1]).
+         verify_ms_transform_included/1]).
 %% -elvis attribute
 -export([verify_elvis_attr_atom_naming_convention/1, verify_elvis_attr_numeric_format/1,
          verify_elvis_attr_dont_repeat_yourself/1, verify_elvis_attr_function_naming_convention/1,
@@ -1398,15 +1398,16 @@ verify_unquoted_atoms(Config) ->
     [_, _] =
         elvis_core_apply_rule(Config, elvis_text_style, prefer_unquoted_atoms, #{}, FailPath).
 
--spec verify_ms_transform(config()) -> any().
-verify_ms_transform(Config) ->
-    PassPath = "pass_verify_ms_transform." ++ "erl",
-    [] =
-        elvis_core_apply_rule(Config, elvis_text_style, prefer_unquoted_atoms, #{}, PassPath),
+-spec verify_ms_transform_included(config()) -> any().
+verify_ms_transform_included(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    FailPath = "fail_verify_ms_transform." ++ "erl",
-    [_, _] =
-        elvis_core_apply_rule(Config, elvis_text_style, prefer_unquoted_atoms, #{}, FailPath).
+    PassPath = "pass_ms_transform_included." ++ Ext,
+    [] = elvis_core_apply_rule(Config, elvis_style, ms_transform_included, #{}, PassPath),
+
+    FailPath = "fail_ms_transform_included." ++ Ext,
+    [_] = elvis_core_apply_rule(Config, elvis_style, ms_transform_included, #{}, FailPath),
+    ok.
 
 -spec verify_atom_naming_convention(config()) -> any().
 verify_atom_naming_convention(Config) ->

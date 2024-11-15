@@ -13,7 +13,7 @@
          no_catch_expressions/3, no_single_clause_case/3, numeric_format/3, behaviour_spelling/3,
          always_shortcircuit/3, consistent_generic_type/3, export_used_types/3,
          no_match_in_condition/3, param_pattern_matching/3, private_data_types/3, option/3,
-         no_init_lists/3]).
+         no_init_lists/3, ms_transform_included/3]).
 
 -export_type([empty_rule_config/0]).
 -export_type([ignorable/0]).
@@ -33,6 +33,8 @@
 
 -define(NO_INIT_LISTS_MSG,
         "Do not use a list as the parameter for the 'init' callback at position ~p.").
+-define(MS_TRANSFORM_INCLUDED_MSG,
+        "Missing inclide library: stdlib/include/ms_transform.hrl at position ~p.").
 -define(INVALID_MACRO_NAME_REGEX_MSG,
         "The macro named ~p on line ~p does not respect the format "
         "defined by the regular expression '~p'.").
@@ -260,7 +262,8 @@ default(RuleWithEmptyDefault)
          RuleWithEmptyDefault == always_shortcircuit;
          RuleWithEmptyDefault == no_space_after_pound;
          RuleWithEmptyDefault == export_used_types;
-         RuleWithEmptyDefault == consistent_variable_casing ->
+         RuleWithEmptyDefault == consistent_variable_casing;
+         RuleWithEmptyDefault == ms_transform_included ->
     #{}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1191,6 +1194,58 @@ is_list_node(#{type := match, content := Content}) ->
     lists:any(fun(Elem) -> is_list_node(Elem) end, Content);
 is_list_node(_) ->
     false.
+
+-spec ms_transform_included(elvis_config:config(),
+                            elvis_file:file(),
+                            empty_rule_config()) ->
+                               [elvis_result:item()].
+ms_transform_included(Config, Target, RuleConfig) ->
+    Root = get_root(Config, Target, RuleConfig),
+    IsIncludeMsTransform =
+        fun(Node) ->
+           ktn_code:type(Node) == include_lib
+           andalso ktn_code:attr(value, Node) == "stdlib/include/ms_transform.hrl"
+        end,
+
+    ResFunctions =
+        case elvis_code:find(IsIncludeMsTransform, Root) of
+            [] ->
+                get_fun_2_ms_calls(Root);
+            [_] ->
+                []
+        end,
+
+    ResultFun =
+        fun(Location) ->
+           Info = [Location],
+           Msg = ?MS_TRANSFORM_INCLUDED_MSG,
+           elvis_result:new(item, Msg, Info, Location)
+        end,
+
+    lists:map(ResultFun, ResFunctions).
+
+get_fun_2_ms_calls(Root) ->
+    IsFun2MsFunction =
+        fun(Node) ->
+           case ktn_code:type(Node) == call of
+               true ->
+                   {ets, fun2ms} == get_fun_and_mod_from_call(Node);
+               false ->
+                   false
+           end
+        end,
+
+    Functions = elvis_code:find(IsFun2MsFunction, Root),
+    ProcessResult = fun(Node) -> ktn_code:attr(location, Node) end,
+
+    lists:map(ProcessResult, Functions).
+
+get_fun_and_mod_from_call(Node) ->
+    Fun = ktn_code:node_attr(function, Node),
+    Fun2 = ktn_code:node_attr(function, Fun),
+    Module = ktn_code:node_attr(module, Fun),
+
+    {ktn_code:attr(value, Module), ktn_code:attr(value, Fun2)}.
 
 -spec no_throw(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
                   [elvis_result:item()].
