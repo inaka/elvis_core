@@ -34,7 +34,7 @@
 -define(NO_INIT_LISTS_MSG,
         "Do not use a list as the parameter for the 'init' callback at position ~p.").
 -define(MS_TRANSFORM_INCLUDED_MSG,
-        "Missing inclide library: stdlib/include/ms_transform.hrl at position ~p.").
+        "Missing inclide library: stdlib/include/ms_transform.hrl when ets:fun2ms/1 is used at position ~p.").
 -define(INVALID_MACRO_NAME_REGEX_MSG,
         "The macro named ~p on line ~p does not respect the format "
         "defined by the regular expression '~p'.").
