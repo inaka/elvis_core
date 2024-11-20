@@ -1405,6 +1405,26 @@ verify_ms_transform_included(Config) ->
     PassPath = "pass_ms_transform_included." ++ Ext,
     [] = elvis_core_apply_rule(Config, elvis_style, ms_transform_included, #{}, PassPath),
 
+    CustomFunctionPath = "custom_ms_transform_included." ++ Ext,
+    [] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              ms_transform_included,
+                              #{},
+                              CustomFunctionPath),
+
+    IncludedButNotUsed = "included_but_not_used_ms_transform." ++ Ext,
+    [] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              ms_transform_included,
+                              #{},
+                              IncludedButNotUsed),
+
+    DoubleInclude = "double_include_ms_transform." ++ Ext,
+    [] =
+        elvis_core_apply_rule(Config, elvis_style, ms_transform_included, #{}, DoubleInclude),
+
     FailPath = "fail_ms_transform_included." ++ Ext,
     [_] = elvis_core_apply_rule(Config, elvis_style, ms_transform_included, #{}, FailPath),
     ok.

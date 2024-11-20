@@ -1230,14 +1230,7 @@ ms_transform_included(Config, Target, RuleConfig) ->
 -spec get_fun_2_ms_calls(ktn_code:tree_node()) -> [any()].
 get_fun_2_ms_calls(Root) ->
     IsFun2MsFunctionCall =
-        fun(Node) ->
-           case ktn_code:type(Node) == call of
-               true ->
-                   is_ets_fun2ms(Node);
-               false ->
-                   false
-           end
-        end,
+        fun(Node) -> ktn_code:type(Node) == call andalso is_ets_fun2ms(Node) end,
 
     Functions = elvis_code:find(IsFun2MsFunctionCall, Root),
     ProcessResult = fun(Node) -> ktn_code:attr(location, Node) end,
@@ -1250,7 +1243,7 @@ is_ets_fun2ms(Node) ->
     Fun2 = ktn_code:node_attr(function, Fun),
     Module = ktn_code:node_attr(module, Fun),
 
-    {ets, fun2ms} == {ktn_code:attr(value, Module), ktn_code:attr(value, Fun2)}.
+    ets == ktn_code:attr(value, Module) andalso fun2ms == ktn_code:attr(value, Fun2).
 
 -spec is_include_ms_transform(ktn_code:tree_node()) -> boolean().
 is_include_ms_transform(Root) ->
@@ -1259,12 +1252,7 @@ is_include_ms_transform(Root) ->
              andalso ktn_code:attr(value, Node) == "stdlib/include/ms_transform.hrl"
           end,
 
-    case elvis_code:find(Fun, Root) of
-        [_] ->
-            true;
-        _ ->
-            false
-    end.
+    [] /= elvis_code:find(Fun, Root).
 
 -spec no_throw(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
                   [elvis_result:item()].
