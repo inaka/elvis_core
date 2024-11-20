@@ -1205,13 +1205,7 @@ ms_transform_included(Config, Target, RuleConfig) ->
 
     FunctionCalls = get_fun_2_ms_calls(Root),
 
-    IsIncluded =
-        case length(FunctionCalls) > 0 of
-            true ->
-                is_include_ms_transform(Root);
-            false ->
-                false
-        end,
+    IsIncluded = FunctionCalls /= [] andalso has_include_ms_transform(Root),
 
     ResultFun =
         fun(Location) ->
@@ -1245,8 +1239,8 @@ is_ets_fun2ms(Node) ->
 
     ets == ktn_code:attr(value, Module) andalso fun2ms == ktn_code:attr(value, Fun2).
 
--spec is_include_ms_transform(ktn_code:tree_node()) -> boolean().
-is_include_ms_transform(Root) ->
+-spec has_include_ms_transform(ktn_code:tree_node()) -> boolean().
+has_include_ms_transform(Root) ->
     Fun = fun(Node) ->
              ktn_code:type(Node) == include_lib
              andalso ktn_code:attr(value, Node) == "stdlib/include/ms_transform.hrl"
