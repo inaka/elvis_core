@@ -26,7 +26,8 @@
          verify_consistent_generic_type/1, verify_no_types/1, verify_no_specs/1,
          verify_export_used_types/1, verify_consistent_variable_casing/1,
          verify_no_match_in_condition/1, verify_param_pattern_matching/1,
-         verify_private_data_types/1, verify_unquoted_atoms/1, verify_no_init_lists/1]).
+         verify_private_data_types/1, verify_unquoted_atoms/1, verify_no_init_lists/1,
+         verify_ms_transform_included/1]).
 %% -elvis attribute
 -export([verify_elvis_attr_atom_naming_convention/1, verify_elvis_attr_numeric_format/1,
          verify_elvis_attr_dont_repeat_yourself/1, verify_elvis_attr_function_naming_convention/1,
@@ -1396,6 +1397,37 @@ verify_unquoted_atoms(Config) ->
     FailPath = "fail_quoted_atoms." ++ "erl",
     [_, _] =
         elvis_core_apply_rule(Config, elvis_text_style, prefer_unquoted_atoms, #{}, FailPath).
+
+-spec verify_ms_transform_included(config()) -> any().
+verify_ms_transform_included(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PassPath = "pass_ms_transform_included." ++ Ext,
+    [] = elvis_core_apply_rule(Config, elvis_style, ms_transform_included, #{}, PassPath),
+
+    CustomFunctionPath = "custom_ms_transform_included." ++ Ext,
+    [] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              ms_transform_included,
+                              #{},
+                              CustomFunctionPath),
+
+    IncludedButNotUsed = "included_but_not_used_ms_transform." ++ Ext,
+    [] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              ms_transform_included,
+                              #{},
+                              IncludedButNotUsed),
+
+    DoubleInclude = "double_include_ms_transform." ++ Ext,
+    [] =
+        elvis_core_apply_rule(Config, elvis_style, ms_transform_included, #{}, DoubleInclude),
+
+    FailPath = "fail_ms_transform_included." ++ Ext,
+    [_] = elvis_core_apply_rule(Config, elvis_style, ms_transform_included, #{}, FailPath),
+    ok.
 
 -spec verify_atom_naming_convention(config()) -> any().
 verify_atom_naming_convention(Config) ->
