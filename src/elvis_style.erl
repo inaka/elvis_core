@@ -2014,13 +2014,13 @@ is_ignored_var(Zipper) ->
         var ->
             Name = ktn_code:attr(name, Node),
             [FirstChar | _] = atom_to_list(Name),
-            (FirstChar == $_) and (Name =/= '_') and not check_parent_match(Zipper);
+            (FirstChar == $_) and (Name =/= '_') and not check_parent_match_or_macro(Zipper);
         _OtherType ->
             false
     end.
 
 %% @private
-check_parent_match(Zipper) ->
+check_parent_match_or_macro(Zipper) ->
     case zipper:up(Zipper) of
         undefined ->
             false;
@@ -2029,10 +2029,12 @@ check_parent_match(Zipper) ->
             case ktn_code:type(Parent) of
                 match ->
                     zipper:down(ParentZipper) == Zipper;
+                macro ->
+                    zipper:down(ParentZipper) == Zipper;
                 maybe_match ->
                     zipper:down(ParentZipper) == Zipper;
                 _ ->
-                    check_parent_match(ParentZipper)
+                    check_parent_match_or_macro(ParentZipper)
             end
     end.
 
