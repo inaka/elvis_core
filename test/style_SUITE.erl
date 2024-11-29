@@ -631,14 +631,17 @@ verify_used_ignored_variable(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     Path = "fail_used_ignored_variable." ++ Ext,
+    Path2 = "used_ignored_variable_in_macro." ++ Ext,
     _ = case Group of
             beam_files ->
                 [#{line_num := _}, #{line_num := _}, #{line_num := _}, #{line_num := _}] =
                     elvis_core_apply_rule(Config, elvis_style, used_ignored_variable, #{}, Path);
             erl_files ->
                 [#{line_num := 31}, #{line_num := 34}, #{line_num := 38}, #{line_num := 38}] =
-                    elvis_core_apply_rule(Config, elvis_style, used_ignored_variable, #{}, Path)
+                    elvis_core_apply_rule(Config, elvis_style, used_ignored_variable, #{}, Path),
+                [] = elvis_core_apply_rule(Config, elvis_style, used_ignored_variable, #{}, Path2)
         end,
+
     [] =
         elvis_core_apply_rule(Config,
                               elvis_style,
