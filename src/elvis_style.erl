@@ -72,13 +72,22 @@
 -define(FUNCTION_NAMING_CONVENTION_MSG,
         "The function ~p does not respect the format defined by the "
         "regular expression '~p'.").
+-define(FORBIDDEN_FUNCTION_NAMING_CONVENTION_MSG,
+        "The function ~p does written in a forbidden format"
+        "defined by the regular expression '~p'.").
 -define(VARIABLE_NAMING_CONVENTION_MSG,
         "The variable ~p on line ~p does not respect the format "
+        "defined by the regular expression '~p'.").
+-define(FORBIDDEN_VARIABLE_NAMING_CONVENTION_MSG,
+        "The variable ~p on line ~p does written in a forbidden the format "
         "defined by the regular expression '~p'.").
 -define(CONSISTENT_VARIABLE_CASING_MSG,
         "Variable ~ts (first used in line ~p) is written in different ways within the module: ~p.").
 -define(MODULE_NAMING_CONVENTION_MSG,
         "The module ~p does not respect the format defined by the "
+        "regular expression '~p'.").
+-define(FORBIDDEN_MODULE_NAMING_CONVENTION_MSG,
+        "The module ~p does written in a forbidden format defined by the "
         "regular expression '~p'.").
 -define(STATE_RECORD_MISSING_MSG,
         "This module implements an OTP behavior but is missing "
@@ -115,6 +124,9 @@
         "Found map update after map construction/update at line ~p.").
 -define(ATOM_NAMING_CONVENTION_MSG,
         "Atom ~p on line ~p does not respect the format "
+        "defined by the regular expression '~p'.").
+-define(FORBIDDEN_ATOM_NAMING_CONVENTION_MSG,
+        "Atom ~p on line ~p does does written in a forbidden format "
         "defined by the regular expression '~p'.").
 -define(NO_THROW_MSG, "Usage of throw/1 on line ~p is not recommended").
 -define(NO_DOLLAR_SPACE_MSG,
@@ -183,11 +195,11 @@ default(nesting_level) ->
 default(god_modules) ->
     #{limit => 25};
 default(function_naming_convention) ->
-    #{regex => "^[a-z](_?[a-z0-9]+)*$"};
+    #{regex => "^[a-z](_?[a-z0-9]+)*$", forbidden_regex => undefined};
 default(variable_naming_convention) ->
-    #{regex => "^_?([A-Z][0-9a-zA-Z]*)$"};
+    #{regex => "^_?([A-Z][0-9a-zA-Z]*)$", forbidden_regex => undefined};
 default(module_naming_convention) ->
-    #{regex => "^[a-z](_?[a-z0-9]+)*(_SUITE)?$"};
+    #{regex => "^[a-z](_?[a-z0-9]+)*(_SUITE)?$", forbidden_regex => undefined};
 default(dont_repeat_yourself) ->
     #{min_complexity => 10};
 default(max_module_length) ->
@@ -225,7 +237,9 @@ default(no_common_caveats_call) ->
            {timer, send_interval, 3},
            {erlang, size, 1}]};
 default(atom_naming_convention) ->
-    #{regex => "^[a-z](_?[a-z0-9]+)*(_SUITE)?$", enclosed_atoms => ".*"};
+    #{regex => "^[a-z](_?[a-z0-9]+)*(_SUITE)?$",
+      enclosed_atoms => ".*",
+      forbidden_regex => undefined};
 %% Not restrictive. Those who want more restrictions can set it like "^[^_]*$"
 default(numeric_format) ->
     #{regex => ".*",
@@ -292,22 +306,35 @@ default(RuleWithEmptyDefault)
                                     [elvis_result:item()].
 function_naming_convention(Config, Target, RuleConfig) ->
     Regex = option(regex, RuleConfig, function_naming_convention),
+    ForbiddenRegex = option(forbidden_regex, RuleConfig, function_naming_convention),
     Root = get_root(Config, Target, RuleConfig),
     FunctionNames0 = elvis_code:function_names(Root),
-    errors_for_function_names(Regex, FunctionNames0).
+    errors_for_function_names(Regex, ForbiddenRegex, FunctionNames0).
 
-errors_for_function_names(_Regex, []) ->
+errors_for_function_names(_Regex, _ForbiddenRegex, []) ->
     [];
-errors_for_function_names(Regex, [FunctionName | RemainingFuncNames]) ->
+errors_for_function_names(Regex, ForbiddenRegex, [FunctionName | RemainingFuncNames]) ->
     FunctionNameStr = unicode:characters_to_list(atom_to_list(FunctionName), unicode),
     case re:run(FunctionNameStr, Regex, [unicode]) of
         nomatch ->
             Msg = ?FUNCTION_NAMING_CONVENTION_MSG,
             Info = [FunctionNameStr, Regex],
             Result = elvis_result:new(item, Msg, Info, 1),
-            [Result | errors_for_function_names(Regex, RemainingFuncNames)];
+            [Result | errors_for_function_names(Regex, ForbiddenRegex, RemainingFuncNames)];
         {match, _} ->
-            errors_for_function_names(Regex, RemainingFuncNames)
+            case ForbiddenRegex =/= undefined
+                 andalso re:run(FunctionNameStr, ForbiddenRegex, [unicode])
+            of
+                {match, _} ->
+                    Msg = ?FORBIDDEN_FUNCTION_NAMING_CONVENTION_MSG,
+                    Info = [FunctionNameStr, Regex],
+                    Result = elvis_result:new(item, Msg, Info, 1),
+                    [Result | errors_for_function_names(Regex, ForbiddenRegex, RemainingFuncNames)];
+                nomatch ->
+                    errors_for_function_names(Regex, ForbiddenRegex, RemainingFuncNames);
+                false ->
+                    errors_for_function_names(Regex, ForbiddenRegex, RemainingFuncNames)
+            end
     end.
 
 -type consistent_variable_casing_config() :: #{ignore => [ignorable()]}.
@@ -362,9 +389,10 @@ check_variable_casing_consistency({_,
                                     [elvis_result:item()].
 variable_naming_convention(Config, Target, RuleConfig) ->
     Regex = option(regex, RuleConfig, variable_naming_convention),
+    ForbiddenRegex = option(forbidden_regex, RuleConfig, variable_naming_convention),
     Root = get_root(Config, Target, RuleConfig),
     Vars = elvis_code:find(fun is_var/1, Root, #{traverse => all, mode => zipper}),
-    check_variables_name(Regex, Vars).
+    check_variables_name(Regex, ForbiddenRegex, Vars).
 
 -type macro_names_config() :: #{ignore => [ignorable()], regex => string()}.
 
@@ -724,6 +752,7 @@ no_behavior_info(Config, Target, RuleConfig) ->
                                   [elvis_result:item()].
 module_naming_convention(Config, Target, RuleConfig) ->
     Regex = option(regex, RuleConfig, module_naming_convention),
+    ForbiddenRegex = option(forbidden_regex, RuleConfig, module_naming_convention),
     IgnoreModules = option(ignore, RuleConfig, module_naming_convention),
 
     Root = get_root(Config, Target, RuleConfig),
@@ -739,7 +768,19 @@ module_naming_convention(Config, Target, RuleConfig) ->
                     Result = elvis_result:new(item, Msg, Info, 1),
                     [Result];
                 {match, _} ->
-                    []
+                    case ForbiddenRegex =/= undefined
+                         andalso re:run(ModuleNameStr, ForbiddenRegex, [unicode])
+                    of
+                        {match, _} ->
+                            Msg = ?FORBIDDEN_MODULE_NAMING_CONVENTION_MSG,
+                            Info = [ModuleNameStr, Regex],
+                            Result = elvis_result:new(item, Msg, Info, 1),
+                            [Result];
+                        nomatch ->
+                            [];
+                        false ->
+                            []
+                    end
             end;
         true ->
             []
@@ -1118,10 +1159,11 @@ no_successive_maps(Config, Target, RuleConfig) ->
 atom_naming_convention(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
     Regex = option(regex, RuleConfig, atom_naming_convention),
+    ForbiddenRegex = option(forbidden_regex, RuleConfig, atom_naming_convention),
     RegexEnclosed =
         specific_or_default(option(enclosed_atoms, RuleConfig, atom_naming_convention), Regex),
     AtomNodes = elvis_code:find(fun is_atom_node/1, Root, #{traverse => all, mode => node}),
-    check_atom_names(Regex, RegexEnclosed, AtomNodes, []).
+    check_atom_names(Regex, ForbiddenRegex, RegexEnclosed, AtomNodes, []).
 
 -type no_init_lists_config() :: #{behaviours => [atom()]}.
 
@@ -1659,9 +1701,13 @@ is_exception_or_non_reversible(_) ->
     false.
 
 %% @private
-check_atom_names(_Regex, _RegexEnclosed, [] = _AtomNodes, Acc) ->
+check_atom_names(_Regex, _, _RegexEnclosed, [] = _AtomNodes, Acc) ->
     Acc;
-check_atom_names(Regex, RegexEnclosed, [AtomNode | RemainingAtomNodes], AccIn) ->
+check_atom_names(Regex,
+                 ForbiddenRegex,
+                 RegexEnclosed,
+                 [AtomNode | RemainingAtomNodes],
+                 AccIn) ->
     AtomName0 = ktn_code:attr(text, AtomNode),
     ValueAtomName = ktn_code:attr(value, AtomNode),
     {IsEnclosed, AtomName} = string_strip_enclosed(AtomName0),
@@ -1686,9 +1732,22 @@ check_atom_names(Regex, RegexEnclosed, [AtomNode | RemainingAtomNodes], AccIn) -
                 Result = elvis_result:new(item, Msg, Info, Line),
                 AccIn ++ [Result];
             {match, _Captured} ->
-                AccIn
+                case ForbiddenRegex =/= undefined
+                     andalso re:run(
+                                 unicode:characters_to_list(AtomName, unicode), ForbiddenRegex)
+                of
+                    {match, _} ->
+                        Msg = ?FORBIDDEN_ATOM_NAMING_CONVENTION_MSG,
+                        Info = [AtomNode, Regex],
+                        Result = elvis_result:new(item, Msg, Info, 1),
+                        AccIn ++ [Result];
+                    nomatch ->
+                        AccIn;
+                    false ->
+                        AccIn
+                end
         end,
-    check_atom_names(Regex, RegexEnclosed, RemainingAtomNodes, AccOut).
+    check_atom_names(Regex, ForbiddenRegex, RegexEnclosed, RemainingAtomNodes, AccOut).
 
 %% @private
 string_strip_enclosed([$' | Rest]) ->
@@ -1714,21 +1773,33 @@ is_atom_node(MaybeAtom) ->
 
 %% Variables name
 %% @private
-check_variables_name(_Regex, []) ->
+check_variables_name(_Regex, _, []) ->
     [];
-check_variables_name(Regex, [Variable | RemainingVars]) ->
+check_variables_name(Regex, ForbiddenRegex, [Variable | RemainingVars]) ->
     VariableNameStr = atom_to_list(ktn_code:attr(name, Variable)),
     case re:run(VariableNameStr, Regex) of
         nomatch when VariableNameStr == "_" ->
-            check_variables_name(Regex, RemainingVars);
+            check_variables_name(Regex, ForbiddenRegex, RemainingVars);
         nomatch ->
             Msg = ?VARIABLE_NAMING_CONVENTION_MSG,
             {Line, _} = ktn_code:attr(location, Variable),
             Info = [VariableNameStr, Line, Regex],
             Result = elvis_result:new(item, Msg, Info, Line),
-            [Result | check_variables_name(Regex, RemainingVars)];
+            [Result | check_variables_name(Regex, ForbiddenRegex, RemainingVars)];
         {match, _} ->
-            check_variables_name(Regex, RemainingVars)
+            case ForbiddenRegex =/= undefined
+                 andalso re:run(VariableNameStr, ForbiddenRegex, [unicode])
+            of
+                {match, _} ->
+                    Msg = ?FORBIDDEN_VARIABLE_NAMING_CONVENTION_MSG,
+                    Info = [VariableNameStr, Regex],
+                    Result = elvis_result:new(item, Msg, Info, 1),
+                    [Result | check_variables_name(Regex, ForbiddenRegex, RemainingVars)];
+                nomatch ->
+                    check_variables_name(Regex, ForbiddenRegex, RemainingVars);
+                false ->
+                    check_variables_name(Regex, ForbiddenRegex, RemainingVars)
+            end
     end.
 
 %% Result building
