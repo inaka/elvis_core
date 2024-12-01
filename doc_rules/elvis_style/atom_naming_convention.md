@@ -4,8 +4,8 @@
 
 All atoms should be named according to the regular expression provided.
 Except if it matches with a defined `forbidden_regex`.
-Atoms enclosed in apostrophes have special meaning and are thus handled by a different configuration option (use
-`same` if you want the same value as `regex`).
+Atoms enclosed in apostrophes have special meaning and are thus handled
+by a different configuration option (use `same` if you want the same value as `regex`).
 
 > Works on `.beam` file? Yes!
 
