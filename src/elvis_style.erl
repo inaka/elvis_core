@@ -73,13 +73,13 @@
         "The function ~p does not respect the format defined by the "
         "regular expression '~p'.").
 -define(FORBIDDEN_FUNCTION_NAMING_CONVENTION_MSG,
-        "The function ~p does written in a forbidden format"
+        "The function ~p is written in a forbidden format"
         "defined by the regular expression '~p'.").
 -define(VARIABLE_NAMING_CONVENTION_MSG,
         "The variable ~p on line ~p does not respect the format "
         "defined by the regular expression '~p'.").
 -define(FORBIDDEN_VARIABLE_NAMING_CONVENTION_MSG,
-        "The variable ~p on line ~p does written in a forbidden the format "
+        "The variable ~p on line ~p is written in a forbidden the format "
         "defined by the regular expression '~p'.").
 -define(CONSISTENT_VARIABLE_CASING_MSG,
         "Variable ~ts (first used in line ~p) is written in different ways within the module: ~p.").
@@ -87,7 +87,7 @@
         "The module ~p does not respect the format defined by the "
         "regular expression '~p'.").
 -define(FORBIDDEN_MODULE_NAMING_CONVENTION_MSG,
-        "The module ~p does written in a forbidden format defined by the "
+        "The module ~p is written in a forbidden format defined by the "
         "regular expression '~p'.").
 -define(STATE_RECORD_MISSING_MSG,
         "This module implements an OTP behavior but is missing "
@@ -126,7 +126,7 @@
         "Atom ~p on line ~p does not respect the format "
         "defined by the regular expression '~p'.").
 -define(FORBIDDEN_ATOM_NAMING_CONVENTION_MSG,
-        "Atom ~p on line ~p does does written in a forbidden format "
+        "Atom ~p on line ~p is written in a forbidden format "
         "defined by the regular expression '~p'.").
 -define(NO_THROW_MSG, "Usage of throw/1 on line ~p is not recommended").
 -define(NO_DOLLAR_SPACE_MSG,
