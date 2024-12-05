@@ -18,7 +18,7 @@ To define forbidden enclosed atoms (like the ones in `forbidden_regex` apply for
   - default: `".*"`.
 - `forbidden_regex :: string() | undefined`.
   - default: `undefined`.
-- `forbidden_enclosed_regex :: string() | undefined | same`.
+- `forbidden_enclosed_regex :: string() | undefined`.
   - default: `undefined`.
 
 ## Example
