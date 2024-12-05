@@ -324,17 +324,20 @@ errors_for_function_names(Regex, ForbiddenRegex, [FunctionName | RemainingFuncNa
             [Result | errors_for_function_names(Regex, ForbiddenRegex, RemainingFuncNames)];
         {match, _} ->
             case ForbiddenRegex of
-                undefined -> errors_for_function_names(Regex, ForbiddenRegex, RemainingFuncNames);
+                undefined ->
+                    errors_for_function_names(Regex, ForbiddenRegex, RemainingFuncNames);
                 ForbiddenRegex ->
                     case re:run(FunctionNameStr, ForbiddenRegex, [unicode]) of
-                {match, _} ->
-                    Msg = ?FORBIDDEN_FUNCTION_NAMING_CONVENTION_MSG,
-                    Info = [FunctionNameStr, Regex],
-                    Result = elvis_result:new(item, Msg, Info, 1),
-                    [Result | errors_for_function_names(Regex, ForbiddenRegex, RemainingFuncNames)];
-                nomatch ->
-                    errors_for_function_names(Regex, ForbiddenRegex, RemainingFuncNames)
-                 end
+                        {match, _} ->
+                            Msg = ?FORBIDDEN_FUNCTION_NAMING_CONVENTION_MSG,
+                            Info = [FunctionNameStr, Regex],
+                            Result = elvis_result:new(item, Msg, Info, 1),
+                            [Result | errors_for_function_names(Regex,
+                                                                ForbiddenRegex,
+                                                                RemainingFuncNames)];
+                        nomatch ->
+                            errors_for_function_names(Regex, ForbiddenRegex, RemainingFuncNames)
+                    end
             end
     end.
 
@@ -769,21 +772,27 @@ module_naming_convention(Config, Target, RuleConfig) ->
                     Result = elvis_result:new(item, Msg, Info, 1),
                     [Result];
                 {match, _} ->
-                    case ForbiddenRegex =/= undefined
-                         andalso re:run(ModuleNameStr, ForbiddenRegex, [unicode])
-                    of
-                        {match, _} ->
-                            Msg = ?FORBIDDEN_MODULE_NAMING_CONVENTION_MSG,
-                            Info = [ModuleNameStr, Regex],
-                            Result = elvis_result:new(item, Msg, Info, 1),
-                            [Result];
-                        nomatch ->
+                    case ForbiddenRegex of
+                        undefined ->
                             [];
-                        false ->
-                            []
+                        ForbiddenRegex ->
+                            is_forbidden_module_name(ModuleNameStr,
+                                                     ForbiddenRegex,
+                                                     ?FORBIDDEN_MODULE_NAMING_CONVENTION_MSG)
                     end
             end;
         true ->
+            []
+    end.
+
+is_forbidden_module_name(Target, Regex, Message) ->
+    case re:run(Target, Regex, [unicode]) of
+        {match, _} ->
+            Msg = Message,
+            Info = [Target, Regex],
+            Result = elvis_result:new(item, Msg, Info, 1),
+            [Result];
+        nomatch ->
             []
     end.
 
@@ -1749,19 +1758,19 @@ check_atom_names(Regex,
                 Result = elvis_result:new(item, Msg, Info, Line),
                 AccIn ++ [Result];
             {match, _Captured} ->
-                case ForbiddenRegex =/= undefined
-                     andalso re:run(
-                                 unicode:characters_to_list(AtomName, unicode), ForbiddenRegex)
-                of
-                    {match, _} ->
-                        Msg = ?FORBIDDEN_ATOM_NAMING_CONVENTION_MSG,
-                        Info = [AtomNode, Regex],
-                        Result = elvis_result:new(item, Msg, Info, 1),
-                        AccIn ++ [Result];
-                    nomatch ->
+                case ForbiddenRegex of
+                    undefined ->
                         AccIn;
-                    false ->
-                        AccIn
+                    ForbiddenRegex ->
+                        case re:run(AtomName, ForbiddenRegex, [unicode]) of
+                            {match, _} ->
+                                Msg = ?FORBIDDEN_ATOM_NAMING_CONVENTION_MSG,
+                                Info = [AtomName, Regex],
+                                Result = elvis_result:new(item, Msg, Info, 1),
+                                AccIn ++ [Result];
+                            nomatch ->
+                                AccIn
+                        end
                 end
         end,
     check_atom_names(Regex,
@@ -1809,18 +1818,19 @@ check_variables_name(Regex, ForbiddenRegex, [Variable | RemainingVars]) ->
             Result = elvis_result:new(item, Msg, Info, Line),
             [Result | check_variables_name(Regex, ForbiddenRegex, RemainingVars)];
         {match, _} ->
-            case ForbiddenRegex =/= undefined
-                 andalso re:run(VariableNameStr, ForbiddenRegex, [unicode])
-            of
-                {match, _} ->
-                    Msg = ?FORBIDDEN_VARIABLE_NAMING_CONVENTION_MSG,
-                    Info = [VariableNameStr, Regex],
-                    Result = elvis_result:new(item, Msg, Info, 1),
-                    [Result | check_variables_name(Regex, ForbiddenRegex, RemainingVars)];
-                nomatch ->
+            case ForbiddenRegex of
+                undefined ->
                     check_variables_name(Regex, ForbiddenRegex, RemainingVars);
-                false ->
-                    check_variables_name(Regex, ForbiddenRegex, RemainingVars)
+                ForbiddenRegex ->
+                    case re:run(VariableNameStr, ForbiddenRegex, [unicode]) of
+                        {match, _} ->
+                            Msg = ?FORBIDDEN_VARIABLE_NAMING_CONVENTION_MSG,
+                            Info = [VariableNameStr, Regex],
+                            Result = elvis_result:new(item, Msg, Info, 1),
+                            [Result | check_variables_name(Regex, ForbiddenRegex, RemainingVars)];
+                        nomatch ->
+                            check_variables_name(Regex, ForbiddenRegex, RemainingVars)
+                    end
             end
     end.
 
