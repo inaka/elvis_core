@@ -1621,7 +1621,7 @@ verify_atom_naming_convention(Config) ->
                               atom_naming_convention,
                               #{regex => "^[a-z](_?[a-z0-9]+)*(_SUITE)?$",
                                 forbidden_regex => "[0-9]",
-                                forbidden_enclosed_regex => "[0-9]"},
+                                forbidden_enclosed_regex => same},
                               PathForbidden).
 
 -spec verify_no_init_lists(config()) -> any().
