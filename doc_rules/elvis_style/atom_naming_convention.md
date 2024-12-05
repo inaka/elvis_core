@@ -15,11 +15,11 @@ use `forbidden_enclosed_regex`(use `same` if you want the same value as `forbidd
 
 - `regex :: string()`.
   - default: `"^([a-z][a-z0-9]*_?)*(_SUITE)?$"`.
-- `enclosed_atoms :: string()`.
+- `enclosed_atoms :: string() | same`.
   - default: `".*"`.
 - `forbidden_regex :: string() | undefined`.
   - default: `undefined`.
-- `forbidden_enclosed_regex :: string() | undefined`.
+- `forbidden_enclosed_regex :: string() | undefined | same`.
   - default: `undefined`.
 
 ## Example
