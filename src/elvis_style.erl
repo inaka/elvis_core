@@ -239,7 +239,8 @@ default(no_common_caveats_call) ->
 default(atom_naming_convention) ->
     #{regex => "^[a-z](_?[a-z0-9]+)*(_SUITE)?$",
       enclosed_atoms => ".*",
-      forbidden_regex => undefined};
+      forbidden_regex => undefined,
+      forbidden_enclosed_regex => undefined};
 %% Not restrictive. Those who want more restrictions can set it like "^[^_]*$"
 default(numeric_format) ->
     #{regex => ".*",
@@ -1162,8 +1163,16 @@ atom_naming_convention(Config, Target, RuleConfig) ->
     ForbiddenRegex = option(forbidden_regex, RuleConfig, atom_naming_convention),
     RegexEnclosed =
         specific_or_default(option(enclosed_atoms, RuleConfig, atom_naming_convention), Regex),
+    ForbiddenEnclosedRegex =
+        specific_or_default(option(forbidden_enclosed_regex, RuleConfig, atom_naming_convention),
+                            Regex),
     AtomNodes = elvis_code:find(fun is_atom_node/1, Root, #{traverse => all, mode => node}),
-    check_atom_names(Regex, ForbiddenRegex, RegexEnclosed, AtomNodes, []).
+    check_atom_names(Regex,
+                     ForbiddenRegex,
+                     RegexEnclosed,
+                     ForbiddenEnclosedRegex,
+                     AtomNodes,
+                     []).
 
 -type no_init_lists_config() :: #{behaviours => [atom()]}.
 
@@ -1701,11 +1710,12 @@ is_exception_or_non_reversible(_) ->
     false.
 
 %% @private
-check_atom_names(_Regex, _, _RegexEnclosed, [] = _AtomNodes, Acc) ->
+check_atom_names(_Regex, _, _RegexEnclosed, _, [] = _AtomNodes, Acc) ->
     Acc;
 check_atom_names(Regex,
-                 ForbiddenRegex,
+                 ForbiddenRegexNormal,
                  RegexEnclosed,
+                 ForbiddenRegexEnclosed,
                  [AtomNode | RemainingAtomNodes],
                  AccIn) ->
     AtomName0 = ktn_code:attr(text, AtomNode),
@@ -1713,6 +1723,13 @@ check_atom_names(Regex,
     {IsEnclosed, AtomName} = string_strip_enclosed(AtomName0),
     IsExceptionClass = is_exception_or_non_reversible(ValueAtomName),
     RE = re_compile_for_atom_type(IsEnclosed, Regex, RegexEnclosed),
+    ForbiddenRegex =
+        case IsEnclosed of
+            true ->
+                ForbiddenRegexEnclosed;
+            false ->
+                ForbiddenRegexNormal
+        end,
     AccOut =
         case re:run(
                  unicode:characters_to_list(AtomName, unicode), RE)
@@ -1747,7 +1764,12 @@ check_atom_names(Regex,
                         AccIn
                 end
         end,
-    check_atom_names(Regex, ForbiddenRegex, RegexEnclosed, RemainingAtomNodes, AccOut).
+    check_atom_names(Regex,
+                     ForbiddenRegexNormal,
+                     RegexEnclosed,
+                     ForbiddenRegexEnclosed,
+                     RemainingAtomNodes,
+                     AccOut).
 
 %% @private
 string_strip_enclosed([$' | Rest]) ->

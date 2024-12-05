@@ -1596,12 +1596,32 @@ verify_atom_naming_convention(Config) ->
 
     % forbidden
     PathForbidden = "forbidden_atom_naming_convention." ++ Ext,
+    _ = case Group of
+            beam_files -> % 'or_THIS' getting stripped of enclosing '
+                [_, _, _, _] =
+                    elvis_core_apply_rule(Config,
+                                          elvis_style,
+                                          atom_naming_convention,
+                                          #{regex => "^[a-z](_?[a-z0-9]+)*(_SUITE)?$",
+                                            forbidden_regex => "[0-9]"},
+                                          PathForbidden);
+            erl_files ->
+                [_, _, _] =
+                    elvis_core_apply_rule(Config,
+                                          elvis_style,
+                                          atom_naming_convention,
+                                          #{regex => "^[a-z](_?[a-z0-9]+)*(_SUITE)?$",
+                                            forbidden_regex => "[0-9]"},
+                                          PathForbidden)
+        end,
+
     [_, _, _, _] =
         elvis_core_apply_rule(Config,
                               elvis_style,
                               atom_naming_convention,
                               #{regex => "^[a-z](_?[a-z0-9]+)*(_SUITE)?$",
-                                forbidden_regex => "[0-9]"},
+                                forbidden_regex => "[0-9]",
+                                forbidden_enclosed_regex => "[0-9]"},
                               PathForbidden).
 
 -spec verify_no_init_lists(config()) -> any().

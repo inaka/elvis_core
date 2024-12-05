@@ -6,6 +6,7 @@ All atoms should be named according to the regular expression provided.
 Except if it matches with a defined `forbidden_regex`.
 Atoms enclosed in apostrophes have special meaning and are thus handled
 by a different configuration option (use `same` if you want the same value as `regex`).
+For enclosed atoms we defined a different forbidden regex, called `forbidden_enclosed_regex`.
 
 > Works on `.beam` file? Yes!
 
@@ -16,6 +17,8 @@ by a different configuration option (use `same` if you want the same value as `r
 - `enclosed_atoms :: string()`.
   - default: `".*"`.
 - `forbidden_regex :: string() | undefined`.
+  - default: `undefined`.
+- `forbidden_enclosed_regex :: string() | undefined`.
   - default: `undefined`.
 
 ## Example
