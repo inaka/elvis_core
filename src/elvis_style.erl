@@ -323,18 +323,18 @@ errors_for_function_names(Regex, ForbiddenRegex, [FunctionName | RemainingFuncNa
             Result = elvis_result:new(item, Msg, Info, 1),
             [Result | errors_for_function_names(Regex, ForbiddenRegex, RemainingFuncNames)];
         {match, _} ->
-            case ForbiddenRegex =/= undefined
-                 andalso re:run(FunctionNameStr, ForbiddenRegex, [unicode])
-            of
+            case ForbiddenRegex of
+                undefined -> errors_for_function_names(Regex, ForbiddenRegex, RemainingFuncNames);
+                ForbiddenRegex ->
+                    case re:run(FunctionNameStr, ForbiddenRegex, [unicode]) of
                 {match, _} ->
                     Msg = ?FORBIDDEN_FUNCTION_NAMING_CONVENTION_MSG,
                     Info = [FunctionNameStr, Regex],
                     Result = elvis_result:new(item, Msg, Info, 1),
                     [Result | errors_for_function_names(Regex, ForbiddenRegex, RemainingFuncNames)];
                 nomatch ->
-                    errors_for_function_names(Regex, ForbiddenRegex, RemainingFuncNames);
-                false ->
                     errors_for_function_names(Regex, ForbiddenRegex, RemainingFuncNames)
+                 end
             end
     end.
 
