@@ -1,6 +1,7 @@
 # Function Naming Convention
 
 All functions should be named according to the regular expression provided.
+Except if it matches with a defined `forbidden_regex`.
 
 > Works on `.beam` file? Yes!
 
@@ -8,6 +9,8 @@ All functions should be named according to the regular expression provided.
 
 - `regex :: string()`.
   - default: `"^[a-z](_?[a-z0-9]+)*$"`.
+- `forbidden_regex :: string() | undefined`.
+  - default: `undefined`.
 
 ## Example
 

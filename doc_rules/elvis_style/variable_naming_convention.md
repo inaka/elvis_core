@@ -1,6 +1,7 @@
 # Variable Naming Convention
 
 All variables should be named according to the regular expression provided.
+Except if it matches with a defined `forbidden_regex`.
 
 > Works on `.beam` file? Yes!
 
@@ -8,6 +9,8 @@ All variables should be named according to the regular expression provided.
 
 - `regex :: string()`.
   - default: `"^_?([A-Z][0-9a-zA-Z]*)$"`.
+- `forbidden_regex :: string() | undefined`.
+  - default: `undefined`.
 
 ## Example
 
