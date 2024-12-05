@@ -1165,7 +1165,7 @@ atom_naming_convention(Config, Target, RuleConfig) ->
         specific_or_default(option(enclosed_atoms, RuleConfig, atom_naming_convention), Regex),
     ForbiddenEnclosedRegex =
         specific_or_default(option(forbidden_enclosed_regex, RuleConfig, atom_naming_convention),
-                            Regex),
+                            ForbiddenRegex),
     AtomNodes = elvis_code:find(fun is_atom_node/1, Root, #{traverse => all, mode => node}),
     check_atom_names(Regex,
                      ForbiddenRegex,
