@@ -192,7 +192,7 @@ verify_function_naming_convention(Config) ->
         elvis_core_apply_rule(Config,
                               elvis_style,
                               function_naming_convention,
-                              #{regex => "^[a-z](_?[a-z0-9]+)*$", forbidden_regex => "[0-9]"},
+                              #{regex => DefaultRegex, forbidden_regex => "[0-9]"},
                               PathForbidden).
 
 -spec verify_variable_naming_convention(config()) -> any().
@@ -200,6 +200,7 @@ verify_variable_naming_convention(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     RuleConfig = #{regex => "^_?([A-Z][0-9a-zA-Z]*)$"},
+    #{regex := DefaultRegex} = elvis_style:default(variable_naming_convention),
 
     PathPass = "pass_variable_naming_convention." ++ Ext,
     [] =
@@ -227,7 +228,7 @@ verify_variable_naming_convention(Config) ->
         elvis_core_apply_rule(Config,
                               elvis_style,
                               variable_naming_convention,
-                              #{regex => "^_?([A-Z][0-9a-zA-Z]*)$", forbidden_regex => "[0-9]"},
+                              #{regex => DefaultRegex, forbidden_regex => "[0-9]"},
                               PathForbidden).
 
 -spec verify_consistent_variable_casing(config()) -> any().
@@ -720,8 +721,7 @@ verify_module_naming_convention(Config) ->
         elvis_core_apply_rule(Config,
                               elvis_style,
                               module_naming_convention,
-                              #{regex => "^[a-z](_?[a-z0-9]+)*(_SUITE)?$",
-                                forbidden_regex => "[0-9]"},
+                              #{regex => DefaultRegex, forbidden_regex => "[0-9]"},
                               PathForbidden).
 
 -spec verify_state_record_and_type(config()) -> any().
@@ -1465,6 +1465,8 @@ verify_atom_naming_convention(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
+    #{regex := DefaultRegex} = elvis_style:default(atom_naming_convention),
+
     BaseRegex = "^[a-z](_?[a-z0-9]+)*(_SUITE)?$",
 
     % pass
@@ -1602,16 +1604,14 @@ verify_atom_naming_convention(Config) ->
                     elvis_core_apply_rule(Config,
                                           elvis_style,
                                           atom_naming_convention,
-                                          #{regex => "^[a-z](_?[a-z0-9]+)*(_SUITE)?$",
-                                            forbidden_regex => "[0-9]"},
+                                          #{regex => DefaultRegex, forbidden_regex => "[0-9]"},
                                           PathForbidden);
             erl_files ->
                 [_, _, _] =
                     elvis_core_apply_rule(Config,
                                           elvis_style,
                                           atom_naming_convention,
-                                          #{regex => "^[a-z](_?[a-z0-9]+)*(_SUITE)?$",
-                                            forbidden_regex => "[0-9]"},
+                                          #{regex => DefaultRegex, forbidden_regex => "[0-9]"},
                                           PathForbidden)
         end,
 
@@ -1619,7 +1619,7 @@ verify_atom_naming_convention(Config) ->
         elvis_core_apply_rule(Config,
                               elvis_style,
                               atom_naming_convention,
-                              #{regex => "^[a-z](_?[a-z0-9]+)*(_SUITE)?$",
+                              #{regex => DefaultRegex,
                                 forbidden_regex => "[0-9]",
                                 forbidden_enclosed_regex => same},
                               PathForbidden).
