@@ -1120,7 +1120,7 @@ atom_naming_convention(Config, Target, RuleConfig) ->
     Regex = option(regex, RuleConfig, atom_naming_convention),
     RegexEnclosed =
         specific_or_default(option(enclosed_atoms, RuleConfig, atom_naming_convention), Regex),
-    AtomNodes = elvis_code:find(fun is_atom_node/1, Root, #{traverse => all, mode => node}),
+    AtomNodes = elvis_code:find(fun is_atom_node/1, Root, #{traverse => all, mode => zipper}),
     check_atom_names(Regex, RegexEnclosed, AtomNodes, []).
 
 -type no_init_lists_config() :: #{behaviours => [atom()]}.
@@ -1710,7 +1710,10 @@ re_compile_for_atom_type(true = _IsEnclosed, _Regex, RegexEnclosed) ->
 
 %% @private
 is_atom_node(MaybeAtom) ->
-    ktn_code:type(MaybeAtom) =:= atom.
+    ktn_code:type(
+        zipper:node(MaybeAtom))
+    =:= atom
+    andalso not check_parent_remote(MaybeAtom).
 
 %% Variables name
 %% @private
@@ -2035,6 +2038,21 @@ check_parent_match_or_macro(Zipper) ->
                     zipper:down(ParentZipper) == Zipper;
                 _ ->
                     check_parent_match_or_macro(ParentZipper)
+            end
+    end.
+
+%% @private
+check_parent_remote(Zipper) ->
+    case zipper:up(Zipper) of
+        undefined ->
+            false;
+        ParentZipper ->
+            Parent = zipper:node(ParentZipper),
+            case ktn_code:type(Parent) of
+                remote ->
+                    true;
+                _ ->
+                    false
             end
     end.
 
