@@ -893,7 +893,9 @@ max_anonymous_function_arity(Config, Target, RuleConfig) ->
                             [elvis_result:item()].
 max_function_arity(Config, Target, RuleConfig) ->
     ExportedMaxArity = option(max_arity, RuleConfig, max_function_arity),
-    NonExportedMaxArity = option(non_exported_max_arity, RuleConfig, max_function_arity),
+    NonExportedMaxArity =
+        specific_or_default(option(non_exported_max_arity, RuleConfig, max_function_arity),
+                            ExportedMaxArity),
     Root = get_root(Config, Target, RuleConfig),
     IsFunction = fun(Node) -> ktn_code:type(Node) == function end,
     Functions = elvis_code:find(IsFunction, Root),

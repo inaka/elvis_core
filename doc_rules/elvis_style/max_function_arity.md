@@ -12,7 +12,7 @@ but it applies to regular functions only (not anonymous ones).
 
 - `max_arity :: non_neg_integer()`.
   - default: `8`.
-- `non_exported_max_arity :: non_neg_integer()`.
+- `non_exported_max_arity :: non_neg_integer() | same`.
   - default: `8`.
 
 ## Example
