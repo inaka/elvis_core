@@ -20,5 +20,5 @@ but it applies to regular functions only (not anonymous ones).
 ```erlang
 {elvis_style, max_function_arity}
 %% or
-{elvis_style, max_function_arity, #{max_arity => 10, non_exported_max_arity => 12}}
+{elvis_style, max_function_arity, #{max_arity => 10, non_exported_max_arity => same}}
 ```
