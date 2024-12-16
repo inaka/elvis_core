@@ -11,4 +11,5 @@ for_test() ->
     non200, % valid, even without underscores
     valid_200even_if_numb3rs_appear_between_letters,
     blahblah_SUITE,
-    x.
+    x,
+    atom_naming_convention_utils:thisIsIgnored().
