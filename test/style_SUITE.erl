@@ -1061,6 +1061,28 @@ verify_max_function_arity(Config) ->
                               #{max_arity => -1},
                               PathFail),
 
+    PathNonExportedPass = "pass_max_non_exported_function_arity." ++ Ext,
+    [] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              max_function_arity,
+                              #{max_arity => 3, non_exported_max_arity => 9},
+                              PathNonExportedPass),
+
+    PathNonExportedFail = "fail_max_non_exported_function_arity." ++ Ext,
+    [_, _] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              max_function_arity,
+                              #{max_arity => 1, non_exported_max_arity => 2},
+                              PathNonExportedFail),
+
+    [_, _, _, _, _] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              max_function_arity,
+                              #{max_arity => 3, non_exported_max_arity => same},
+                              PathNonExportedPass),
     ok.
 
 -spec verify_max_anonymous_function_arity(config()) -> any().

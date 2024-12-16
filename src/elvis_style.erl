@@ -209,7 +209,7 @@ default(max_module_length) ->
 default(max_anonymous_function_arity) ->
     #{max_arity => 5};
 default(max_function_arity) ->
-    #{max_arity => 8};
+    #{max_arity => 8, non_exported_max_arity => 10};
 default(max_function_length) ->
     #{max_length => 30,
       count_comments => false,
@@ -935,18 +935,31 @@ max_anonymous_function_arity(Config, Target, RuleConfig) ->
                     end,
                     Funs).
 
--type max_function_arity_config() :: #{max_arity => non_neg_integer()}.
+-type max_function_arity_config() ::
+    #{max_arity => non_neg_integer(), non_exported_max_arity => pos_integer()}.
 
 -spec max_function_arity(elvis_config:config(),
                          elvis_file:file(),
                          max_function_arity_config()) ->
                             [elvis_result:item()].
 max_function_arity(Config, Target, RuleConfig) ->
-    MaxArity = option(max_arity, RuleConfig, max_function_arity),
+    ExportedMaxArity = option(max_arity, RuleConfig, max_function_arity),
+    NonExportedMaxArity =
+        specific_or_default(option(non_exported_max_arity, RuleConfig, max_function_arity),
+                            ExportedMaxArity),
     Root = get_root(Config, Target, RuleConfig),
     IsFunction = fun(Node) -> ktn_code:type(Node) == function end,
     Functions = elvis_code:find(IsFunction, Root),
-    lists:filtermap(fun(Function) ->
+    lists:filtermap(fun(#{attrs := #{arity := Arity, name := Name}} = Function) ->
+                       IsExported =
+                           lists:member({Name, Arity}, elvis_code:exported_functions(Root)),
+                       MaxArity =
+                           case IsExported of
+                               true ->
+                                   ExportedMaxArity;
+                               false ->
+                                   NonExportedMaxArity
+                           end,
                        case ktn_code:attr(arity, Function) of
                            Arity when Arity =< MaxArity ->
                                false;

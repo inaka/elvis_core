@@ -12,11 +12,13 @@ but it applies to regular functions only (not anonymous ones).
 
 - `max_arity :: non_neg_integer()`.
   - default: `8`.
+- `non_exported_max_arity :: non_neg_integer() | same`.
+  - default: `8`.
 
 ## Example
 
 ```erlang
 {elvis_style, max_function_arity}
 %% or
-{elvis_style, max_function_arity, #{max_arity => 10}}
+{elvis_style, max_function_arity, #{max_arity => 10, non_exported_max_arity => same}}
 ```
