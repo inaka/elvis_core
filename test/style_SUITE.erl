@@ -184,13 +184,23 @@ verify_function_naming_convention(Config) ->
                               elvis_style,
                               function_naming_convention,
                               RuleConfig4,
-                              PathIgnored).
+                              PathIgnored),
+
+    % forbidden
+    PathForbidden = "forbidden_function_naming_convention." ++ Ext,
+    [_, _, _] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              function_naming_convention,
+                              #{regex => DefaultRegex, forbidden_regex => "[0-9]"},
+                              PathForbidden).
 
 -spec verify_variable_naming_convention(config()) -> any().
 verify_variable_naming_convention(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     RuleConfig = #{regex => "^_?([A-Z][0-9a-zA-Z]*)$"},
+    #{regex := DefaultRegex} = elvis_style:default(variable_naming_convention),
 
     PathPass = "pass_variable_naming_convention." ++ Ext,
     [] =
@@ -210,7 +220,16 @@ verify_variable_naming_convention(Config) ->
                               elvis_style,
                               variable_naming_convention,
                               RuleConfig,
-                              PathFail).
+                              PathFail),
+
+    % forbidden
+    PathForbidden = "forbidden_variable_naming_convention." ++ Ext,
+    [_, _, _, _, _, _, _, _] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              variable_naming_convention,
+                              #{regex => DefaultRegex, forbidden_regex => "[0-9]"},
+                              PathForbidden).
 
 -spec verify_consistent_variable_casing(config()) -> any().
 verify_consistent_variable_casing(Config) ->
@@ -694,7 +713,16 @@ verify_module_naming_convention(Config) ->
                               elvis_style,
                               module_naming_convention,
                               RuleConfigIgnore,
-                              PathFail).
+                              PathFail),
+
+    % forbidden
+    PathForbidden = "forbidden_module_naming_convention_12." ++ Ext,
+    [_] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              module_naming_convention,
+                              #{regex => DefaultRegex, forbidden_regex => "[0-9]"},
+                              PathForbidden).
 
 -spec verify_state_record_and_type(config()) -> any().
 verify_state_record_and_type(Config) ->
@@ -1437,6 +1465,8 @@ verify_atom_naming_convention(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
+    #{regex := DefaultRegex} = elvis_style:default(atom_naming_convention),
+
     BaseRegex = "^[a-z](_?[a-z0-9]+)*(_SUITE)?$",
 
     % pass
@@ -1564,7 +1594,35 @@ verify_atom_naming_convention(Config) ->
                                           #{regex => KeepRegex,
                                             enclosed_atoms => "^([\\\\][\-a-z0-9A-Z_' \\\\]*)$"},
                                           FailPath)
-        end.
+        end,
+
+    % forbidden
+    PathForbidden = "forbidden_atom_naming_convention." ++ Ext,
+    _ = case Group of
+            beam_files -> % 'or_THIS' getting stripped of enclosing '
+                [_, _, _, _] =
+                    elvis_core_apply_rule(Config,
+                                          elvis_style,
+                                          atom_naming_convention,
+                                          #{regex => DefaultRegex, forbidden_regex => "[0-9]"},
+                                          PathForbidden);
+            erl_files ->
+                [_, _, _] =
+                    elvis_core_apply_rule(Config,
+                                          elvis_style,
+                                          atom_naming_convention,
+                                          #{regex => DefaultRegex, forbidden_regex => "[0-9]"},
+                                          PathForbidden)
+        end,
+
+    [_, _, _, _] =
+        elvis_core_apply_rule(Config,
+                              elvis_style,
+                              atom_naming_convention,
+                              #{regex => DefaultRegex,
+                                forbidden_regex => "[0-9]",
+                                forbidden_enclosed_regex => same},
+                              PathForbidden).
 
 -spec verify_no_init_lists(config()) -> any().
 verify_no_init_lists(Config) ->
