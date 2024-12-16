@@ -2048,12 +2048,7 @@ check_parent_remote(Zipper) ->
             false;
         ParentZipper ->
             Parent = zipper:node(ParentZipper),
-            case ktn_code:type(Parent) of
-                remote ->
-                    true;
-                _ ->
-                    false
-            end
+            remote == ktn_code:type(Parent)
     end.
 
 %% State record in OTP module
