@@ -123,14 +123,11 @@ no_redundant_blank_lines(_Config, Target, RuleConfig) ->
     Result = redundant_blank_lines(Lines, {1, []}),
 
     ResultFun =
-        fun({Line, BlankLinesLength}) ->
-           case BlankLinesLength >= MaxLines of
-               true ->
-                   Info = [Line, BlankLinesLength, MaxLines],
-                   {true, elvis_result:new(item, ?NO_REDUNDANT_BLANK_LINES_MSG, Info, Line)};
-               false ->
-                   false
-           end
+        fun ({Line, BlankLinesLength}) when BlankLinesLength >= MaxLines ->
+                Info = [Line, BlankLinesLength, MaxLines],
+                {true, elvis_result:new(item, ?NO_REDUNDANT_BLANK_LINES_MSG, Info, Line)};
+            (_) ->
+                false
         end,
     lists:filtermap(ResultFun, Result).
 
