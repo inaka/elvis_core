@@ -12,7 +12,7 @@
         "Atom ~p on line ~p is quoted "
         "but quotes are not needed.").
 -define(NO_REDUNDANT_BLANK_LINES_MSG,
-        "Too much blank lines at line ~p. ~p sequantal blank lines, the maximum is set to ~p.").
+        "Too many blank lines at line ~p. ~p sequential blank lines found, when the maximum is set to ~p.").
 
 % These are part of a non-declared "behaviour"
 % The reason why we don't try to handle them with different arity is
