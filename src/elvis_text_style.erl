@@ -115,7 +115,7 @@ check_atom_quotes([AtomNode | RemainingAtomNodes], AccIn) ->
     check_atom_quotes(RemainingAtomNodes, AccOut).
 
 no_redundant_blank_lines(_Config, Target, RuleConfig) ->
-    MaxLine = option(max_lines, RuleConfig, ?FUNCTION_NAME) + 1,
+    MaxLines = option(max_lines, RuleConfig, ?FUNCTION_NAME) + 1,
     {Src, _} = elvis_file:src(Target),
     Lines = elvis_utils:split_all_lines(Src, [trim]),
 
@@ -123,9 +123,9 @@ no_redundant_blank_lines(_Config, Target, RuleConfig) ->
 
     ResultFun =
         fun({Line, BlankLinesLength}) ->
-           case BlankLinesLength >= MaxLine of
+           case BlankLinesLength >= MaxLines of
                true ->
-                   Info = [Line, BlankLinesLength, MaxLine],
+                   Info = [Line, BlankLinesLength, MaxLines],
                    {true, elvis_result:new(item, ?NO_REDUNDANT_BLANK_LINES_MSG, Info, Line)};
                false ->
                    false
@@ -133,7 +133,7 @@ no_redundant_blank_lines(_Config, Target, RuleConfig) ->
         end,
     lists:filtermap(ResultFun, Result).
 
-redundant_blank_lines(Lines, {_, Result}) when Lines =:= [] ->
+redundant_blank_lines([], {_, Result}) ->
     Result;
 redundant_blank_lines(Lines, {CurrentLineNum, ResultList}) ->
     BlankLines = lists:takewhile(fun(X) -> X == <<>> end, Lines),
