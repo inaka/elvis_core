@@ -7,7 +7,7 @@ There should be no more blank lines after each other than the `max_lines` variab
 ## Options
 
 - `max_lines :: integet().`
-  - default: 1 (1 means 2 blank lines after each other)
+  - default: 1 (meaning 2 consecutive blank lines are allowed, but not 3)
 
 ## Example
 
