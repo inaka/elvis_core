@@ -1,7 +1,7 @@
 -module(elvis_text_style).
 
 -export([default/1, line_length/3, no_tabs/3, no_trailing_whitespace/3,
-         prefer_unquoted_atoms/3]).
+         prefer_unquoted_atoms/3, no_redundant_blank_lines/3]).
 
 -export_type([line_length_config/0, no_trailing_whitespace_config/0]).
 
@@ -11,6 +11,9 @@
 -define(ATOM_PREFERRED_QUOTES_MSG,
         "Atom ~p on line ~p is quoted "
         "but quotes are not needed.").
+-define(NO_REDUNDANT_BLANK_LINES_MSG,
+        "Too many blank lines at line ~p. ~p sequential blank lines found,"
+        "when the maximum is set to ~p.").
 
 % These are part of a non-declared "behaviour"
 % The reason why we don't try to handle them with different arity is
@@ -20,7 +23,8 @@
         [{no_trailing_whitespace, 3},
          {no_tabs, 3},
          {line_length, 3},
-         {prefer_unquoted_atoms, 3}]}]).
+         {prefer_unquoted_atoms, 3},
+         {no_redundant_blank_lines, 3}]}]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
@@ -32,7 +36,9 @@ default(line_length) ->
 default(no_tabs) ->
     #{};
 default(no_trailing_whitespace) ->
-    #{ignore_empty_lines => false}.
+    #{ignore_empty_lines => false};
+default(no_redundant_blank_lines) ->
+    #{max_lines => 1}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Rules
@@ -108,6 +114,43 @@ check_atom_quotes([AtomNode | RemainingAtomNodes], AccIn) ->
                 AccIn
         end,
     check_atom_quotes(RemainingAtomNodes, AccOut).
+
+no_redundant_blank_lines(_Config, Target, RuleConfig) ->
+    MaxLines = option(max_lines, RuleConfig, ?FUNCTION_NAME) + 1,
+    {Src, _} = elvis_file:src(Target),
+    Lines = elvis_utils:split_all_lines(Src, [trim]),
+
+    Result = redundant_blank_lines(Lines, {1, []}),
+
+    ResultFun =
+        fun ({Line, BlankLinesLength}) when BlankLinesLength >= MaxLines ->
+                Info = [Line, BlankLinesLength, MaxLines],
+                {true, elvis_result:new(item, ?NO_REDUNDANT_BLANK_LINES_MSG, Info, Line)};
+            (_) ->
+                false
+        end,
+    lists:filtermap(ResultFun, Result).
+
+redundant_blank_lines([], {_, Result}) ->
+    Result;
+redundant_blank_lines(Lines, {CurrentLineNum, ResultList}) ->
+    BlankLines = lists:takewhile(fun(X) -> X == <<>> end, Lines),
+    BlankElements = length(BlankLines),
+    Index =
+        case BlankElements of
+            0 ->
+                1;
+            Num ->
+                Num
+        end,
+    NextLineNum = CurrentLineNum + Index,
+    case BlankElements of
+        0 ->
+            redundant_blank_lines(lists:nthtail(Index, Lines), {NextLineNum, ResultList});
+        _ ->
+            redundant_blank_lines(lists:nthtail(Index, Lines),
+                                  {NextLineNum, [{CurrentLineNum, BlankElements} | ResultList]})
+    end.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
