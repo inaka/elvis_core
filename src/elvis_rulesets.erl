@@ -97,6 +97,7 @@ rules(erl_files_strict) ->
                              max_function_length,
                              max_module_length,
                              ms_transform_included,
+                             no_boolean_in_comparison,
                              no_call,
                              no_init_lists,
                              no_common_caveats_call,
