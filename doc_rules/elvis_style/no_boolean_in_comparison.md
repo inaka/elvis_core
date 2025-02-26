@@ -1,6 +1,6 @@
 # No Boolean In Comparison
 
-Avoid using booleans in comparasions. This rule disallows it.
+Avoid comparing expressions to booleans. Prefer using boolean operators directly.
 
 This is because these expressions evaluate to true or false,
 so you could get the same result by using either the variable
