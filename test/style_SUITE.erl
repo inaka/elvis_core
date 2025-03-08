@@ -980,47 +980,65 @@ verify_max_module_length(Config) ->
 
     PathFail = "fail_max_module_length." ++ Ext,
 
-    CountAllRuleConfig = #{count_comments => true, count_whitespace => true},
+    CountAllRuleConfig =
+        #{count_comments => true,
+          count_whitespace => true,
+          count_docs => true},
 
-    ct:comment("Count whitespace and comment lines"),
-    RuleConfig = CountAllRuleConfig#{max_length => 10},
+    ct:comment("Count whitespace, comment, and documentation lines"),
+    RuleConfig = CountAllRuleConfig#{max_length => 14},
 
     [_] = elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig, PathFail),
 
-    RuleConfig1 = CountAllRuleConfig#{max_length => 14},
+    RuleConfig1 = CountAllRuleConfig#{max_length => 18},
     [_] =
         elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig1, PathFail),
 
-    RuleConfig2 = CountAllRuleConfig#{max_length => 15},
+    RuleConfig2 = CountAllRuleConfig#{max_length => 19},
     [] = elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig2, PathFail),
 
     ct:comment("Don't count whitespace lines"),
     WhitespaceRuleConfig = CountAllRuleConfig#{count_whitespace => false},
 
-    RuleConfig3 = WhitespaceRuleConfig#{max_length => 3},
+    RuleConfig3 = WhitespaceRuleConfig#{max_length => 8},
     [_] =
         elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig3, PathFail),
 
-    RuleConfig4 = WhitespaceRuleConfig#{max_length => 4},
+    RuleConfig4 = WhitespaceRuleConfig#{max_length => 9},
     [_] =
         elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig4, PathFail),
 
-    RuleConfig5 = WhitespaceRuleConfig#{max_length => 5},
+    RuleConfig5 = WhitespaceRuleConfig#{max_length => 10},
     [] = elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig5, PathFail),
 
     ct:comment("Don't count comment or whitespace lines"),
     NoCountRuleConfig = WhitespaceRuleConfig#{count_comments => false},
 
-    RuleConfig6 = NoCountRuleConfig#{max_length => 1},
+    RuleConfig6 = NoCountRuleConfig#{max_length => 6},
     [_] =
         elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig6, PathFail),
 
-    RuleConfig7 = NoCountRuleConfig#{max_length => 2},
+    RuleConfig7 = NoCountRuleConfig#{max_length => 7},
     [_] =
         elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig7, PathFail),
 
-    RuleConfig8 = NoCountRuleConfig#{max_length => 3},
+    RuleConfig8 = NoCountRuleConfig#{max_length => 8},
     [] = elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig8, PathFail),
+
+    ct:comment("Don't count -moduledoc and -doc attributes"),
+    DocsRuleConfig = CountAllRuleConfig#{count_docs => false},
+
+    RuleConfig9 = DocsRuleConfig#{max_length => 5},
+    [_] =
+        elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig9, PathFail),
+
+    RuleConfig10 = DocsRuleConfig#{max_length => 13},
+    [_] =
+        elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig10, PathFail),
+
+    RuleConfig11 = DocsRuleConfig#{max_length => 14},
+    [] =
+        elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig11, PathFail),
 
     {comment, ""}.
 
@@ -1434,7 +1452,7 @@ verify_no_successive_maps(Config) ->
                               #{ignore => [Module]},
                               Path).
 
--else.
+- else .
 
 verify_no_successive_maps(_Config) ->
     [].

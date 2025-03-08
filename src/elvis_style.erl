@@ -205,7 +205,8 @@ default(dont_repeat_yourself) ->
 default(max_module_length) ->
     #{max_length => 500,
       count_comments => false,
-      count_whitespace => false};
+      count_whitespace => false,
+      count_docs => false};
 default(max_anonymous_function_arity) ->
     #{max_arity => 5};
 default(max_function_arity) ->
@@ -872,11 +873,17 @@ max_module_length(Config, Target, RuleConfig) ->
     MaxLength = option(max_length, RuleConfig, max_module_length),
     CountComments = option(count_comments, RuleConfig, max_module_length),
     CountWhitespace = option(count_whitespace, RuleConfig, max_module_length),
+    CountDocs = option(count_docs, RuleConfig, max_module_length),
 
     Root = get_root(Config, Target, RuleConfig),
-    {Src, _} = elvis_file:src(Target),
+    {Src0, _} = elvis_file:src(Target),
 
     ModuleName = elvis_code:module_name(Root),
+
+    DocParts = doc_bin_parts(Src0),
+    Docs = iolist_to_binary(bin_parts_to_iolist(Src0, DocParts)),
+    SrcParts = ignore_bin_parts(Src0, DocParts),
+    Src = iolist_to_binary(bin_parts_to_iolist(Src0, SrcParts)),
 
     FilterFun =
         fun(Line) ->
@@ -891,7 +898,15 @@ max_module_length(Config, Target, RuleConfig) ->
                 lists:filter(FilterFun, Ls)
         end,
 
-    case length(Lines) of
+    DocLines =
+        case CountDocs of
+            true ->
+                elvis_utils:split_all_lines(Docs, [trim]);
+            false ->
+                []
+        end,
+
+    case length(Lines) + length(DocLines) of
         L when L > MaxLength ->
             Info = [ModuleName, L, MaxLength],
             Msg = ?MAX_MODULE_LENGTH,
@@ -2459,3 +2474,33 @@ get_root(Config, Target, RuleConfig) ->
         _ ->
             Root0
     end.
+
+-spec doc_bin_parts(Src) -> [Part]
+    when Src :: binary(),
+         Part :: binary:part().
+doc_bin_parts(Src) when is_binary(Src) ->
+    RE = "(?ms)^-(?:(moduledoc|doc))\\b\\s*(\"*)?.*?\\2\\.(\\r\\n|\\n)",
+    case re:run(Src, RE, [global, {capture, first, index}]) of
+        {match, Parts} ->
+            [Part || [Part] <- Parts];
+        nomatch ->
+            []
+    end.
+
+-spec ignore_bin_parts(Src, [DocPart]) -> [TextPart]
+    when Src :: binary(),
+         DocPart :: binary:part(),
+         TextPart :: binary:part().
+ignore_bin_parts(Src, DocParts) when is_binary(Src), is_list(DocParts) ->
+    ignore_bin_parts_1(DocParts, 0, Src).
+
+ignore_bin_parts_1([], Prev, Src) ->
+    [{Prev, byte_size(Src) - Prev}];
+ignore_bin_parts_1([{Start, Len} | T], Prev, Src) ->
+    [{Prev, Start - Prev} | ignore_bin_parts_1(T, Start + Len, Src)].
+
+-spec bin_parts_to_iolist(Src, Parts) -> iolist()
+    when Src :: binary(),
+         Parts :: [binary:part()].
+bin_parts_to_iolist(Src, Parts) when is_binary(Src), is_list(Parts) ->
+    [binary_part(Src, Start, Len) || {Start, Len} <- Parts].

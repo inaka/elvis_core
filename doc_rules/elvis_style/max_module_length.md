@@ -1,7 +1,7 @@
 # Max Module Length
 
-This specifies an upper bound on module file **line** length. Lines that are comments and/or
-whitespace can be either included or excluded from the line count.
+This specifies an upper bound on module file **line** length. Lines that are comments, and/or
+whitespace and/or documentation attributes can be either included or excluded from the line count.
 
 **Notice**: this rule is not enforced by default. Check the
 [example `elvis.config` file](../../README.md#configuration) to see how you can
@@ -18,6 +18,8 @@ the files are pre-processed)
   - default: `false`
 - `count_whitespace :: boolean()`
   - default: `false`
+- `count_docs :: boolean()`
+  - default: `false`
 
 ## Example
 
@@ -27,5 +29,6 @@ the files are pre-processed)
 {elvis_style, max_module_length, #{ max_length => 500
                                   , count_comments => false
                                   , count_whitespace => false
+                                  , count_docs => false
                                   }}
 ```
