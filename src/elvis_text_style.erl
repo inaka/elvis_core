@@ -32,7 +32,9 @@
 
 -spec default(Rule :: atom()) -> DefaultRuleConfig :: term().
 default(line_length) ->
-    #{limit => 100, skip_comments => false};
+    #{limit => 100,
+      skip_comments => false,
+      no_whitespace => true};
 default(no_tabs) ->
     #{};
 default(no_trailing_whitespace) ->
@@ -56,8 +58,9 @@ default(no_redundant_blank_lines) ->
 line_length(_Config, Target, RuleConfig) ->
     Limit = option(limit, RuleConfig, line_length),
     SkipComments = option(skip_comments, RuleConfig, line_length),
+    NoWhitespace = option(no_whitespace, RuleConfig, line_length),
     {Src, #{encoding := Encoding}} = elvis_file:src(Target),
-    Args = [Limit, SkipComments, Encoding],
+    Args = [Limit, SkipComments, Encoding, NoWhitespace],
     elvis_utils:check_lines(Src, fun check_line_length/3, Args).
 
 -spec no_tabs(elvis_config:config(),
@@ -181,28 +184,38 @@ remove_comment(Line) ->
 %% @private
 -spec check_line_length(binary(), integer(), [term()]) ->
                            no_result | {ok, elvis_result:item()}.
-check_line_length(Line, Num, [Limit, whole_line, Encoding]) ->
+check_line_length(Line, Num, [Limit, whole_line, Encoding, NoWhitespace]) ->
     case line_is_comment(Line) of
         false ->
-            check_line_length(Line, Num, [Limit, Encoding]);
+            check_line_length(Line, Num, [Limit, Encoding, NoWhitespace]);
         true ->
             no_result
     end;
-check_line_length(Line, Num, [Limit, any, Encoding]) ->
+check_line_length(Line, Num, [Limit, any, Encoding, NoWhitespace]) ->
     LineWithoutComment = remove_comment(Line),
-    check_line_length(LineWithoutComment, Num, [Limit, Encoding]);
-check_line_length(Line, Num, [Limit, _, Encoding]) ->
-    check_line_length(Line, Num, [Limit, Encoding]);
-check_line_length(Line, Num, [Limit, Encoding]) ->
-    Chars = unicode:characters_to_list(Line, Encoding),
-    case length(Chars) of
-        Large when Large > Limit ->
+    check_line_length(LineWithoutComment, Num, [Limit, Encoding, NoWhitespace]);
+check_line_length(Line, Num, [Limit, _, Encoding, NoWhitespace]) ->
+    check_line_length(Line, Num, [Limit, Encoding, NoWhitespace]);
+check_line_length(Line0, Num, [Limit, Encoding, NoWhitespace]) ->
+    Line = unicode:characters_to_binary(Line0, Encoding),
+    case string:length(Line) of
+        Len when Len =< Limit ->
+            no_result;
+        Len when NoWhitespace ->
             Msg = ?LINE_LENGTH_MSG,
-            Info = [Num, Large],
+            Info = [Num, Len],
             Result = elvis_result:new(item, Msg, Info, Num),
             {ok, Result};
-        _ ->
-            no_result
+        Len ->
+            case binary:match(Line, <<"\s">>, [{scope, {Limit, Len - Limit}}]) of
+                {Large, _} ->
+                    Msg = ?LINE_LENGTH_MSG,
+                    Info = [Num, Large],
+                    Result = elvis_result:new(item, Msg, Info, Num),
+                    {ok, Result};
+                nomatch ->
+                    no_result
+            end
     end.
 
 %% No Tabs

@@ -279,7 +279,17 @@ verify_line_length_rule(Config) ->
                               line_length,
                               #{limit => 100, skip_comments => any},
                               Path),
-    6 = length(AnyResult).
+    6 = length(AnyResult),
+
+    WhistespaceResult =
+        elvis_core_apply_rule(Config,
+                              elvis_text_style,
+                              line_length,
+                              #{limit => 100,
+                                skip_comments => false,
+                                no_whitespace => false},
+                              Path),
+    3 = length(WhistespaceResult).
 
 -spec verify_line_length_rule_latin1(config()) -> any().
 verify_line_length_rule_latin1(Config) ->
@@ -1434,7 +1444,7 @@ verify_no_successive_maps(Config) ->
                               #{ignore => [Module]},
                               Path).
 
--else.
+- else .
 
 verify_no_successive_maps(_Config) ->
     [].
