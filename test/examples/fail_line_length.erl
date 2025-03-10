@@ -10,7 +10,7 @@
          function_7/0
         ]).
 
-% Single line comment over 100 characters!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+% Single line comment with a URL https://github.com/inaka/elvis_core/blob/main/doc_rules/elvis_text_style/line_length.md
 function_1() ->
     io:format("Hello").
 
