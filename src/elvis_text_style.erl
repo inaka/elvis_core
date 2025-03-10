@@ -208,9 +208,9 @@ check_line_length(Line0, Num, [Limit, Encoding, NoWhitespace]) ->
             {ok, Result};
         Len ->
             case binary:match(Line, <<"\s">>, [{scope, {Limit, Len - Limit}}]) of
-                {Large, _} ->
+                {_, _} ->
                     Msg = ?LINE_LENGTH_MSG,
-                    Info = [Num, Large],
+                    Info = [Num, Len],
                     Result = elvis_result:new(item, Msg, Info, Num),
                     {ok, Result};
                 nomatch ->
