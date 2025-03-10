@@ -301,8 +301,8 @@ default(RuleWithEmptyDefault)
       max_length => integer()}.
 -type function_naming_convention_config() ::
     #{ignore => [ignorable()], regex => string()}.
-% It's the same as `binary:part/0`, but the dialyzer is not recognizing it below
-% OTP-27 (despite its existence since OTP-R14B).
+%% It's the same as `binary:part/0`, but that type was not exported before
+%% OTP-27 (despite its existence since OTP-R14B).
 -type binary_part() :: {Start :: non_neg_integer(), Length :: integer()}.
 
 -spec function_naming_convention(elvis_config:config(),
