@@ -34,7 +34,7 @@
 default(line_length) ->
     #{limit => 100,
       skip_comments => false,
-      no_whitespace => true};
+      no_whitespace_after_limit => true};
 default(no_tabs) ->
     #{};
 default(no_trailing_whitespace) ->
@@ -58,7 +58,7 @@ default(no_redundant_blank_lines) ->
 line_length(_Config, Target, RuleConfig) ->
     Limit = option(limit, RuleConfig, line_length),
     SkipComments = option(skip_comments, RuleConfig, line_length),
-    NoWhitespace = option(no_whitespace, RuleConfig, line_length),
+    NoWhitespace = option(no_whitespace_after_limit, RuleConfig, line_length),
     {Src, #{encoding := Encoding}} = elvis_file:src(Target),
     Args = [Limit, SkipComments, Encoding, NoWhitespace],
     elvis_utils:check_lines(Src, fun check_line_length/3, Args).
