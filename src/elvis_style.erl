@@ -301,6 +301,9 @@ default(RuleWithEmptyDefault)
       max_length => integer()}.
 -type function_naming_convention_config() ::
     #{ignore => [ignorable()], regex => string()}.
+% It's the same as `binary:part/0`, but the dialyzer is not recognizing it below
+% OTP-27 (despite its existence since OTP-R14B).
+-type binary_part() :: {Start :: non_neg_integer(), Length :: integer()}.
 
 -spec function_naming_convention(elvis_config:config(),
                                  elvis_file:file(),
@@ -2477,7 +2480,7 @@ get_root(Config, Target, RuleConfig) ->
 
 -spec doc_bin_parts(Src) -> [Part]
     when Src :: binary(),
-         Part :: binary:part().
+         Part :: binary_part().
 doc_bin_parts(Src) when is_binary(Src) ->
     RE = "(?ms)^-(?:(moduledoc|doc))\\b\\s*(\"*)?.*?\\2\\.(\\r\\n|\\n)",
     case re:run(Src, RE, [global, {capture, first, index}]) of
@@ -2489,8 +2492,8 @@ doc_bin_parts(Src) when is_binary(Src) ->
 
 -spec ignore_bin_parts(Src, [DocPart]) -> [TextPart]
     when Src :: binary(),
-         DocPart :: binary:part(),
-         TextPart :: binary:part().
+         DocPart :: binary_part(),
+         TextPart :: binary_part().
 ignore_bin_parts(Src, DocParts) when is_binary(Src), is_list(DocParts) ->
     ignore_bin_parts_1(DocParts, 0, Src).
 
@@ -2501,6 +2504,6 @@ ignore_bin_parts_1([{Start, Len} | T], Prev, Src) ->
 
 -spec bin_parts_to_iolist(Src, Parts) -> iolist()
     when Src :: binary(),
-         Parts :: [binary:part()].
+         Parts :: [binary_part()].
 bin_parts_to_iolist(Src, Parts) when is_binary(Src), is_list(Parts) ->
     [binary_part(Src, Start, Len) || {Start, Len} <- Parts].
