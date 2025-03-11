@@ -60,6 +60,14 @@
 
 -type config() :: [{atom(), term()}].
 
+-if(?OTP_RELEASE < 27).
+
+%% The `verify_max_module_length_docs/3` test only runs on OTP >= 27 because
+%% the `-moduledoc` and `-doc` attributes were introduced in OTP-27.
+-hank([{unnecessary_function_arguments, [{verify_max_module_length_docs, 3}]}]).
+
+-endif.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Common test
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -996,61 +1004,78 @@ verify_max_module_length(Config) ->
           count_docs => true},
 
     ct:comment("Count whitespace, comment, and documentation lines"),
-    RuleConfig = CountAllRuleConfig#{max_length => 14},
+    RuleConfig = CountAllRuleConfig#{max_length => 18},
 
     [_] = elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig, PathFail),
 
-    RuleConfig1 = CountAllRuleConfig#{max_length => 18},
+    RuleConfig1 = CountAllRuleConfig#{max_length => 22},
     [_] =
         elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig1, PathFail),
 
-    RuleConfig2 = CountAllRuleConfig#{max_length => 19},
+    RuleConfig2 = CountAllRuleConfig#{max_length => 23},
     [] = elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig2, PathFail),
 
     ct:comment("Don't count whitespace lines"),
     WhitespaceRuleConfig = CountAllRuleConfig#{count_whitespace => false},
 
-    RuleConfig3 = WhitespaceRuleConfig#{max_length => 8},
+    RuleConfig3 = WhitespaceRuleConfig#{max_length => 12},
     [_] =
         elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig3, PathFail),
 
-    RuleConfig4 = WhitespaceRuleConfig#{max_length => 9},
+    RuleConfig4 = WhitespaceRuleConfig#{max_length => 13},
     [_] =
         elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig4, PathFail),
 
-    RuleConfig5 = WhitespaceRuleConfig#{max_length => 10},
+    RuleConfig5 = WhitespaceRuleConfig#{max_length => 14},
     [] = elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig5, PathFail),
 
     ct:comment("Don't count comment or whitespace lines"),
     NoCountRuleConfig = WhitespaceRuleConfig#{count_comments => false},
 
-    RuleConfig6 = NoCountRuleConfig#{max_length => 6},
+    RuleConfig6 = NoCountRuleConfig#{max_length => 10},
     [_] =
         elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig6, PathFail),
 
-    RuleConfig7 = NoCountRuleConfig#{max_length => 7},
+    RuleConfig7 = NoCountRuleConfig#{max_length => 11},
     [_] =
         elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig7, PathFail),
 
-    RuleConfig8 = NoCountRuleConfig#{max_length => 8},
+    RuleConfig8 = NoCountRuleConfig#{max_length => 12},
     [] = elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig8, PathFail),
 
+    ok = verify_max_module_length_docs(PathFail, CountAllRuleConfig, Config),
+
+    {comment, ""}.
+
+%% The `verify_max_module_length_docs/3` test only runs on OTP >= 27 because
+%% the `-moduledoc` and `-doc` attributes were introduced in OTP-27.
+-spec verify_max_module_length_docs(file:filename(), map(), config()) -> ok.
+-if(?OTP_RELEASE >= 27).
+
+verify_max_module_length_docs(PathFail, CountAllRuleConfig, Config) ->
     ct:comment("Don't count -moduledoc and -doc attributes"),
     DocsRuleConfig = CountAllRuleConfig#{count_docs => false},
 
-    RuleConfig9 = DocsRuleConfig#{max_length => 5},
+    RuleConfig9 = DocsRuleConfig#{max_length => 9},
     [_] =
         elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig9, PathFail),
 
-    RuleConfig10 = DocsRuleConfig#{max_length => 13},
+    RuleConfig10 = DocsRuleConfig#{max_length => 17},
     [_] =
         elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig10, PathFail),
 
-    RuleConfig11 = DocsRuleConfig#{max_length => 14},
+    RuleConfig11 = DocsRuleConfig#{max_length => 18},
     [] =
         elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig11, PathFail),
 
-    {comment, ""}.
+    ok.
+
+-else.
+
+verify_max_module_length_docs(_PathFail, _CountAllRuleConfig, _Config) ->
+    ok.
+
+-endif.
 
 -spec verify_max_function_arity(config()) -> any().
 verify_max_function_arity(Config) ->
