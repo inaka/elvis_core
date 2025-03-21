@@ -27,7 +27,8 @@
          verify_export_used_types/1, verify_consistent_variable_casing/1,
          verify_no_match_in_condition/1, verify_param_pattern_matching/1,
          verify_private_data_types/1, verify_unquoted_atoms/1, verify_no_init_lists/1,
-         verify_ms_transform_included/1, verify_redundant_blank_lines/1]).
+         verify_ms_transform_included/1, verify_redundant_blank_lines/1,
+         verify_no_boolean_in_comparison/1]).
 %% -elvis attribute
 -export([verify_elvis_attr_atom_naming_convention/1, verify_elvis_attr_numeric_format/1,
          verify_elvis_attr_dont_repeat_yourself/1, verify_elvis_attr_function_naming_convention/1,
@@ -1534,6 +1535,25 @@ verify_ms_transform_included(Config) ->
     FailPath = "fail_ms_transform_included." ++ Ext,
     [_] = elvis_core_apply_rule(Config, elvis_style, ms_transform_included, #{}, FailPath),
     ok.
+
+-spec verify_no_boolean_in_comparison(config()) -> any().
+verify_no_boolean_in_comparison(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PassPath = "pass_no_boolean_in_comparison." ++ Ext,
+    [] = elvis_core_apply_rule(Config, elvis_style, no_boolean_in_comparison, #{}, PassPath),
+
+    FailPath = "fail_no_boolean_in_comparison." ++ Ext,
+    [#{line_num := 6},
+     #{line_num := 6},
+     #{line_num := 13},
+     #{line_num := 16},
+     #{line_num := 19},
+     #{line_num := 22},
+     #{line_num := 22},
+     #{line_num := 26},
+     #{line_num := 26}] =
+        elvis_core_apply_rule(Config, elvis_style, no_boolean_in_comparison, #{}, FailPath).
 
 -spec verify_atom_naming_convention(config()) -> any().
 verify_atom_naming_convention(Config) ->

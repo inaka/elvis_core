@@ -13,7 +13,7 @@
          no_catch_expressions/3, no_single_clause_case/3, numeric_format/3, behaviour_spelling/3,
          always_shortcircuit/3, consistent_generic_type/3, export_used_types/3,
          no_match_in_condition/3, param_pattern_matching/3, private_data_types/3, option/3,
-         no_init_lists/3, ms_transform_included/3]).
+         no_init_lists/3, ms_transform_included/3, no_boolean_in_comparison/3]).
 
 -export_type([empty_rule_config/0]).
 -export_type([ignorable/0]).
@@ -159,6 +159,8 @@
 -define(PRIVATE_DATA_TYPES_MSG,
         "Private data type ~p/~p, defined on line ~p, is exported. Either don't export it or make "
         "it an opaque type.").
+-define(NO_BOOLEAN_IN_COMPARISON,
+        "Comparison uses boolean on line ~p. Using booleans in comparison should be avoided.").
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
@@ -280,7 +282,8 @@ default(RuleWithEmptyDefault)
          RuleWithEmptyDefault == no_space_after_pound;
          RuleWithEmptyDefault == export_used_types;
          RuleWithEmptyDefault == consistent_variable_casing;
-         RuleWithEmptyDefault == ms_transform_included ->
+         RuleWithEmptyDefault == ms_transform_included;
+         RuleWithEmptyDefault == no_boolean_in_comparison ->
     #{}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1260,7 +1263,7 @@ is_relevant_behaviour(Root, RuleConfig) ->
     ConfigBehaviors = option(behaviours, RuleConfig, no_init_lists),
     IsBehaviour = fun(Node) -> ktn_code:type(Node) == behaviour end,
     Behaviours = elvis_code:find(IsBehaviour, Root),
-    lists:any(fun(Elem) -> Elem =:= true end,
+    lists:any(fun(Elem) -> Elem end,
               lists:map(fun(BehaviourNode) ->
                            lists:member(
                                ktn_code:attr(value, BehaviourNode), ConfigBehaviors)
@@ -1309,6 +1312,40 @@ ms_transform_included(Config, Target, RuleConfig) ->
         false ->
             lists:map(ResultFun, FunctionCalls)
     end.
+
+-spec no_boolean_in_comparison(elvis_config:config(),
+                               elvis_file:file(),
+                               empty_rule_config()) ->
+                                  [elvis_result:item()].
+no_boolean_in_comparison(Config, Target, RuleConfig) ->
+    Root = get_root(Config, Target, RuleConfig),
+
+    IsBoolean =
+        fun(Node) ->
+           lists:member(
+               ktn_code:attr(value, Node), [true, false])
+        end,
+
+    IsComparisonWithBoolean =
+        fun(Node) ->
+           Content = ktn_code:content(Node),
+           ktn_code:type(Node) == op
+           andalso '==' =:= ktn_code:attr(operation, Node)
+           andalso lists:any(IsBoolean, Content)
+        end,
+    ComparisonsWithBoolean =
+        lists:uniq(
+            elvis_code:find(IsComparisonWithBoolean, Root, #{traverse => all})),
+
+    ResultFun =
+        fun(Node) ->
+           {Line, _} = ktn_code:attr(location, Node),
+           Info = [Line],
+           Msg = ?NO_BOOLEAN_IN_COMPARISON,
+           elvis_result:new(item, Msg, Info, Line)
+        end,
+
+    lists:map(ResultFun, ComparisonsWithBoolean).
 
 -spec get_fun_2_ms_calls(ktn_code:tree_node()) -> [any()].
 get_fun_2_ms_calls(Root) ->
