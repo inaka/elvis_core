@@ -1247,7 +1247,7 @@ is_relevant_behaviour(Root, RuleConfig) ->
     ConfigBehaviors = option(behaviours, RuleConfig, no_init_lists),
     IsBehaviour = fun(Node) -> ktn_code:type(Node) == behaviour end,
     Behaviours = elvis_code:find(IsBehaviour, Root),
-    lists:any(fun(Elem) -> Elem =:= true end,
+    lists:any(fun(Elem) -> Elem end,
               lists:map(fun(BehaviourNode) ->
                            lists:member(
                                ktn_code:attr(value, BehaviourNode), ConfigBehaviors)
@@ -1317,7 +1317,9 @@ no_boolean_in_comparison(Config, Target, RuleConfig) ->
            andalso '==' =:= ktn_code:attr(operation, Node)
            andalso lists:any(IsBoolean, Content)
         end,
-    ComparisonsWithBoolean = elvis_code:find(IsComparisonWithBoolean, Root),
+    ComparisonsWithBoolean =
+        lists:uniq(
+            elvis_code:find(IsComparisonWithBoolean, Root, #{traverse => all})),
 
     ResultFun =
         fun(Node) ->

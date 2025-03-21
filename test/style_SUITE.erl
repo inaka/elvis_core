@@ -1491,7 +1491,15 @@ verify_no_boolean_in_comparison(Config) ->
     [] = elvis_core_apply_rule(Config, elvis_style, no_boolean_in_comparison, #{}, PassPath),
 
     FailPath = "fail_no_boolean_in_comparison." ++ Ext,
-    [_, _] =
+    [#{line_num := 6},
+     #{line_num := 6},
+     #{line_num := 13},
+     #{line_num := 16},
+     #{line_num := 19},
+     #{line_num := 22},
+     #{line_num := 22},
+     #{line_num := 26},
+     #{line_num := 26}] =
         elvis_core_apply_rule(Config, elvis_style, no_boolean_in_comparison, #{}, FailPath).
 
 -spec verify_atom_naming_convention(config()) -> any().
