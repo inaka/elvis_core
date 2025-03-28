@@ -3,19 +3,38 @@
 -behaviour(ct_suite).
 
 -export([all/0, init_per_suite/1, end_per_suite/1, chunk_fold_task/2]).
--export([rock_with_empty_map_config/1, rock_with_empty_list_config/1,
-         rock_with_incomplete_config/1, rock_with_list_config/1, rock_with_file_config/1,
-         rock_with_old_config/1, rock_with_rebar_default_config/1, rock_this/1,
-         rock_without_colors/1, rock_with_parsable/1, rock_with_no_output_has_no_output/1,
-         rock_with_non_parsable_file/1, rock_with_errors_has_output/1,
-         rock_without_errors_has_no_output/1, rock_without_errors_and_with_verbose_has_output/1,
-         rock_with_rule_groups/1, rock_this_skipping_files/1, rock_this_not_skipping_files/1,
-         rock_with_umbrella_apps/1, custom_ruleset/1, hrl_ruleset/1, throw_configuration/1,
-         find_file_and_check_src/1, find_file_with_ignore/1, invalid_file/1, to_string/1,
-         chunk_fold/1, erl_files_strict_ruleset/1]).
+-export([
+    rock_with_empty_map_config/1,
+    rock_with_empty_list_config/1,
+    rock_with_incomplete_config/1,
+    rock_with_list_config/1,
+    rock_with_file_config/1,
+    rock_with_old_config/1,
+    rock_with_rebar_default_config/1,
+    rock_this/1,
+    rock_without_colors/1,
+    rock_with_parsable/1,
+    rock_with_no_output_has_no_output/1,
+    rock_with_non_parsable_file/1,
+    rock_with_errors_has_output/1,
+    rock_without_errors_has_no_output/1,
+    rock_without_errors_and_with_verbose_has_output/1,
+    rock_with_rule_groups/1,
+    rock_this_skipping_files/1,
+    rock_this_not_skipping_files/1,
+    rock_with_umbrella_apps/1,
+    custom_ruleset/1,
+    hrl_ruleset/1,
+    throw_configuration/1,
+    find_file_and_check_src/1,
+    find_file_with_ignore/1,
+    invalid_file/1,
+    to_string/1,
+    chunk_fold/1,
+    erl_files_strict_ruleset/1
+]).
 
--define(EXCLUDED_FUNS,
-        [module_info, all, test, init_per_suite, end_per_suite, chunk_fold_task]).
+-define(EXCLUDED_FUNS, [module_info, all, test, init_per_suite, end_per_suite, chunk_fold_task]).
 
 -type config() :: [{atom(), term()}].
 
@@ -244,8 +263,10 @@ rock_without_errors_has_no_output(_Config) ->
     RemoveSearchPattern = "fail_non_parsable_file.erl",
     ct:pal("Output=~p~n", [Output]),
     [] =
-        lists:filter(fun(String) -> string:find(String, RemoveSearchPattern) == nomatch end,
-                     Output),
+        lists:filter(
+            fun(String) -> string:find(String, RemoveSearchPattern) == nomatch end,
+            Output
+        ),
     ok.
 
 -spec rock_without_errors_and_with_verbose_has_output(config()) -> ok.
@@ -263,21 +284,33 @@ rock_with_rule_groups(_Config) ->
     % elvis_config will load default elvis_core rules for every
     % rule_group in the config.
     RulesGroupConfig =
-        [#{dirs => ["src"],
-           filter => "*.erl",
-           ruleset => erl_files},
-         #{dirs => ["include"],
-           filter => "*.erl",
-           ruleset => hrl_files},
-         #{dirs => ["_build/test/lib/elvis_core/ebin"],
-           filter => "*.beam",
-           ruleset => beam_files},
-         #{dirs => ["."],
-           filter => "rebar.config",
-           ruleset => rebar_config},
-         #{dirs => ["."],
-           filter => "elvis.config",
-           ruleset => elvis_config}],
+        [
+            #{
+                dirs => ["src"],
+                filter => "*.erl",
+                ruleset => erl_files
+            },
+            #{
+                dirs => ["include"],
+                filter => "*.erl",
+                ruleset => hrl_files
+            },
+            #{
+                dirs => ["_build/test/lib/elvis_core/ebin"],
+                filter => "*.beam",
+                ruleset => beam_files
+            },
+            #{
+                dirs => ["."],
+                filter => "rebar.config",
+                ruleset => rebar_config
+            },
+            #{
+                dirs => ["."],
+                filter => "elvis.config",
+                ruleset => elvis_config
+            }
+        ],
     ok =
         try
             ok = elvis_core:rock(RulesGroupConfig)
@@ -287,10 +320,16 @@ rock_with_rule_groups(_Config) ->
         end,
     % Override default elvis_core rules without ruleset should fail.
     OverrideFailConfig =
-        [#{dirs => ["src"],
-           rules =>
-               [{elvis_text_style, line_length, #{limit => 90}},
-                {elvis_style, state_record_and_type, disable}]}],
+        [
+            #{
+                dirs => ["src"],
+                rules =>
+                    [
+                        {elvis_text_style, line_length, #{limit => 90}},
+                        {elvis_style, state_record_and_type, disable}
+                    ]
+            }
+        ],
     ok =
         try
             _ = elvis_core:rock(OverrideFailConfig),
@@ -301,18 +340,30 @@ rock_with_rule_groups(_Config) ->
         end,
     % Override default elvis_core rules.
     OverrideConfig =
-        [#{dirs => ["src"],
-           filter => "*.erl",
-           ruleset => erl_files,
-           rules =>
-               [{elvis_text_style, line_length, #{limit => 90}}, % I like 90 chars per line.
-                {elvis_text_style, no_tabs, disable}]}, % I like tabs so disable this rule.
-         #{dirs => ["."],
-           filter => "rebar.config",
-           ruleset => rebar_config},
-         #{dirs => ["."],
-           filter => "elvis.config",
-           ruleset => elvis_config}],
+        [
+            #{
+                dirs => ["src"],
+                filter => "*.erl",
+                ruleset => erl_files,
+                rules =>
+                    % I like 90 chars per line.
+                    [
+                        {elvis_text_style, line_length, #{limit => 90}},
+                        % I like tabs so disable this rule.
+                        {elvis_text_style, no_tabs, disable}
+                    ]
+            },
+            #{
+                dirs => ["."],
+                filter => "rebar.config",
+                ruleset => rebar_config
+            },
+            #{
+                dirs => ["."],
+                filter => "elvis.config",
+                ruleset => elvis_config
+            }
+        ],
     ok =
         try
             ok = elvis_core:rock(OverrideConfig)
@@ -350,17 +401,26 @@ rock_this_not_skipping_files(_Config) ->
 rock_with_umbrella_apps(_Config) ->
     ElvisUmbrellaConfigFile = "../../config/elvis-umbrella.config",
     ElvisConfig = elvis_config:from_file(ElvisUmbrellaConfigFile),
-    {fail,
-     [#{file := "../../_build/test/lib/elvis_core/test/dirs/test/dir_test.erl"},
-      #{file := "../../_build/test/lib/elvis_core/test/dirs/src/dirs_src.erl"},
-      #{file :=
-            "../../_build/test/lib/elvis_core/test/dirs/apps/app2/test/dirs_apps_app2_test.erl"},
-      #{file :=
-            "../../_build/test/lib/elvis_core/test/dirs/apps/app2/src/dirs_apps_app2_src.erl"},
-      #{file :=
-            "../../_build/test/lib/elvis_core/test/dirs/apps/app1/test/dirs_apps_app1_test.erl"},
-      #{file :=
-            "../../_build/test/lib/elvis_core/test/dirs/apps/app1/src/dirs_apps_app1_src.erl"}]} =
+    {fail, [
+        #{file := "../../_build/test/lib/elvis_core/test/dirs/test/dir_test.erl"},
+        #{file := "../../_build/test/lib/elvis_core/test/dirs/src/dirs_src.erl"},
+        #{
+            file :=
+                "../../_build/test/lib/elvis_core/test/dirs/apps/app2/test/dirs_apps_app2_test.erl"
+        },
+        #{
+            file :=
+                "../../_build/test/lib/elvis_core/test/dirs/apps/app2/src/dirs_apps_app2_src.erl"
+        },
+        #{
+            file :=
+                "../../_build/test/lib/elvis_core/test/dirs/apps/app1/test/dirs_apps_app1_test.erl"
+        },
+        #{
+            file :=
+                "../../_build/test/lib/elvis_core/test/dirs/apps/app1/src/dirs_apps_app1_src.erl"
+        }
+    ]} =
         elvis_core:rock(ElvisConfig),
     ok.
 
@@ -384,10 +444,13 @@ custom_ruleset(_Config) ->
 hrl_ruleset(_Config) ->
     ConfigPath = "../../config/elvis-test-hrl-files.config",
     ElvisConfig = elvis_config:from_file(ConfigPath),
-    {fail,
-     [#{file := "../../_build/test/lib/elvis_core/test/examples/test-good.hrl", rules := []},
-      #{file := "../../_build/test/lib/elvis_core/test/examples/test-bad.hrl",
-        rules := [#{name := line_length}]}]} =
+    {fail, [
+        #{file := "../../_build/test/lib/elvis_core/test/examples/test-good.hrl", rules := []},
+        #{
+            file := "../../_build/test/lib/elvis_core/test/examples/test-bad.hrl",
+            rules := [#{name := line_length}]
+        }
+    ]} =
         elvis_core:rock(ElvisConfig),
     ok.
 
@@ -399,10 +462,12 @@ erl_files_strict_ruleset(_Config) ->
 
     FunctionsNotErlRuleNames = [no_specs, no_types, option],
     AllRuleNames =
-        [Function
+        [
+            Function
          || {Function, Arity} <- elvis_style:module_info(exports),
             Arity =:= 3,
-            not lists:member(Function, FunctionsNotErlRuleNames)],
+            not lists:member(Function, FunctionsNotErlRuleNames)
+        ],
     AllRuleNamesSorted = lists:sort(AllRuleNames),
 
     true = AllRuleNamesSorted =:= DefinedRuleNamesSorted.
@@ -471,23 +536,28 @@ chunk_fold(_Config) ->
     Multiplier = 10,
     List = lists:seq(1, 10),
     {ok, Value} =
-        elvis_task:chunk_fold({?MODULE, chunk_fold_task},
-                              fun(Elem, Acc) -> {ok, Acc + Elem} end,
-                              0,
-                              [Multiplier],
-                              lists:seq(1, 10),
-                              10),
+        elvis_task:chunk_fold(
+            {?MODULE, chunk_fold_task},
+            fun(Elem, Acc) -> {ok, Acc + Elem} end,
+            0,
+            [Multiplier],
+            lists:seq(1, 10),
+            10
+        ),
     Value =
         lists:sum(
-            lists:map(fun(E) -> E * Multiplier end, List)),
+            lists:map(fun(E) -> E * Multiplier end, List)
+        ),
 
     {error, {error, undef}} =
-        elvis_task:chunk_fold({?MODULE, chunk_fold_task_do_not_exist},
-                              fun(Elem, Acc) -> {ok, Acc + Elem} end,
-                              0,
-                              [Multiplier],
-                              lists:seq(1, 10),
-                              10).
+        elvis_task:chunk_fold(
+            {?MODULE, chunk_fold_task_do_not_exist},
+            fun(Elem, Acc) -> {ok, Acc + Elem} end,
+            0,
+            [Multiplier],
+            lists:seq(1, 10),
+            10
+        ).
 
 -spec chunk_fold_task(integer(), integer()) -> {ok, integer()}.
 chunk_fold_task(Elem, Multiplier) ->

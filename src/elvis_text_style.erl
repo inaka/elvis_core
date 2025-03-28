@@ -1,7 +1,13 @@
 -module(elvis_text_style).
 
--export([default/1, line_length/3, no_tabs/3, no_trailing_whitespace/3,
-         prefer_unquoted_atoms/3, no_redundant_blank_lines/3]).
+-export([
+    default/1,
+    line_length/3,
+    no_tabs/3,
+    no_trailing_whitespace/3,
+    prefer_unquoted_atoms/3,
+    no_redundant_blank_lines/3
+]).
 
 -export_type([line_length_config/0, no_trailing_whitespace_config/0]).
 
@@ -9,22 +15,27 @@
 -define(NO_TABS_MSG, "Line ~p has a tab at column ~p.").
 -define(NO_TRAILING_WHITESPACE_MSG, "Line ~b has ~b trailing whitespace characters.").
 -define(ATOM_PREFERRED_QUOTES_MSG,
-        "Atom ~p on line ~p is quoted "
-        "but quotes are not needed.").
+    "Atom ~p on line ~p is quoted "
+    "but quotes are not needed."
+).
 -define(NO_REDUNDANT_BLANK_LINES_MSG,
-        "Too many blank lines at line ~p. ~p sequential blank lines found,"
-        "when the maximum is set to ~p.").
+    "Too many blank lines at line ~p. ~p sequential blank lines found,"
+    "when the maximum is set to ~p."
+).
 
 % These are part of a non-declared "behaviour"
 % The reason why we don't try to handle them with different arity is
 %  that arguments are ignored in different positions (1 and 3) so that'd
 %  probably be messier than to ignore the warning
--hank([{unnecessary_function_arguments,
-        [{no_trailing_whitespace, 3},
-         {no_tabs, 3},
-         {line_length, 3},
-         {prefer_unquoted_atoms, 3},
-         {no_redundant_blank_lines, 3}]}]).
+-hank([
+    {unnecessary_function_arguments, [
+        {no_trailing_whitespace, 3},
+        {no_tabs, 3},
+        {line_length, 3},
+        {prefer_unquoted_atoms, 3},
+        {no_redundant_blank_lines, 3}
+    ]}
+]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
@@ -32,9 +43,11 @@
 
 -spec default(Rule :: atom()) -> DefaultRuleConfig :: term().
 default(line_length) ->
-    #{limit => 100,
-      skip_comments => false,
-      no_whitespace_after_limit => true};
+    #{
+        limit => 100,
+        skip_comments => false,
+        no_whitespace_after_limit => true
+    };
 default(no_tabs) ->
     #{};
 default(no_trailing_whitespace) ->
@@ -47,14 +60,16 @@ default(no_redundant_blank_lines) ->
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 -type line_length_config() ::
-    #{ignore => [elvis_style:ignorable()],
-      limit => integer(),
-      skip_comments => false | any | whole_line}.
+    #{
+        ignore => [elvis_style:ignorable()],
+        limit => integer(),
+        skip_comments => false | any | whole_line
+    }.
 
 %% @doc Target can be either a filename or the
 %% name of a module.
 -spec line_length(elvis_config:config(), elvis_file:file(), line_length_config()) ->
-                     [elvis_result:item()].
+    [elvis_result:item()].
 line_length(_Config, Target, RuleConfig) ->
     Limit = option(limit, RuleConfig, line_length),
     SkipComments = option(skip_comments, RuleConfig, line_length),
@@ -63,10 +78,12 @@ line_length(_Config, Target, RuleConfig) ->
     Args = [Limit, SkipComments, Encoding, NoWhitespace],
     elvis_utils:check_lines(Src, fun check_line_length/3, Args).
 
--spec no_tabs(elvis_config:config(),
-              elvis_file:file(),
-              elvis_style:empty_rule_config()) ->
-                 [elvis_result:item()].
+-spec no_tabs(
+    elvis_config:config(),
+    elvis_file:file(),
+    elvis_style:empty_rule_config()
+) ->
+    [elvis_result:item()].
 no_tabs(_Config, Target, _RuleConfig) ->
     {Src, _} = elvis_file:src(Target),
     elvis_utils:check_lines(Src, fun check_no_tabs/2, []).
@@ -74,23 +91,29 @@ no_tabs(_Config, Target, _RuleConfig) ->
 -type no_trailing_whitespace_config() ::
     #{ignore => [module()], ignore_empty_lines => boolean()}.
 
--spec no_trailing_whitespace(Config :: elvis_config:config(),
-                             Target :: elvis_file:file(),
-                             no_trailing_whitespace_config()) ->
-                                [elvis_result:item()].
+-spec no_trailing_whitespace(
+    Config :: elvis_config:config(),
+    Target :: elvis_file:file(),
+    no_trailing_whitespace_config()
+) ->
+    [elvis_result:item()].
 no_trailing_whitespace(_Config, Target, RuleConfig) ->
     {Src, _} = elvis_file:src(Target),
     IgnoreEmptyLines = option(ignore_empty_lines, RuleConfig, no_trailing_whitespace),
-    elvis_utils:check_lines(Src,
-                            fun(Src1, Fun, _Args) ->
-                               check_no_trailing_whitespace(Src1, Fun, IgnoreEmptyLines)
-                            end,
-                            RuleConfig).
+    elvis_utils:check_lines(
+        Src,
+        fun(Src1, Fun, _Args) ->
+            check_no_trailing_whitespace(Src1, Fun, IgnoreEmptyLines)
+        end,
+        RuleConfig
+    ).
 
--spec prefer_unquoted_atoms(elvis_config:config(),
-                            elvis_file:file(),
-                            elvis_style:empty_rule_config()) ->
-                               [elvis_result:item()].
+-spec prefer_unquoted_atoms(
+    elvis_config:config(),
+    elvis_file:file(),
+    elvis_style:empty_rule_config()
+) ->
+    [elvis_result:item()].
 prefer_unquoted_atoms(_Config, Target, _RuleConfig) ->
     {Content, #{encoding := _Encoding}} = elvis_file:src(Target),
     Tree = ktn_code:parse_tree(Content),
@@ -126,7 +149,8 @@ no_redundant_blank_lines(_Config, Target, RuleConfig) ->
     Result = redundant_blank_lines(Lines, {1, []}),
 
     ResultFun =
-        fun ({Line, BlankLinesLength}) when BlankLinesLength >= MaxLines ->
+        fun
+            ({Line, BlankLinesLength}) when BlankLinesLength >= MaxLines ->
                 Info = [Line, BlankLinesLength, MaxLines],
                 {true, elvis_result:new(item, ?NO_REDUNDANT_BLANK_LINES_MSG, Info, Line)};
             (_) ->
@@ -151,8 +175,10 @@ redundant_blank_lines(Lines, {CurrentLineNum, ResultList}) ->
         0 ->
             redundant_blank_lines(lists:nthtail(Index, Lines), {NextLineNum, ResultList});
         _ ->
-            redundant_blank_lines(lists:nthtail(Index, Lines),
-                                  {NextLineNum, [{CurrentLineNum, BlankElements} | ResultList]})
+            redundant_blank_lines(
+                lists:nthtail(Index, Lines),
+                {NextLineNum, [{CurrentLineNum, BlankElements} | ResultList]}
+            )
     end.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -183,7 +209,7 @@ remove_comment(Line) ->
 
 %% @private
 -spec check_line_length(binary(), integer(), [term()]) ->
-                           no_result | {ok, elvis_result:item()}.
+    no_result | {ok, elvis_result:item()}.
 check_line_length(Line, Num, [Limit, whole_line, Encoding, NoWhitespace]) ->
     case line_is_comment(Line) of
         false ->
@@ -237,7 +263,7 @@ check_no_tabs(Line, Num) ->
 
 %% @private
 -spec check_no_trailing_whitespace(binary(), integer(), boolean()) ->
-                                      no_result | {ok, elvis_result:item()}.
+    no_result | {ok, elvis_result:item()}.
 check_no_trailing_whitespace(Line, Num, IgnoreEmptyLines) ->
     Regex =
         case IgnoreEmptyLines of
@@ -265,29 +291,55 @@ is_atom_node(MaybeAtom) ->
 %% @private
 is_exception_prefer_quoted(Elem) ->
     KeyWords =
-        ["'after'", "'and'", "'andalso'", "'band'", "'begin'", "'bnot'", "'bor'", "'bsl'",
-         "'bsr'", "'bxor'", "'case'", "'catch'", "'cond'", "'div'", "'end'", "'fun'", "'if'",
-         "'let'", "'not'", "'of'", "'or'", "'orelse'", "'receive'", "'rem'", "'try'", "'when'",
-         "'xor'", "'maybe'"],
+        [
+            "'after'",
+            "'and'",
+            "'andalso'",
+            "'band'",
+            "'begin'",
+            "'bnot'",
+            "'bor'",
+            "'bsl'",
+            "'bsr'",
+            "'bxor'",
+            "'case'",
+            "'catch'",
+            "'cond'",
+            "'div'",
+            "'end'",
+            "'fun'",
+            "'if'",
+            "'let'",
+            "'not'",
+            "'of'",
+            "'or'",
+            "'orelse'",
+            "'receive'",
+            "'rem'",
+            "'try'",
+            "'when'",
+            "'xor'",
+            "'maybe'"
+        ],
     lists:member(Elem, KeyWords).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Internal Function Definitions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec option(OptionName, RuleConfig, Rule) -> OptionValue
-    when OptionName :: atom(),
-         RuleConfig :: elvis_core:rule_config(),
-         Rule :: atom(),
-         OptionValue :: term().
+-spec option(OptionName, RuleConfig, Rule) -> OptionValue when
+    OptionName :: atom(),
+    RuleConfig :: elvis_core:rule_config(),
+    Rule :: atom(),
+    OptionValue :: term().
 option(OptionName, RuleConfig, Rule) ->
     maybe_default_option(maps:get(OptionName, RuleConfig, undefined), OptionName, Rule).
 
--spec maybe_default_option(UserDefinedOptionValue, OptionName, Rule) -> OptionValue
-    when UserDefinedOptionValue :: undefined | term(),
-         OptionName :: atom(),
-         Rule :: atom(),
-         OptionValue :: term().
+-spec maybe_default_option(UserDefinedOptionValue, OptionName, Rule) -> OptionValue when
+    UserDefinedOptionValue :: undefined | term(),
+    OptionName :: atom(),
+    Rule :: atom(),
+    OptionValue :: term().
 maybe_default_option(undefined = _UserDefinedOptionValue, OptionName, Rule) ->
     maps:get(OptionName, default(Rule));
 maybe_default_option(UserDefinedOptionValue, _OptionName, _Rule) ->

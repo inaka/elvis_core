@@ -7,8 +7,14 @@
 %% General
 -export([erlang_halt/1, to_str/1, split_all_lines/1, split_all_lines/2]).
 %% Output
--export([info/1, info/2, notice/1, notice/2, error/1, error/2, error_prn/1, error_prn/2,
-         warn_prn/2, parse_colors/1]).
+-export([
+    info/1, info/2,
+    notice/1, notice/2,
+    error/1, error/2,
+    error_prn/1, error_prn/2,
+    warn_prn/2,
+    parse_colors/1
+]).
 
 -export_type([file/0, line_content/0]).
 
@@ -31,7 +37,7 @@ check_lines(Src, Fun, Args) ->
 %% @doc Checks each line calling fun and providing the previous and next
 %%      lines based on the context tuple {Before, After}.
 -spec check_lines_with_context(binary(), fun(), term(), line_content()) ->
-                                  [elvis_result:item()].
+    [elvis_result:item()].
 check_lines_with_context(Src, Fun, Args, Ctx) ->
     Lines = split_all_lines(Src),
     LinesContext = context(Lines, Ctx),
@@ -40,7 +46,8 @@ check_lines_with_context(Src, Fun, Args, Ctx) ->
 %% @private
 check_lines([], _Fun, _Args, Results, _Num) ->
     lists:flatten(
-        lists:reverse(Results));
+        lists:reverse(Results)
+    );
 check_lines([Line | Lines], Fun, Args, Results, Num) ->
     FunRes =
         case is_function(Fun, 3) of
@@ -190,24 +197,26 @@ print(Message, Args) ->
 -spec parse_colors(string()) -> string().
 parse_colors(Message) ->
     Colors =
-        #{"red" => "\e[0;31m",
-          "red-bold" => "\e[1;31m",
-          "green" => "\e[0;32m",
-          "green-bold" => "\e[1;32m",
-          "white" => "\e[0;37m",
-          "white-bold" => "\e[1;37m",
-          "magenta" => "\e[1;35m",
-          "reset" => "\e[0m"},
+        #{
+            "red" => "\e[0;31m",
+            "red-bold" => "\e[1;31m",
+            "green" => "\e[0;32m",
+            "green-bold" => "\e[1;32m",
+            "white" => "\e[0;37m",
+            "white-bold" => "\e[1;37m",
+            "magenta" => "\e[1;35m",
+            "reset" => "\e[0m"
+        },
     Opts = [global, {return, list}],
     case elvis_config:from_application_or_config(output_format, colors) of
         P when P =:= plain orelse P =:= parsable ->
             re:replace(Message, "{{.*?}}", "", Opts);
         colors ->
             Fun = fun(Key, Acc) ->
-                     Regex = ["{{", Key, "}}"],
-                     Color = maps:get(Key, Colors),
-                     re:replace(Acc, Regex, Color, Opts)
-                  end,
+                Regex = ["{{", Key, "}}"],
+                Color = maps:get(Key, Colors),
+                re:replace(Acc, Regex, Color, Opts)
+            end,
             lists:foldl(Fun, Message, maps:keys(Colors))
     end.
 
