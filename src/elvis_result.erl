@@ -4,8 +4,15 @@
 
 %% API
 -export([new/3, new/4, status/1, clean/1, print_results/1]).
--export([get_path/1, get_rules/1, get_name/1, get_items/1, get_message/1, get_info/1,
-         get_line_num/1]).
+-export([
+    get_path/1,
+    get_rules/1,
+    get_name/1,
+    get_items/1,
+    get_message/1,
+    get_info/1,
+    get_line_num/1
+]).
 
 %% Types
 -export_type([item/0, rule/0, file/0, elvis_error/0, elvis_warn/0]).
@@ -15,13 +22,17 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 -type item() ::
-    #{message => string(),
-      info => iodata(),
-      line_num => integer()}.
+    #{
+        message => string(),
+        info => iodata(),
+        line_num => integer()
+    }.
 -type rule() ::
-    #{scope => atom(),
-      name => atom(),
-      items => [item()]}.
+    #{
+        scope => atom(),
+        name => atom(),
+        items => [item()]
+    }.
 -type file() :: #{file => string(), rules => [rule()]}.
 -type elvis_error() :: #{error_msg => string(), info => list()}.
 -type elvis_warn() :: #{warn_msg => string(), info => list()}.
@@ -32,17 +43,20 @@
 
 %% New
 
--spec new(item, string(), [term()]) -> item();
-         (rule, {atom(), atom()}, [item()]) -> rule();
-         (file, elvis_file:file(), [elvis_error() | rule()]) -> file();
-         (error, string(), string()) -> elvis_error();
-         (warn, string(), string()) -> elvis_warn().
+-spec new
+    (item, string(), [term()]) -> item();
+    (rule, {atom(), atom()}, [item()]) -> rule();
+    (file, elvis_file:file(), [elvis_error() | rule()]) -> file();
+    (error, string(), string()) -> elvis_error();
+    (warn, string(), string()) -> elvis_warn().
 new(item, Msg, Info) ->
     new(item, Msg, Info, 0);
 new(rule, {Scope, Name}, Results) ->
-    #{scope => Scope,
-      name => Name,
-      items => Results};
+    #{
+        scope => Scope,
+        name => Name,
+        items => Results
+    };
 new(file, #{path := Path}, Rules) ->
     #{file => Path, rules => Rules};
 new(error, Msg, Info) ->
@@ -52,9 +66,11 @@ new(warn, Msg, Info) ->
 
 -spec new(item, string(), [term()], integer()) -> item().
 new(item, Msg, Info, LineNum) ->
-    #{message => Msg,
-      info => Info,
-      line_num => LineNum}.
+    #{
+        message => Msg,
+        info => Info,
+        line_num => LineNum
+    }.
 
 %% Getters
 
@@ -122,19 +138,27 @@ print_rules(_Format, _File, []) ->
     ok;
 print_rules(Format, File, [#{items := []} | Items]) ->
     print_rules(Format, File, Items);
-print_rules(Format,
-            File,
-            [#{scope := Scope,
-               items := Items,
-               name := Name}
-             | EItems]) ->
+print_rules(
+    Format,
+    File,
+    [
+        #{
+            scope := Scope,
+            items := Items,
+            name := Name
+        }
+        | EItems
+    ]
+) ->
     case Format of
         parsable ->
             ok;
         _ ->
-            elvis_utils:error("  - ~p "
-                              "(https://github.com/inaka/elvis_core/tree/main/doc_rules/~p/~p.md)",
-                              [Name, Scope, Name])
+            elvis_utils:error(
+                "  - ~p "
+                "(https://github.com/inaka/elvis_core/tree/main/doc_rules/~p/~p.md)",
+                [Name, Scope, Name]
+            )
     end,
     print_item(Format, File, Name, Items),
     print_rules(Format, File, EItems);
@@ -143,13 +167,19 @@ print_rules(Format, File, [Error | Items]) ->
     print_rules(Format, File, Items).
 
 %% Item
-print_item(Format,
-           File,
-           Name,
-           [#{message := Msg,
-              line_num := Ln,
-              info := Info}
-            | Items]) ->
+print_item(
+    Format,
+    File,
+    Name,
+    [
+        #{
+            message := Msg,
+            line_num := Ln,
+            info := Info
+        }
+        | Items
+    ]
+) ->
     case Format of
         parsable ->
             FMsg = io_lib:format(Msg, Info),

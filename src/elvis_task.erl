@@ -7,26 +7,35 @@
 %% equal to Concurrency. On successful evaluation FunAcc function is called
 %% with the result of successful execution as a first parameter and accumulator
 %% as a second parameter.
--spec chunk_fold(FunWork :: {Module :: module(), Function :: atom()},
-                 FunAcc :: fun((NewElem :: term(), Acc :: term()) -> Acc :: term()),
-                 InitialAcc :: term(),
-                 ExtraArgs :: list(),
-                 JoinItemList :: list(),
-                 Concurrency :: non_neg_integer()) ->
-                    {ok, FinalAcc :: term()} | {error, term()}.
-chunk_fold({M, F} = FunWork, FunAcc, InitialAcc, ExtraArgs, List, ChunkSize)
-    when is_atom(M), is_atom(F), is_function(FunAcc, 2), is_list(ExtraArgs), is_list(List),
-         is_integer(ChunkSize) andalso ChunkSize > 0 ->
+-spec chunk_fold(
+    FunWork :: {Module :: module(), Function :: atom()},
+    FunAcc :: fun((NewElem :: term(), Acc :: term()) -> Acc :: term()),
+    InitialAcc :: term(),
+    ExtraArgs :: list(),
+    JoinItemList :: list(),
+    Concurrency :: non_neg_integer()
+) ->
+    {ok, FinalAcc :: term()} | {error, term()}.
+chunk_fold({M, F} = FunWork, FunAcc, InitialAcc, ExtraArgs, List, ChunkSize) when
+    is_atom(M),
+    is_atom(F),
+    is_function(FunAcc, 2),
+    is_list(ExtraArgs),
+    is_list(List),
+    is_integer(ChunkSize) andalso ChunkSize > 0
+->
     try
         Term =
-            do_in_parallel(FunWork,
-                           FunAcc,
-                           ExtraArgs,
-                           List,
-                           _MaxW = ChunkSize,
-                           _RemainW = ChunkSize,
-                           InitialAcc,
-                           []),
+            do_in_parallel(
+                FunWork,
+                FunAcc,
+                ExtraArgs,
+                List,
+                _MaxW = ChunkSize,
+                _RemainW = ChunkSize,
+                InitialAcc,
+                []
+            ),
         {ok, Term}
     catch
         {T, E} ->

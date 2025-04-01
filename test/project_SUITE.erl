@@ -3,8 +3,12 @@
 -behaviour(ct_suite).
 
 -export([all/0, init_per_suite/1, end_per_suite/1]).
--export([verify_no_branch_deps/1, verify_hex_dep/1, verify_protocol_for_deps/1,
-         verify_old_config_format/1]).
+-export([
+    verify_no_branch_deps/1,
+    verify_hex_dep/1,
+    verify_protocol_for_deps/1,
+    verify_old_config_format/1
+]).
 
 -define(EXCLUDED_FUNS, [module_info, all, test, init_per_suite, end_per_suite]).
 
@@ -60,14 +64,16 @@ verify_protocol_for_deps(_Config) ->
     Filename = "rebar.config.fail",
     {ok, File} = elvis_test_utils:find_file(SrcDirs, Filename),
 
-    [#{info := [lager, _]},
-     #{info := [getopt, _]},
-     #{info := [jiffy, _]},
-     #{info := [jsx, _]},
-     #{info := [lager, _]},
-     #{info := [getopt, _]},
-     #{info := [jiffy, _]},
-     #{info := [opentelemetry_api, _]}] =
+    [
+        #{info := [lager, _]},
+        #{info := [getopt, _]},
+        #{info := [jiffy, _]},
+        #{info := [jsx, _]},
+        #{info := [lager, _]},
+        #{info := [getopt, _]},
+        #{info := [jiffy, _]},
+        #{info := [opentelemetry_api, _]}
+    ] =
         elvis_project:protocol_for_deps(ElvisConfig, File, #{}),
 
     RuleConfig = #{ignore => [getopt, jsx]},

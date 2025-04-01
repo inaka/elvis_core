@@ -44,7 +44,7 @@ jobs:
                 -hash-${{hashFiles('rebar.lock')}}"
       - name: Format check
         if: ${{ matrix.os == 'ubuntu-24.04' && matrix.otp_vsn == '26' }}
-        run: rebar3 format --verify
+        run: rebar3 fmt --check
       - name: Run test
         run: rebar3 test
       - name: Run elvis on elvis

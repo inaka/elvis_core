@@ -1,7 +1,12 @@
 -module(elvis_config).
 
--export([from_rebar/1, from_file/1, from_application_or_config/2, validate/1,
-         normalize/1]).
+-export([
+    from_rebar/1,
+    from_file/1,
+    from_application_or_config/2,
+    validate/1,
+    normalize/1
+]).
 %% Geters
 -export([dirs/1, ignore/1, filter/1, files/1, rules/1]).
 %% Files
@@ -146,8 +151,9 @@ files(#{files := Files}) ->
 files(#{}) ->
     [].
 
--spec rules(RulesL :: configs()) -> [[elvis_core:rule()]];
-           (Rules :: config()) -> [elvis_core:rule()].
+-spec rules
+    (RulesL :: configs()) -> [[elvis_core:rule()]];
+    (Rules :: config()) -> [elvis_core:rule()].
 rules(Rules) when is_list(Rules) ->
     lists:map(fun rules/1, Rules);
 rules(#{rules := UserRules, ruleset := RuleSet}) ->
@@ -166,7 +172,7 @@ rules(#{}) ->
 %% @end
 %% resolve_files/2 with a configs() type is used in elvis project
 -spec resolve_files(Config :: configs() | config(), Files :: [elvis_file:file()]) ->
-                       configs() | config().
+    configs() | config().
 resolve_files(Config, Files) when is_list(Config) ->
     Fun = fun(RuleGroup) -> resolve_files(RuleGroup, Files) end,
     lists:map(Fun, Config);
@@ -175,15 +181,18 @@ resolve_files(RuleGroup, Files) ->
     Dirs = dirs(RuleGroup),
     Ignore = ignore(RuleGroup),
     FilteredFiles = elvis_file:filter_files(Files, Dirs, Filter, Ignore),
-    _ = case FilteredFiles of
+    _ =
+        case FilteredFiles of
             [] ->
                 RuleSet = maps:get(ruleset, RuleGroup, undefined),
                 Error =
-                    elvis_result:new(warn,
-                                     "Searching for files in ~p, for ruleset ~p, "
-                                     "with filter ~p, yielded none. "
-                                     "Update your configuration.",
-                                     [Dirs, RuleSet, Filter]),
+                    elvis_result:new(
+                        warn,
+                        "Searching for files in ~p, for ruleset ~p, "
+                        "with filter ~p, yielded none. "
+                        "Update your configuration.",
+                        [Dirs, RuleSet, Filter]
+                    ),
                 ok = elvis_result:print_results([Error]);
             _ ->
                 ok
@@ -205,7 +214,7 @@ resolve_files(#{dirs := Dirs} = RuleGroup) ->
 %%      file in the configuration.
 %% @end
 -spec apply_to_files(Fun :: fun(), Config :: configs() | config()) ->
-                        configs() | config().
+    configs() | config().
 apply_to_files(Fun, Config) when is_list(Config) ->
     ApplyFun = fun(RuleGroup) -> apply_to_files(Fun, RuleGroup) end,
     lists:map(ApplyFun, Config);
@@ -230,40 +239,52 @@ ignore_to_regexp(A) when is_atom(A) ->
 merge_rules(UserRules, DefaultRules) ->
     UnduplicatedRules =
         % Drops repeated rules
-        lists:filter(% If any default rule is in UserRules it means the user
-                     % wants to override the rule.
-                     fun ({FileName, RuleName}) ->
-                             not is_rule_override(FileName, RuleName, UserRules);
-                         ({FileName, RuleName, _}) ->
-                             not is_rule_override(FileName, RuleName, UserRules);
-                         (_) ->
-                             false
-                     end,
-                     DefaultRules),
+
+        % If any default rule is in UserRules it means the user
+        lists:filter(
+            % wants to override the rule.
+            fun
+                ({FileName, RuleName}) ->
+                    not is_rule_override(FileName, RuleName, UserRules);
+                ({FileName, RuleName, _}) ->
+                    not is_rule_override(FileName, RuleName, UserRules);
+                (_) ->
+                    false
+            end,
+            DefaultRules
+        ),
     OverrideRules =
         % Remove the rules that the user wants to "disable" and after that,
         % remains just the rules the user wants to override.
-        lists:filter(fun ({_FileName, _RuleName, OverrideOptions}) ->
-                             disable /= OverrideOptions;
-                         ({_FileName, _RuleName}) ->
-                             true; % not disabled
-                         (_) ->
-                             false
-                     end,
-                     UserRules),
+        lists:filter(
+            fun
+                ({_FileName, _RuleName, OverrideOptions}) ->
+                    disable /= OverrideOptions;
+                ({_FileName, _RuleName}) ->
+                    % not disabled
+                    true;
+                (_) ->
+                    false
+            end,
+            UserRules
+        ),
     UnduplicatedRules ++ OverrideRules.
 
--spec is_rule_override(FileName :: atom(),
-                       RuleName :: atom(),
-                       UserRules :: [elvis_core:rule()]) ->
-                          boolean().
+-spec is_rule_override(
+    FileName :: atom(),
+    RuleName :: atom(),
+    UserRules :: [elvis_core:rule()]
+) ->
+    boolean().
 is_rule_override(FileName, RuleName, UserRules) ->
-    lists:any(fun(UserRule) ->
-                 case UserRule of
-                     {FileName, RuleName, _} ->
-                         true;
-                     _ ->
-                         false
-                 end
-              end,
-              UserRules).
+    lists:any(
+        fun(UserRule) ->
+            case UserRule of
+                {FileName, RuleName, _} ->
+                    true;
+                _ ->
+                    false
+            end
+        end,
+        UserRules
+    ).

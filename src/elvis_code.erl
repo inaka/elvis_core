@@ -3,8 +3,14 @@
 %% General
 -export([find/2, find/3, find_by_location/2, find_token/2, code_zipper/1, code_zipper/2]).
 %% Specific
--export([past_nesting_limit/2, exported_functions/1, exported_types/1, function_names/1,
-         module_name/1, print_node/1, print_node/2]).
+-export([
+    past_nesting_limit/2,
+    exported_functions/1,
+    exported_types/1,
+    function_names/1,
+    module_name/1,
+    print_node/1, print_node/2
+]).
 
 -export_type([find_options/0]).
 
@@ -18,7 +24,7 @@
 %%      the options map.
 %% @end
 -spec find(fun((zipper:zipper(_)) -> boolean()), ktn_code:tree_node()) ->
-              [ktn_code:tree_node()].
+    [ktn_code:tree_node()].
 find(Pred, Root) ->
     find(Pred, Root, #{mode => node, traverse => content}).
 
@@ -40,7 +46,7 @@ find(Pred, Root) ->
 %% @end
 
 -spec find(fun((zipper:zipper(_)) -> boolean()), ktn_code:tree_node(), find_options()) ->
-              [ktn_code:tree_node()].
+    [ktn_code:tree_node()].
 find(Pred, Root, Opts) ->
     Mode = maps:get(mode, Opts, node),
     ZipperMode = maps:get(traverse, Opts, content),
@@ -64,7 +70,8 @@ code_zipper(Root, Mode) ->
 -spec content_zipper(ktn_code:tree_node()) -> zipper:zipper(_).
 content_zipper(Root) ->
     IsBranch =
-        fun (#{content := [_ | _]}) ->
+        fun
+            (#{content := [_ | _]}) ->
                 true;
             (_) ->
                 false
@@ -78,13 +85,16 @@ all_zipper(Root) ->
     IsBranch =
         fun(#{} = Node) -> ktn_code:content(Node) =/= [] orelse maps:is_key(node_attrs, Node) end,
     Children =
-        fun (#{content := Content, node_attrs := NodeAttrs}) ->
-                Content
-                ++ lists:flatten(
-                       maps:values(NodeAttrs));
+        fun
+            (#{content := Content, node_attrs := NodeAttrs}) ->
+                Content ++
+                    lists:flatten(
+                        maps:values(NodeAttrs)
+                    );
             (#{node_attrs := NodeAttrs}) ->
                 lists:flatten(
-                    maps:values(NodeAttrs));
+                    maps:values(NodeAttrs)
+                );
             (#{content := Content}) ->
                 Content
         end,
@@ -114,7 +124,7 @@ find(Pred, Zipper, Results, Mode) ->
     end.
 
 -spec find_by_location(ktn_code:tree_node(), {integer(), integer()}) ->
-                          not_found | {ok, ktn_code:tree_node()}.
+    not_found | {ok, ktn_code:tree_node()}.
 find_by_location(Root, Location) ->
     Fun = fun(Node) -> is_at_location(Node, Location) end,
     case find(Fun, Root, #{traverse => all}) of
@@ -146,7 +156,7 @@ find_token(Root, Location) ->
 
 %% @doc Takes a node and returns all nodes where the nesting limit is exceeded.
 -spec past_nesting_limit(ktn_code:tree_node(), integer()) ->
-                            [{ktn_code:tree_node(), integer()}].
+    [{ktn_code:tree_node(), integer()}].
 past_nesting_limit(Node, MaxLevel) ->
     ResultNodes = past_nesting_limit(Node, 1, MaxLevel),
     lists:reverse(ResultNodes).
@@ -155,9 +165,9 @@ past_nesting_limit(Node, CurrentLevel, MaxLevel) when CurrentLevel > MaxLevel ->
     [Node];
 past_nesting_limit(#{content := Content}, CurrentLevel, MaxLevel) ->
     Fun = fun(ChildNode) ->
-             Increment = level_increment(ChildNode),
-             past_nesting_limit(ChildNode, Increment + CurrentLevel, MaxLevel)
-          end,
+        Increment = level_increment(ChildNode),
+        past_nesting_limit(ChildNode, Increment + CurrentLevel, MaxLevel)
+    end,
     lists:flatmap(Fun, Content);
 past_nesting_limit(_Node, _CurrentLeve, _MaxLevel) ->
     [].
@@ -230,19 +240,22 @@ level_increment(#{type := Type}) ->
 %% @doc Returns an anonymous Fun to be flatmapped over node content, as
 %% appropriate for the exported function whose name is the argument given.
 make_extractor_fun(exported_functions) ->
-    fun (#{type := export} = Node) ->
+    fun
+        (#{type := export} = Node) ->
             ktn_code:attr(value, Node);
         (_) ->
             []
     end;
 make_extractor_fun(exported_types) ->
-    fun (#{type := export_type} = Node) ->
+    fun
+        (#{type := export_type} = Node) ->
             ktn_code:attr(value, Node);
         (_) ->
             []
     end;
 make_extractor_fun(function_names) ->
-    fun (#{type := function} = Node) ->
+    fun
+        (#{type := function} = Node) ->
             [ktn_code:attr(name, Node)];
         (_) ->
             []
