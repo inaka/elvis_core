@@ -352,7 +352,7 @@ default(nesting_level) ->
 default(god_modules) ->
     #{limit => 25};
 default(function_naming_convention) ->
-    #{regex => "^[a-z](_?[a-z0-9]+)*$", forbidden_regex => undefined};
+    #{regex => "^[a-z](_?[a-z0-9]+)*(_test_)?$", forbidden_regex => undefined};
 default(variable_naming_convention) ->
     #{regex => "^_?([A-Z][0-9a-zA-Z]*)$", forbidden_regex => undefined};
 default(module_naming_convention) ->
