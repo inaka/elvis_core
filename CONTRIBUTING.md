@@ -33,7 +33,7 @@ file.
 ## Development
 
 CI for `elvis_core` is pretty simple, but in case you want to replicate it locally before
-pushing most issues will be found via `rebar3 do format --verify, test`.
+pushing most issues will be found via `rebar3 do fmt --check, test`.
 
 ## Questions?
 
