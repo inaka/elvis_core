@@ -2,6 +2,9 @@
 
 Single-match maybe statements should be avoided.
 
+> [!NOTE]  
+> This rule only works under Erlang/OTP 27+.
+
 ## Avoid
 
 ```erlang

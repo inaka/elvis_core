@@ -31,7 +31,8 @@
     invalid_file/1,
     to_string/1,
     chunk_fold/1,
-    erl_files_strict_ruleset/1
+    erl_files_strict_ruleset/1,
+    rock_with_invalid_rules/1
 ]).
 
 -define(EXCLUDED_FUNS, [module_info, all, test, init_per_suite, end_per_suite, chunk_fold_task]).
@@ -423,6 +424,23 @@ rock_with_umbrella_apps(_Config) ->
     ]} =
         elvis_core:rock(ElvisConfig),
     ok.
+
+-spec rock_with_invalid_rules(config()) -> any().
+rock_with_invalid_rules(_Config) ->
+    ConfigPath = "../../test/examples/invalid_rules.elvis.config",
+    ElvisConfig = elvis_config:from_file(ConfigPath),
+    ExpectedErrorMessage =
+        {invalid_rules, [
+            {invalid_rule, {elvis_style, not_existing_rule}},
+            {invalid_rule, {elvis_style, what_is_this_rule}}
+        ]},
+    try
+        ok = elvis_core:rock(ElvisConfig),
+        ct:fail("Elvis should not have rocked with ~p", [ElvisConfig])
+    catch
+        {invalid_config, ExpectedErrorMessage} ->
+            ok
+    end.
 
 %%%%%%%%%%%%%%%
 %%% Utils
