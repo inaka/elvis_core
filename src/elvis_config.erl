@@ -1,5 +1,7 @@
 -module(elvis_config).
 
+-feature(maybe_expr, enable).
+
 -export([
     from_rebar/1,
     from_file/1,
@@ -99,12 +101,49 @@ do_validate(RuleGroup) ->
         false ->
             ok
     end,
-    case maps:is_key(rules, RuleGroup) orelse maps:is_key(ruleset, RuleGroup) of
+    case
+        (maps:is_key(rules, RuleGroup) andalso validate_rules(maps:get(rules, RuleGroup))) orelse
+            maps:is_key(ruleset, RuleGroup)
+    of
         false ->
             throw({invalid_config, {missing_rules, RuleGroup}});
         true ->
             ok
     end.
+
+validate_rules(Rules) ->
+    [_, {exports, ValidRules}, _, _, _] = elvis_style:module_info(),
+    [_, {exports, ValidRulesText}, _, _, _] = elvis_text_style:module_info(),
+
+    % io:format(user, "~n----------------------------------~n", []),
+    % io:format(user, "rules ~p~n", [Rules]),
+    % io:format(user, "valid rules ~p~n", [ValidRules]),
+    % io:format(user, "------------------------------------~n", []),
+    IsValidRule = fun
+        ({elvis_style, RuleName}) ->
+            is_valid_rule(RuleName, proplists:lookup(RuleName, ValidRules));
+        ({elvis_style, RuleName, _}) ->
+            is_valid_rule(RuleName, proplists:lookup(RuleName, ValidRules));
+        ({elvis_text_style, RuleName}) ->
+            is_valid_rule(RuleName, proplists:lookup(RuleName, ValidRulesText));
+        ({elvis_text_style, RuleName, _}) ->
+            is_valid_rule(RuleName, proplists:lookup(RuleName, ValidRulesText));
+        ({user_defined_rules, _}) ->
+            ok;
+        ({user_defined_rules, _, _}) ->
+            ok
+        % (Any) ->
+        %      io:format(user, "~n----------------------------------~n", []),
+        %      io:format(user, "~p~n", [Any]),
+        %      io:format(user, "------------------------------------~n", [])
+    end,
+    lists:foreach(IsValidRule, Rules),
+    true.
+
+is_valid_rule(_, {_, _}) ->
+    ok;
+is_valid_rule(RuleName, none) ->
+    throw({invalid_rule, {rule_not_exist, RuleName}}).
 
 -spec normalize(configs()) -> configs().
 normalize(Config) when is_list(Config) ->
