@@ -84,31 +84,16 @@ validate(Config) ->
     lists:foreach(fun do_validate/1, Config).
 
 do_validate(RuleGroup) ->
-    case maps:is_key(src_dirs, RuleGroup) or maps:is_key(dirs, RuleGroup) of
-        false ->
-            throw({invalid_config, {missing_dirs, RuleGroup}});
-        true ->
-            ok
-    end,
-    case maps:is_key(dirs, RuleGroup) of
-        true ->
-            case maps:is_key(filter, RuleGroup) of
-                false ->
-                    throw({invalid_config, {missing_filter, RuleGroup}});
-                true ->
-                    ok
-            end;
-        false ->
-            ok
-    end,
-    case
-        (maps:is_key(rules, RuleGroup) andalso validate_rules(maps:get(rules, RuleGroup))) orelse
-            maps:is_key(ruleset, RuleGroup)
-    of
-        false ->
-            throw({invalid_config, {missing_rules, RuleGroup}});
-        true ->
-            ok
+    maybe
+        {true, _} ?=
+            {maps:is_key(src_dirs, RuleGroup) or maps:is_key(dirs, RuleGroup), missing_dirs},
+        {false, _} ?=
+            {(maps:is_key(dirs, RuleGroup) and not maps:is_key(filter, RuleGroup)), missing_filter},
+        {true, _} ?=
+            {maps:is_key(rules, RuleGroup) orelse maps:is_key(ruleset, RuleGroup), missing_rules},
+        {true, _} ?= {maps:is_key(rules, RuleGroup) andalso validate_rules(RuleGroup), invalid_rule}
+    else
+        {_, Error} -> throw({invalid_config, {Error, RuleGroup}})
     end.
 
 validate_rules(Rules) ->
