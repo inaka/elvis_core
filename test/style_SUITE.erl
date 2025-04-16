@@ -2220,6 +2220,8 @@ verify_no_match_in_condition(Config) ->
     [] = elvis_core_apply_rule(Config, elvis_style, no_match_in_condition, #{}, PassPath),
     PassPath2 = "pass_no_match_in_condition2." ++ Ext,
     [] = elvis_core_apply_rule(Config, elvis_style, no_match_in_condition, #{}, PassPath2),
+    PassPath3 = "pass_no_match_in_condition3." ++ Ext,
+    [] = elvis_core_apply_rule(Config, elvis_style, no_match_in_condition, #{}, PassPath3),
 
     FailPath = "fail_no_match_in_condition." ++ Ext,
     R = elvis_core_apply_rule(Config, elvis_style, no_match_in_condition, #{}, FailPath),
