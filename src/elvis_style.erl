@@ -1794,8 +1794,19 @@ no_match_in_condition(Config, Target, RuleConfig) ->
     ).
 
 is_match_in_condition(Node) ->
-    (ktn_code:type(Node) == case_expr orelse ktn_code:type(Node) == block) andalso
-        lists:any(fun is_match/1, ktn_code:content(Node)).
+    ktn_code:type(Node) == case_expr andalso
+        %% case_expr followed by a match
+        (has_match_child(Node) orelse
+            %% or case_expr followed by a block which contains a match in the first layer
+            lists:any(
+                fun(Node1) ->
+                    ktn_code:type(Node1) == block andalso has_match_child(Node1)
+                end,
+                ktn_code:content(Node)
+            )).
+
+has_match_child(Node) ->
+    lists:any(fun is_match/1, ktn_code:content(Node)).
 
 is_match(Node) ->
     ktn_code:type(Node) == match orelse ktn_code:type(Node) == maybe_match.
