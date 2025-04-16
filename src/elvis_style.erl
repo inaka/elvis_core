@@ -91,7 +91,8 @@
     behaviour_spelling_config/0,
     param_pattern_matching_config/0,
     private_data_type_config/0,
-    no_init_lists_config/0
+    no_init_lists_config/0,
+    no_operation_on_same_value_config/0
 ]).
 
 -define(NO_INIT_LISTS_MSG,
@@ -268,7 +269,8 @@
     "Comparison uses boolean on line ~p. Using booleans in comparison should be avoided."
 ).
 -define(NO_OPERATION_ON_SAME_VALUE,
-    "Operation ~p on line ~p is applied to the same value on each side. Since the result is known, it is redundant."
+    "Operation ~p on line ~p is has the same value on both sides."
+    " Since the result is known, it is redundant."
 ).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
