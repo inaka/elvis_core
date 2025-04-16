@@ -25,7 +25,22 @@ Things like ... | ... can be written as
 ## Options
 
 - `operations :: [atom()]`
-  - default: `['and', 'or', 'xor', '==', '/=', '=<', '<', '>=', '>', '=:=', '=/=', 'andalso', 'orelse', '=', '--']`
+  - default:
+    - `'and'`
+    - `'or'`
+    - `'xor'`
+    - `'=='`
+    - `'/='`
+    - `'=<'`
+    - `'<'`
+    - `'>='`
+    - `'>'`
+    - `'=:='`
+    - `'=/='`
+    - `'andalso'`
+    - `'orelse'`
+    - `'='`
+    - `'--'`
 
 ## Example
 
