@@ -52,7 +52,8 @@
     option/3,
     no_init_lists/3,
     ms_transform_included/3,
-    no_boolean_in_comparison/3
+    no_boolean_in_comparison/3,
+    no_operation_on_same_value/3
 ]).
 
 -export_type([empty_rule_config/0]).
@@ -266,6 +267,9 @@
 -define(NO_BOOLEAN_IN_COMPARISON,
     "Comparison uses boolean on line ~p. Using booleans in comparison should be avoided."
 ).
+-define(NO_OPERATION_ON_SAME_VALUE,
+    "Operation ~p on line ~p is applied to the same value on each side. Since the result is known, it is redundant."
+).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
@@ -430,6 +434,26 @@ default(consistent_generic_type) ->
     #{preferred_type => term};
 default(private_data_types) ->
     #{apply_to => [record]};
+default(no_operation_on_same_value) ->
+    #{
+        operations => [
+            'and',
+            'or',
+            'xor',
+            '==',
+            '/=',
+            '=<',
+            '<',
+            '>=',
+            '>',
+            '=:=',
+            '=/=',
+            'andalso',
+            'orelse',
+            '=',
+            '--'
+        ]
+    };
 default(RuleWithEmptyDefault) when
     RuleWithEmptyDefault == macro_module_names;
     RuleWithEmptyDefault == no_macros;
@@ -1597,6 +1621,24 @@ ms_transform_included(Config, Target, RuleConfig) ->
             lists:map(ResultFun, FunctionCalls)
     end.
 
+-spec get_fun_2_ms_calls(ktn_code:tree_node()) -> [any()].
+get_fun_2_ms_calls(Root) ->
+    IsFun2MsFunctionCall =
+        fun(Node) -> ktn_code:type(Node) == call andalso is_ets_fun2ms(Node) end,
+
+    Functions = elvis_code:find(IsFun2MsFunctionCall, Root),
+    ProcessResult = fun(Node) -> ktn_code:attr(location, Node) end,
+
+    lists:map(ProcessResult, Functions).
+
+-spec is_ets_fun2ms(ktn_code:tree_node()) -> boolean().
+is_ets_fun2ms(Node) ->
+    Fun = ktn_code:node_attr(function, Node),
+    Fun2 = ktn_code:node_attr(function, Fun),
+    Module = ktn_code:node_attr(module, Fun),
+
+    ets == ktn_code:attr(value, Module) andalso fun2ms == ktn_code:attr(value, Fun2).
+
 -spec no_boolean_in_comparison(
     elvis_config:config(),
     elvis_file:file(),
@@ -1635,23 +1677,63 @@ no_boolean_in_comparison(Config, Target, RuleConfig) ->
 
     lists:map(ResultFun, ComparisonsWithBoolean).
 
--spec get_fun_2_ms_calls(ktn_code:tree_node()) -> [any()].
-get_fun_2_ms_calls(Root) ->
-    IsFun2MsFunctionCall =
-        fun(Node) -> ktn_code:type(Node) == call andalso is_ets_fun2ms(Node) end,
+-type no_operation_on_same_value_config() :: #{operations := [atom()]}.
 
-    Functions = elvis_code:find(IsFun2MsFunctionCall, Root),
-    ProcessResult = fun(Node) -> ktn_code:attr(location, Node) end,
+-spec no_operation_on_same_value(
+    elvis_config:config(),
+    elvis_file:file(),
+    no_operation_on_same_value_config()
+) ->
+    [elvis_result:item()].
+no_operation_on_same_value(Config, Target, RuleConfig) ->
+    Root = get_root(Config, Target, RuleConfig),
+    InterestingOps = option(operations, RuleConfig, no_operation_on_same_value),
 
-    lists:map(ProcessResult, Functions).
+    IsInterestingOp =
+        fun(Node) ->
+            ktn_code:type(Node) == op andalso
+                lists:member(ktn_code:attr(operation, Node), InterestingOps)
+        end,
 
--spec is_ets_fun2ms(ktn_code:tree_node()) -> boolean().
-is_ets_fun2ms(Node) ->
-    Fun = ktn_code:node_attr(function, Node),
-    Fun2 = ktn_code:node_attr(function, Fun),
-    Module = ktn_code:node_attr(module, Fun),
+    OpNodes =
+        lists:uniq(
+            elvis_code:find(IsInterestingOp, Root, #{traverse => all})
+        ),
 
-    ets == ktn_code:attr(value, Module) andalso fun2ms == ktn_code:attr(value, Fun2).
+    BadOpNodes = lists:filter(fun same_value_on_both_sides/1, OpNodes),
+
+    ResultFun =
+        fun(Node) ->
+            {Line, _} = ktn_code:attr(location, Node),
+            Info = [ktn_code:attr(operation, Node), Line],
+            Msg = ?NO_OPERATION_ON_SAME_VALUE,
+            elvis_result:new(item, Msg, Info, Line)
+        end,
+
+    lists:map(ResultFun, BadOpNodes).
+
+same_value_on_both_sides(Node) ->
+    case ktn_code:content(Node) of
+        [Left, Right] ->
+            same_except_location_attr(Left, Right);
+        _ ->
+            false
+    end.
+
+same_except_location_attr([], []) ->
+    true;
+same_except_location_attr([LeftNode | LeftNodes], [RightNode | RigthNodes]) ->
+    same_except_location_attr(LeftNode, RightNode) andalso
+        same_except_location_attr(LeftNodes, RigthNodes);
+same_except_location_attr(LeftNode, RightNode) ->
+    %% If we're evaluating a function, then even if we evaluate the same function on both sides,
+    %% the results may be different.
+    ktn_code:type(LeftNode) /= call andalso
+        ktn_code:type(RightNode) /= call andalso
+        ktn_code:type(LeftNode) == ktn_code:type(RightNode) andalso
+        maps:remove(location, maps:get(attrs, LeftNode)) ==
+            maps:remove(location, maps:get(attrs, RightNode)) andalso
+        same_except_location_attr(ktn_code:content(LeftNode), ktn_code:content(RightNode)).
 
 -spec has_include_ms_transform(ktn_code:tree_node()) -> boolean().
 has_include_ms_transform(Root) ->
