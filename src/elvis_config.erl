@@ -89,46 +89,78 @@ do_validate(RuleGroup) ->
             {maps:is_key(src_dirs, RuleGroup) or maps:is_key(dirs, RuleGroup), missing_dirs},
         {false, _} ?=
             {(maps:is_key(dirs, RuleGroup) and not maps:is_key(filter, RuleGroup)), missing_filter},
-        {true, _} ?=
-            {maps:is_key(rules, RuleGroup) orelse maps:is_key(ruleset, RuleGroup), missing_rules},
-        {true, _} ?= {maps:is_key(rules, RuleGroup) andalso validate_rules(RuleGroup), invalid_rule}
+        {true, _} ?= {maps:is_key(rules, RuleGroup), missing_rules},
+        {[], invalid_modules} ?= invalid_modules(rules, RuleGroup),
+        {[], invalid_rules} ?= invalid_rules(maps:get(rules, RuleGroup))
     else
-        {_, Error} -> throw({invalid_config, {Error, RuleGroup}})
+        {false, missing_rules} ->
+            maybe_missing_rules(maps:is_key(ruleset, RuleGroup), RuleGroup);
+        {_, Error} ->
+            throw({invalid_config, {Error, RuleGroup}});
+        {InvalidModulesOrRules, Flag} ->
+            throw({invalid_config, {{Flag, InvalidModulesOrRules}, RuleGroup}})
     end.
 
-validate_rules(Rules) ->
-    [_, {exports, ValidRules}, _, _, _] = elvis_style:module_info(),
-    [_, {exports, ValidRulesText}, _, _, _] = elvis_text_style:module_info(),
+invalid_modules(Rules) ->
+    InvalidModules =
+        lists:uniq(
+            lists:any(
+                fun
+                    ({Module, _}) ->
+                        not code:is_loaded(Module);
+                    ({Module, _, _}) ->
+                        not code:is_loaded(Module)
+                end,
+                Rules
+            )
+        ),
+    {InvalidModules, invalid_modules}.
 
-    % io:format(user, "~n----------------------------------~n", []),
-    % io:format(user, "rules ~p~n", [Rules]),
-    % io:format(user, "valid rules ~p~n", [ValidRules]),
-    % io:format(user, "------------------------------------~n", []),
+invalid_rules(Rules) ->
+    ExportedRules =
+        lists:uniq(
+            lists:map(
+                fun
+                    ({Module, _}) ->
+                        [_, {exports, ExportedRules}, _, _, _] = apply(Module, module_info, []),
+                        {Module, ExportedRules};
+                    ({Module, _, _}) ->
+                        [_, {exports, ExportedRules}, _, _, _] = apply(Module, module_info, []),
+                        {Module, ExportedRules}
+                end,
+                Rules
+            )
+        ),
+
     IsValidRule = fun
-        ({elvis_style, RuleName}) ->
-            is_valid_rule(RuleName, proplists:lookup(RuleName, ValidRules));
-        ({elvis_style, RuleName, _}) ->
-            is_valid_rule(RuleName, proplists:lookup(RuleName, ValidRules));
-        ({elvis_text_style, RuleName}) ->
-            is_valid_rule(RuleName, proplists:lookup(RuleName, ValidRulesText));
-        ({elvis_text_style, RuleName, _}) ->
-            is_valid_rule(RuleName, proplists:lookup(RuleName, ValidRulesText));
-        ({user_defined_rules, _}) ->
-            ok;
-        ({user_defined_rules, _, _}) ->
-            ok
-        % (Any) ->
-        %      io:format(user, "~n----------------------------------~n", []),
-        %      io:format(user, "~p~n", [Any]),
-        %      io:format(user, "------------------------------------~n", [])
+        ({Module, RuleName}) ->
+            is_invalid_rule(
+                RuleName,
+                proplists:lookup(
+                    RuleName,
+                    proplists:get_value(Module, ExportedRules, [])
+                )
+            );
+        ({Module, RuleName, _}) ->
+            is_invalid_rule(
+                RuleName,
+                proplists:lookup(
+                    RuleName,
+                    proplists:get_value(Module, ExportedRules, [])
+                )
+            )
     end,
-    lists:foreach(IsValidRule, Rules),
-    true.
+    {lists:filter(IsValidRule, Rules), invalid_rules}.
 
-is_valid_rule(_, {_, _}) ->
+is_invalid_rule(_, {_, _}) ->
+    false;
+is_invalid_rule(RuleName, none) ->
+    {true, RuleName}.
+
+maybe_missing_rules(true, _) ->
     ok;
-is_valid_rule(RuleName, none) ->
-    throw({invalid_rule, {rule_not_exist, RuleName}}).
+maybe_missing_rules(false, RuleGroup) ->
+    throw({invalid_config, {missing_rules, RuleGroup}}).
 
 -spec normalize(configs()) -> configs().
 normalize(Config) when is_list(Config) ->
