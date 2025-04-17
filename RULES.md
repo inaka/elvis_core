@@ -67,6 +67,7 @@ identified with `(since ...)` for convenience purposes.
 - [ms_transform included](doc_rules/elvis_style/ms_transform_included.md)
 - [No Redundant Blank Lines](doc_rules/elvis_text_style/no_redundant_blank_lines.md)
 - [No Boolean In Comparison](doc_rules/elvis_style/no_boolean_in_comparison.md)
+- [No Operator with Same Values](doc_rules/elvis_style/no_operation_on_same_value.md)
 
 ## `.gitignore` rules
 
