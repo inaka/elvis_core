@@ -90,72 +90,63 @@ do_validate(RuleGroup) ->
         {false, _} ?=
             {(maps:is_key(dirs, RuleGroup) and not maps:is_key(filter, RuleGroup)), missing_filter},
         {true, _} ?= {maps:is_key(rules, RuleGroup), missing_rules},
-        {[], invalid_modules} ?= invalid_modules(rules, RuleGroup),
         {[], invalid_rules} ?= invalid_rules(maps:get(rules, RuleGroup))
     else
         {false, missing_rules} ->
             maybe_missing_rules(maps:is_key(ruleset, RuleGroup), RuleGroup);
+        {InvalidConfigElements, invalid_rules} ->
+            throw({invalid_config, {{invalid_rules, InvalidConfigElements}, RuleGroup}});
         {_, Error} ->
-            throw({invalid_config, {Error, RuleGroup}});
-        {InvalidModulesOrRules, Flag} ->
-            throw({invalid_config, {{Flag, InvalidModulesOrRules}, RuleGroup}})
+            throw({invalid_config, {Error, RuleGroup}})
     end.
 
-invalid_modules(Rules) ->
-    InvalidModules =
-        lists:uniq(
-            lists:any(
-                fun
-                    ({Module, _}) ->
-                        not code:is_loaded(Module);
-                    ({Module, _, _}) ->
-                        not code:is_loaded(Module)
-                end,
-                Rules
-            )
-        ),
-    {InvalidModules, invalid_modules}.
-
 invalid_rules(Rules) ->
-    ExportedRules =
-        lists:uniq(
-            lists:map(
-                fun
-                    ({Module, _}) ->
-                        [_, {exports, ExportedRules}, _, _, _] = apply(Module, module_info, []),
-                        {Module, ExportedRules};
-                    ({Module, _, _}) ->
-                        [_, {exports, ExportedRules}, _, _, _] = apply(Module, module_info, []),
-                        {Module, ExportedRules}
-                end,
-                Rules
-            )
-        ),
+    IsValidRule =
+        fun
+            ({Module, RuleName}) ->
+                maybe
+                    true ?= file_exists(Module),
+                    [_, {exports, ExportedRules}, _, _, _] = apply(Module, module_info, []),
+                    is_invalid_rule(
+                        RuleName,
+                        proplists:lookup(
+                            RuleName,
+                            ExportedRules
+                        )
+                    )
+                else
+                    false -> {true, {invalid_module, Module}}
+                end;
+            ({Module, RuleName, _}) ->
+                maybe
+                    true ?= file_exists(Module),
+                    [_, {exports, ExportedRules}, _, _, _] = apply(Module, module_info, []),
+                    is_invalid_rule(
+                        RuleName,
+                        proplists:lookup(
+                            RuleName,
+                            ExportedRules
+                        )
+                    )
+                else
+                    false -> {true, {invalid_module, Module}}
+                end
+        end,
 
-    IsValidRule = fun
-        ({Module, RuleName}) ->
-            is_invalid_rule(
-                RuleName,
-                proplists:lookup(
-                    RuleName,
-                    proplists:get_value(Module, ExportedRules, [])
-                )
-            );
-        ({Module, RuleName, _}) ->
-            is_invalid_rule(
-                RuleName,
-                proplists:lookup(
-                    RuleName,
-                    proplists:get_value(Module, ExportedRules, [])
-                )
-            )
-    end,
-    {lists:filter(IsValidRule, Rules), invalid_rules}.
+    {lists:filtermap(IsValidRule, Rules), invalid_rules}.
 
 is_invalid_rule(_, {_, _}) ->
     false;
 is_invalid_rule(RuleName, none) ->
     {true, RuleName}.
+
+file_exists(File) ->
+    maybe
+        false ?= code:is_loaded(File),
+        false
+    else
+        _ -> true
+    end.
 
 maybe_missing_rules(true, _) ->
     ok;

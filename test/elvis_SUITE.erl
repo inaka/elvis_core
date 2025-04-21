@@ -429,7 +429,7 @@ rock_with_umbrella_apps(_Config) ->
 rock_with_invalid_rules(_Config) ->
     ConfigPath = "../../test/examples/invalid_rules.elvis.config",
     ElvisConfig = elvis_config:from_file(ConfigPath),
-    ok =
+    fail =
         try
             ok = elvis_core:rock(ElvisConfig),
             fail
