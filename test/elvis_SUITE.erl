@@ -430,12 +430,12 @@ rock_with_invalid_rules(_Config) ->
     ConfigPath = "../../test/examples/invalid_rules.elvis.config",
     ElvisConfig = elvis_config:from_file(ConfigPath),
     ExpectedErrorMessage =
-        {{invalid_rules, [
+        {invalid_rules, [
             {invalid_rule, {elvis_style, not_existing_rule}},
             {invalid_rule, {elvis_style, what_is_this_rule}},
-            {invalid_module, {not_existing_module}},
-            {invalid_module, {not_existing_module}}
-        ]}},
+            {invalid_module, not_existing_module},
+            {invalid_module, not_existing_module}
+        ]},
     ok =
         try
             ok = elvis_core:rock(ElvisConfig),

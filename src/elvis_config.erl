@@ -85,20 +85,39 @@ validate(Config) ->
 
 do_validate(RuleGroup) ->
     maybe
-        {_, true} ?=
-            {missing_dirs, maps:is_key(src_dirs, RuleGroup) or maps:is_key(dirs, RuleGroup)},
-        {_, false} ?=
-            {missing_filter, (maps:is_key(dirs, RuleGroup) and not maps:is_key(filter, RuleGroup))},
-        {_, true} ?= {missing_rules, maps:is_key(rules, RuleGroup)},
-        {invalid_rules, []} ?= invalid_rules(maps:get(rules, RuleGroup))
+        ok ?=
+            maybe_boolean_wrapper(
+                (maps:is_key(src_dirs, RuleGroup) or maps:is_key(dirs, RuleGroup)),
+                missing_dirs
+            ),
+        ok ?=
+            maybe_boolean_wrapper(
+                not (maps:is_key(dirs, RuleGroup) and not maps:is_key(filter, RuleGroup)),
+                missing_filter
+            ),
+        ok ?=
+            maybe_boolean_wrapper(
+                (maps:is_key(rules, RuleGroup) or maps:is_key(ruleset, RuleGroup)),
+                missing_rules
+            ),
+        [] ?= maybe_invalid_rules(RuleGroup, maps:is_key(rules, RuleGroup))
     else
-        {missing_rules, false} ->
-            maybe_missing_rules(maps:is_key(ruleset, RuleGroup), RuleGroup);
-        {invalid_rules, InvalidConfigElements} ->
-            throw({invalid_config, {{invalid_rules, InvalidConfigElements}}});
-        {_, Error} ->
-            throw({invalid_config, {Error, RuleGroup}})
+        {error, Error} ->
+            throw({invalid_config, Error});
+        InvalidRules ->
+            throw({invalid_config, {invalid_rules, InvalidRules}})
     end.
+
+maybe_boolean_wrapper(Case, Flag) ->
+    case Case of
+        true -> ok;
+        false -> {error, Flag}
+    end.
+
+maybe_invalid_rules(_, false) ->
+    [];
+maybe_invalid_rules(RuleGroup, true) ->
+    invalid_rules(maps:get(rules, RuleGroup)).
 
 invalid_rules(Rules) ->
     IsInvalidRule = fun
@@ -107,7 +126,7 @@ invalid_rules(Rules) ->
         ({Module, RuleName}) ->
             is_invalid_rule({Module, RuleName})
     end,
-    {invalid_rules, lists:filtermap(IsInvalidRule, Rules)}.
+    lists:filtermap(IsInvalidRule, Rules).
 
 is_invalid_rule({Module, RuleName}) ->
     IsInvalid = fun
@@ -127,13 +146,8 @@ is_invalid_rule({Module, RuleName}) ->
             )
         )
     else
-        false -> {true, {invalid_module, {Module}}}
+        false -> {true, {invalid_module, Module}}
     end.
-
-maybe_missing_rules(true, _) ->
-    ok;
-maybe_missing_rules(false, RuleGroup) ->
-    throw({invalid_config, {missing_rules, RuleGroup}}).
 
 -spec normalize(configs()) -> configs().
 normalize(Config) when is_list(Config) ->
