@@ -108,11 +108,8 @@ do_validate(RuleGroup) ->
             throw({invalid_config, {invalid_rules, InvalidRules}})
     end.
 
-maybe_boolean_wrapper(Case, Flag) ->
-    case Case of
-        true -> ok;
-        false -> {error, Flag}
-    end.
+maybe_boolean_wrapper(true, _Flag) -> ok;
+maybe_boolean_wrapper(false, Flag) -> {error, Flag}.
 
 maybe_invalid_rules(_, false) ->
     [];
