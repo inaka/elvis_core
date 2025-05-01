@@ -1,6 +1,8 @@
 # No debug call
 
-Don't leave debugging function calls such as `io:format` or `ct:pal` in your source code.
+Don't leave debugging function calls, such as `io:format/1` or `ct:pal/1,2,3,4,5`, in your source
+code.
+The functions listed in option `debug_functions` are the ones you want the rule to warn you about.
 
 > Works on `.beam` file? Yes!
 
