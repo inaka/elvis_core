@@ -85,21 +85,9 @@ validate(Config) ->
 
 do_validate(RuleGroup) ->
     maybe
-        ok ?=
-            maybe_boolean_wrapper(
-                (maps:is_key(src_dirs, RuleGroup) or maps:is_key(dirs, RuleGroup)),
-                missing_dirs
-            ),
-        ok ?=
-            maybe_boolean_wrapper(
-                not (maps:is_key(dirs, RuleGroup) and not maps:is_key(filter, RuleGroup)),
-                missing_filter
-            ),
-        ok ?=
-            maybe_boolean_wrapper(
-                (maps:is_key(rules, RuleGroup) or maps:is_key(ruleset, RuleGroup)),
-                missing_rules
-            ),
+        ok ?= maybe_missing_dirs(RuleGroup),
+        ok ?= maybe_missing_filter(RuleGroup),
+        ok ?= maybe_missing_rules(RuleGroup),
         [] ?= maybe_invalid_rules(RuleGroup, maps:is_key(rules, RuleGroup))
     else
         {error, Error} ->
@@ -107,6 +95,21 @@ do_validate(RuleGroup) ->
         InvalidRules ->
             throw({invalid_config, {invalid_rules, InvalidRules}})
     end.
+
+maybe_missing_dirs(RuleGroup) ->
+    maybe_boolean_wrapper(
+        not (maps:is_key(dirs, RuleGroup) and not maps:is_key(filter, RuleGroup)), missing_dir
+    ).
+
+maybe_missing_filter(RuleGroup) ->
+    maybe_boolean_wrapper(
+        maps:is_key(src_dirs, RuleGroup) or maps:is_key(dirs, RuleGroup), missing_filter
+    ).
+
+maybe_missing_rules(RuleGroup) ->
+    maybe_boolean_wrapper(
+        maps:is_key(rules, RuleGroup) or maps:is_key(ruleset, RuleGroup), missing_rules
+    ).
 
 maybe_boolean_wrapper(true, _Flag) -> ok;
 maybe_boolean_wrapper(false, Flag) -> {error, Flag}.
