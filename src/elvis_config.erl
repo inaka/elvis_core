@@ -146,7 +146,9 @@ is_invalid_rule({Module, RuleName}) ->
             )
         )
     else
-        false -> {true, {invalid_module, Module}}
+        false ->
+            elvis_utils:warn_prn("Invalid module: ~p~n", [Module]),
+            false
     end.
 
 -spec normalize(configs()) -> configs().

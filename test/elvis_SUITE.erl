@@ -375,15 +375,15 @@ rock_with_rule_groups(_Config) ->
 
 -spec rock_this_skipping_files(Config :: config()) -> ok.
 rock_this_skipping_files(_Config) ->
-    % meck:new(elvis_file, [passthrough]),
-    % Dirs = ["../../_build/test/lib/elvis_core/test/examples"],
-    % [File] = elvis_file:find_files(Dirs, "small.erl"),
-    % Path = elvis_file:path(File),
-    % ConfigPath = "../../config/elvis-test-pa.config",
-    % ElvisConfig = elvis_config:from_file(ConfigPath),
-    % ok = elvis_core:rock_this(Path, ElvisConfig),
-    % 0 = meck:num_calls(elvis_file, load_file_data, '_'),
-    % meck:unload(elvis_file),
+    meck:new(elvis_file, [passthrough]),
+    Dirs = ["../../_build/test/lib/elvis_core/test/examples"],
+    [File] = elvis_file:find_files(Dirs, "small.erl"),
+    Path = elvis_file:path(File),
+    ConfigPath = "../../config/elvis-test-pa.config",
+    ElvisConfig = elvis_config:from_file(ConfigPath),
+    ok = elvis_core:rock_this(Path, ElvisConfig),
+    0 = meck:num_calls(elvis_file, load_file_data, '_'),
+    meck:unload(elvis_file),
     ok.
 
 -spec rock_this_not_skipping_files(Config :: config()) -> ok.
@@ -432,9 +432,7 @@ rock_with_invalid_rules(_Config) ->
     ExpectedErrorMessage =
         {invalid_rules, [
             {invalid_rule, {elvis_style, not_existing_rule}},
-            {invalid_rule, {elvis_style, what_is_this_rule}},
-            {invalid_module, not_existing_module},
-            {invalid_module, not_existing_module}
+            {invalid_rule, {elvis_style, what_is_this_rule}}
         ]},
     ok =
         try
