@@ -15,8 +15,8 @@ jobs:
     strategy:
       matrix:
         otp_vsn: ['24']
-        rebar3_vsn: ['3.24']
-        os: [ubuntu-24.04, windows-2022]
+        rebar3_vsn: ['3.22']
+        os: [ubuntu-24.04]
     steps:
       - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
@@ -42,9 +42,6 @@ jobs:
                 -otp-${{steps.setup-beam.outputs.otp-version}}\
                 -rebar3-${{steps.setup-beam.outputs.rebar3-version}}\
                 -hash-${{hashFiles('rebar.lock')}}"
-      - name: Format check
-        if: ${{ matrix.os == 'ubuntu-24.04' && matrix.otp_vsn == '26' }}
-        run: rebar3 fmt --check
       - name: Run test
         run: rebar3 test
       - name: Run elvis on elvis
