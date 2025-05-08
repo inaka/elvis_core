@@ -1665,7 +1665,7 @@ no_boolean_in_comparison(Config, Target, RuleConfig) ->
                 lists:any(IsBoolean, Content)
         end,
     ComparisonsWithBoolean =
-        lists:uniq(
+        lists:usort(
             elvis_code:find(IsComparisonWithBoolean, Root, #{traverse => all})
         ),
 
@@ -1698,7 +1698,7 @@ no_operation_on_same_value(Config, Target, RuleConfig) ->
         end,
 
     OpNodes =
-        lists:uniq(
+        lists:usort(
             elvis_code:find(IsInterestingOp, Root, #{traverse => all})
         ),
 
