@@ -20,18 +20,20 @@ trial and error process of setting a value, checking what is reported, and repea
 ```erlang
 process_order(OrderTotal) ->
     DiscountedTotal = OrderTotal - (OrderTotal * 0.1),
+                    % ^_the problem_________________^
     io:format("Order total after discount: ~p~n", [DiscountedTotal]),
     DiscountedTotal.
 
 process_invoice(InvoiceTotal) ->
     DiscountedTotal = InvoiceTotal - (InvoiceTotal * 0.1),
+                    % ^_the problem_____________________^
     io:format("Invoice total after discount: ~p~n", [DiscountedTotal]),
     DiscountedTotal.
 ```
 
 ## Correct code
 
-Note that we replace the discount implementation by a single function where we had 2.
+Note that we replace the _discount_ implementation by a single function, where we previously had 2.
 
 ```erlang
 process_order(OrderTotal) ->
@@ -57,7 +59,7 @@ for a few reasons:
 * **increased risk of bugs**: more code, higher risk for bugs, some of which might be
 harder to detect, and fix
 * **code bloat**: unnecessary increase of codebase size - harder to read and navigate
-* **harder to test**: with logic spread across your code base validation becomes more complex,
+* **harder to test**: with logic spread across your codebase validation becomes more complex,
 and higher coverage more difficult to achieve
 
 ## Options

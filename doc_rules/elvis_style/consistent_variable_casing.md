@@ -5,6 +5,8 @@
 All variables with the _same name_ should use the same (upper or lower) casing style.
 This is to avoid instances of `UserID` mixed with instances of `UserId` or `Userid`.
 
+> Works on `.beam` file? Yes!
+
 ## Problematic code
 
 This is a convention for consistency, not a code problem.
@@ -32,10 +34,8 @@ inconsistency.
 
 ## Rationale
 
-By defining a particular casing style you increase consistency across your code base,
+By defining a particular casing style you increase consistency across your codebase,
 and it also makes it easier to perform case-sensitive, whole-word searches.
-
-> Works on `.beam` file? Yes!
 
 ## Options
 

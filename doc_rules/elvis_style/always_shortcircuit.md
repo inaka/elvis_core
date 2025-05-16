@@ -23,7 +23,7 @@ Expr1 andalso Expr2
 ## Rationale
 
 Even though `orelse`/`andalso` are more verbose than `or`/`and`,
-they also implement the behaviour expected by most developers, which
+they implement the behaviour expected by most developers, which
 is to only evaluate `Expr2` when `Expr1` is:
 
 * `false`, for `orelse`

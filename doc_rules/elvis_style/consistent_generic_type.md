@@ -36,7 +36,7 @@ or
 
 ## Rationale
 
-By defining a particular "term" type you increase consistency across your code base.
+By defining a particular "term" type you increase consistency across your codebase.
 
 ## Options
 

@@ -36,10 +36,10 @@ or
 
 ## Rationale
 
-By defining a particular spelling you increase consistency across your code base.
+By defining a particular spelling you increase consistency across your codebase.
 
 Erlang's proposed default is (the one most found in the official documentation)
-`behaviour`, but they also write "The spelling behavior is also accepted."
+`behaviour`, but they also write "The spelling `behavior` is also accepted."
 
 ## Options
 

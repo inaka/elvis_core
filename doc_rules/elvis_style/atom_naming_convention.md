@@ -28,7 +28,7 @@ an_atom
 ## Rationale
 
 By defining a regular expression for naming atoms you increase consistency across
-your code base.
+your codebase.
 
 ## Options
 
