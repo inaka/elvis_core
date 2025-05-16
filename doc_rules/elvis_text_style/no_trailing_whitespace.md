@@ -5,6 +5,10 @@ There should be no lines that end with whitespace characters.
 > Works on `.beam` file? Not really! (it consumes results Ok, but these might be unexpected, since
 there's no notion of "whitespace" in BEAM files)
 
+## Quick fix
+
+Use an Erlang code formatter.
+
 ## Options
 
 - `ignore_empty_lines :: boolean()`

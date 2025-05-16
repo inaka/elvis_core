@@ -8,6 +8,12 @@ then tweak to your liking.
 Rules and other significant changes, like new options (starting from version `0.4.0`), are
 identified with `(since ...)` for convenience purposes.
 
+## Quick fixes
+
+Most, if not all, of the rules will present (opinionated) documentation sections called
+"Problematic code" vs "Correct code" section. We try to include a "Rationale" with them and,
+in some cases, an "Exceptions" or "Quick fix", if applicable.
+
 ## Style rules
 
 - [Always Shortcircuit](doc_rules/elvis_style/always_shortcircuit.md)

@@ -4,6 +4,10 @@ Do not use quotes on atoms that don't need to be quoted.
 
 > Works on `.beam` file? Not really! (it consumes results Ok, but these might be unexpected)
 
+## Quick fix
+
+Use an Erlang code formatter.
+
 ## Options
 
 - None.

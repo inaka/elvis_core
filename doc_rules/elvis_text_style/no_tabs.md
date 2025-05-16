@@ -2,6 +2,10 @@
 
 There should be no lines that contain tabs instead of spaces.
 
+## Quick fix
+
+Use an Erlang code formatter.
+
 ## Options
 
 - None.

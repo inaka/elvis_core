@@ -15,6 +15,51 @@ trial and error process of setting a value, checking what is reported, and repea
 
 > Works on `.beam` file? Yes!
 
+## Problematic code
+
+```erlang
+process_order(OrderTotal) ->
+    DiscountedTotal = OrderTotal - (OrderTotal * 0.1),
+    io:format("Order total after discount: ~p~n", [DiscountedTotal]),
+    DiscountedTotal.
+
+process_invoice(InvoiceTotal) ->
+    DiscountedTotal = InvoiceTotal - (InvoiceTotal * 0.1),
+    io:format("Invoice total after discount: ~p~n", [DiscountedTotal]),
+    DiscountedTotal.
+```
+
+## Correct code
+
+Note that we replace the discount implementation by a single function where we had 2.
+
+```erlang
+process_order(OrderTotal) ->
+    DiscountedTotal = apply_discount(OrderTotal),
+    io:format("Order total after discount: ~p~n", [DiscountedTotal]),
+    DiscountedTotal.
+
+process_invoice(InvoiceTotal) ->
+    DiscountedTotal = apply_discount(InvoiceTotal),
+    io:format("Invoice total after discount: ~p~n", [DiscountedTotal]),
+    DiscountedTotal.
+
+apply_discount(Amount) ->
+    Amount - (Amount * 0.1).
+```
+
+## Rationale
+
+Repeated code, or code duplication, is a relevant problem in software development,
+for a few reasons:
+
+* **harder to maintain**: repeated logic has to be updated in multiple places
+* **increased risk of bugs**: more code, higher risk for bugs, some of which might be
+harder to detect, and fix
+* **code bloat**: unnecessary increase of codebase size - harder to read and navigate
+* **harder to test**: with logic spread across your code base validation becomes more complex,
+and higher coverage more difficult to achieve
+
 ## Options
 
 - `min_complexity :: non_neg_integer()`.

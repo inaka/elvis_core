@@ -11,6 +11,25 @@ use `forbidden_enclosed_regex`(use `same` if you want the same value as `forbidd
 
 > Works on `.beam` file? Yes!
 
+## Problematic code
+
+This is a convention for consistency, not a code problem.
+
+```erlang
+an____atom
+```
+
+## Correct code
+
+```erlang
+an_atom
+```
+
+## Rationale
+
+By defining a regular expression for naming atoms you increase consistency across
+your code base.
+
 ## Options
 
 - `regex :: string()`.

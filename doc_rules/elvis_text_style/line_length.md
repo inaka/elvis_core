@@ -4,6 +4,10 @@ No line should be longer than a given limit. Comments can be skipped.
 
 > Works on `.beam` file? No.
 
+## Quick fix
+
+Use an Erlang code formatter.
+
 ## Options
 
 - `limit :: pos_integer()`

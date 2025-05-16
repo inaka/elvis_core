@@ -4,6 +4,10 @@ There should be no more blank lines after each other than the `max_lines` variab
 
 > Works on `.beam` file? No.
 
+## Quick fix
+
+Use an Erlang code formatter.
+
 ## Options
 
 - `max_lines :: integet().`
