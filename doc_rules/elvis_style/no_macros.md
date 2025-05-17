@@ -12,11 +12,11 @@ Predefined macros (`MODULE`, `FUNCTION_NAME`, ...) are an exception to this rule
 
 ## Rationale
 
-Macros can lead to code that is harder to debug, maintain, and understand due to their compile-time expansion. They obscure logic by replacing code with textual substitutions, making the behavior of the program less predictable and harder to trace. It's generally better to use functions, which are more transparent and maintainable, unless there is a strong performance or architectural reason to use macros
-
-Macros should be avoided. An exception to this is the usage of predefined macros, like `FUNCTION`,
-and `MODULE`.
-
+Macros can lead to code that is harder to debug, maintain, and understand due to their compile-time
+expansion. They obscure logic by replacing code with textual substitutions, making the behavior of
+the program less predictable and harder to trace. It's generally better to use functions, which are
+more transparent and maintainable, unless there is a strong performance or architectural reason to
+use macros.
 
 ## Options
 
