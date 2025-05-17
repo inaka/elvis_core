@@ -23,9 +23,6 @@ instead of `gen_server:call/2`) so you're sure to not have forgotten it.
              , {gen_event, call, 3}
               ]`
 
-**Notice**: this rule is not enforced by default. Check the
-[example `elvis.config` file](../../README.md#configuration) to see how you can enforce it.
-
 ## Example
 
 ```erlang

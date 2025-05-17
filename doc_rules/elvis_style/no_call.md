@@ -8,9 +8,6 @@ This rule raise a warning when certain functions are called. It is also used int
 to avoid (especially calls to third party libraries, where you can't just deprecate undesired
 functions).
 
-**Notice**: this rule is not enforced by default. Check the
-[example `elvis.config` file](../../README.md#configuration) to see how you can enforce it.
-
 > Works on `.beam` file? Yes!
 
 ## Options
