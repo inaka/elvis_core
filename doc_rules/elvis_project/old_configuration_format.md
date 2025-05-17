@@ -9,5 +9,5 @@ Checks the `elvis.config` doesn't use an old format.
 ## Example
 
 ```erlang
-{elvis_project, old_configuration_format}
+{elvis_project, old_configuration_format, #{}}
 ```

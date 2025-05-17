@@ -9,7 +9,7 @@ to avoid mismatches, such as `UserID` being mixed with `UserId` or `Userid`.
 
 ## Problematic code
 
-This is a convention aimed at ensuring consistency, rather than a coding issue.
+> This is a convention aimed at ensuring consistency, rather than a coding issue.
 
 Depending on your choice, the problematic code may be:
 
@@ -43,5 +43,5 @@ case-sensitive, whole-word searches.
 ## Example
 
 ```erlang
-{elvis_style, consistent_variable_casing}
+{elvis_style, consistent_variable_casing, #{}}
 ```

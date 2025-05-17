@@ -52,10 +52,10 @@ lead to cleaner and more manageable code.
 
 ## Options
 
-- `max_arity :: non_neg_integer()`.
-  - default: `8`.
-- `non_exported_max_arity :: non_neg_integer() | same`.
-  - default: `8`.
+- `max_arity :: non_neg_integer()`
+  - default: `8`
+- `non_exported_max_arity :: non_neg_integer() | same`
+  - default: `8`
 
 ## Example
 

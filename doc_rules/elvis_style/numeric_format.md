@@ -13,13 +13,13 @@ numbers there are just numbers; they can't be formatted)
 
 ## Options
 
-- `regex :: string()`.
-  - default: `".*"`.
-- `int_regex :: string() | same`.
-  - default: `same`.
+- `regex :: string()`
+  - default: `".*"`
+- `int_regex :: string() | same`
+  - default: `same`
   - `same` means _use the generic regex_
-- `float_regex :: string() | same`.
-  - default: `same`.
+- `float_regex :: string() | same`
+  - default: `same`
   - `same` means _use the generic regex_
 
 ## Example

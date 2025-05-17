@@ -8,7 +8,7 @@ The functions listed in option `debug_functions` are the ones you want the rule 
 
 ## Options
 
-- `debug_functions :: [{module(), function(), arity()} | {module(), function()}]`.
+- `debug_functions :: [{module(), function(), arity()} | {module(), function()}]`
   - default: `[{ct, pal}, {ct, print}, {io, format, 1}, {io, format, 2}, {erlang, display, 1},
     {io, put_chars, 1}, {io, put_chars, 2}]`
   (`{erlang, display, 1}` is only included since

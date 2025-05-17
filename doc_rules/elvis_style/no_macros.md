@@ -10,7 +10,7 @@ and `MODULE`. User-defined exceptions can also be found in option `allow`.
 ## Options
 
 - `allow :: [atom()]`
-  - default: `disable`.
+  - default: `disable`
 
 ## Example
 

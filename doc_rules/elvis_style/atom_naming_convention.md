@@ -15,7 +15,7 @@ use `forbidden_enclosed_regex`. Again, same may be used to reuse the forbidden_r
 
 ## Problematic code
 
-This is a convention aimed at ensuring consistency, rather than a coding issue.
+> This is a convention aimed at ensuring consistency, rather than a coding issue.
 
 ```erlang
 an____atom
@@ -33,14 +33,14 @@ By defining a regular expression for naming atoms you increase consistency acros
 
 ## Options
 
-- `regex :: string()`.
-  - default: `"^([a-z][a-z0-9]*_?)*(_SUITE)?$"`.
-- `enclosed_atoms :: string() | same`.
-  - default: `".*"`.
-- `forbidden_regex :: string() | undefined`.
-  - default: `undefined`.
-- `forbidden_enclosed_regex :: string() | undefined | same`.
-  - default: `undefined`.
+- `regex :: string()`
+  - default: `"^([a-z][a-z0-9]*_?)*(_SUITE)?$"`
+- `enclosed_atoms :: string() | same`
+  - default: `".*"`
+- `forbidden_regex :: string() | undefined`
+  - default: `undefined`
+- `forbidden_enclosed_regex :: string() | undefined | same`
+  - default: `undefined`
 
 ## Example
 

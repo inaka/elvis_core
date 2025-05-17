@@ -64,8 +64,8 @@ and achieving high test coverage becomes more challenging
 
 ## Options
 
-- `min_complexity :: non_neg_integer()`.
-  - default: `10`.
+- `min_complexity :: non_neg_integer()`
+  - default: `10`
 
 ## Example
 

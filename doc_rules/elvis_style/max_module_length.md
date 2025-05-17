@@ -12,8 +12,8 @@ the files are pre-processed)
 
 ## Options
 
-- `max_length :: non_neg_integer()`.
-  - default: `500`.
+- `max_length :: non_neg_integer()`
+  - default: `500`
 - `count_comments :: boolean()`
   - default: `false`
 - `count_whitespace :: boolean()`

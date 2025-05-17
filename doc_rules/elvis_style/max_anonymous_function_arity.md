@@ -53,8 +53,8 @@ lead to cleaner and more manageable code.
 
 ## Options
 
-- `max_arity :: non_neg_integer()`.
-  - default: `5`.
+- `max_arity :: non_neg_integer()`
+  - default: `5`
 
 ## Example
 

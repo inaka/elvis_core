@@ -7,7 +7,7 @@ the `forbidden_regex` option pattern, in which case they are disallowed.
 
 ## Problematic code
 
-This is a convention aimed at ensuring consistency, rather than a coding issue.
+> This is a convention aimed at ensuring consistency, rather than a coding issue.
 
 ```erlang
 a____function() -> ok.
@@ -37,10 +37,10 @@ By defining a regular expression for naming functions you increase consistency a
 
 ## Options
 
-- `regex :: string()`.
-  - default: `"^[a-z](_?[a-z0-9]+)*$"`.
-- `forbidden_regex :: string() | undefined`.
-  - default: `undefined`.
+- `regex :: string()`
+  - default: `"^[a-z](_?[a-z0-9]+)*$"`
+- `forbidden_regex :: string() | undefined`
+  - default: `undefined`
 
 ## Example
 

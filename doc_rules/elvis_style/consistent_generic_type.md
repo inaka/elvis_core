@@ -6,7 +6,7 @@ Use `term()` or `any()` consistently when specifying types in specs.
 
 ## Problematic code
 
-This is a convention aimed at ensuring consistency, rather than a coding issue.
+> This is a convention aimed at ensuring consistency, rather than a coding issue.
 
 Depending on your choice, the problematic code may be:
 
@@ -40,8 +40,8 @@ Defining a specific "term" type enhances consistency across your codebase.
 
 ## Options
 
-- `preferred_type :: term | any`.
-  - default: `term`.
+- `preferred_type :: term | any`
+  - default: `term`
 
 ## Example
 

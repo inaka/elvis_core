@@ -6,7 +6,7 @@ Behavior attribute names in modules should follow a consistent spelling conventi
 
 ## Problematic code
 
-This is a convention aimed at ensuring consistency, rather than a coding issue.
+> This is a convention aimed at ensuring consistency, rather than a coding issue.
 
 Depending on your choice, the problematic code may be:
 
@@ -43,8 +43,8 @@ documentation. However, the spelling `behavior` is also accepted.
 
 ## Options
 
-- `spelling :: behaviour | behavior`.
-  - default: `behaviour`.
+- `spelling :: behaviour | behavior`
+  - default: `behaviour`
 
 ## Example
 

@@ -6,7 +6,7 @@ Macro names should consist only of uppercase alphanumeric characters.
 
 ## Problematic code
 
-This is a convention aimed at ensuring consistency, rather than a coding issue.
+> This is a convention aimed at ensuring consistency, rather than a coding issue.
 
 ```erlang
 -define('myMacro\'sDaBomb!'(), io:format("My macro's da bomb!~n")).
@@ -35,7 +35,7 @@ standard.
 ## Options
 
 - `regex :: string()`. (since [1.0.0](https://github.com/inaka/elvis_core/releases/tag/1.0.0))
-  - default: `"^[A-Z](_?[A-Z0-9]+)*$"`.
+  - default: `"^[A-Z](_?[A-Z0-9]+)*$"`
 
 ## Example
 

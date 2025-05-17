@@ -48,5 +48,5 @@ its dependent types should also be exported.
 ## Example
 
 ```erlang
-{elvis_style, export_used_types}
+{elvis_style, export_used_types, #{}}
 ```

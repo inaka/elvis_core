@@ -12,7 +12,7 @@ instead of `gen_server:call/2`) so you're sure to not have forgotten it.
 
 ## Options
 
-- `caveat_functions :: [{module(), function(), arity()} | {module(), function()}]`.
+- `caveat_functions :: [{module(), function(), arity()} | {module(), function()}]`
   - default: `[{timer, send_after, 2}
              , {timer, send_after, 3}
              , {timer, send_interval, 2}
@@ -21,7 +21,7 @@ instead of `gen_server:call/2`) so you're sure to not have forgotten it.
              , {gen_statem, call, 2}
              , {gen_server, call, 2}
              , {gen_event, call, 3}
-              ]`.
+              ]`
 
 **Notice**: this rule is not enforced by default. Check the
 [example `elvis.config` file](../../README.md#configuration) to see how you can enforce it.

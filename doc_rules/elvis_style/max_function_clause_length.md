@@ -23,5 +23,5 @@ the files are pre-processed)
 {elvis_style, max_function_clause_length, #{ max_length => 30
                                            , count_comments => false
                                            , count_whitespace => false
-                                    }}
+                                           }}
 ```

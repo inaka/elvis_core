@@ -8,8 +8,8 @@ Use a specific protocol for `deps`.
 
 ## Options
 
-- `regex :: string()`.
-  - default: `(https://.*|[0-9]+([.][0-9]+)*)`.
+- `regex :: string()`
+  - default: `(https://.*|[0-9]+([.][0-9]+)*)`
 
 ## Example
 
