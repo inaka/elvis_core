@@ -1,6 +1,6 @@
 # Include `ms_transform` for `ets:fun2ms/1`
 
-The `ms_transform` parse transform must be included when the module uses `ets:fun2ms`.
+The `ms_transform` parse transform should be included when the module uses `ets:fun2ms`.
 
 > Works on `.beam` files? Yes!
 

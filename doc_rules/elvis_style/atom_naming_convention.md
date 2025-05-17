@@ -2,7 +2,7 @@
 
 (since [1.0.0](https://github.com/inaka/elvis_core/releases/tag/1.0.0))
 
-All atoms must conform to the pattern defined by the `regex` option pattern, unless they match the
+All atoms should conform to the pattern defined by the `regex` option pattern, unless they match the
 `forbidden_regex` option pattern, in which case they are disallowed.
 
 Atoms enclosed in apostrophes are treated differently due to their special syntax and are governed

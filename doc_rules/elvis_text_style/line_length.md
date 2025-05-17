@@ -1,6 +1,7 @@
 # Line Length
 
-Lines must not exceed the defined length limit; comment lines may be excluded from this constraint.
+Lines should not exceed the defined length limit; comment lines may be excluded from this
+constraint.
 
 > Works on `.beam` file? No.
 

@@ -1,6 +1,6 @@
 # Module Naming Convention
 
-All modules must conform to the pattern defined by the `regex` option pattern, unless they match
+All modules should conform to the pattern defined by the `regex` option pattern, unless they match
 the `forbidden_regex` option pattern, in which case they are disallowed.
 
 > Works on `.beam` file? Yes!

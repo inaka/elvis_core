@@ -54,7 +54,7 @@ apply_discount(Amount) ->
 
 Code duplication is a significant issue in software development for several reasons:
 
-- **Harder to maintain**: repeated logic must be updated in multiple locations
+- **Harder to maintain**: repeated logic needs to be updated in multiple locations
 - **increased risk of bugs**: more code increases the likelihood of bugs, some of which may be
 harder to detect and fix
 - **code bloat**: unnecessary code growth makes the codebase larger, harder to read, and more

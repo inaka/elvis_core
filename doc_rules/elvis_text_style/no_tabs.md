@@ -1,6 +1,6 @@
 # No Tabs
 
-Lines must not start with tab characters; spaces should be used for indentation.
+Lines should not start with tab characters; spaces should be used for indentation.
 
 > Works on `.beam` file? Not really! (it consumes results Ok, but they're irrelevant)
 
