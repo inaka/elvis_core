@@ -29,6 +29,7 @@ expected by most developers, ensuring that `Expr2` is evaluated only when `Expr1
 - `true`, for `andalso`
 
 This also prevents:
+
 - unnecessary computations
 - potential errors when running the right-hand side of expressions based on prior assumptions
 - right-associativity issues (e.g. `is_integer(X) and X > 0` is not equivalent to
