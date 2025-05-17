@@ -6,8 +6,8 @@ Exclude, from the project's `.gitignore` file, the patterns identified by the ru
 
 ## Options
 
-- `regexes :: [string()]`.
-  - default: `["^rebar.lock$"]`.
+- `regexes :: [string()]`
+  - default: `["^rebar.lock$"]`
 
 ## Example
 

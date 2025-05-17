@@ -7,10 +7,10 @@ except if they match with a defined `forbidden_regex`.
 
 ## Options
 
-- `regex :: string()`.
-  - default: `"^_?([A-Z][0-9a-zA-Z]*)$"`.
-- `forbidden_regex :: string() | undefined`.
-  - default: `undefined`.
+- `regex :: string()`
+  - default: `"^_?([A-Z][0-9a-zA-Z]*)$"`
+- `forbidden_regex :: string() | undefined`
+  - default: `undefined`
 
 ## Example
 

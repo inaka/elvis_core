@@ -13,10 +13,10 @@ modules, they should be made
 ## Options
 
 - `apply_to :: [record | map | tuple]`
-  - default: `record`.
+  - default: `record`
 
 ## Example
 
 ```erlang
-{elvis_style, private_data_types}
+{elvis_style, private_data_types, #{}}
 ```

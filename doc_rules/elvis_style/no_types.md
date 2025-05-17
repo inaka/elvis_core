@@ -22,5 +22,5 @@ we're referring to a type defined in the same module.
 ## Example
 
 ```erlang
-{elvis_style, no_types}
+{elvis_style, no_types, #{}}
 ```

@@ -23,7 +23,5 @@ It will also warn on things like ``#{a =>1}#{b => 2}``, which is easily rewritab
 ## Example
 
 ```erlang
-{elvis_style, no_successive_maps}
-%% or
 {elvis_style, no_successive_maps, #{}}
 ```

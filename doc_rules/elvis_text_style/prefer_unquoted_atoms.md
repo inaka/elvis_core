@@ -1,8 +1,12 @@
 # Prefer unquoted atoms
 
-Do not use quotes on atoms that don't need to be quoted.
+Atoms should not be quoted unless syntactically necessary.
 
 > Works on `.beam` file? Not really! (it consumes results Ok, but these might be unexpected)
+
+## Quick fix
+
+Use an Erlang code formatter that enforces strict rules for quoted atoms.
 
 ## Options
 

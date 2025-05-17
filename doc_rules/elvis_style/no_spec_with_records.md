@@ -20,7 +20,5 @@ Don't use records in `-spec(_).`s; use types that map to records instead.
 ## Example
 
 ```erlang
-{elvis_style, no_spec_with_records}
-%% or
 {elvis_style, no_spec_with_records, #{}}
 ```

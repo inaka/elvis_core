@@ -13,7 +13,5 @@ different exceptions, or those exceptions should be handled somewhere else.
 ## Example
 
 ```erlang
-{elvis_style, no_nested_try_catch}
-%% or
 {elvis_style, no_nested_try_catch, #{}}
 ```

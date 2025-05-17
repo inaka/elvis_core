@@ -7,8 +7,8 @@ This rule was called `protocol_for_deps_rebar` before
 
 ## Options
 
-- `regex :: string()`.
-  - default: `^(https://|git://|\\d+(\\.\\d+)*)`.
+- `regex :: string()`
+  - default: `^(https://|git://|\\d+(\\.\\d+)*)`
 
 ## Example
 

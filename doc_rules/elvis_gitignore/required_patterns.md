@@ -6,14 +6,14 @@ Include, in the project's `.gitignore` file, the patterns identified by the rule
 
 ## Options
 
-- `regexes :: [string()]`.
+- `regexes :: [string()]`
   - default: `["^.rebar3/$",
                "^_build/$",
                "^_checkouts/$",
                "^doc/$",
                "^/erl_crash.dump$",
                "^/rebar3.crashdump$",
-               "^test/logs/$"]`.
+               "^test/logs/$"]`
 
 ## Example
 

@@ -18,5 +18,5 @@ Instead, specs should be defined next to the functions they're specifying.
 ## Example
 
 ```erlang
-{elvis_style, no_specs}
+{elvis_style, no_specs, #{}}
 ```

@@ -26,5 +26,5 @@ GoodRecord =     #this_record{has = no_spaces, after = pound}.
 ## Example
 
 ```erlang
-{elvis_style, no_space_after_pound}
+{elvis_style, no_space_after_pound, #{}}
 ```

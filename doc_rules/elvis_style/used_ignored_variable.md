@@ -12,7 +12,5 @@ an underscore, like `_Var`).
 ## Example
 
 ```erlang
-{elvis_style, used_ignored_variable}
-%% or
 {elvis_style, used_ignored_variable, #{}}
 ```
