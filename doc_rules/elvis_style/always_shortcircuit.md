@@ -26,8 +26,8 @@ Even though `orelse`/`andalso` are more verbose than `or`/`and`,
 they implement the behaviour expected by most developers, which
 is to only evaluate `Expr2` when `Expr1` is:
 
-* `false`, for `orelse`
-* `true`, for `andalso`
+- `false`, for `orelse`
+- `true`, for `andalso`
 
 This also avoids unnecessary computation, and potential errors when
 running the right-hand side of expressions with prior expectations.

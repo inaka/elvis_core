@@ -33,7 +33,7 @@ process_invoice(InvoiceTotal) ->
 
 ## Correct code
 
-Note that we replace the _discount_ implementation by a single function, where we previously had 2.
+Note that we replace the *discount* implementation by a single function, where we previously had 2.
 
 ```erlang
 process_order(OrderTotal) ->
@@ -55,11 +55,11 @@ apply_discount(Amount) ->
 Repeated code, or code duplication, is a relevant problem in software development,
 for a few reasons:
 
-* **harder to maintain**: repeated logic has to be updated in multiple places
-* **increased risk of bugs**: more code, higher risk for bugs, some of which might be
+- **harder to maintain**: repeated logic has to be updated in multiple places
+- **increased risk of bugs**: more code, higher risk for bugs, some of which might be
 harder to detect, and fix
-* **code bloat**: unnecessary increase of codebase size - harder to read and navigate
-* **harder to test**: with logic spread across your codebase validation becomes more complex,
+- **code bloat**: unnecessary increase of codebase size - harder to read and navigate
+- **harder to test**: with logic spread across your codebase validation becomes more complex,
 and higher coverage more difficult to achieve
 
 ## Options
