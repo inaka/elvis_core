@@ -6,6 +6,41 @@ Types used in typespecs for exported functions must also be exported.
 
 > Works on `.beam` file? Yes!
 
+## Problematic code
+
+```erlang
+-module(mylib).
+
+-export([myfun/1]).
+-type mytype() :: any().
+
+-spec myfun(mytype()) -> ok.
+myfun(Var) ->
+ok = do_something_with(Var).
+```
+
+## Correct code
+
+Note the use of `export_type` in the example below.
+
+```erlang
+-module(mylib).
+
+-export([myfun/1]).
+-type mytype() :: any().
+-export_type([mytype/0]).
+
+-spec myfun(mytype()) -> ok.
+myfun(Var) ->
+ok = do_something_with(Var).
+```
+
+## Rationale
+
+Exporting a function without exporting the types it depends on can lead to redundant type
+definitions in each module that uses those functions. To prevent this, when a function is exported,
+its dependent types should also be exported.
+
 ## Options
 
 - None.
