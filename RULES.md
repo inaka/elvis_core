@@ -10,8 +10,8 @@ identified with `(since ...)` for convenience purposes.
 
 ## Quick fixes
 
-Most, if not all, of the rules will present (opinionated) documentation sections called
-"Problematic code" vs "Correct code" section. We try to include a "Rationale" with them and,
+Most, if not all, of the rules will present (opinionated) documentation sections titled
+"Problematic code" and "Correct code". We aim to provide a "Rationale" with them and,
 in some cases, an "Exceptions" or "Quick fix", if applicable.
 
 ## Style rules
