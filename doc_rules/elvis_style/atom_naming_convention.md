@@ -2,18 +2,20 @@
 
 (since [1.0.0](https://github.com/inaka/elvis_core/releases/tag/1.0.0))
 
-All atoms should be named according to the provided regular expression,
-except if they match with a defined `forbidden_regex`.
-Atoms enclosed in apostrophes have special meaning and are thus handled
-by a different configuration option (use `same` if you want the same value as `regex`).
-To define forbidden enclosed atoms (like the ones in `forbidden_regex` apply for `regex`),
-use `forbidden_enclosed_regex`(use `same` if you want the same value as `forbidden_regex`).
+All atoms must conform to the pattern defined by the `regex` option pattern, unless they match the
+`forbidden_regex` option pattern, in which case they are disallowed.
+
+Atoms enclosed in apostrophes are treated differently due to their special syntax and are governed
+by a separate configuration option. To apply the same pattern as `regex`, use the keyword `same`.
+
+To disallow specific enclosed atoms (analogous to `forbidden_regex` for standard atoms),
+use `forbidden_enclosed_regex`. Again, same may be used to reuse the forbidden_regex value.
 
 > Works on `.beam` file? Yes!
 
 ## Problematic code
 
-This is a convention for consistency, not a code problem.
+This is a convention aimed at ensuring consistency, rather than a coding issue.
 
 ```erlang
 an____atom
@@ -27,8 +29,7 @@ an_atom
 
 ## Rationale
 
-By defining a regular expression for naming atoms you increase consistency across
-your codebase.
+By defining a regular expression for naming atoms you increase consistency across your codebase.
 
 ## Options
 

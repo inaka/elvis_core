@@ -1,14 +1,14 @@
 # Behaviour Spelling
 
-Use a consistent spelling for behaviour attributes in modules.
+Behavior attribute names in modules should follow a consistent spelling convention.
 
 > Works on `.beam` file? Yes!
 
 ## Problematic code
 
-This is a convention for consistency, not a code problem.
+This is a convention aimed at ensuring consistency, rather than a coding issue.
 
-Depending on your choice the problematic code can be
+Depending on your choice, the problematic code may be:
 
 ```erlang
 -behavior(_). % the default "problematic"
@@ -22,7 +22,7 @@ or
 
 ## Correct code
 
-Depending on your choice the correct code can be
+Depending on your choice, the correct code may be:
 
 ```erlang
 -behaviour(_). % the default "correct"
@@ -36,10 +36,10 @@ or
 
 ## Rationale
 
-By defining a particular spelling you increase consistency across your codebase.
+Defining a consistent spelling improves uniformity across your codebase.
 
-Erlang's proposed default is (the one most found in the official documentation)
-`behaviour`, but they also write "The spelling `behavior` is also accepted."
+Erlang's proposed default spelling is `behaviour`, as seen most frequently in the official
+documentation. However, the spelling `behavior` is also accepted.
 
 ## Options
 

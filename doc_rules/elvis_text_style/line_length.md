@@ -1,12 +1,12 @@
 # Line Length
 
-No line should be longer than a given limit. Comments can be skipped.
+Lines must not exceed the defined length limit; comment lines may be excluded from this constraint.
 
 > Works on `.beam` file? No.
 
 ## Quick fix
 
-Use an Erlang code formatter which is strict about line length.
+Use an Erlang code formatter that enforces strict line length limitations.
 
 ## Options
 

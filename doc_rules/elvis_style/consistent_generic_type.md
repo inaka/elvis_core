@@ -1,14 +1,14 @@
 # Consistent Generic Type
 
-Use `term()` or `any()` consistently for types in specs.
+Use `term()` or `any()` consistently when specifying types in specs.
 
 > Works on `.beam` file? Yes!
 
 ## Problematic code
 
-This is a convention for consistency, not a code problem.
+This is a convention aimed at ensuring consistency, rather than a coding issue.
 
-Depending on your choice the problematic code can be
+Depending on your choice, the problematic code may be:
 
 ```erlang
 -type mytype :: any(). % the default "problematic"
@@ -22,7 +22,7 @@ or
 
 ## Correct code
 
-Depending on your choice the correct code can be
+Depending on your choice, the correct code may be:
 
 ```erlang
 -type mytype :: term(). % the default "correct"
@@ -36,7 +36,7 @@ or
 
 ## Rationale
 
-By defining a particular "term" type you increase consistency across your codebase.
+Defining a specific "term" type enhances consistency across your codebase.
 
 ## Options
 

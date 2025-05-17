@@ -1,7 +1,7 @@
 # Function Naming Convention
 
-All functions should be named according to the provided regular expression,
-except if they match with a defined `forbidden_regex`.
+All functions must conform to the pattern defined by the `regex` option pattern, unless they match
+the `forbidden_regex` option pattern, in which case they are disallowed.
 
 > Works on `.beam` file? Yes!
 

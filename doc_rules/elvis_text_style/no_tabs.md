@@ -1,12 +1,12 @@
 # No Tabs
 
-There should be no lines that contain tabs instead of spaces.
+Lines must not start with tab characters; spaces should be used for indentation.
 
 > Works on `.beam` file? Not really! (it consumes results Ok, but they're irrelevant)
 
 ## Quick fix
 
-Use an Erlang code formatter.
+Use an Erlang code formatter that enforces strict rules for tab vs. space indentation.
 
 ## Options
 

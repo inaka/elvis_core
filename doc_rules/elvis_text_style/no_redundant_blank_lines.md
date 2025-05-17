@@ -1,12 +1,12 @@
 # No Redundant Blank Lines
 
-There should be no more blank lines after each other than the `max_lines` variable.
+No more than `max_lines` consecutive blank lines are allowed.
 
 > Works on `.beam` file? No.
 
 ## Quick fix
 
-Use an Erlang code formatter which is strict about blank lines.
+Use an Erlang code formatter that enforces strict rules for blank lines.
 
 ## Options
 
