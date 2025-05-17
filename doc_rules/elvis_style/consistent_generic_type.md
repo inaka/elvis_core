@@ -11,13 +11,13 @@ Use `term()` or `any()` consistently when specifying types in specs.
 Depending on your choice, the problematic code may be:
 
 ```erlang
--type mytype :: any(). % the default "problematic"
+-type mytype() :: any(). % the default "problematic"
 ```
 
-or
+or (depending on your preference)
 
 ```erlang
--type mytype :: term().
+-type mytype() :: term().
 ```
 
 ## Correct code
@@ -25,13 +25,13 @@ or
 Depending on your choice, the correct code may be:
 
 ```erlang
--type mytype :: term(). % the default "correct"
+-type mytype() :: term(). % the default "correct"
 ```
 
-or
+or (depending on your preference)
 
 ```erlang
--type mytype :: any().
+-type mytype() :: any().
 ```
 
 ## Rationale

@@ -14,7 +14,7 @@ Depending on your choice, the problematic code may be:
 -behavior(_). % the default "problematic"
 ```
 
-or
+or (depending on your preference)
 
 ```erlang
 -behaviour(_).
@@ -28,7 +28,7 @@ Depending on your choice, the correct code may be:
 -behaviour(_). % the default "correct"
 ```
 
-or
+or (depending on your preference)
 
 ```erlang
 -behavior(_).

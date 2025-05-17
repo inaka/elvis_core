@@ -16,7 +16,7 @@ Types used in typespecs for exported functions must also be exported.
 
 -spec myfun(mytype()) -> ok.
 myfun(Var) ->
-ok = do_something_with(Var).
+  ok = do_something_with(Var).
 ```
 
 ## Correct code
@@ -32,7 +32,7 @@ Note the use of `export_type` in the example below.
 
 -spec myfun(mytype()) -> ok.
 myfun(Var) ->
-ok = do_something_with(Var).
+  ok = do_something_with(Var).
 ```
 
 ## Rationale

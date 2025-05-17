@@ -21,7 +21,7 @@ Depending on your choice, the problematic code may be:
 in one function, followed by
 
 ```erlang
-  UserId = 124,
+  UserId = 123,
   ...
 ```
 

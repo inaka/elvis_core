@@ -10,6 +10,7 @@
 
 ```erlang
 Expr1 or Expr2
+
 Expr1 and Expr2
 ```
 
@@ -17,6 +18,7 @@ Expr1 and Expr2
 
 ```erlang
 Expr1 orelse Expr2
+
 Expr1 andalso Expr2
 ```
 
