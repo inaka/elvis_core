@@ -29,8 +29,6 @@ instead of `gen_server:call/2`) so you're sure to not have forgotten it.
 ## Example
 
 ```erlang
-{elvis_style, no_common_caveats_call}
-%% or
 {elvis_style, no_common_caveats_call, #{ caveat_functions => [{timer, send_after, 2}
                                                             , {timer, send_after, 3}
                                                             , {timer, send_interval, 2}

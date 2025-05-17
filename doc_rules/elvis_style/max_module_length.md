@@ -24,8 +24,6 @@ the files are pre-processed)
 ## Example
 
 ```erlang
-{elvis_style, max_module_length}
-%% or
 {elvis_style, max_module_length, #{ max_length => 500
                                   , count_comments => false
                                   , count_whitespace => false

@@ -47,5 +47,7 @@ By defining a regular expression for naming atoms you increase consistency acros
 ```erlang
 {elvis_style, atom_naming_convention, #{ regex => "^([a-z][a-z0-9]*_?)*(_SUITE)?$"
                                        , enclosed_atoms => ".*"
+                                       , forbidden_regex => undefined
+                                       , forbidden_enclosed_regex => undefined
                                        }}
 ```

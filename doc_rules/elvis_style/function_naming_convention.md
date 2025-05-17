@@ -45,5 +45,7 @@ By defining a regular expression for naming functions you increase consistency a
 ## Example
 
 ```erlang
-{elvis_style, function_naming_convention, #{ regex => "^([a-z][a-z0-9]*_?)*$" }}
+{elvis_style, function_naming_convention, #{ regex => "^[A-Z](_?[A-Z0-9]+)*$"
+                                           , forbidden_regex => undefined
+                                           }}
 ```

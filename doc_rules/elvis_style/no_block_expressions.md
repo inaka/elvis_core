@@ -13,7 +13,5 @@ Block expressions should be avoided.
 ## Example
 
 ```erlang
-{elvis_style, no_block_expressions}
-%% or
 {elvis_style, no_block_expressions, #{}}
 ```

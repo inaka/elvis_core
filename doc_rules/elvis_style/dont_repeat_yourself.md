@@ -70,7 +70,5 @@ and achieving high test coverage becomes more challenging
 ## Example
 
 ```erlang
-{elvis_style, dont_repeat_yourself}
-%% or
 {elvis_style, dont_repeat_yourself, #{ min_complexity => 10 }}
 ```

@@ -15,7 +15,5 @@ Use an Erlang code formatter that enforces strict rules for tab vs. space indent
 ## Example
 
 ```erlang
-{elvis_text_style, no_tabs}
-%% or
 {elvis_text_style, no_tabs, #{}}
 ```

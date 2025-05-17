@@ -20,7 +20,5 @@ type (`opaque()`), and should be exported.
 ## Example
 
 ```erlang
-{elvis_style, state_record_and_type}
-%% or
 {elvis_style, state_record_and_type, #{}}
 ```

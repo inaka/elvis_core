@@ -11,7 +11,5 @@ Don't use attributes `behavior_info` or `behaviour_info`; use `callback` instead
 ## Example
 
 ```erlang
-{elvis_style, no_behavior_info}
-%% or
 {elvis_style, no_behavior_info, #{}}
 ```

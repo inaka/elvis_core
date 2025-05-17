@@ -59,7 +59,5 @@ lead to cleaner and more manageable code.
 ## Example
 
 ```erlang
-{elvis_style, max_anonymous_function_arity}
-%% or
-{elvis_style, max_anonymous_function_arity, #{max_arity => 10}}
+{elvis_style, max_anonymous_function_arity, #{ max_arity => 5 }}
 ```

@@ -15,5 +15,6 @@ except if they match with a defined `forbidden_regex`.
 ## Example
 
 ```erlang
-{elvis_style, module_naming_convention, #{ regex => "^([a-z][a-z0-9]*_?)*(_SUITE)?$" }}
+{elvis_style, module_naming_convention, #{ regex => "^[a-z](_?[a-z0-9]+)*(_SUITE)?$"
+                                         , forbidden_regex => undefined }}
 ```

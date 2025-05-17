@@ -40,7 +40,5 @@ standard.
 ## Example
 
 ```erlang
-{elvis_style, macro_names}
-%% or
-{elvis_style, macro_names, #{ regex => "^([A-Z][A-Z_0-9]+)$" }}
+{elvis_style, macro_names, #{ regex => "^[A-Z](_?[A-Z0-9]+)*$" }}
 ```

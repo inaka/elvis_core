@@ -17,8 +17,6 @@ The functions listed in option `debug_functions` are the ones you want the rule 
 ## Example
 
 ```erlang
-{elvis_style, no_debug_call}
-%% or
 {elvis_style, no_debug_call, #{ debug_functions => [{ct, pal}
                                                   , {ct, print}
                                                   , {io, format, 1}

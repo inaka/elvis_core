@@ -18,8 +18,6 @@ the files are pre-processed)
 ## Example
 
 ```erlang
-{elvis_style, max_function_length}
-%% or
 {elvis_style, max_function_length, #{ max_length => 30
                                     , count_comments => false
                                     , count_whitespace => false

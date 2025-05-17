@@ -60,7 +60,7 @@ lead to cleaner and more manageable code.
 ## Example
 
 ```erlang
-{elvis_style, max_function_arity}
-%% or
-{elvis_style, max_function_arity, #{max_arity => 10, non_exported_max_arity => same}}
+{elvis_style, max_function_arity, #{ max_arity => 8
+                                   , non_exported_max_arity => 8
+                                   }}
 ```

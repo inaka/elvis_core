@@ -15,7 +15,5 @@ and `MODULE`. User-defined exceptions can also be found in option `allow`.
 ## Example
 
 ```erlang
-{elvis_style, no_macros}
-%% or
 {elvis_style, no_macros, #{ allow => ['SERVER'] }}
 ```

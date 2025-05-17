@@ -36,7 +36,5 @@ to reason about and debug.
 ## Example
 
 ```erlang
-{elvis_style, macro_module_names}
-%% or
 {elvis_style, macro_module_names, #{}}
 ```

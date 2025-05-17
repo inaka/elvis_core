@@ -11,7 +11,5 @@
 ## Example
 
 ```erlang
-{elvis_style, no_if_expression}
-%% or
 {elvis_style, no_if_expression, #{}}
 ```
