@@ -6,7 +6,7 @@ No line should be longer than a given limit. Comments can be skipped.
 
 ## Quick fix
 
-Use an Erlang code formatter.
+Use an Erlang code formatter which is strict about line length.
 
 ## Options
 

@@ -6,7 +6,7 @@ There should be no more blank lines after each other than the `max_lines` variab
 
 ## Quick fix
 
-Use an Erlang code formatter.
+Use an Erlang code formatter which is strict about blank lines.
 
 ## Options
 
