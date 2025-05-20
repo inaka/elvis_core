@@ -238,8 +238,8 @@
 -define(NO_SINGLE_CLAUSE_CASE_MSG,
     "Case statement with a single clause found on line ~p."
 ).
--define(NO_SINGLE_match_maybe_MSG,
-    "Maybe statement with a single clause found on line ~p."
+-define(NO_SINGLE_MATCH_MAYBE_MSG,
+    "Maybe statement with a single match found on line ~p."
 ).
 -define(NO_MATCH_IN_CONDITION_MSG,
     "Case statement with a match in its condition found on line ~p."
@@ -1878,7 +1878,7 @@ no_single_match_maybe(Config, Target, RuleConfig) ->
     lists:map(
         fun(CaseNode) ->
             {Line, _Col} = ktn_code:attr(location, CaseNode),
-            elvis_result:new(item, ?NO_SINGLE_match_maybe_MSG, [Line], Line)
+            elvis_result:new(item, ?NO_SINGLE_MATCH_MAYBE_MSG, [Line], Line)
         end,
         CaseNodes
     ).
