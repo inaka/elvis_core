@@ -1,4 +1,4 @@
-# No Single-Clause Maybe Statements
+# No Single-Match Maybe Statements
 
 (since [4.1.0](https://github.com/inaka/elvis_core/releases/tag/4.1.0))
 
