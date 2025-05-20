@@ -1,5 +1,7 @@
 -module(fail_no_single_match_maybe).
 
+-feature(maybe_expr, enable).
+
 -export([simple/0, nested/0]).
 
 simple() ->
