@@ -2,18 +2,22 @@
 
 (since [3.0.0](https://github.com/inaka/elvis_core/releases/tag/3.0.0))
 
-Avoid `-type` attributes.
-
-This rule is meant to be used on header files only.
-Defining types in public header files (especially those intended for inclusion via -include_lib())
-might lead to type name clashes between projects and even modules of a single big project.
-Instead, types should be defined in the modules which they correspond to
-(using `-export_type()` appropriately) and, in this way, take advantage of the namespacing offered
-by module names.
-In other words, this rule means that we will always need to use `some_mod:some_type()` unless
-we're referring to a type defined in the same module.
+`-type` attributes **in header files** should be avoided.
 
 > Works on `.beam` file? Yes, but it's not useful there. This rule is meant to be used for header files.
+
+## Quick fix
+
+Move the `-type` next to the module/function it pertains to.
+
+## Rationale
+
+Placing `-type` attributes in header files (`.hrl`) can lead to inconsistencies and maintenance
+issues, particularly when the same header is included in multiple modules. Keeping `-type`
+declarations within implementation (`.erl`) files improves maintainability by localizing type
+definitions to where they are used and owned. When combined with `-export_type(_)`, this also
+leverages module-based namespacing, making type usage more explicit and reducing the risk of name
+clashes.
 
 ## Options
 
@@ -22,5 +26,5 @@ we're referring to a type defined in the same module.
 ## Example
 
 ```erlang
-{elvis_style, no_types}
+{elvis_style, no_types, #{}}
 ```

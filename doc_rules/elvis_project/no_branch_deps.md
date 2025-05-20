@@ -2,8 +2,32 @@
 
 (since [2.0.0](https://github.com/inaka/elvis_core/releases/tag/2.0.0))
 
-Don't use branches (i.e. `{branch, "my-branch"}`) for deps in `rebar.config` files.
-Prefer `tag` or `ref` instead.
+Dependencies in `rebar.config` should not use branches (e.g., `{branch, "my-branch"}`); use
+`{tag, "..."}` or `{ref, "..."}` instead.
+
+## Avoid
+
+```erlang
+{deps, [
+    {my_dep, {git, "https://github.com/example/my_dep.git", {branch, "feature-xyz"}}}
+]}.
+```
+
+## Prefer
+
+```erlang
+{deps, [
+    {my_dep, {git, "https://github.com/example/my_dep.git", {tag, "1.2.3"}}}
+]}.
+```
+
+## Rationale
+
+Using a branch for dependencies makes builds non-reproducible because the commit pointed to by the
+branch can change over time. This leads to inconsistencies between environments and makes debugging
+more difficult. Commit references are immutable, ensuring that dependency versions remain
+consistent across builds. While tags are not immutable they're most likely to not be moved than
+branch heads.
 
 ## Options
 

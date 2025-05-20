@@ -1,15 +1,24 @@
 # Max Function Length
 
-This specifies an upper bound on function **line** length. Lines that are comments and/or whitespace
-can be either included or excluded from the line count.
+The number of lines in a function definition should be limited to a defined maximum.
+
+Lines containing only comments or whitespace may be either included or excluded from the line
+count, depending on the configuration
 
 > Works on `.beam` file? Not really! (it consumes results Ok, but these might be unexpected, since
 the files are pre-processed)
 
+## Rationale
+
+Limiting the number of lines in function definitions improves readability and maintainability.
+Functions with too many lines tend to become more complex and harder to understand,
+increasing the likelihood of introducing bugs. Keeping functions concise encourages clear,
+focused logic and makes it easier to navigate the codebase.
+
 ## Options
 
-- `max_length :: non_neg_integer()`.
-  - default: `30`.
+- `max_length :: non_neg_integer()`
+  - default: `30`
 - `count_comments :: boolean()`
   - default: `false`
 - `count_whitespace :: boolean()`
@@ -18,8 +27,6 @@ the files are pre-processed)
 ## Example
 
 ```erlang
-{elvis_style, max_function_length}
-%% or
 {elvis_style, max_function_length, #{ max_length => 30
                                     , count_comments => false
                                     , count_whitespace => false

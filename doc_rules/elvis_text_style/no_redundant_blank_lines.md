@@ -1,18 +1,23 @@
 # No Redundant Blank Lines
 
-There should be no more blank lines after each other than the `max_lines` variable.
+(since [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0))
+
+No more than `max_lines` consecutive blank lines are allowed.
 
 > Works on `.beam` file? No.
 
+## Quick fix
+
+Use an Erlang code formatter that enforces strict rules for blank lines.
+
 ## Options
 
-- `max_lines :: integet().`
-  - default: 1 (meaning 2 consecutive blank lines are allowed, but not 3)
+- `max_lines :: integer()`
+  - default: `1` - means that a maximum of 1 blank line is permitted; 2 (consecutive) or more will
+  trigger a warning
 
 ## Example
 
 ```erlang
-{elvis_text_style, no_redundant_blank_lines, #{ max_lines => 5 }}
-%% or
-{elvis_text_style, no_redundant_blank_lines}
+{elvis_text_style, no_redundant_blank_lines, #{ max_lines => 1 }}
 ```
