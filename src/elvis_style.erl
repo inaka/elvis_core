@@ -41,6 +41,7 @@
     no_import/3,
     no_catch_expressions/3,
     no_single_clause_case/3,
+    no_single_match_maybe/3,
     numeric_format/3,
     behaviour_spelling/3,
     always_shortcircuit/3,
@@ -86,6 +87,7 @@
     no_catch_expressions_config/0,
     numeric_format_config/0,
     no_single_clause_case_config/0,
+    no_single_match_maybe_config/0,
     consistent_variable_casing_config/0,
     no_match_in_condition_config/0,
     behaviour_spelling_config/0,
@@ -235,6 +237,9 @@
 ).
 -define(NO_SINGLE_CLAUSE_CASE_MSG,
     "Case statement with a single clause found on line ~p."
+).
+-define(NO_SINGLE_match_maybe_MSG,
+    "Maybe statement with a single clause found on line ~p."
 ).
 -define(NO_MATCH_IN_CONDITION_MSG,
     "Case statement with a match in its condition found on line ~p."
@@ -476,6 +481,7 @@ default(RuleWithEmptyDefault) when
     RuleWithEmptyDefault == no_import;
     RuleWithEmptyDefault == no_catch_expressions;
     RuleWithEmptyDefault == no_single_clause_case;
+    RuleWithEmptyDefault == no_single_match_maybe;
     RuleWithEmptyDefault == no_match_in_condition;
     RuleWithEmptyDefault == always_shortcircuit;
     RuleWithEmptyDefault == no_space_after_pound;
@@ -1857,6 +1863,28 @@ is_single_clause_case_statement(Node) ->
             Clause <- ktn_code:content(SubNode)
         ]) ==
             1.
+
+-type no_single_match_maybe_config() :: #{ignore => [ignorable()]}.
+
+-spec no_single_match_maybe(
+    elvis_config:config(),
+    elvis_file:file(),
+    no_single_match_maybe_config()
+) ->
+    [elvis_result:item()].
+no_single_match_maybe(Config, Target, RuleConfig) ->
+    Root = get_root(Config, Target, RuleConfig),
+    CaseNodes = elvis_code:find(fun is_single_match_maybe_statement/1, Root),
+    lists:map(
+        fun(CaseNode) ->
+            {Line, _Col} = ktn_code:attr(location, CaseNode),
+            elvis_result:new(item, ?NO_SINGLE_match_maybe_MSG, [Line], Line)
+        end,
+        CaseNodes
+    ).
+
+is_single_match_maybe_statement(Node) ->
+    ktn_code:type(Node) == 'maybe' andalso length(ktn_code:content(Node)) == 1.
 
 -type no_match_in_condition_config() :: #{ignore => [ignorable()]}.
 
