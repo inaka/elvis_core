@@ -2266,7 +2266,7 @@ verify_no_single_match_maybe(Config) ->
             beam_files ->
                 [_, _, _] = R;
             erl_files ->
-                [#{line_num := 6}, #{line_num := 14}, #{line_num := 15}] = R
+                [#{line_num := 8}, #{line_num := 16}, #{line_num := 17}] = R
         end.
 
 -spec verify_no_match_in_condition(config()) -> any().
