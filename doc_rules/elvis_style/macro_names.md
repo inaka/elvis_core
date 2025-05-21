@@ -32,7 +32,7 @@ the standard.
 
 ## Options
 
-- `regex :: string()`. (since [1.0.0](https://github.com/inaka/elvis_core/releases/tag/1.0.0))
+- `regex :: string()`. [![](https://img.shields.io/badge/since-1.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/1.0.0)
   - default: `"^[A-Z](_?[A-Z0-9]+)*$"`
 
 ## Example configuration
