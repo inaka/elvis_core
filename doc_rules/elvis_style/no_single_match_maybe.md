@@ -2,7 +2,11 @@
 
 (since [4.1.0](https://github.com/inaka/elvis_core/releases/tag/4.1.0))
 
-Don't write code like this:
+Single-match maybe statements should be avoided.
+
+> Works on `.beam` file? Yes!
+
+## Avoid
 
 ```erlang
 maybe
@@ -10,13 +14,13 @@ maybe
 end
 ```
 
-Use pattern-matching instead:
+## Prefer
 
 ```erlang
 {ok, A} = do:something()
 ```
 
-Note that this is valid code, tho:
+Note that `maybe` statements with an `else` are perfectly acceptable, too:
 
 ```erlang
 maybe
@@ -26,7 +30,12 @@ else
 end
 ```
 
-> Works on `.beam` file? Yes!
+## Rationale
+
+Using a `maybe` expression with only one match is unnecessary and reduces code clarity. It adds
+syntactic overhead without providing meaningful branching logic. In such cases, a let-style
+assignment or direct pattern matching is typically more appropriate and idiomatic. Removing
+single-match `maybe` statements also improves readability and simplifies the control flow.
 
 ## Options
 
