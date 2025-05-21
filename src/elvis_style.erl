@@ -1629,7 +1629,7 @@ ms_transform_included(Config, Target, RuleConfig) ->
             lists:map(ResultFun, FunctionCalls)
     end.
 
--spec get_fun_2_ms_calls(ktn_code:tree_node()) -> [any()].
+-spec get_fun_2_ms_calls(ktn_code:tree_node()) -> [term()].
 get_fun_2_ms_calls(Root) ->
     IsFun2MsFunctionCall =
         fun(Node) -> ktn_code:type(Node) == call andalso is_ets_fun2ms(Node) end,
@@ -2686,7 +2686,8 @@ is_ignored_var(Zipper) ->
         var ->
             Name = ktn_code:attr(name, Node),
             [FirstChar | _] = atom_to_list(Name),
-            (FirstChar == $_) and (Name =/= '_') and not check_parent_match_or_macro(Zipper);
+            (FirstChar == $_) andalso (Name =/= '_') andalso
+                not check_parent_match_or_macro(Zipper);
         _OtherType ->
             false
     end.
@@ -2745,7 +2746,7 @@ is_otp_module(Root) ->
 has_state_record(Root) ->
     IsStateRecord =
         fun(Node) ->
-            (record_attr == ktn_code:type(Node)) and (state == ktn_code:attr(name, Node))
+            (record_attr == ktn_code:type(Node)) andalso (state == ktn_code:attr(name, Node))
         end,
     [] /= elvis_code:find(IsStateRecord, Root).
 
@@ -2776,9 +2777,11 @@ has_state_type(Root) ->
 -spec spec_includes_record(ktn_code:tree_node()) -> boolean().
 spec_includes_record(Node) ->
     IsTypeRecord =
-        fun(Child) -> (ktn_code:type(Child) == type) and (ktn_code:attr(name, Child) == record) end,
+        fun(Child) ->
+            (ktn_code:type(Child) == type) andalso (ktn_code:attr(name, Child) == record)
+        end,
     Opts = #{traverse => all},
-    (ktn_code:type(Node) == spec) and (elvis_code:find(IsTypeRecord, Node, Opts) /= []).
+    (ktn_code:type(Node) == spec) andalso (elvis_code:find(IsTypeRecord, Node, Opts) /= []).
 
 %% Don't repeat yourself
 

@@ -82,7 +82,7 @@ validate(Config) ->
     lists:foreach(fun do_validate/1, Config).
 
 do_validate(RuleGroup) ->
-    case maps:is_key(src_dirs, RuleGroup) or maps:is_key(dirs, RuleGroup) of
+    case maps:is_key(src_dirs, RuleGroup) orelse maps:is_key(dirs, RuleGroup) of
         false ->
             throw({invalid_config, {missing_dirs, RuleGroup}});
         true ->
