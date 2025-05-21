@@ -55,6 +55,7 @@
     verify_no_import/1,
     verify_no_catch_expressions/1,
     verify_no_single_clause_case/1,
+    verify_no_single_match_maybe/1,
     verify_numeric_format/1,
     verify_behaviour_spelling/1,
     verify_always_shortcircuit/1,
@@ -170,6 +171,7 @@ groups() ->
             verify_always_shortcircuit,
             verify_no_catch_expressions,
             verify_no_single_clause_case,
+            verify_no_single_match_maybe,
             verify_no_macros,
             verify_export_used_types,
             verify_max_anonymous_function_arity,
@@ -2246,6 +2248,25 @@ verify_no_single_clause_case(Config) ->
                 [_, _, _] = R;
             erl_files ->
                 [#{line_num := 6}, #{line_num := 14}, #{line_num := 16}] = R
+        end.
+
+-spec verify_no_single_match_maybe(config()) -> any().
+verify_no_single_match_maybe(Config) ->
+    Group = proplists:get_value(group, Config, erl_files),
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PassPath = "pass_no_single_match_maybe." ++ Ext,
+    [] = elvis_core_apply_rule(Config, elvis_style, no_single_match_maybe, #{}, PassPath),
+
+    FailPath = "fail_no_single_match_maybe." ++ Ext,
+
+    R = elvis_core_apply_rule(Config, elvis_style, no_single_match_maybe, #{}, FailPath),
+    _ =
+        case Group of
+            beam_files ->
+                [_, _, _] = R;
+            erl_files ->
+                [#{line_num := 8}, #{line_num := 16}, #{line_num := 17}] = R
         end.
 
 -spec verify_no_match_in_condition(config()) -> any().

@@ -52,6 +52,7 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [No Match in Condition](doc_rules/elvis_style/no_match_in_condition.md)
 - [No Nested try...catch Blocks](doc_rules/elvis_style/no_nested_try_catch.md)
 - [No Single-Clause Case Statements](doc_rules/elvis_style/no_single_clause_case.md)
+- [No Single-Match Maybe Statements](doc_rules/elvis_style/no_single_match_maybe.md)
 - [No Space after #](doc_rules/elvis_style/no_space_after_pound.md)
 - [No Space](doc_rules/elvis_style/no_space.md)
 - [No Spec With Records](doc_rules/elvis_style/no_spec_with_records.md)
