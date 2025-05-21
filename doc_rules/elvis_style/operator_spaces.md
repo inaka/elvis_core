@@ -20,6 +20,7 @@ compromised without adequate spacing.
 
 - `rules :: [{right | left, string()}]`
   - default:
+
 ```erlang
           [{left, "!"}, {right, "!"}, {left, "*"}, {right, "*"}
          , {left, "+"}, {right, "+"}, {left, "++"}, {right, "++"}
