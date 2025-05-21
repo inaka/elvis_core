@@ -47,7 +47,7 @@ API.
 - `apply_to :: [record | map | tuple]`
   - default: `[record]`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, private_data_types, #{ apply_to => [record] }}

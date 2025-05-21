@@ -32,7 +32,7 @@ single-clause case statements also improves readability and simplifies the contr
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_single_clause_case, #{}}

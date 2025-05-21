@@ -17,7 +17,7 @@ that adhere to the [Single Responsibility Principle](https://en.wikipedia.org/wi
 - `limit :: non_neg_integer()`
   - default: `25`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, god_modules, #{ limit => 25 }}

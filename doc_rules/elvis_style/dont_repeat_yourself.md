@@ -69,7 +69,7 @@ and achieving high test coverage becomes more challenging
 - `min_complexity :: non_neg_integer()`
   - default: `10`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, dont_repeat_yourself, #{ min_complexity => 10 }}

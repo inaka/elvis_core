@@ -20,7 +20,7 @@ are those a majority of bootstrap projects should adopt.
                "^/rebar3.crashdump$",
                "^test/logs/$"]`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_gitignore, required_patterns, #{ regexes => ["^.rebar3/$"

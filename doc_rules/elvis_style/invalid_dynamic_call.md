@@ -14,7 +14,7 @@ This is a relatively complex topic, which is thoroughly covered in
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, invalid_dynamic_call, #{}}

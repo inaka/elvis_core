@@ -61,7 +61,7 @@ to the state are consistent across callbacks.
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, state_record_and_type, #{}}

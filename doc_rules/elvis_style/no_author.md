@@ -33,7 +33,7 @@ operations/testers to call/notify the right developers when a crash happened.
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_author, #{}}

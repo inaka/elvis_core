@@ -32,7 +32,7 @@ results in clearer, faster, and more maintainable code.
              , {gen_event, call, 3}
               ]`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_common_caveats_call, #{ caveat_functions => [{timer, send_after, 2}

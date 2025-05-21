@@ -22,7 +22,7 @@ and ensures tools like Dialyzer have accurate, module-specific context for analy
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_specs, #{}}

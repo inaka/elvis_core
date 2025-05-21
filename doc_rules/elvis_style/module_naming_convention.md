@@ -34,7 +34,7 @@ By defining a regular expression for naming modules you increase consistency acr
 - `forbidden_regex :: string() | undefined`
   - default: `undefined`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, module_naming_convention, #{ regex => "^[a-z](_?[a-z0-9]+)*(_SUITE)?$"

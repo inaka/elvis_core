@@ -48,7 +48,7 @@ latest Elvis features and best practices.
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_project, old_configuration_format, #{}}

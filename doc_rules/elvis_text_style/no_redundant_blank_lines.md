@@ -16,7 +16,7 @@ Use an Erlang code formatter that enforces strict rules for blank lines.
   - default: `1` - means that a maximum of 1 blank line is permitted; 2 (consecutive) or more will
   trigger a warning
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_text_style, no_redundant_blank_lines, #{ max_lines => 1 }}

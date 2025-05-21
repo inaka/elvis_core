@@ -18,7 +18,7 @@ Use an Erlang code formatter that disallows trailing whitespace at the end of li
 - `ignore_empty_lines :: boolean()`
   - default: `false`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_text_style, no_trailing_whitespace, #{ ignore_empty_lines => false }}

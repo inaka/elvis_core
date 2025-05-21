@@ -56,7 +56,7 @@ lead to cleaner and more manageable code.
 - `max_arity :: non_neg_integer()`
   - default: `5`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, max_anonymous_function_arity, #{ max_arity => 5 }}

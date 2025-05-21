@@ -38,7 +38,7 @@ ensure forward compatibility and better tool support.
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_behavior_info, #{}}

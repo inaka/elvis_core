@@ -24,7 +24,7 @@ focused logic and makes it easier to navigate the codebase.
 - `count_whitespace :: boolean()`
   - default: `false`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, max_function_length, #{ max_length => 30

@@ -54,7 +54,7 @@ maintainable code in this context.
 - `behaviours :: [atom()]` - list the behaviours for which you want to apply the rule
   - default: `[gen_server, gen_statem, gen_fsm, supervisor, supervisor_bridge, gen_event]`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_init_lists, #{ behaviours => [gen_server

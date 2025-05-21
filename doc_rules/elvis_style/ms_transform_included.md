@@ -35,7 +35,7 @@ expected.
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, ms_transform_included, #{}}

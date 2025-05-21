@@ -38,7 +38,7 @@ maintenance.
 
 - None
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_space_after_pound, #{}}

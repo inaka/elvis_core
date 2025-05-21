@@ -41,7 +41,7 @@ single-match `maybe` statements also improves readability and simplifies the con
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_single_match_maybe, #{}}

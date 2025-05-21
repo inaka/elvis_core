@@ -45,7 +45,7 @@ its dependent types should also be exported.
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, export_used_types, #{}}

@@ -12,7 +12,7 @@
 - `regex :: string()`
   - default: `(https://.*|[0-9]+([.][0-9]+)*)`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_project, protocol_for_deps_rebar, #{ regex => "(https://.*|[0-9]+([.][0-9]+)*)" }}

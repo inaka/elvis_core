@@ -57,7 +57,7 @@ lead to cleaner and more manageable code.
 - `non_exported_max_arity :: non_neg_integer() | same`
   - default: `8`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, max_function_arity, #{ max_arity => 8

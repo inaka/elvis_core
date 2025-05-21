@@ -30,7 +30,7 @@ or manipulate them.
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_spec_with_records, #{}}

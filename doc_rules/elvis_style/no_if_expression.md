@@ -35,7 +35,7 @@ an explicit `else` branch, which can lead to runtime errors if no condition is m
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_if_expression, #{}}

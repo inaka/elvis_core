@@ -32,7 +32,7 @@ and increase maintenance complexity - especially in large codebases.
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_import, #{}}

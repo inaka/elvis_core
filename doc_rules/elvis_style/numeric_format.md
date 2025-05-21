@@ -28,7 +28,7 @@ and receive warnings when deviations occur.
   - default: `same`
   - `same` - use the generic regex
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, numeric_format, #{ regex => ".*"

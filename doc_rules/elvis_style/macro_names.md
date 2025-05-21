@@ -37,7 +37,7 @@ the standard.
 - `regex :: string()`. (since [1.0.0](https://github.com/inaka/elvis_core/releases/tag/1.0.0))
   - default: `"^[A-Z](_?[A-Z0-9]+)*$"`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, macro_names, #{ regex => "^[A-Z](_?[A-Z0-9]+)*$" }}

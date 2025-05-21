@@ -12,7 +12,7 @@ Dependencies in `rebar.config` should not use branch `master` (e.g., `{branch, "
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_project, no_deps_master_rebar, #{}}

@@ -38,7 +38,7 @@ codebase.
   - default: `[{right, "("}, {left, ")"}, {left, ","}, {left, ":"}, {right, "#"}, {right, "?"},
   {right, "?"}]`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_space, #{ rules => [{right, "("}

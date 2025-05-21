@@ -23,7 +23,7 @@ use macros.
 - `allow :: [atom()]`
   - default: `[]`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_macros, #{ allow => [] }}

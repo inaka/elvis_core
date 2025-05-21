@@ -38,7 +38,7 @@ This improves readability, debuggability, and the clarity of intent.
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_match_in_condition, #{}}

@@ -12,7 +12,7 @@ Use an Erlang code formatter that enforces strict rules for tab vs. space indent
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_text_style, no_tabs, #{}}

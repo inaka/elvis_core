@@ -30,7 +30,7 @@ By defining a regular expression for naming variables you increase consistency a
 - `forbidden_regex :: string() | undefined`
   - default: `undefined`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, variable_naming_convention, #{ regex => "^_?([A-Z][0-9a-zA-Z]*)$"

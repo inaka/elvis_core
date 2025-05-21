@@ -54,7 +54,7 @@ code with clearer error semantics.
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_nested_try_catch, #{}}

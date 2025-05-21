@@ -34,7 +34,7 @@ a non-local return, whereas `error/1` and `exit/1` provide better control and er
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_throw, #{}}

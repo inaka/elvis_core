@@ -37,7 +37,7 @@ the reason and stack trace, enabling safer and more maintainable error handling.
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_catch_expressions, #{}}

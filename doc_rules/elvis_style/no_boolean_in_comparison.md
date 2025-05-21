@@ -36,7 +36,7 @@ more maintainable code.
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_boolean_in_comparison, #{}}

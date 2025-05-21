@@ -41,7 +41,7 @@ This also prevents:
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, always_shortcircuit, #{}}

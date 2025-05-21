@@ -26,7 +26,7 @@ focused logic and makes it easier to navigate the codebase.
 - `count_docs :: boolean()`
   - default: `false`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, max_module_length, #{ max_length => 500

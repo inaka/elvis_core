@@ -34,7 +34,7 @@ to reason about and debug.
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, macro_module_names, #{}}

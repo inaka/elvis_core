@@ -34,7 +34,7 @@ subtle bugs or overlooked logic due to mistaken assumptions about variable usage
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, used_ignored_variable, #{}}

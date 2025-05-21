@@ -23,7 +23,7 @@ clashes.
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_types, #{}}

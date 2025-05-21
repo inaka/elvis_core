@@ -33,7 +33,7 @@ branch heads.
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_project, no_branch_deps, #{}}

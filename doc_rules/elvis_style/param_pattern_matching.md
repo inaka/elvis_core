@@ -50,7 +50,7 @@ pattern matching for function arguments is uniform throughout the codebase.
 - `side :: left | right`
   - default: `right`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, param_pattern_matching, #{ side => right }}

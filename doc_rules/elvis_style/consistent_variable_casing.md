@@ -40,7 +40,7 @@ case-sensitive, whole-word searches.
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, consistent_variable_casing, #{}}

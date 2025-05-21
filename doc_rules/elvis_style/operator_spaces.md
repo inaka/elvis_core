@@ -42,7 +42,7 @@ compromised without adequate spacing.
          , {right, ","}]
 ```
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, operator_spaces, #{ rules => [{left, "!"}, {right, "!"}, {left, "*"}, {right, "*"}

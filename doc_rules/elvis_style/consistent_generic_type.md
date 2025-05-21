@@ -45,7 +45,7 @@ Defining a specific "term" type enhances consistency across your codebase.
 - `preferred_type :: term | any`
   - default: `term`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, consistent_generic_type, #{ preferred_type => term }}

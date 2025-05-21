@@ -85,7 +85,7 @@ developers.
 - `level :: pos_integer()`
   - default: `4` (prior to [0.7.0](https://github.com/inaka/elvis_core/releases/tag/0.7.0) was `3`)
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, nesting_level, #{ level => 4 }}

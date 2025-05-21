@@ -21,7 +21,7 @@ and maintain consistency across a codebase.
 
 `'_'` wildcards supported since [3.2.0](https://github.com/inaka/elvis_core/releases/tag/3.2.0)
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_call, #{ no_call_functions => [] }}

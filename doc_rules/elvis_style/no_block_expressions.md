@@ -61,7 +61,7 @@ straightforward patterns, improving clarity and reducing the potential for error
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_block_expressions, #{}}

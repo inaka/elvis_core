@@ -14,7 +14,7 @@ Use an Erlang code formatter that enforces strict rules for quoted atoms.
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, prefer_unquoted_atoms, #{}}

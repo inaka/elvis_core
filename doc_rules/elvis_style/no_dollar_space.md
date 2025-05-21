@@ -33,7 +33,7 @@ The use of <code>$&nbsp;</code> to represent character spaces reduces code reada
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_dollar_space, #{}}

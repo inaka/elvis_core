@@ -11,7 +11,7 @@ Dependencies in `erlang.mk` should not use branch `master`.
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_project, no_deps_master_erlang_mk, #{}}

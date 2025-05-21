@@ -14,7 +14,7 @@ are those a majority of bootstrap projects should not adopt.
 - `regexes :: [string()]`
   - default: `["^rebar.lock$"]`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_gitignore, forbidden_patterns, #{ regexes => ["^rebar.lock$"] }}

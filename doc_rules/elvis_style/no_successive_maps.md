@@ -36,7 +36,7 @@ The idea behind this rule comes from
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_successive_maps, #{}}

@@ -31,7 +31,7 @@ obscure errors during fetching or compilation. It also increases consistency acr
 - `regex :: string()`
   - default: `^(https://|git://|\\d+(\\.\\d+)*)`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_project, protocol_for_deps, #{ regex => "^(https://|git://|\\d+(\\.\\d+)*)" }}

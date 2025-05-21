@@ -42,7 +42,7 @@ By defining a regular expression for naming functions you increase consistency a
 - `forbidden_regex :: string() | undefined`
   - default: `undefined`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, function_naming_convention, #{ regex => "^[a-z](_?[a-z0-9]+)*(_test_)?$"

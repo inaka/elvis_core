@@ -48,7 +48,7 @@ documentation. However, the spelling `behavior` is also accepted.
 - `spelling :: behaviour | behavior`
   - default: `behaviour`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, behaviour_spelling, #{ spelling => behaviour }}
