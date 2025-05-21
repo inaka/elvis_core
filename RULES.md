@@ -6,7 +6,8 @@ options for each one. At the end of this document, we share an
 then tweak to your liking.
 
 Rules and other significant changes, like new options (starting from version `0.4.0`), are
-identified with `(since ...)` for convenience purposes.
+identified with [![](https://img.shields.io/badge/since-x.y.z-blue)](https://github.com/inaka/elvis_core/releases/tag/x.y.z)
+for convenience purposes.
 
 ## Avoid, prefer, quick fix
 
@@ -131,7 +132,7 @@ Example configuration with a custom ruleset (named `my_ruleset`):
 ]}].
 ```
 
-## The -elvis attribute
+## The `-elvis` attribute
 
 Per-module rules can also be configured using attribute `-elvis(_).`, with the same content as is
 expected in `elvis.config`'s `rules` option, e.g.:
@@ -164,7 +165,7 @@ tuples (if you don't). To disable a rule, you need to use the 3-element form, an
 `disable`: let's consider you want to disable rule `elvis_text_style:no_tabs`; you do
 `{elvis_text_style, no_tabs, disable}`, and you're done!
 
-### The "ignore" option
+### The `ignore` option
 
 Module-level rules implement a generic ignore mechanism that allows skipping analysis in elements of
 your choice.
