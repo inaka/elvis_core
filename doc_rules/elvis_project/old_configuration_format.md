@@ -1,4 +1,4 @@
-# Old configuration format
+# Old Configuration Format
 
 `elvis.config` files should not use an outdated format.
 

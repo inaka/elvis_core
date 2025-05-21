@@ -1,4 +1,4 @@
-# No debug call ![](https://img.shields.io/badge/BEAM-yes-orange)
+# No Debug Call ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Use of functions that are intended primarily for debugging should be avoided.
 

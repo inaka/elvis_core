@@ -1,4 +1,4 @@
-# No Nested try...catch Blocks ![](https://img.shields.io/badge/BEAM-yes-orange)
+# No Nested `try...catch` Blocks ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 `try...catch` expressions should not be nested.
 

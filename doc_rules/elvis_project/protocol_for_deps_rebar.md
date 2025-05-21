@@ -1,4 +1,4 @@
-# Protocol for deps rebar [![](https://img.shields.io/badge/until-1.4.0-red)](https://github.com/inaka/elvis_core/releases/tag/1.4.0)
+# Protocol For Deps `rebar.config` [![](https://img.shields.io/badge/until-1.4.0-red)](https://github.com/inaka/elvis_core/releases/tag/1.4.0)
 
 `rebar.config` dependencies should use known protocols.
 

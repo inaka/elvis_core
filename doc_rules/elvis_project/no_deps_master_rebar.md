@@ -1,4 +1,4 @@
-# No deps master rebar [![](https://img.shields.io/badge/until-1.4.0-red)](https://github.com/inaka/elvis_core/releases/tag/1.4.0)
+# No Deps `master` `rebar.config` [![](https://img.shields.io/badge/until-1.4.0-red)](https://github.com/inaka/elvis_core/releases/tag/1.4.0)
 
 Dependencies in `rebar.config` should not use branch `master` (e.g., `{branch, "master"}`); use
 `{tag, "..."}` or `{ref, "..."}` instead.

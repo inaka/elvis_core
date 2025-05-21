@@ -1,4 +1,4 @@
-# State Record and Type ![](https://img.shields.io/badge/BEAM-yes-orange)
+# State Record And Type ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Modules implementing the OTP behaviors listed below should define a `#state{}` record and a
 corresponding state type (public - `type()` - or private - `opaque`).

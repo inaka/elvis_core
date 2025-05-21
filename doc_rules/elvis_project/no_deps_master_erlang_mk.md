@@ -1,4 +1,4 @@
-# No deps master erlang.mk [![](https://img.shields.io/badge/until-1.4.0-red)](https://github.com/inaka/elvis_core/releases/tag/1.4.0)
+# No Deps `master` `erlang.mk` [![](https://img.shields.io/badge/until-1.4.0-red)](https://github.com/inaka/elvis_core/releases/tag/1.4.0)
 
 Dependencies in `erlang.mk` should not use branch `master`.
 

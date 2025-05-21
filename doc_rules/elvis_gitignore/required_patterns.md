@@ -1,4 +1,4 @@
-# `.gitignore` required patterns [![](https://img.shields.io/badge/since-4.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.0.0)
+# `.gitignore` Required Patterns [![](https://img.shields.io/badge/since-4.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.0.0)
 
 Some patterns in `.gitignore` should be included.
 

@@ -1,4 +1,4 @@
-# Prefer unquoted atoms [![](https://img.shields.io/badge/since-4.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.0.0)
+# Prefer Unquoted Atoms [![](https://img.shields.io/badge/since-4.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.0.0)
 
 Atoms should not be quoted unless syntactically necessary.
 
