@@ -1,7 +1,4 @@
-# elvis_core
-
-[![GitHub Actions CI](https://github.com/inaka/elvis_core/workflows/build/badge.svg)](https://github.com/inaka/elvis_core)
-[![Erlang Support](https://img.shields.io/badge/Erlang/OTP-25+-blue)](https://www.erlang.org)
+# `elvis_core` [![GitHub Actions CI](https://github.com/inaka/elvis_core/workflows/build/badge.svg)](https://github.com/inaka/elvis_core) [![Erlang Support](https://img.shields.io/badge/Erlang/OTP-25+-blue)](https://www.erlang.org)
 
 `elvis_core` is the core library for the [`elvis`](https://github.com/inaka/elvis) Erlang style
 reviewer. It is also used by [`rebar3_lint`](https://github.com/project-fifo/rebar3_lint) for easier
