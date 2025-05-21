@@ -1,9 +1,7 @@
-# Variable Naming Convention
+# Variable Naming Convention ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 All variable names should conform to the pattern defined by the `regex` option pattern, unless they
 match the `forbidden_regex` option pattern, in which case they are disallowed.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 

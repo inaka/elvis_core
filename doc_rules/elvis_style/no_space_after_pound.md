@@ -1,10 +1,6 @@
-# No Space after `#`
-
-(since [3.0.0](https://github.com/inaka/elvis_core/releases/tag/3.0.0))
+# No Space after `#` [![](https://img.shields.io/badge/since-3.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/3.0.0)
 
 Spaces after the `#` symbol in maps or records should be avoided.
-
-> Works on `.beam` file? No.
 
 ## Quick fix
 

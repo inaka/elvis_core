@@ -1,8 +1,6 @@
-# Nesting Level
+# Nesting Level ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Nesting levels in code structures should be limited to a specified maximum depth.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 

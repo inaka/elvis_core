@@ -1,8 +1,6 @@
-# No debug call
+# No debug call ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Use of functions that are intended primarily for debugging should be avoided.
-
-> Works on `.beam` file? Yes!
 
 ## Rationale
 

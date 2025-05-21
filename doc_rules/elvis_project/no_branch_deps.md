@@ -1,6 +1,4 @@
-# No deps with branches
-
-(since [2.0.0](https://github.com/inaka/elvis_core/releases/tag/2.0.0))
+# No deps with branches [![](https://img.shields.io/badge/since-2.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/2.0.0)
 
 Dependencies in `rebar.config` should not use branches (e.g., `{branch, "my-branch"}`); use
 `{tag, "..."}` or `{ref, "..."}` instead.

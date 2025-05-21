@@ -1,14 +1,9 @@
-# Max Function Clause Length
-
-(since [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0))
+# Max Function Clause Length [![](https://img.shields.io/badge/since-4.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.0.0)
 
 The number of lines in a function clause definition should be limited to a defined maximum.
 
 Lines containing only comments or whitespace may be either included or excluded from the line
 count, depending on the configuration
-
-> Works on `.beam` file? Not really! (it consumes results Ok, but these might be unexpected, since
-the files are pre-processed)
 
 ## Rationale
 

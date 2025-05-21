@@ -1,11 +1,7 @@
-# Consistent Variable Casing
-
-(since [3.0.0](https://github.com/inaka/elvis_core/releases/tag/3.0.0))
+# Consistent Variable Casing [![](https://img.shields.io/badge/since-3.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/3.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Variables with the same name should follow a consistent casing style (either upper or lower case)
 to avoid mismatches, such as `UserID` being mixed with `UserId` or `Userid`.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 

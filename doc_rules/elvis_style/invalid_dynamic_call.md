@@ -1,9 +1,7 @@
-# Invalid Dynamic Calls
+# Invalid Dynamic Calls ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Calls to non-local and non-external functions, in modules that do not include a `callback`
 attribute, should be avoided.
-
-> Works on `.beam` file? Yes!
 
 ## Rationale
 

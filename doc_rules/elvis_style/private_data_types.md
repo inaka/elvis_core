@@ -1,11 +1,7 @@
-# Private Data Types
-
-(since [3.0.0](https://github.com/inaka/elvis_core/releases/tag/3.0.0))
+# Private Data Types [![](https://img.shields.io/badge/since-3.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/3.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Types based on records, maps or tuples should be exported as
 [opaque](https://www.erlang.org/doc/reference_manual/opaques.html).
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 

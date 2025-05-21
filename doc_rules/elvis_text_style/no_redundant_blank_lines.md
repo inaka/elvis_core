@@ -1,10 +1,6 @@
-# No Redundant Blank Lines
-
-(since [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0))
+# No Redundant Blank Lines [![](https://img.shields.io/badge/since-4.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.0.0)
 
 No more than `max_lines` consecutive blank lines are allowed.
-
-> Works on `.beam` file? No.
 
 ## Quick fix
 

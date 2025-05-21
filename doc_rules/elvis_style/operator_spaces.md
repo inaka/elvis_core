@@ -2,8 +2,6 @@
 
 Spaces should exist in specified text positions.
 
-> Works on `.beam` file? Not really! (it consumes results Ok, but these might be unexpected)
-
 ## Quick fix
 
 Use an Erlang code formatter that enforces strict spacing around operators.

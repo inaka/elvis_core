@@ -1,11 +1,7 @@
-# No Init Lists
-
-(since [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0))
+# No Init Lists [![](https://img.shields.io/badge/since-4.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Lists as the argument for the `init/1` callback should be avoided when implementing
 `gen_*` behaviours; use a tuple, a map, or a record instead.
-
-> Works on `.beam` files? Yes!
 
 ## Avoid
 

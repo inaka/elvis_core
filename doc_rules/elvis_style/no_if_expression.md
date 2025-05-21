@@ -1,8 +1,6 @@
-# No If Expression
+# No If Expression ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 `if` expressions should not be used.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 

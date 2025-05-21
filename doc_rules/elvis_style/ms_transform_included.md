@@ -1,10 +1,6 @@
-# Include `ms_transform` for `ets:fun2ms/1`
-
-(since [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0))
+# Include `ms_transform` for `ets:fun2ms/1` [![](https://img.shields.io/badge/since-4.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 The `ms_transform` parse transform should be included when the module uses `ets:fun2ms`.
-
-> Works on `.beam` files? Yes!
 
 ## Avoid
 

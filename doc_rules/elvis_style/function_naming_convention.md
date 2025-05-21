@@ -1,9 +1,7 @@
-# Function Naming Convention
+# Function Naming Convention [![](https://img.shields.io/badge/until-2.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/2.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 All functions should conform to the pattern defined by the `regex` option pattern, unless they match
 the `forbidden_regex` option pattern, in which case they are disallowed.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 

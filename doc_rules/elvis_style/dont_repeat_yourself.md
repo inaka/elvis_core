@@ -1,4 +1,4 @@
-# Don't Repeat Yourself
+# Don't Repeat Yourself ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 The *Don't Repeat Yourself* ([DRY](https://en.wikipedia.org/wiki/Don't_repeat_yourself)) rule
 identifies repeated code within a module. Code is considered repeated or duplicated if its
@@ -12,8 +12,6 @@ qualify as repeated.
 
 The `min_complexity` parameter can be adjusted according to your needs through a trial-and-error
 process: set a value, review the reported results, and adjust accordingly.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 

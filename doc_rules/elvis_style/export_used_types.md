@@ -1,10 +1,6 @@
-# Export Used Types
-
-(since [3.0.0](https://github.com/inaka/elvis_core/releases/tag/3.0.0))
+# Export Used Types [![](https://img.shields.io/badge/since-3.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/3.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Types used in typespecs for exported functions should also be exported.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 

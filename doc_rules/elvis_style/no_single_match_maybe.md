@@ -1,10 +1,6 @@
-# No Single-Match Maybe Statements
-
-(since [4.1.0](https://github.com/inaka/elvis_core/releases/tag/4.1.0))
+# No Single-Match Maybe Statements [![](https://img.shields.io/badge/since-4.1.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.1.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Single-match maybe statements should be avoided.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 

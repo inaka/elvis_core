@@ -1,10 +1,6 @@
-# No Nested try...catch Blocks
-
-(since [0.4.0](https://github.com/inaka/elvis_core/releases/tag/0.4.0))
+# No Nested try...catch Blocks ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 `try...catch` expressions should not be nested.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 

@@ -1,10 +1,6 @@
-# No Macros
-
-(since [1.3.2](https://github.com/inaka/elvis_core/releases/tag/1.3.2))
+# No Macros [![](https://img.shields.io/badge/since-1.3.2-blue)](https://github.com/inaka/elvis_core/releases/tag/1.3.2)
 
 Avoid using macros unless absolutely necessary.
-
-> Works on `.beam` file? Not really! (it consumes results Ok, but these might be unexpected)
 
 ## Exceptions
 

@@ -1,10 +1,6 @@
-# No author
-
-(since [1.5.0](https://github.com/inaka/elvis_core/releases/tag/1.5.0))
+# No author [![](https://img.shields.io/badge/since-1.5.0-blue)](https://github.com/inaka/elvis_core/releases/tag/1.5.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 The use of attribute `-author(_)` should be avoided.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 

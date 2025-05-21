@@ -1,10 +1,6 @@
-# No Specs
-
-(since [3.0.0](https://github.com/inaka/elvis_core/releases/tag/3.0.0))
+# No Specs [![](https://img.shields.io/badge/since-3.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/3.0.0)
 
 `-spec` attributes **in header files** should be avoided.
-
-> Works on `.beam` file? Yes, but it's not useful there. This rule is meant to be used for header files.
 
 ## Quick fix
 

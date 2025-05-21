@@ -1,10 +1,6 @@
-# Prefer unquoted atoms
-
-(since [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0))
+# Prefer unquoted atoms [![](https://img.shields.io/badge/since-4.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.0.0)
 
 Atoms should not be quoted unless syntactically necessary.
-
-> Works on `.beam` file? Not really! (it consumes results Ok, but these might be unexpected)
 
 ## Quick fix
 

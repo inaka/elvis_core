@@ -5,9 +5,6 @@ The number of lines in a function definition should be limited to a defined maxi
 Lines containing only comments or whitespace may be either included or excluded from the line
 count, depending on the configuration
 
-> Works on `.beam` file? Not really! (it consumes results Ok, but these might be unexpected, since
-the files are pre-processed)
-
 ## Rationale
 
 Limiting the number of lines in function definitions improves readability and maintainability.

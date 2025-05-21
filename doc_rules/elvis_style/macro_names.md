@@ -2,8 +2,6 @@
 
 Macro names should be written in SCREAMING_SNAKE_CASE.
 
-> Works on `.beam` file? Not really! (it consumes results Ok, but these might be unexpected)
-
 ## Avoid
 
 > This is a convention aimed at ensuring consistency, rather than a coding issue.

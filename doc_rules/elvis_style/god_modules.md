@@ -1,8 +1,6 @@
-# God Modules
+# God Modules ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 The number of functions in a module should be limited to a maximum threshold.
-
-> Works on `.beam` file? Yes!
 
 ## Rationale
 
