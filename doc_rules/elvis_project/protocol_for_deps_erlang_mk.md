@@ -2,12 +2,15 @@
 
 (not available since [2.0.0](https://github.com/inaka/elvis_core/releases/tag/2.0.0))
 
-Use a specific protocol for `deps`.
+`erlang.mk` dependencies should use known protocols.
+
+> [!WARNING]
+> This rule is now deprecated, as is the support for `erlang.mk`.
 
 ## Options
 
-- `regex :: string()`.
-  - default: `(https://.*|[0-9]+([.][0-9]+)*)`.
+- `regex :: string()`
+  - default: `(https://.*|[0-9]+([.][0-9]+)*)`
 
 ## Example
 

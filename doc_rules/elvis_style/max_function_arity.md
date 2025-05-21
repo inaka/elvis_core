@@ -2,23 +2,65 @@
 
 (since [3.0.0](https://github.com/inaka/elvis_core/releases/tag/3.0.0))
 
-This specifies an upper bound on function arity.
-This rule is similar to `max_anonymous_function_arity`
-but it applies to regular functions only (not anonymous ones).
+The number of arguments in a non-anonymous function definition should be limited to a defined
+maximum.
 
 > Works on `.beam` file? Yes
 
+## Avoid
+
+```erlang
+request(Method, Host, Port, Path, Query, Headers, Body, Timeout, Retries, ExpectedCode) ->
+    ...
+end.
+```
+
+## Prefer
+
+A potential solution is to refactor the function by grouping related arguments into maps, or
+custom data structures. This reduces the arity of the function while preserving clarity and intent:
+
+```erlang
+request(Method, Target, Data, ReqOptions, RespOptions) ->
+    #{
+        host := Host,
+        port := Port,
+        path := Path,
+        query := Query
+     } = Target,
+    #{
+        headers := Headers,
+        body := Body
+     } = Data,
+    #{
+        timeout := Timeout,
+        retries := Retries
+     } = ReqOptions,
+    #{
+        expected_code := ExpectedCode
+     } = RespOptions,
+    ...
+end.
+```
+
+## Rationale
+
+Limiting the number of function arguments improves readability, maintainability, and testability.
+Functions with too many parameters often indicate insufficient encapsulation. Refactoring such
+functions into smaller, more focused units or using records, maps, or structured data types can
+lead to cleaner and more manageable code.
+
 ## Options
 
-- `max_arity :: non_neg_integer()`.
-  - default: `8`.
-- `non_exported_max_arity :: non_neg_integer() | same`.
-  - default: `8`.
+- `max_arity :: non_neg_integer()`
+  - default: `8`
+- `non_exported_max_arity :: non_neg_integer() | same`
+  - default: `8`
 
 ## Example
 
 ```erlang
-{elvis_style, max_function_arity}
-%% or
-{elvis_style, max_function_arity, #{max_arity => 10, non_exported_max_arity => same}}
+{elvis_style, max_function_arity, #{ max_arity => 8
+                                   , non_exported_max_arity => 8
+                                   }}
 ```

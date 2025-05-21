@@ -2,7 +2,11 @@
 
 (since [3.0.0](https://github.com/inaka/elvis_core/releases/tag/3.0.0))
 
-Don't write code like this:
+Pattern-matching in `case` expressions should be avoided.
+
+> Works on `.beam` file? Yes!
+
+## Avoid
 
 ```erlang
 case #{a := A} = do:something() of
@@ -11,7 +15,9 @@ case #{a := A} = do:something() of
 end
 ```
 
-Do the matching in the clause heads (i.e., outside of the `case` condition):
+## Prefer
+
+Prefer pattern-matching in the clause heads:
 
 ```erlang
 case do:something() of
@@ -20,10 +26,13 @@ case do:something() of
 end
 ```
 
-While the code as written in the first example is valid, it's much harder to understand
-(particularly for large statements) than the one from the second example.
+## Rationale
 
-> Works on `.beam` file? Yes!
+Pattern matching directly in the `case` expression can lead to fragile or misleading code,
+especially when multiple branches depend on specific data structures or values. This approach
+can obscure the control flow and increase the risk of runtime errors due to unmatched patterns.
+Instead, perform pattern matching in case clauses.
+This improves readability, debuggability, and the clarity of intent.
 
 ## Options
 

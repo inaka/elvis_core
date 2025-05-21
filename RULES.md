@@ -8,6 +8,12 @@ then tweak to your liking.
 Rules and other significant changes, like new options (starting from version `0.4.0`), are
 identified with `(since ...)` for convenience purposes.
 
+## Avoid, prefer, quick fix
+
+Most, if not all, of the rules will present (opinionated) documentation sections titled
+"Avoid" and "Prefer". We aim to provide a "Rationale" with them and, in some cases,
+"Exceptions" or "Quick fix", if applicable.
+
 ## Style rules
 
 - [Always Shortcircuit](doc_rules/elvis_style/always_shortcircuit.md)

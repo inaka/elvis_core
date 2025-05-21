@@ -2,15 +2,20 @@
 
 (since [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0))
 
-Exclude, from the project's `.gitignore` file, the patterns identified by the rule.
+Some patterns in `.gitignore` should be excluded.
+
+## Rationale
+
+This is a simple convention for consistency. The patterns mentioned in the options (default)
+are those a majority of bootstrap projects should not adopt.
 
 ## Options
 
-- `regexes :: [string()]`.
-  - default: `["^rebar.lock$"]`.
+- `regexes :: [string()]`
+  - default: `["^rebar.lock$"]`
 
 ## Example
 
 ```erlang
-{elvis_gitignore, forbidden_patterns, #{}}
+{elvis_gitignore, forbidden_patterns, #{ regexes => ["^rebar.lock$"] }}
 ```
