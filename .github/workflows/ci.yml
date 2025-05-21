@@ -45,9 +45,13 @@ jobs:
       - name: Format check
         if: ${{ matrix.os == 'ubuntu-24.04' && matrix.otp_vsn == '26' }}
         run: rebar3 fmt --check
-      - name: Run test
+      - name: Run test Erlang/OTP 25
         run: rebar3 test
+        env:
+          ERL_FLAGS: "-args_file config/vm.args"
       - name: Run elvis on elvis
         run: |
           rebar3 escriptize
           _build/default/bin/elvis_core
+        env:
+          ERL_FLAGS: "-args_file config/vm.args"
