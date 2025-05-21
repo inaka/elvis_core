@@ -2,14 +2,15 @@
 
 (not available since [2.0.0](https://github.com/inaka/elvis_core/releases/tag/2.0.0))
 
-Check [Protocol for deps](protocol_for_deps.md).
+`rebar.config` dependencies should use known protocols.
 
-Use a specific protocol for `deps`.
+> [!WARNING]
+> This rule is now deprecated, having been replaced by `protocol_for_deps`.
 
 ## Options
 
-- `regex :: string()`.
-  - default: `(https://.*|[0-9]+([.][0-9]+)*)`.
+- `regex :: string()`
+  - default: `(https://.*|[0-9]+([.][0-9]+)*)`
 
 ## Example
 

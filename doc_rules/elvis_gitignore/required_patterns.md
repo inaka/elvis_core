@@ -2,21 +2,34 @@
 
 (since [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0))
 
-Include, in the project's `.gitignore` file, the patterns identified by the rule.
+Some patterns in `.gitignore` should be included.
+
+## Rationale
+
+This is a simple convention for consistency. The patterns mentioned in the options (default)
+are those a majority of bootstrap projects should adopt.
 
 ## Options
 
-- `regexes :: [string()]`.
+- `regexes :: [string()]`
   - default: `["^.rebar3/$",
                "^_build/$",
                "^_checkouts/$",
                "^doc/$",
                "^/erl_crash.dump$",
                "^/rebar3.crashdump$",
-               "^test/logs/$"]`.
+               "^test/logs/$"]`
 
 ## Example
 
 ```erlang
-{elvis_gitignore, required_patterns, #{}}
+{elvis_gitignore, required_patterns, #{ regexes => ["^.rebar3/$"
+                                                  , "^_build/$"
+                                                  , "^_checkouts/$"
+                                                  , "^doc/$"
+                                                  , "^/erl_crash.dump$"
+                                                  , "^/rebar3.crashdump$"
+                                                  , "^test/logs/$"
+                                                   ]
+                                      }}
 ```

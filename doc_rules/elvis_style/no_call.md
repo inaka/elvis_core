@@ -2,22 +2,22 @@
 
 (since [0.4.0](https://github.com/inaka/elvis_core/releases/tag/0.4.0))
 
-This rule raise a warning when certain functions are called. It is also used internally to implement
-`no_debug_call` and `no_common_caveats_call` but, on its own, makes no checks on your code (the default
-`no_call_functions` list is empty).  However, it is a convenient place to add your own list of calls
-to avoid (especially calls to third party libraries, where you can't just deprecate undesired
-functions).
-
-**Notice**: this rule is not enforced by default. Check the
-[example `elvis.config` file](../../README.md#configuration) to see how you can enforce it.
+Avoid calls to specific functions.
 
 > Works on `.beam` file? Yes!
+
+## Rationale
+
+Some functions may be discouraged due to deprecation, known performance issues, unsafe side
+effects, or because better alternatives exist. This rule serves as a centralized and customizable
+enforcement point, allowing developers to prevent the use of problematic or non-idiomatic functions
+and maintain consistency across a codebase.
 
 ## Options
 
 - `no_call_functions :: [{module() | '_', function() | '_', arity() | '_'} |
-  {module() | '_', function() | '_'}]`.
-  - default: `[]`.
+  {module() | '_', function() | '_'}]`
+  - default: `[]`
 
 `'_'` wildcards supported since [3.2.0](https://github.com/inaka/elvis_core/releases/tag/3.2.0)
 

@@ -2,7 +2,11 @@
 
 (since [3.0.0](https://github.com/inaka/elvis_core/releases/tag/3.0.0))
 
-Don't write code like this:
+Single-clause case statements should be avoided.
+
+> Works on `.beam` file? Yes!
+
+## Avoid
 
 ```erlang
 case do:something() of
@@ -10,14 +14,19 @@ case do:something() of
 end
 ```
 
-Use pattern-matching instead:
+## Prefer
 
 ```erlang
 {ok, Result} = do:something(),
 do:something("else")
 ```
 
-> Works on `.beam` file? Yes!
+## Rationale
+
+Using a `case` expression with only one clause is unnecessary and reduces code clarity. It adds
+syntactic overhead without providing meaningful branching logic. In such cases, a let-style
+assignment or direct pattern matching is typically more appropriate and idiomatic. Removing
+single-clause case statements also improves readability and simplifies the control flow.
 
 ## Options
 
