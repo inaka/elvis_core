@@ -4,12 +4,14 @@ Modules implementing the OTP behaviors listed below should define a `#state{}` r
 corresponding state type (public - `type()` - or private - `opaque`).
 
 - `gen_server`
-- `gen_event` (since [0.7.0](https://github.com/inaka/elvis_core/releases/tag/0.7.0))
+- `gen_event` [![](https://img.shields.io/badge/since-0.7.0-blue)](https://github.com/inaka/elvis_core/releases/tag/0.7.0)
 - `gen_fsm`
 - `supervisor_bridge`
 
 **Note**: if used together with `export_used_types`, the `state` record **should be** defined as a
 private type (`opaque()`), and should be exported.
+
+`opaque()` was added in [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0).
 
 ## Avoid
 

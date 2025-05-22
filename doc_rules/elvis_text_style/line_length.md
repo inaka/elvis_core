@@ -20,7 +20,7 @@ Use an Erlang code formatter that enforces strict line length limitations.
   comment
   - `whole_line` - no warning is emitted if the entire line that exceeds the limit consists solely
   of a comment.
-- `no_whitespace_after_limit :: boolean()`
+- `no_whitespace_after_limit :: boolean()` [![](https://img.shields.io/badge/since-4.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.0.0)
   - default: `true` - emits a warning when there is whitespace beyond the configured limit
   - `false` - allows exceptions, such as long URLs, to extend beyond the limit without requiring
   line breaks

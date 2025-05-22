@@ -20,7 +20,7 @@ focused logic and makes it easier to navigate the codebase.
   - default: `false`
 - `count_whitespace :: boolean()`
   - default: `false`
-- `count_docs :: boolean()`
+- `count_docs :: boolean()` [![](https://img.shields.io/badge/since-4.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.0.0)
   - default: `false`
 
 ## Example configuration

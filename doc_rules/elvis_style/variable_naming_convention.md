@@ -25,7 +25,7 @@ By defining a regular expression for naming variables you increase consistency a
 
 - `regex :: string()`
   - default: `"^_?([A-Z][0-9a-zA-Z]*)$"`
-- `forbidden_regex :: string() | undefined`
+- `forbidden_regex :: string() | undefined` [![](https://img.shields.io/badge/since-4.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.0.0)
   - default: `undefined`
 
 ## Example configuration

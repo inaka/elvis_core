@@ -81,7 +81,9 @@ developers.
 ## Options
 
 - `level :: pos_integer()`
-  - default: `4` (prior to [0.7.0](https://github.com/inaka/elvis_core/releases/tag/0.7.0) was `3`)
+  - default: `4`
+
+`level` was `3` until [1.0.0](https://github.com/inaka/elvis_core/releases/tag/1.0.0).
 
 ## Example configuration
 

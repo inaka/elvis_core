@@ -50,7 +50,7 @@ lead to cleaner and more manageable code.
 
 - `max_arity :: non_neg_integer()`
   - default: `8`
-- `non_exported_max_arity :: non_neg_integer() | same`
+- `non_exported_max_arity :: non_neg_integer() | same` [![](https://img.shields.io/badge/since-4.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.0.0)
   - default: `8`
 
 ## Example configuration
