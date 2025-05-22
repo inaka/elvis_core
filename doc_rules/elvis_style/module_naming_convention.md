@@ -29,8 +29,10 @@ By defining a regular expression for naming modules you increase consistency acr
 
 - `regex :: string()`
   - default: `"^[a-z](_?[a-z0-9]+)*(_SUITE)?$"`
-- `forbidden_regex :: string() | undefined`
+- `forbidden_regex :: string() | undefined` [![](https://img.shields.io/badge/since-4.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.0.0)
   - default: `undefined`
+
+`regex` was `"^([a-z][a-z0-9]*_?)*(_SUITE)?$"` until [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0).
 
 ## Example configuration
 

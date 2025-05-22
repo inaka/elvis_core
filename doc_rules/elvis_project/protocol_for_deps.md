@@ -27,7 +27,10 @@ obscure errors during fetching or compilation. It also increases consistency acr
 ## Options
 
 - `regex :: string()`
-  - default: `^(https://|git://|\\d+(\\.\\d+)*)`
+  - default: `"^(https://|git://|\\d+(\\.\\d+)*)"`
+
+`regex` was
+`"https://.*|[0-9]+([.][0-9]+)*)"` until [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0).
 
 ## Example configuration
 

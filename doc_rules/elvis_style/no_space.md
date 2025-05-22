@@ -34,6 +34,8 @@ codebase.
   - default: `[{right, "("}, {left, ")"}, {left, ","}, {left, ":"}, {right, "#"}, {right, "?"},
   {right, "?"}]`
 
+`{right, "#"}, {right, "?"}` was added in [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0)).
+
 ## Example configuration
 
 ```erlang

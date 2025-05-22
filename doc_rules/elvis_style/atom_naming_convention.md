@@ -33,9 +33,9 @@ By defining a regular expression for naming atoms you increase consistency acros
   - default: `"^[a-z](_?[a-z0-9]+)*(_SUITE)?$"`
 - `enclosed_atoms :: string() | same`
   - default: `".*"`
-- `forbidden_regex :: string() | undefined`
+- `forbidden_regex :: string() | undefined` [![](https://img.shields.io/badge/since-4.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.0.0)
   - default: `undefined`
-- `forbidden_enclosed_regex :: string() | undefined | same`
+- `forbidden_enclosed_regex :: string() | undefined | same` [![](https://img.shields.io/badge/since-4.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.0.0)
   - default: `undefined`
 
 ## Example configuration

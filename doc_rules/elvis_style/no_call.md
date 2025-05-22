@@ -15,7 +15,7 @@ and maintain consistency across a codebase.
   {module() | '_', function() | '_'}]`
   - default: `[]`
 
-`'_'` wildcards supported since [3.2.0](https://github.com/inaka/elvis_core/releases/tag/3.2.0)
+`'_'` wildcards was added in [3.2.0](https://github.com/inaka/elvis_core/releases/tag/3.2.0).
 
 ## Example configuration
 

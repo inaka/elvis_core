@@ -35,6 +35,8 @@ the standard.
 - `regex :: string()`. [![](https://img.shields.io/badge/since-1.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/1.0.0)
   - default: `"^[A-Z](_?[A-Z0-9]+)*$"`
 
+`regex` was `"^([A-Z][A-Z_0-9]+)$"` until [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0).
+
 ## Example configuration
 
 ```erlang

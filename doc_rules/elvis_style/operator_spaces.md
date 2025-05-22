@@ -37,8 +37,9 @@ compromised without adequate spacing.
          , {right, ","}]
 ```
 
-Before [1.5.0](https://github.com/inaka/elvis_core/releases/tag/1.5.0) `rules` defaulted to
-`[{right, ","}, {right, "++"}, {left, "++"}]`.
+`rules` was `[{right, ","}, {right, "++"}, {left, "++"}]` until [1.5.0](https://github.com/inaka/elvis_core/releases/tag/1.5.0).
+
+`{left, "!"}, {right, "!"}` was added in [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0)).
 
 ## Example configuration
 
