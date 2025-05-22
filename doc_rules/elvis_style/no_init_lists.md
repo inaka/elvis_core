@@ -1,11 +1,7 @@
-# No Init Lists
-
-(since [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0))
+# No Init Lists [![](https://img.shields.io/badge/since-4.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Lists as the argument for the `init/1` callback should be avoided when implementing
 `gen_*` behaviours; use a tuple, a map, or a record instead.
-
-> Works on `.beam` files? Yes!
 
 ## Avoid
 
@@ -54,7 +50,7 @@ maintainable code in this context.
 - `behaviours :: [atom()]` - list the behaviours for which you want to apply the rule
   - default: `[gen_server, gen_statem, gen_fsm, supervisor, supervisor_bridge, gen_event]`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_init_lists, #{ behaviours => [gen_server

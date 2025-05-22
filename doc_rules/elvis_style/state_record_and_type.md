@@ -1,4 +1,4 @@
-# State Record and Type
+# State Record And Type ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Modules implementing the OTP behaviors listed below should define a `#state{}` record and a
 corresponding state type (public - `type()` - or private - `opaque`).
@@ -10,8 +10,6 @@ corresponding state type (public - `type()` - or private - `opaque`).
 
 **Note**: if used together with `export_used_types`, the `state` record **should be** defined as a
 private type (`opaque()`), and should be exported.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 
@@ -61,7 +59,7 @@ to the state are consistent across callbacks.
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, state_record_and_type, #{}}

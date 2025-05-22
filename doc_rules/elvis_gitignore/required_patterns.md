@@ -1,6 +1,4 @@
-# `.gitignore` required patterns
-
-(since [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0))
+# `.gitignore` Required Patterns [![](https://img.shields.io/badge/since-4.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.0.0)
 
 Some patterns in `.gitignore` should be included.
 
@@ -20,7 +18,7 @@ are those a majority of bootstrap projects should adopt.
                "^/rebar3.crashdump$",
                "^test/logs/$"]`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_gitignore, required_patterns, #{ regexes => ["^.rebar3/$"

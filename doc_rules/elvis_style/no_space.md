@@ -1,10 +1,6 @@
-# No Space
-
-(since [1.4.0](https://github.com/inaka/elvis_core/releases/tag/1.4.0))
+# No Space [![](https://img.shields.io/badge/since-1.4.0-blue)](https://github.com/inaka/elvis_core/releases/tag/1.4.0)
 
 Spaces in specified text positions should be avoided.
-
-> Works on `.beam` file? Not really! (it consumes results Ok, but these might be unexpected)
 
 ## Quick fix
 
@@ -38,7 +34,7 @@ codebase.
   - default: `[{right, "("}, {left, ")"}, {left, ","}, {left, ":"}, {right, "#"}, {right, "?"},
   {right, "?"}]`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_space, #{ rules => [{right, "("}

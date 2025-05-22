@@ -2,8 +2,6 @@
 
 Lines should not exceed the defined length limit.
 
-> Works on `.beam` file? No.
-
 ## Exceptions
 
 Comment lines may be excluded from this constraint, with option `skip_comments`.
@@ -27,7 +25,7 @@ Use an Erlang code formatter that enforces strict line length limitations.
   - `false` - allows exceptions, such as long URLs, to extend beyond the limit without requiring
   line breaks
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_text_style, line_length, #{ limit => 100

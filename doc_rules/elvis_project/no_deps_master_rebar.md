@@ -1,6 +1,4 @@
-# No deps master rebar
-
-(not available since [2.0.0](https://github.com/inaka/elvis_core/releases/tag/2.0.0))
+# No Deps `master` `rebar.config` [![](https://img.shields.io/badge/until-1.4.0-red)](https://github.com/inaka/elvis_core/releases/tag/1.4.0)
 
 Dependencies in `rebar.config` should not use branch `master` (e.g., `{branch, "master"}`); use
 `{tag, "..."}` or `{ref, "..."}` instead.
@@ -12,7 +10,7 @@ Dependencies in `rebar.config` should not use branch `master` (e.g., `{branch, "
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_project, no_deps_master_rebar, #{}}

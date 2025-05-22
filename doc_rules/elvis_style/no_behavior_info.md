@@ -1,9 +1,7 @@
-# No Behavior Info
+# No Behavior Info ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 The use of `behaviour_info` (or `behavior_info`) attributes should be avoided; use `-callback`
 annotations instead.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 
@@ -38,7 +36,7 @@ ensure forward compatibility and better tool support.
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_behavior_info, #{}}

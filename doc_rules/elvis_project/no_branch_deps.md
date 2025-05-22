@@ -1,6 +1,4 @@
-# No deps with branches
-
-(since [2.0.0](https://github.com/inaka/elvis_core/releases/tag/2.0.0))
+# No Deps With Branches [![](https://img.shields.io/badge/since-2.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/2.0.0)
 
 Dependencies in `rebar.config` should not use branches (e.g., `{branch, "my-branch"}`); use
 `{tag, "..."}` or `{ref, "..."}` instead.
@@ -33,7 +31,7 @@ branch heads.
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_project, no_branch_deps, #{}}

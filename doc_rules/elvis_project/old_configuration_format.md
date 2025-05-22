@@ -1,4 +1,4 @@
-# Old configuration format
+# Old Configuration Format
 
 `elvis.config` files should not use an outdated format.
 
@@ -48,7 +48,7 @@ latest Elvis features and best practices.
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_project, old_configuration_format, #{}}

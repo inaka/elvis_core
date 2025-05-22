@@ -1,8 +1,6 @@
-# God Modules
+# God Modules ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 The number of functions in a module should be limited to a maximum threshold.
-
-> Works on `.beam` file? Yes!
 
 ## Rationale
 
@@ -17,7 +15,7 @@ that adhere to the [Single Responsibility Principle](https://en.wikipedia.org/wi
 - `limit :: non_neg_integer()`
   - default: `25`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, god_modules, #{ limit => 25 }}

@@ -5,9 +5,6 @@ The number of lines in a module should be limited to a defined maximum.
 Lines containing only comments or whitespace may be either included or excluded from the line
 count, depending on the configuration
 
-> Works on `.beam` file? Not really! (it consumes results Ok, but these might be unexpected, since
-the files are pre-processed)
-
 ## Rationale
 
 Limiting the number of lines in a module improves readability and maintainability.
@@ -26,7 +23,7 @@ focused logic and makes it easier to navigate the codebase.
 - `count_docs :: boolean()`
   - default: `false`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, max_module_length, #{ max_length => 500

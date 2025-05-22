@@ -1,8 +1,6 @@
-# No If Expression
+# No If Expression ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 `if` expressions should not be used.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 
@@ -35,7 +33,7 @@ an explicit `else` branch, which can lead to runtime errors if no condition is m
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_if_expression, #{}}

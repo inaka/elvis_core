@@ -1,11 +1,7 @@
 <!-- markdownlint-disable MD033 -->
-# No <code>&&nbsp;</code>
-
-(since [1.5.0](https://github.com/inaka/elvis_core/releases/tag/1.5.0))
+# No <code>&&nbsp;</code> [![](https://img.shields.io/badge/since-1.5.0-blue)](https://github.com/inaka/elvis_core/releases/tag/1.5.0)
 
 Use of <code>$&nbsp;</code> should be avoided.
-
-> Works on `.beam` file? Not really! (it consumes results Ok, but these might be unexpected)
 
 ## Avoid
 
@@ -33,7 +29,7 @@ The use of <code>$&nbsp;</code> to represent character spaces reduces code reada
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_dollar_space, #{}}

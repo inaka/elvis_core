@@ -2,8 +2,6 @@
 
 Spaces should exist in specified text positions.
 
-> Works on `.beam` file? Not really! (it consumes results Ok, but these might be unexpected)
-
 ## Quick fix
 
 Use an Erlang code formatter that enforces strict spacing around operators.
@@ -22,9 +20,6 @@ compromised without adequate spacing.
 
 - `rules :: [{right | left, string()}]`
   - default:
-    - before [1.5.0](https://github.com/inaka/elvis_core/releases/tag/1.5.0): `[{right, ","},
-    {right, "++"}, {left, "++"}]`
-    - since [1.5.0](https://github.com/inaka/elvis_core/releases/tag/1.5.0):
 
 ```erlang
           [{left, "!"}, {right, "!"}, {left, "*"}, {right, "*"}
@@ -42,7 +37,10 @@ compromised without adequate spacing.
          , {right, ","}]
 ```
 
-## Example
+Before [1.5.0](https://github.com/inaka/elvis_core/releases/tag/1.5.0) `rules` defaulted to
+`[{right, ","}, {right, "++"}, {left, "++"}]`.
+
+## Example configuration
 
 ```erlang
 {elvis_style, operator_spaces, #{ rules => [{left, "!"}, {right, "!"}, {left, "*"}, {right, "*"}

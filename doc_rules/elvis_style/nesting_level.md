@@ -1,8 +1,6 @@
-# Nesting Level
+# Nesting Level ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Nesting levels in code structures should be limited to a specified maximum depth.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 
@@ -85,7 +83,7 @@ developers.
 - `level :: pos_integer()`
   - default: `4` (prior to [0.7.0](https://github.com/inaka/elvis_core/releases/tag/0.7.0) was `3`)
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, nesting_level, #{ level => 4 }}

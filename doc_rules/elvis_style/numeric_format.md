@@ -1,11 +1,6 @@
-# Numeric Format
-
-(since [1.3.0](https://github.com/inaka/elvis_core/releases/tag/1.3.0))
+# Numeric Format [![](https://img.shields.io/badge/since-1.3.0-blue)](https://github.com/inaka/elvis_core/releases/tag/1.3.0)
 
 All numbers should be formatted according to the regular expression(s) provided.
-
-> Works on `.beam` file? Not really! (it consumes results Ok, but these might be unexpected, since
-numbers there are just numbers; they cannot be formatted)
 
 ## Rationale
 
@@ -28,7 +23,7 @@ and receive warnings when deviations occur.
   - default: `same`
   - `same` - use the generic regex
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, numeric_format, #{ regex => ".*"

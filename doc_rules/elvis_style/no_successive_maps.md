@@ -1,10 +1,6 @@
-# No Successive Maps
-
-(since [2.0.0](https://github.com/inaka/elvis_core/releases/tag/2.0.0))
+# No Successive Maps [![](https://img.shields.io/badge/since-2.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/2.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Successive map expressions should be avoided.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 
@@ -36,7 +32,7 @@ The idea behind this rule comes from
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_successive_maps, #{}}

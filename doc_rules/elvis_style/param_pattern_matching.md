@@ -1,10 +1,6 @@
-# Param Pattern-Matching
-
-(since [3.0.0](https://github.com/inaka/elvis_core/releases/tag/3.0.0))
+# Param Pattern-Matching [![](https://img.shields.io/badge/since-3.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/3.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Function argument capture pattern-matching should be consistently defined in the code.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 
@@ -50,7 +46,7 @@ pattern matching for function arguments is uniform throughout the codebase.
 - `side :: left | right`
   - default: `right`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, param_pattern_matching, #{ side => right }}

@@ -1,10 +1,6 @@
-# No Block Expressions
-
-(since [1.4.0](https://github.com/inaka/elvis_core/releases/tag/1.4.0))
+# No Block Expressions [![](https://img.shields.io/badge/since-1.4.0-blue)](https://github.com/inaka/elvis_core/releases/tag/1.4.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Block expressions should be avoided.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 
@@ -61,7 +57,7 @@ straightforward patterns, improving clarity and reducing the potential for error
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_block_expressions, #{}}

@@ -1,10 +1,6 @@
-# Used Ignored Variable
-
-(since [0.4.0](https://github.com/inaka/elvis_core/releases/tag/0.4.0))
+# Used Ignored Variable ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Declared anonymous variables (prefixed with `_`) should not be used.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 
@@ -34,7 +30,7 @@ subtle bugs or overlooked logic due to mistaken assumptions about variable usage
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, used_ignored_variable, #{}}

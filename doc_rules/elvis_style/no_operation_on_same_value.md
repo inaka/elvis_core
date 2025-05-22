@@ -1,10 +1,6 @@
-# No Operation on Same Value
-
-(since [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0))
+# No Operation On Same Value [![](https://img.shields.io/badge/since-4.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Applying infix operations on the same value on both sides should be avoided.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid/prefer
 
@@ -53,7 +49,7 @@ never revised. Removing or rewriting them improves code clarity and avoids misle
     - `'='`
     - `'--'`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_operation_on_same_value, #{ operations => ['and'

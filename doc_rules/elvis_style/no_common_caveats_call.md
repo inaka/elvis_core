@@ -1,6 +1,4 @@
-# No Common Caveats
-
-(since [0.4.0](https://github.com/inaka/elvis_core/releases/tag/0.4.0))
+# No Common Caveats [![](https://img.shields.io/badge/since-0.4.0-blue)](https://github.com/inaka/elvis_core/releases/tag/0.4.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Usage of functions that are known to be inefficient or ambiguous, when more efficient or
 explicit alternatives are available, should be avoided.
@@ -8,8 +6,6 @@ explicit alternatives are available, should be avoided.
 This rule also follows the recommendations from the
 [Erlang Efficiency Guide – Common Caveats](https://www.erlang.org/doc/system/commoncaveats.html),
 and provides warnings when these suboptimal functions are used.
-
-> Works on `.beam` file? Yes!
 
 ## Rationale
 
@@ -32,7 +28,7 @@ results in clearer, faster, and more maintainable code.
              , {gen_event, call, 3}
               ]`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_common_caveats_call, #{ caveat_functions => [{timer, send_after, 2}

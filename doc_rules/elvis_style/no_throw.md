@@ -1,10 +1,6 @@
-# No throw
-
-(since [1.4.0](https://github.com/inaka/elvis_core/releases/tag/1.4.0))
+# No Throw [![](https://img.shields.io/badge/since-1.4.0-blue)](https://github.com/inaka/elvis_core/releases/tag/1.4.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Raising exceptions with `throw` should be avoided.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 
@@ -34,7 +30,7 @@ a non-local return, whereas `error/1` and `exit/1` provide better control and er
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_throw, #{}}

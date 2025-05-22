@@ -1,8 +1,6 @@
-# No Spec With Records
+# No Spec With Records ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Records should not be used in `-spec` declarations; use types that map to records instead.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 
@@ -30,7 +28,7 @@ or manipulate them.
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_spec_with_records, #{}}

@@ -1,10 +1,6 @@
-# Behaviour Spelling
-
-(since [1.3.0](https://github.com/inaka/elvis_core/releases/tag/1.3.0))
+# Behaviour Spelling [![](https://img.shields.io/badge/since-1.3.0-blue)](https://github.com/inaka/elvis_core/releases/tag/1.3.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Behavior attribute names in modules should follow a consistent spelling convention.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 
@@ -48,7 +44,7 @@ documentation. However, the spelling `behavior` is also accepted.
 - `spelling :: behaviour | behavior`
   - default: `behaviour`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, behaviour_spelling, #{ spelling => behaviour }}

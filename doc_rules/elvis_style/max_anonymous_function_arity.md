@@ -1,10 +1,6 @@
-# Max Anonymous Function Arity
-
-(since [3.0.0](https://github.com/inaka/elvis_core/releases/tag/3.0.0))
+# Max Anonymous Function Arity [![](https://img.shields.io/badge/since-3.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/3.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 The number of arguments in an anonymous function definition should be limited to a defined maximum.
-
-> Works on `.beam` file? Yes
 
 ## Avoid
 
@@ -56,7 +52,7 @@ lead to cleaner and more manageable code.
 - `max_arity :: non_neg_integer()`
   - default: `5`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, max_anonymous_function_arity, #{ max_arity => 5 }}

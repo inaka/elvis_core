@@ -1,10 +1,6 @@
-# No Types
-
-(since [3.0.0](https://github.com/inaka/elvis_core/releases/tag/3.0.0))
+# No Types [![](https://img.shields.io/badge/since-3.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/3.0.0)
 
 `-type` attributes **in header files** should be avoided.
-
-> Works on `.beam` file? Yes, but it's not useful there. This rule is meant to be used for header files.
 
 ## Quick fix
 
@@ -23,7 +19,7 @@ clashes.
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_types, #{}}

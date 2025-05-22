@@ -134,8 +134,10 @@ rules(beam_files) ->
     lists:map(
         fun(Rule) -> {elvis_style, Rule, elvis_style:default(Rule)} end,
         [
+            always_shortcircuit,
             atom_naming_convention,
             behaviour_spelling,
+            consistent_generic_type,
             consistent_variable_casing,
             dont_repeat_yourself,
             export_used_types,
@@ -144,12 +146,16 @@ rules(beam_files) ->
             invalid_dynamic_call,
             max_anonymous_function_arity,
             max_function_arity,
-            ms_transform_included,
             module_naming_convention,
+            ms_transform_included,
             nesting_level,
             no_author,
+            no_behavior_info,
+            no_block_expressions,
             no_boolean_in_comparison,
+            no_call,
             no_catch_expressions,
+            no_common_caveats_call,
             no_debug_call,
             no_if_expression,
             no_import,
@@ -164,6 +170,7 @@ rules(beam_files) ->
             no_throw,
             param_pattern_matching,
             private_data_types,
+            state_record_and_type,
             used_ignored_variable,
             variable_naming_convention
         ]

@@ -1,10 +1,6 @@
-# No Single-Clause Case Statements
-
-(since [3.0.0](https://github.com/inaka/elvis_core/releases/tag/3.0.0))
+# No Single-Clause Case Statements [![](https://img.shields.io/badge/since-3.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/3.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Single-clause case statements should be avoided.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 
@@ -32,7 +28,7 @@ single-clause case statements also improves readability and simplifies the contr
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_single_clause_case, #{}}

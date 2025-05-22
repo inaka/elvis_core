@@ -1,6 +1,4 @@
-# Atom Naming Convention
-
-(since [1.0.0](https://github.com/inaka/elvis_core/releases/tag/1.0.0))
+# Atom Naming Convention [![](https://img.shields.io/badge/since-1.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/1.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 All atoms should conform to the pattern defined by the `regex` option pattern, unless they match the
 optional `forbidden_regex` pattern, in which case they are disallowed.
@@ -10,8 +8,6 @@ by a separate configuration option. To apply the same pattern as `regex`, use th
 
 To disallow specific enclosed atoms (analogous to `forbidden_regex` for standard atoms),
 use `forbidden_enclosed_regex`. Again, `same` may be used to reuse the forbidden_regex value.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 
@@ -42,7 +38,7 @@ By defining a regular expression for naming atoms you increase consistency acros
 - `forbidden_enclosed_regex :: string() | undefined | same`
   - default: `undefined`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, atom_naming_convention, #{ regex => "^[a-z](_?[a-z0-9]+)*(_SUITE)?$"

@@ -1,10 +1,6 @@
-# No Boolean In Comparison
-
-(since [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0))
+# No Boolean In Comparison [![](https://img.shields.io/badge/since-4.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Explicit comparisons of expressions to boolean literals (`true` or `false`) should be avoided.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 
@@ -36,7 +32,7 @@ more maintainable code.
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_boolean_in_comparison, #{}}

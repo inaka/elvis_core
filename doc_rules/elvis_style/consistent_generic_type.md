@@ -1,10 +1,6 @@
-# Consistent Generic Type
-
-(since [2.0.1](https://github.com/inaka/elvis_core/releases/tag/2.0.1))
+# Consistent Generic Type [![](https://img.shields.io/badge/since-2.0.1-blue)](https://github.com/inaka/elvis_core/releases/tag/2.0.1) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 `term()` or `any()` should be used consistently in typespecs.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 
@@ -45,7 +41,7 @@ Defining a specific "term" type enhances consistency across your codebase.
 - `preferred_type :: term | any`
   - default: `term`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, consistent_generic_type, #{ preferred_type => term }}

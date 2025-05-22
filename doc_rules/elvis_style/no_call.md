@@ -1,10 +1,6 @@
-# No call
-
-(since [0.4.0](https://github.com/inaka/elvis_core/releases/tag/0.4.0))
+# No Call [![](https://img.shields.io/badge/since-0.4.0-blue)](https://github.com/inaka/elvis_core/releases/tag/0.4.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Avoid calls to specific functions.
-
-> Works on `.beam` file? Yes!
 
 ## Rationale
 
@@ -21,7 +17,7 @@ and maintain consistency across a codebase.
 
 `'_'` wildcards supported since [3.2.0](https://github.com/inaka/elvis_core/releases/tag/3.2.0)
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_call, #{ no_call_functions => [] }}

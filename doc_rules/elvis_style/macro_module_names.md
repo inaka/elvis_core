@@ -2,8 +2,6 @@
 
 The use of macros in dynamic function calls should be avoided.
 
-> Works on `.beam` file? Not really! (it consumes results Ok, but these might be unexpected)
-
 ## Exceptions
 
 The use of `?MODULE` is permitted in the form `?MODULE:func()` because it's the common idiom for
@@ -34,7 +32,7 @@ to reason about and debug.
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, macro_module_names, #{}}

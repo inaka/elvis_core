@@ -1,10 +1,6 @@
-# No Match in Condition
-
-(since [3.0.0](https://github.com/inaka/elvis_core/releases/tag/3.0.0))
+# No Match In Condition [![](https://img.shields.io/badge/since-3.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/3.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Pattern-matching in `case` expressions should be avoided.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 
@@ -38,7 +34,7 @@ This improves readability, debuggability, and the clarity of intent.
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_match_in_condition, #{}}

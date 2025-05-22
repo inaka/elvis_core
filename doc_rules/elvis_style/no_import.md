@@ -1,10 +1,6 @@
-# No import
-
-(since [3.0.0](https://github.com/inaka/elvis_core/releases/tag/3.0.0))
+# No Import [![](https://img.shields.io/badge/since-3.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/3.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 `import` attributes should not be used.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 
@@ -32,7 +28,7 @@ and increase maintenance complexity - especially in large codebases.
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_import, #{}}

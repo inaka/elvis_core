@@ -1,4 +1,4 @@
-# Module Naming Convention
+# Module Naming Convention ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 All modules should conform to the pattern defined by the `regex` option pattern, unless they match
 the `forbidden_regex` option pattern, in which case they are disallowed.
@@ -6,8 +6,6 @@ the `forbidden_regex` option pattern, in which case they are disallowed.
 **Note**: to mitigate the risk of namespace collisions and to maintain naming consistency across
 the ecosystem, it is recommended that all modules within a given package or codebase adopt the
 same prefix, typically that of the name of the project.
-
-> Works on `.beam` file? Yes!
 
 ## Avoid
 
@@ -34,7 +32,7 @@ By defining a regular expression for naming modules you increase consistency acr
 - `forbidden_regex :: string() | undefined`
   - default: `undefined`
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, module_naming_convention, #{ regex => "^[a-z](_?[a-z0-9]+)*(_SUITE)?$"
