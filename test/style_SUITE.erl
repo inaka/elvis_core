@@ -2252,22 +2252,22 @@ verify_no_single_clause_case(Config) ->
 
 -spec verify_no_single_match_maybe(config()) -> any().
 verify_no_single_match_maybe(Config) ->
-    _Group = proplists:get_value(group, Config, erl_files),
+    Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     PassPath = "pass_no_single_match_maybe." ++ Ext,
-    [] = elvis_core_apply_rule(Config, elvis_style, no_single_match_maybe, #{}, PassPath).
+    [] = elvis_core_apply_rule(Config, elvis_style, no_single_match_maybe, #{}, PassPath),
 
-% FailPath = "fail_no_single_match_maybe." ++ Ext,
-%
-% R = elvis_core_apply_rule(Config, elvis_style, no_single_match_maybe, #{}, FailPath),
-% _ =
-%     case Group of
-%         beam_files ->
-%             [_, _, _] = R;
-%         erl_files ->
-%             [#{line_num := 8}, #{line_num := 16}, #{line_num := 17}] = R
-%     end.
+    FailPath = "fail_no_single_match_maybe." ++ Ext,
+
+    R = elvis_core_apply_rule(Config, elvis_style, no_single_match_maybe, #{}, FailPath),
+    _ =
+        case Group of
+            beam_files ->
+                [_, _, _] = R;
+            erl_files ->
+                [#{line_num := 8}, #{line_num := 16}, #{line_num := 17}] = R
+        end.
 
 -spec verify_no_match_in_condition(config()) -> any().
 verify_no_match_in_condition(Config) ->
