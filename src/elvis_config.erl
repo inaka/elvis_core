@@ -1,5 +1,7 @@
 -module(elvis_config).
 
+-feature(maybe_expr, enable).
+
 -export([
     from_rebar/1,
     from_file/1,
@@ -82,28 +84,71 @@ validate(Config) ->
     lists:foreach(fun do_validate/1, Config).
 
 do_validate(RuleGroup) ->
-    case maps:is_key(src_dirs, RuleGroup) orelse maps:is_key(dirs, RuleGroup) of
-        false ->
-            throw({invalid_config, {missing_dirs, RuleGroup}});
-        true ->
-            ok
+    maybe
+        ok ?= maybe_missing_dirs(RuleGroup),
+        ok ?= maybe_missing_filter(RuleGroup),
+        ok ?= maybe_missing_rules(RuleGroup),
+        [] ?= maybe_invalid_rules(RuleGroup, maps:is_key(rules, RuleGroup))
+    else
+        {error, Error} ->
+            throw({invalid_config, Error});
+        InvalidRules ->
+            throw({invalid_config, {invalid_rules, InvalidRules}})
+    end.
+
+maybe_missing_dirs(RuleGroup) ->
+    maybe_boolean_wrapper(
+        not (maps:is_key(dirs, RuleGroup) andalso not maps:is_key(filter, RuleGroup)), missing_dir
+    ).
+
+maybe_missing_filter(RuleGroup) ->
+    maybe_boolean_wrapper(
+        maps:is_key(src_dirs, RuleGroup) orelse maps:is_key(dirs, RuleGroup), missing_filter
+    ).
+
+maybe_missing_rules(RuleGroup) ->
+    maybe_boolean_wrapper(
+        maps:is_key(rules, RuleGroup) orelse maps:is_key(ruleset, RuleGroup), missing_rules
+    ).
+
+maybe_boolean_wrapper(true, _Flag) -> ok;
+maybe_boolean_wrapper(false, Flag) -> {error, Flag}.
+
+maybe_invalid_rules(_, false) ->
+    [];
+maybe_invalid_rules(RuleGroup, true) ->
+    invalid_rules(maps:get(rules, RuleGroup)).
+
+invalid_rules(Rules) ->
+    IsInvalidRule = fun
+        ({Module, RuleName, _}) ->
+            is_invalid_rule({Module, RuleName});
+        ({Module, RuleName}) ->
+            is_invalid_rule({Module, RuleName})
     end,
-    case maps:is_key(dirs, RuleGroup) of
-        true ->
-            case maps:is_key(filter, RuleGroup) of
-                false ->
-                    throw({invalid_config, {missing_filter, RuleGroup}});
-                true ->
-                    ok
-            end;
-        false ->
-            ok
+    lists:filtermap(IsInvalidRule, Rules).
+
+is_invalid_rule({Module, RuleName}) ->
+    IsInvalid = fun
+        (_, {_, _}) ->
+            false;
+        (Rule, none) ->
+            {true, {invalid_rule, {Module, Rule}}}
     end,
-    case maps:is_key(rules, RuleGroup) orelse maps:is_key(ruleset, RuleGroup) of
+    maybe
+        {file, _} ?= code:is_loaded(Module),
+        ExportedRules = apply(Module, module_info, [exports]),
+        IsInvalid(
+            RuleName,
+            proplists:lookup(
+                RuleName,
+                ExportedRules
+            )
+        )
+    else
         false ->
-            throw({invalid_config, {missing_rules, RuleGroup}});
-        true ->
-            ok
+            elvis_utils:warn_prn("Invalid module: ~p~n", [Module]),
+            false
     end.
 
 -spec normalize(configs()) -> configs().
