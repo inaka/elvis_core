@@ -98,7 +98,7 @@ do_validate(RuleGroup) ->
 
 maybe_missing_dirs(RuleGroup) ->
     maybe_boolean_wrapper(
-        not (maps:is_key(dirs, RuleGroup) and not maps:is_key(filter, RuleGroup)), missing_dir
+        not (maps:is_key(dirs, RuleGroup) andalso not maps:is_key(filter, RuleGroup)), missing_dir
     ).
 
 maybe_missing_filter(RuleGroup) ->
@@ -108,7 +108,7 @@ maybe_missing_filter(RuleGroup) ->
 
 maybe_missing_rules(RuleGroup) ->
     maybe_boolean_wrapper(
-        maps:is_key(rules, RuleGroup) or maps:is_key(ruleset, RuleGroup), missing_rules
+        maps:is_key(rules, RuleGroup) orelse maps:is_key(ruleset, RuleGroup), missing_rules
     ).
 
 maybe_boolean_wrapper(true, _Flag) -> ok;
