@@ -68,6 +68,7 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [No Throw](doc_rules/elvis_style/no_throw.md)
 - [No Trailing Whitespace](doc_rules/elvis_text_style/no_trailing_whitespace.md)
 - [No Types](doc_rules/elvis_style/no_types.md)
+- [No Nested Header Files](doc_rules/elvis_style/no_nested_hrls.md)
 - [Numeric Format](doc_rules/elvis_style/numeric_format.md)
 - [Operator Spaces](doc_rules/elvis_style/operator_spaces.md)
 - [Param Pattern-Matching](doc_rules/elvis_style/param_pattern_matching.md)

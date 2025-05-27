@@ -460,7 +460,7 @@ erl_files_strict_ruleset(_Config) ->
     DefinedRuleNames = [DefinedRuleName || {elvis_style, DefinedRuleName, _} <- DefinedRules],
     DefinedRuleNamesSorted = lists:sort(DefinedRuleNames),
 
-    FunctionsNotErlRuleNames = [no_specs, no_types, option],
+    FunctionsNotErlRuleNames = [no_specs, no_types, no_nested_hrls, option],
     AllRuleNames =
         [
             Function

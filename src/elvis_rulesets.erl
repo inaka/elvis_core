@@ -51,6 +51,7 @@ rules(hrl_files) ->
                         no_successive_maps,
                         no_throw,
                         no_types,
+                        no_nested_hrls,
                         numeric_format,
                         operator_spaces,
                         used_ignored_variable,

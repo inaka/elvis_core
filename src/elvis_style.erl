@@ -10,6 +10,7 @@
     no_macros/3,
     no_specs/3,
     no_types/3,
+    no_nested_hrls/3,
     no_block_expressions/3,
     operator_spaces/3,
     no_space/3,
@@ -69,6 +70,7 @@
     macro_names_config/0,
     no_macros_config/0,
     no_types_config/0,
+    no_nested_hrls_config/0,
     no_specs_config/0,
     no_block_expressions_config/0,
     no_space_after_pound_config/0,
@@ -118,6 +120,7 @@
 -define(NO_MACROS_MSG, "Unexpected macro (~p) used on line ~p.").
 -define(NO_SPECS_MSG, "Unexpected spec for function ~p defined on line ~p.").
 -define(NO_TYPES_MSG, "Unexpected type (~p) defined on line ~p.").
+-define(NO_NESTED_HRLS_MSG, "Nested include (~p) found on line ~p.").
 -define(NO_BLOCK_EXPRESSIONS_MSG,
     "Unexpected block expression (begin-end) used on line ~p."
 ).
@@ -466,6 +469,7 @@ default(RuleWithEmptyDefault) when
     RuleWithEmptyDefault == no_macros;
     RuleWithEmptyDefault == no_specs;
     RuleWithEmptyDefault == no_types;
+    RuleWithEmptyDefault == no_nested_hrls;
     RuleWithEmptyDefault == no_block_expressions;
     RuleWithEmptyDefault == no_if_expression;
     RuleWithEmptyDefault == no_nested_try_catch;
@@ -699,7 +703,6 @@ check_no_macro_calls(Calls) ->
 no_macros(ElvisConfig, RuleTarget, RuleConfig) ->
     TreeRootNode = get_root(ElvisConfig, RuleTarget, RuleConfig),
     AllowedMacros = maps:get(allow, RuleConfig, []) ++ eep_predef_macros() ++ logger_macros(),
-
     MacroNodes =
         elvis_code:find(fun is_macro_node/1, TreeRootNode, #{traverse => all, mode => node}),
 
@@ -742,6 +745,28 @@ no_types(ElvisConfig, RuleTarget, RuleConfig) ->
 
 is_type_attribute(Node) ->
     ktn_code:type(Node) =:= type_attr.
+
+-type no_nested_hrls_config() :: #{allow => [atom()], ignore => [ignorable()]}.
+
+-spec no_nested_hrls(elvis_config:config(), elvis_file:file(), no_nested_hrls_config()) ->
+    [elvis_result:item()].
+no_nested_hrls(ElvisConfig, RuleTarget, RuleConfig) ->
+    TreeRootNode = get_root(ElvisConfig, RuleTarget, RuleConfig),
+    TypeNodes =
+        elvis_code:find(fun is_include/1, TreeRootNode, #{traverse => all, mode => node}),
+
+    lists:foldl(
+        fun(TypeNode, Acc) ->
+            Type = ktn_code:attr(name, TypeNode),
+            {Line, _Col} = ktn_code:attr(location, TypeNode),
+            [elvis_result:new(item, ?NO_NESTED_HRLS_MSG, [Type, Line], Line) | Acc]
+        end,
+        [],
+        TypeNodes
+    ).
+
+is_include(Node) ->
+    ktn_code:type(Node) =:= include orelse ktn_code:type(Node) =:= include_lib.
 
 -type no_specs_config() :: #{allow => [atom()], ignore => [ignorable()]}.
 
