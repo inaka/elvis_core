@@ -165,8 +165,8 @@ filter_tree_for(Tree, Mod, Ignore) when is_map(Tree) ->
                             attrs := #{name := FunName, arity := FunArity}
                         }
                     ) ->
-                        not lists:member({Mod, FunName}, Ignore) andalso
-                            not lists:member({Mod, FunName, FunArity}, Ignore);
+                        not (lists:member({Mod, FunName}, Ignore)) andalso
+                            not (lists:member({Mod, FunName, FunArity}, Ignore));
                     (_) ->
                         true
                 end,

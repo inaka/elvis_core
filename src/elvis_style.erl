@@ -1191,8 +1191,8 @@ max_module_length(Config, Target, RuleConfig) ->
 
     FilterFun =
         fun(Line) ->
-            (CountComments orelse (not line_is_comment(Line))) andalso
-                (CountWhitespace orelse (not line_is_whitespace(Line)))
+            (CountComments orelse not (line_is_comment(Line))) andalso
+                (CountWhitespace orelse not (line_is_whitespace(Line)))
         end,
     Lines =
         case elvis_utils:split_all_lines(Src, [trim]) of
@@ -1324,8 +1324,8 @@ max_function_clause_length(Config, Target, RuleConfig) ->
     % clause
     FilterClause =
         fun(Line) ->
-            (CountComments orelse (not line_is_comment(Line))) andalso
-                (CountWhitespace orelse (not line_is_whitespace(Line)))
+            (CountComments orelse not (line_is_comment(Line))) andalso
+                (CountWhitespace orelse not (line_is_whitespace(Line)))
         end,
 
     PairClause =
@@ -1404,8 +1404,8 @@ max_function_length(Config, Target, RuleConfig) ->
     Functions0 = elvis_code:find(IsFunction, Root),
     FilterFun =
         fun(Line) ->
-            (CountComments orelse (not line_is_comment(Line))) andalso
-                (CountWhitespace orelse (not line_is_whitespace(Line)))
+            (CountComments orelse not (line_is_comment(Line))) andalso
+                (CountWhitespace orelse not (line_is_whitespace(Line)))
         end,
 
     PairFun =
@@ -2319,7 +2319,7 @@ check_atom_names(
                 unicode:characters_to_list(AtomName, unicode), RE
             )
         of
-            _ when IsExceptionClass andalso (not IsEnclosed) ->
+            _ when IsExceptionClass andalso not (IsEnclosed) ->
                 AccIn;
             nomatch when not IsEnclosed ->
                 Msg = ?ATOM_NAMING_CONVENTION_MSG,
@@ -2378,7 +2378,7 @@ re_compile_for_atom_type(true = _IsEnclosed, _Regex, RegexEnclosed) ->
 
 %% @private
 is_atom_node(MaybeAtom) ->
-    (ktn_code:type(zipper:node(MaybeAtom)) =:= atom) andalso (not check_parent_remote(MaybeAtom)).
+    (ktn_code:type(zipper:node(MaybeAtom)) =:= atom) andalso not (check_parent_remote(MaybeAtom)).
 
 %% Variables name
 %% @private
@@ -2716,7 +2716,7 @@ is_ignored_var(Zipper) ->
             Name = ktn_code:attr(name, Node),
             [FirstChar | _] = atom_to_list(Name),
             (FirstChar == $_) andalso (Name =/= '_') andalso
-                (not check_parent_match_or_macro(Zipper));
+                not (check_parent_match_or_macro(Zipper));
         _OtherType ->
             false
     end.
