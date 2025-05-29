@@ -653,9 +653,9 @@ macro_module_names(Config, Target, RuleConfig) ->
 check_no_macro_calls(Calls) ->
     TypeFun =
         fun(Call) ->
-            FunctionSpec = ktn_code:node_attr(function, Call),
+            FunctionSpec = elvis_ktn:function(Call),
             ModuleAttr = ktn_code:node_attr(module, FunctionSpec),
-            FuncAttr = ktn_code:node_attr(function, FunctionSpec),
+            FuncAttr = elvis_ktn:function(FunctionSpec),
             M = ktn_code:type(ModuleAttr),
             MN = elvis_ktn:name(ModuleAttr),
             F = ktn_code:type(FuncAttr),
@@ -1639,8 +1639,8 @@ get_fun_2_ms_calls(Root) ->
 
 -spec is_ets_fun2ms(ktn_code:tree_node()) -> boolean().
 is_ets_fun2ms(Node) ->
-    Fun = ktn_code:node_attr(function, Node),
-    Fun2 = ktn_code:node_attr(function, Fun),
+    Fun = elvis_ktn:function(Node),
+    Fun2 = elvis_ktn:function(Fun),
     Module = ktn_code:node_attr(module, Fun),
 
     ets == elvis_ktn:value(Module) andalso fun2ms == elvis_ktn:value(Fun2).
@@ -2627,7 +2627,7 @@ check_invalid_dynamic_calls(Root) ->
 is_dynamic_call(Node) ->
     case ktn_code:type(Node) of
         call ->
-            FunctionSpec = ktn_code:node_attr(function, Node),
+            FunctionSpec = elvis_ktn:function(Node),
             case ktn_code:type(FunctionSpec) of
                 remote ->
                     ModuleName = ktn_code:node_attr(module, FunctionSpec),
@@ -2906,9 +2906,9 @@ is_in_call_list(Call, DisallowedFuns) ->
 
 %% @private
 call_mfa(Call) ->
-    FunctionSpec = ktn_code:node_attr(function, Call),
+    FunctionSpec = elvis_ktn:function(Call),
     M = elvis_ktn:value(ktn_code:node_attr(module, FunctionSpec)),
-    F = elvis_ktn:value(ktn_code:node_attr(function, FunctionSpec)),
+    F = elvis_ktn:value(elvis_ktn:function(FunctionSpec)),
     A = length(ktn_code:content(Call)),
     {M, F, A}.
 
