@@ -721,9 +721,6 @@ no_macros(ElvisConfig, RuleTarget, RuleConfig) ->
         MacroNodes
     ).
 
-is_macro_node(Node) ->
-    ktn_code:type(Node) =:= macro.
-
 -type no_types_config() :: #{allow => [atom()], ignore => [ignorable()]}.
 
 -spec no_types(elvis_config:config(), elvis_file:file(), no_types_config()) ->
@@ -742,9 +739,6 @@ no_types(ElvisConfig, RuleTarget, RuleConfig) ->
         [],
         TypeNodes
     ).
-
-is_type_attr_node(Node) ->
-    ktn_code:type(Node) =:= type_attr.
 
 -type no_nested_hrls_config() :: #{allow => [atom()], ignore => [ignorable()]}.
 
@@ -765,12 +759,6 @@ no_nested_hrls(ElvisConfig, RuleTarget, RuleConfig) ->
         TypeNodes
     ).
 
-is_include_node(Node) ->
-    (ktn_code:type(Node) =:= include) orelse is_include_lib_node(Node).
-
-is_include_lib_node(Node) ->
-    ktn_code:type(Node) =:= include_lib.
-
 -type no_specs_config() :: #{allow => [atom()], ignore => [ignorable()]}.
 
 -spec no_specs(elvis_config:config(), elvis_file:file(), no_specs_config()) ->
@@ -789,9 +777,6 @@ no_specs(ElvisConfig, RuleTarget, RuleConfig) ->
         [],
         SpecNodes
     ).
-
-is_spec_node(Node) ->
-    ktn_code:type(Node) =:= spec.
 
 -type no_block_expressions_config() :: #{ignore => [ignorable()]}.
 
@@ -813,9 +798,6 @@ no_block_expressions(Config, Target, RuleConfig) ->
         [],
         BeginNodes
     ).
-
-is_begin_node(Node) ->
-    ktn_code:type(Node) =:= 'begin'.
 
 eep_predef_macros() ->
     % From unexported epp:predef_macros/1
@@ -1262,9 +1244,6 @@ max_anonymous_function_arity(Config, Target, RuleConfig) ->
         Funs
     ).
 
-is_clause_node(Node) ->
-    ktn_code:type(Node) == clause.
-
 -type max_function_arity_config() ::
     #{max_arity => non_neg_integer(), non_exported_max_arity => pos_integer()}.
 
@@ -1306,9 +1285,6 @@ max_function_arity(Config, Target, RuleConfig) ->
         end,
         Functions
     ).
-
-is_function_node(Node) ->
-    ktn_code:type(Node) == function.
 
 -spec max_function_clause_length(
     elvis_config:config(),
@@ -1707,9 +1683,6 @@ no_boolean_in_comparison(Config, Target, RuleConfig) ->
 
     lists:map(ResultFun, ComparisonsWithBoolean).
 
-is_op_node(Node) ->
-    ktn_code:type(Node) =:= op.
-
 -type no_operation_on_same_value_config() :: #{operations := [atom()]}.
 
 -spec no_operation_on_same_value(
@@ -1856,9 +1829,6 @@ no_catch_expressions(Config, Target, RuleConfig) ->
         [],
         CatchNodes
     ).
-
-is_catch_node(Node) ->
-    ktn_code:type(Node) =:= 'catch'.
 
 -type no_single_clause_case_config() :: #{ignore => [ignorable()]}.
 
@@ -2951,10 +2921,6 @@ is_call(Node, {M, F, A}) ->
     call_mfa(Node) =:= {M, F, A}.
 
 %% @private
-is_call_node(Node) ->
-    ktn_code:type(Node) =:= call.
-
-%% @private
 fun_spec_match({M, F}, MFA) ->
     fun_spec_match({M, F, '_'}, MFA);
 fun_spec_match({M1, F1, A1}, {M2, F2, A2}) ->
@@ -2980,9 +2946,6 @@ check_nested_try_catchs(ResultFun, TryExp) ->
         end,
         ktn_code:content(TryExp)
     ).
-
-is_try_node(Node) ->
-    ktn_code:type(Node) == 'try'.
 
 %% @private
 %% @doc No #{...}#{...}
@@ -3084,3 +3047,39 @@ ignore_bin_parts_1([{Start, Len} | T], Prev, Src) ->
     Parts :: [binary_part()].
 bin_parts_to_iolist(Src, Parts) when is_binary(Src), is_list(Parts) ->
     [binary_part(Src, Start, Len) || {Start, Len} <- Parts].
+
+is_begin_node(Node) ->
+    ktn_code:type(Node) =:= 'begin'.
+
+is_call_node(Node) ->
+    ktn_code:type(Node) =:= call.
+
+is_catch_node(Node) ->
+    ktn_code:type(Node) =:= 'catch'.
+
+is_clause_node(Node) ->
+    ktn_code:type(Node) == clause.
+
+is_function_node(Node) ->
+    ktn_code:type(Node) == function.
+
+is_include_lib_node(Node) ->
+    ktn_code:type(Node) =:= include_lib.
+
+is_include_node(Node) ->
+    (ktn_code:type(Node) =:= include) orelse is_include_lib_node(Node).
+
+is_macro_node(Node) ->
+    ktn_code:type(Node) =:= macro.
+
+is_op_node(Node) ->
+    ktn_code:type(Node) =:= op.
+
+is_spec_node(Node) ->
+    ktn_code:type(Node) =:= spec.
+
+is_try_node(Node) ->
+    ktn_code:type(Node) == 'try'.
+
+is_type_attr_node(Node) ->
+    ktn_code:type(Node) =:= type_attr.
