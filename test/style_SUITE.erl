@@ -55,7 +55,6 @@
     verify_no_import/1,
     verify_no_catch_expressions/1,
     verify_no_single_clause_case/1,
-    verify_no_single_match_maybe/1,
     verify_numeric_format/1,
     verify_behaviour_spelling/1,
     verify_always_shortcircuit/1,
@@ -109,6 +108,12 @@
     verify_elvis_attr_param_pattern_matching/1,
     verify_elvis_attr_private_data_types/1
 ]).
+
+-if(?OTP_RELEASE >= 27).
+-export([
+    verify_no_single_match_maybe/1
+]).
+-endif.
 %% Non-rule
 -export([results_are_ordered_by_line/1, oddities/1]).
 
@@ -172,7 +177,6 @@ groups() ->
             verify_always_shortcircuit,
             verify_no_catch_expressions,
             verify_no_single_clause_case,
-            verify_no_single_match_maybe,
             verify_no_macros,
             verify_export_used_types,
             verify_max_anonymous_function_arity,
@@ -2261,6 +2265,7 @@ verify_no_single_clause_case(Config) ->
                 [#{line_num := 6}, #{line_num := 14}, #{line_num := 16}] = R
         end.
 
+-if(?OTP_RELEASE >= 27).
 -spec verify_no_single_match_maybe(config()) -> any().
 verify_no_single_match_maybe(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
@@ -2279,6 +2284,7 @@ verify_no_single_match_maybe(Config) ->
             erl_files ->
                 [#{line_num := 8}, #{line_num := 16}, #{line_num := 17}] = R
         end.
+-endif.
 
 -spec verify_no_match_in_condition(config()) -> any().
 verify_no_match_in_condition(Config) ->
