@@ -7,6 +7,7 @@
 -export([module/1]).
 -export([name/1]).
 -export([operation/1]).
+-export([pattern/1]).
 -export([text/1]).
 -export([tokens/1]).
 -export([value/1]).
@@ -32,6 +33,9 @@ name(Node) ->
 
 operation(Node) ->
     ktn_code:attr(operation, Node).
+
+pattern(Node) ->
+    ktn_code:node_attr(pattern, Node).
 
 text(Node) ->
     ktn_code:attr(text, Node).
