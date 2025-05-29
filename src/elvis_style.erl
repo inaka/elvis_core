@@ -974,7 +974,7 @@ no_if_expression(Config, Target, RuleConfig) ->
 invalid_dynamic_call(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
 
-    Predicate = fun(Node) -> ktn_code:type(Node) == callback end,
+    Predicate = fun(Node) -> is_callback_node(Node) end,
     case elvis_code:find(Predicate, Root) of
         [] ->
             check_invalid_dynamic_calls(Root);
@@ -1220,7 +1220,7 @@ max_anonymous_function_arity(Config, Target, RuleConfig) ->
         fun(Node) ->
             %% Not having clauses means it's something like fun mod:f/10 and we don't want
             %% this rule to raise warnings for those. max_function_arity should take care of them.
-            ktn_code:type(Node) == 'fun' andalso [] /= elvis_code:find(fun is_clause_node/1, Node)
+            is_fun_node(Node) andalso [] /= elvis_code:find(fun is_clause_node/1, Node)
         end,
     Funs = elvis_code:find(IsFun, Root),
     lists:filtermap(
@@ -1479,7 +1479,7 @@ no_nested_try_catch(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 no_successive_maps(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    Predicate = fun(Node) -> ktn_code:type(Node) == map end,
+    Predicate = fun(Node) -> is_map_node(Node) end,
     ResultFun = result_node_line_fun(?NO_SUCCESSIVE_MAPS_MSG),
     FindOpts = #{mode => node, traverse => all},
     case elvis_code:find(Predicate, Root, FindOpts) of
@@ -1569,7 +1569,7 @@ no_init_lists(Config, Target, RuleConfig) ->
 
 is_relevant_behaviour(Root, RuleConfig) ->
     ConfigBehaviors = option(behaviours, RuleConfig, no_init_lists),
-    IsBehaviour = fun(Node) -> ktn_code:type(Node) == behaviour end,
+    IsBehaviour = fun(Node) -> is_behaviour_node(Node) end,
     Behaviours = elvis_code:find(IsBehaviour, Root),
     lists:any(
         fun(Elem) -> Elem end,
@@ -1917,7 +1917,7 @@ has_match_child(Node) ->
     lists:any(fun is_match/1, ktn_code:content(Node)).
 
 is_match(Node) ->
-    ktn_code:type(Node) == match orelse ktn_code:type(Node) == maybe_match.
+    is_match_node(Node) orelse is_maybe_match_node(Node).
 
 -type numeric_format_config() ::
     #{
@@ -1956,8 +1956,7 @@ behaviour_spelling(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
     Predicate =
         fun(Node) ->
-            NodeType = ktn_code:type(Node),
-            lists:member(NodeType, [behaviour, behavior]) andalso NodeType /= Spelling
+            is_behaviour_node(Node) andalso NodeType /= Spelling
         end,
     case elvis_code:find(Predicate, Root) of
         [] ->
@@ -1995,20 +1994,20 @@ param_pattern_matching(Config, Target, RuleConfig) ->
         ),
 
     MatchesInFunctionClauses =
-        lists:filter(fun(Pattern) -> ktn_code:type(Pattern) == match end, FunctionClausePatterns),
+        lists:filter(fun(Pattern) -> is_match_node(Pattern) end, FunctionClausePatterns),
 
     lists:filtermap(
         fun(Match) ->
-            case lists:map(fun ktn_code:type/1, ktn_code:content(Match)) of
-                [var, var] ->
+            case lists:map(fun is_var_node/1, ktn_code:content(Match)) of
+                [true, true] ->
                     false;
-                [var, _] when Side == right ->
+                [true, _] when Side == right ->
                     Line = elvis_ktn:line(Match),
                     [Var, _] = ktn_code:content(Match),
                     VarName = elvis_ktn:name(Var),
                     Info = [VarName, Line, Side],
                     {true, elvis_result:new(item, ?PARAM_PATTERN_MATCHING_MSG, Info, Line)};
-                [_, var] when Side == left ->
+                [_, true] when Side == left ->
                     Line = elvis_ktn:line(Match),
                     [_, Var] = ktn_code:content(Match),
                     VarName = elvis_ktn:name(Var),
@@ -2022,21 +2021,12 @@ param_pattern_matching(Config, Target, RuleConfig) ->
     ).
 
 is_function_clause(Zipper) ->
-    is_clause(Zipper) andalso is_function_or_fun(zipper:up(Zipper)).
-
-is_clause(Zipper) ->
-    ktn_code:type(
-        zipper:node(Zipper)
-    ) ==
-        clause.
+    Node = zipper:node(Zipper),
+    is_clause_node(Node) andalso is_function_or_fun(zipper:up(Zipper)).
 
 is_function_or_fun(Zipper) ->
-    lists:member(
-        ktn_code:type(
-            zipper:node(Zipper)
-        ),
-        [function, 'fun']
-    ).
+    Node = zipper:node(Zipper),
+    is_function_node(Node) orelse is_fun_node(Node).
 
 -spec consistent_generic_type(
     elvis_config:config(),
@@ -2241,14 +2231,6 @@ check_numeric_format(Regex, [NumNode | RemainingNumNodes], AccIn) ->
     check_numeric_format(Regex, RemainingNumNodes, AccOut).
 
 %% @private
-is_integer_node(Node) ->
-    ktn_code:type(Node) =:= integer.
-
-%% @private
-is_float_node(Node) ->
-    ktn_code:type(Node) =:= float.
-
-%% @private
 is_exception_or_non_reversible(error) ->
     true;
 is_exception_or_non_reversible(exit) ->
@@ -2348,11 +2330,7 @@ re_compile_for_atom_type(true = _IsEnclosed, _Regex, RegexEnclosed) ->
 
 %% @private
 is_atom_node(MaybeAtom) ->
-    ktn_code:type(
-        zipper:node(MaybeAtom)
-    ) =:=
-        atom andalso
-        not check_parent_remote(MaybeAtom).
+    ktn_code:type(zipper:node(MaybeAtom)) =:= atom andalso not (check_parent_remote(MaybeAtom)).
 
 %% Variables name
 %% @private
@@ -2625,13 +2603,13 @@ check_invalid_dynamic_calls(Root) ->
 %% @private
 -spec is_dynamic_call(ktn_code:tree_node()) -> boolean().
 is_dynamic_call(Node) ->
-    case ktn_code:type(Node) of
-        call ->
+    case is_call_node(Node) of
+        true ->
             FunctionSpec = elvis_ktn:function(Node),
-            case ktn_code:type(FunctionSpec) of
-                remote ->
+            case is_remote_node(FunctionSpec) of
+                true ->
                     ModuleName = elvis_ktn:module(FunctionSpec),
-                    var == ktn_code:type(ModuleName);
+                    is_var_node(ModuleName);
                 _Other ->
                     false
             end;
@@ -2643,12 +2621,8 @@ is_dynamic_call(Node) ->
 %% @private
 -spec is_var(zipper:zipper(_)) -> boolean().
 is_var(Zipper) ->
-    case
-        ktn_code:type(
-            zipper:node(Zipper)
-        )
-    of
-        var ->
+    case is_var_node(zipper:node(Zipper)) of
+        true ->
             PrevLocation =
                 case elvis_ktn:location(zipper:node(Zipper)) of
                     {L, 1} ->
@@ -2676,8 +2650,8 @@ is_var(Zipper) ->
 -spec is_ignored_var(zipper:zipper(_)) -> boolean().
 is_ignored_var(Zipper) ->
     Node = zipper:node(Zipper),
-    case ktn_code:type(Node) of
-        var ->
+    case is_var_node(Node) of
+        true ->
             Name = elvis_ktn:name(Node),
             [FirstChar | _] = atom_to_list(Name),
             (FirstChar == $_) andalso (Name =/= '_') andalso
@@ -2712,7 +2686,7 @@ check_parent_remote(Zipper) ->
             false;
         ParentZipper ->
             Parent = zipper:node(ParentZipper),
-            remote == ktn_code:type(Parent)
+            is_remote_node(Parent)
     end.
 
 %% State record in OTP module
@@ -2722,7 +2696,7 @@ check_parent_remote(Zipper) ->
 is_otp_module(Root) ->
     OtpSet = sets:from_list([gen_server, gen_event, gen_fsm, gen_statem, supervisor_bridge]),
     IsBehaviorAttr =
-        fun(Node) -> behavior == ktn_code:type(Node) orelse behaviour == ktn_code:type(Node) end,
+        fun(Node) -> is_behaviour_node(Node) end,
     case elvis_code:find(IsBehaviorAttr, Root) of
         [] ->
             false;
@@ -2772,7 +2746,7 @@ has_state_type(Root) ->
 spec_includes_record(Node) ->
     IsTypeRecord =
         fun(Child) ->
-            (ktn_code:type(Child) == type) andalso (elvis_ktn:name(Child) == record)
+            is_type_node(Child) andalso (elvis_ktn:name(Child) == record)
         end,
     Opts = #{traverse => all},
     is_spec_node(Node) andalso (elvis_code:find(IsTypeRecord, Node, Opts) /= []).
@@ -2954,8 +2928,8 @@ check_successive_maps(ResultFun, MapExp) ->
         undefined ->
             [];
         InnerVar ->
-            case ktn_code:type(InnerVar) of
-                map ->
+            case is_map_node(InnerVar) of
+                true ->
                     [ResultFun(InnerVar)];
                 _ ->
                     []
@@ -2966,9 +2940,8 @@ check_successive_maps(ResultFun, MapExp) ->
 %% @private
 consistent_generic_type_predicate(TypePreference) ->
     fun(Node) ->
-        NodeType = ktn_code:type(Node),
         NodeName = elvis_ktn:name(Node),
-        lists:member(NodeType, [type, callback]) andalso
+        (is_type_node(Node) orelse is_callback_node(Node)) andalso
             lists:member(NodeName, [term, any]) andalso
             NodeName /= TypePreference
     end.
@@ -3051,17 +3024,29 @@ bin_parts_to_iolist(Src, Parts) when is_binary(Src), is_list(Parts) ->
 is_begin_node(Node) ->
     ktn_code:type(Node) =:= 'begin'.
 
+is_behaviour_node(Node) ->
+    (ktn_code:type(Node) == behaviour) orelse (ktn_code:type(Node) =:= behavior).
+
 is_call_node(Node) ->
     ktn_code:type(Node) =:= call.
+
+is_callback_node(Node) ->
+    ktn_code:type(Node) == callback.
 
 is_catch_node(Node) ->
     ktn_code:type(Node) =:= 'catch'.
 
 is_clause_node(Node) ->
-    ktn_code:type(Node) == clause.
+    ktn_code:type(Node) =:= clause.
+
+is_float_node(Node) ->
+    ktn_code:type(Node) =:= float.
+
+is_fun_node(Node) ->
+    ktn_code:type(Node) =:= 'fun'.
 
 is_function_node(Node) ->
-    ktn_code:type(Node) == function.
+    ktn_code:type(Node) =:= function.
 
 is_include_lib_node(Node) ->
     ktn_code:type(Node) =:= include_lib.
@@ -3069,17 +3054,38 @@ is_include_lib_node(Node) ->
 is_include_node(Node) ->
     (ktn_code:type(Node) =:= include) orelse is_include_lib_node(Node).
 
+is_integer_node(Node) ->
+    ktn_code:type(Node) =:= integer.
+
+is_map_node(Node) ->
+    ktn_code:type(Node) =:= map.
+
+is_match_node(Node) ->
+    ktn_code:type(Node) =:= match.
+
+is_maybe_match_node(Node) ->
+    ktn_code:type(Node) =:= maybe_match.
+
 is_macro_node(Node) ->
     ktn_code:type(Node) =:= macro.
 
 is_op_node(Node) ->
     ktn_code:type(Node) =:= op.
 
+is_remote_node(Node) ->
+    ktn_code:type(Node) =:= remote.
+
 is_spec_node(Node) ->
     ktn_code:type(Node) =:= spec.
 
 is_try_node(Node) ->
-    ktn_code:type(Node) == 'try'.
+    ktn_code:type(Node) =:= 'try'.
+
+is_type_node(Node) ->
+    ktn_code:type(Node) =:= 'type'.
 
 is_type_attr_node(Node) ->
     ktn_code:type(Node) =:= type_attr.
+
+is_var_node(Node) ->
+    ktn_code:type(Node) =:= var.
