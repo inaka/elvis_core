@@ -1290,7 +1290,7 @@ max_function_arity(Config, Target, RuleConfig) ->
                     false ->
                         NonExportedMaxArity
                 end,
-            case ktn_code:attr(arity, Function) of
+            case elvis_ktn:arity(Function) of
                 Arity when Arity =< MaxArity ->
                     false;
                 Arity ->
@@ -1343,7 +1343,7 @@ max_function_clause_length(Config, Target, RuleConfig) ->
     PairFun =
         fun(FunctionNode) ->
             Name = ktn_code:attr(name, FunctionNode),
-            Arity = ktn_code:attr(arity, FunctionNode),
+            Arity = elvis_ktn:arity(FunctionNode),
 
             IsClause = fun(Node) -> ktn_code:type(Node) == clause end,
             Clauses = elvis_code:find(IsClause, FunctionNode),
@@ -1411,7 +1411,7 @@ max_function_length(Config, Target, RuleConfig) ->
     PairFun =
         fun(FunctionNode) ->
             Name = ktn_code:attr(name, FunctionNode),
-            Arity = ktn_code:attr(arity, FunctionNode),
+            Arity = elvis_ktn:arity(FunctionNode),
             {Min, Max} = node_line_limits(FunctionNode),
             FunLines = lists:sublist(Lines, Min, Max - Min + 1),
             FilteredLines = lists:filter(FilterFun, FunLines),
@@ -1563,7 +1563,7 @@ no_init_lists(Config, Target, RuleConfig) ->
                     fun(Node) ->
                         ktn_code:type(Node) == function andalso
                             ktn_code:attr(name, Node) == init andalso
-                            ktn_code:attr(arity, Node) == 1
+                            elvis_ktn:arity(Node) == 1
                     end,
 
                 case elvis_code:find(IsInit1Function, Root) of
