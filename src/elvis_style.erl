@@ -766,7 +766,7 @@ no_nested_hrls(ElvisConfig, RuleTarget, RuleConfig) ->
     ).
 
 is_include(Node) ->
-    ktn_code:type(Node) =:= include orelse ktn_code:type(Node) =:= include_lib.
+    (ktn_code:type(Node) =:= include) orelse (ktn_code:type(Node) =:= include_lib).
 
 -type no_specs_config() :: #{allow => [atom()], ignore => [ignorable()]}.
 
@@ -1947,7 +1947,7 @@ has_match_child(Node) ->
     lists:any(fun is_match/1, ktn_code:content(Node)).
 
 is_match(Node) ->
-    ktn_code:type(Node) == match orelse ktn_code:type(Node) == maybe_match.
+    (ktn_code:type(Node) == match) orelse (ktn_code:type(Node) == maybe_match).
 
 -type numeric_format_config() ::
     #{
@@ -2505,7 +2505,7 @@ macro_as_atom(
     _Types,
     _MacroNodeValue
 ) when
-    Type =:= var orelse Type =:= atom
+    (Type =:= var) orelse (Type =:= atom)
 ->
     MacroAsAtom;
 macro_as_atom(false, [Type | OtherTypes], MacroNodeValue) ->
@@ -2611,7 +2611,7 @@ character_at_location(
             case How of
                 should_have ->
                     lists:nth(ColToCheck, TextLineStr);
-                should_not_have when TextRegex =:= false orelse TextRegex =:= nomatch ->
+                should_not_have when (TextRegex =:= false) orelse (TextRegex =:= nomatch) ->
                     lists:nth(ColToCheck, TextLineStr);
                 _ ->
                     ""
@@ -2750,7 +2750,9 @@ check_parent_remote(Zipper) ->
 is_otp_module(Root) ->
     OtpSet = sets:from_list([gen_server, gen_event, gen_fsm, gen_statem, supervisor_bridge]),
     IsBehaviorAttr =
-        fun(Node) -> behavior == ktn_code:type(Node) orelse behaviour == ktn_code:type(Node) end,
+        fun(Node) ->
+            (behavior == ktn_code:type(Node)) orelse (behaviour == ktn_code:type(Node))
+        end,
     case elvis_code:find(IsBehaviorAttr, Root) of
         [] ->
             false;

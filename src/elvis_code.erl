@@ -83,7 +83,7 @@ content_zipper(Root) ->
 -spec all_zipper(ktn_code:tree_node()) -> zipper:zipper(_).
 all_zipper(Root) ->
     IsBranch =
-        fun(#{} = Node) -> ktn_code:content(Node) =/= [] orelse maps:is_key(node_attrs, Node) end,
+        fun(#{} = Node) -> (ktn_code:content(Node) =/= []) orelse maps:is_key(node_attrs, Node) end,
     Children =
         fun
             (#{content := Content, node_attrs := NodeAttrs}) ->
