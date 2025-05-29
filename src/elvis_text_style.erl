@@ -132,7 +132,7 @@ check_atom_quotes([AtomNode | RemainingAtomNodes], AccIn) ->
         case unicode:characters_to_list(AtomName, unicode) of
             [$' | _] when not IsException ->
                 Msg = ?ATOM_PREFERRED_QUOTES_MSG,
-                {Line, _} = ktn_code:attr(location, AtomNode),
+                Line = elvis_ktn:line(AtomNode),
                 Info = [AtomName, Line],
                 Result = elvis_result:new(item, Msg, Info, Line),
                 AccIn ++ [Result];
