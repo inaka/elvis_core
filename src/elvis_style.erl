@@ -894,7 +894,7 @@ operator_spaces(Config, Target, RuleConfig) ->
 %% @doc Returns true when the node is an operator with more than one operand
 -spec is_operator_node(ktn_code:tree_node()) -> boolean().
 is_operator_node(Node) ->
-    ktn_code:type(Node) =:= op andalso length(ktn_code:content(Node)) > 1.
+    (ktn_code:type(Node) =:= op) andalso (length(ktn_code:content(Node)) > 1).
 
 -type no_space_config() ::
     #{ignore => [ignorable()], rules => [{right | left, string()}]}.
@@ -1191,8 +1191,8 @@ max_module_length(Config, Target, RuleConfig) ->
 
     FilterFun =
         fun(Line) ->
-            (CountComments orelse not line_is_comment(Line)) andalso
-                (CountWhitespace orelse not line_is_whitespace(Line))
+            (CountComments orelse (not line_is_comment(Line))) andalso
+                (CountWhitespace orelse (not line_is_whitespace(Line)))
         end,
     Lines =
         case elvis_utils:split_all_lines(Src, [trim]) of
@@ -1236,7 +1236,7 @@ max_anonymous_function_arity(Config, Target, RuleConfig) ->
         fun(Node) ->
             %% Not having clauses means it's something like fun mod:f/10 and we don't want
             %% this rule to raise warnings for those. max_function_arity should take care of them.
-            ktn_code:type(Node) == 'fun' andalso [] /= elvis_code:find(IsClause, Node)
+            (ktn_code:type(Node) == 'fun') andalso ([] /= elvis_code:find(IsClause, Node))
         end,
     Funs = elvis_code:find(IsFun, Root),
     lists:filtermap(
@@ -1324,8 +1324,8 @@ max_function_clause_length(Config, Target, RuleConfig) ->
     % clause
     FilterClause =
         fun(Line) ->
-            (CountComments orelse not line_is_comment(Line)) andalso
-                (CountWhitespace orelse not line_is_whitespace(Line))
+            (CountComments orelse (not line_is_comment(Line))) andalso
+                (CountWhitespace orelse (not line_is_whitespace(Line)))
         end,
 
     PairClause =
@@ -1404,8 +1404,8 @@ max_function_length(Config, Target, RuleConfig) ->
     Functions0 = elvis_code:find(IsFunction, Root),
     FilterFun =
         fun(Line) ->
-            (CountComments orelse not line_is_comment(Line)) andalso
-                (CountWhitespace orelse not line_is_whitespace(Line))
+            (CountComments orelse (not line_is_comment(Line))) andalso
+                (CountWhitespace orelse (not line_is_whitespace(Line)))
         end,
 
     PairFun =
@@ -1561,9 +1561,9 @@ no_init_lists(Config, Target, RuleConfig) ->
             true ->
                 IsInit1Function =
                     fun(Node) ->
-                        ktn_code:type(Node) == function andalso
-                            ktn_code:attr(name, Node) == init andalso
-                            ktn_code:attr(arity, Node) == 1
+                        (ktn_code:type(Node) == function) andalso
+                            (ktn_code:attr(name, Node) == init) andalso
+                            (ktn_code:attr(arity, Node) == 1)
                     end,
 
                 case elvis_code:find(IsInit1Function, Root) of
@@ -1638,7 +1638,7 @@ ms_transform_included(Config, Target, RuleConfig) ->
 
     FunctionCalls = get_fun_2_ms_calls(Root),
 
-    IsIncluded = FunctionCalls /= [] andalso has_include_ms_transform(Root),
+    IsIncluded = (FunctionCalls /= []) andalso has_include_ms_transform(Root),
 
     ResultFun =
         fun(Location) ->
@@ -1657,7 +1657,7 @@ ms_transform_included(Config, Target, RuleConfig) ->
 -spec get_fun_2_ms_calls(ktn_code:tree_node()) -> [term()].
 get_fun_2_ms_calls(Root) ->
     IsFun2MsFunctionCall =
-        fun(Node) -> ktn_code:type(Node) == call andalso is_ets_fun2ms(Node) end,
+        fun(Node) -> (ktn_code:type(Node) == call) andalso is_ets_fun2ms(Node) end,
 
     Functions = elvis_code:find(IsFun2MsFunctionCall, Root),
     ProcessResult = fun(Node) -> ktn_code:attr(location, Node) end,
@@ -1670,7 +1670,7 @@ is_ets_fun2ms(Node) ->
     Fun2 = ktn_code:node_attr(function, Fun),
     Module = ktn_code:node_attr(module, Fun),
 
-    ets == ktn_code:attr(value, Module) andalso fun2ms == ktn_code:attr(value, Fun2).
+    (ets == ktn_code:attr(value, Module)) andalso (fun2ms == ktn_code:attr(value, Fun2)).
 
 -spec no_boolean_in_comparison(
     elvis_config:config(),
@@ -1691,8 +1691,8 @@ no_boolean_in_comparison(Config, Target, RuleConfig) ->
     IsComparisonWithBoolean =
         fun(Node) ->
             Content = ktn_code:content(Node),
-            ktn_code:type(Node) == op andalso
-                '==' =:= ktn_code:attr(operation, Node) andalso
+            (ktn_code:type(Node) == op) andalso
+                ('==' =:= ktn_code:attr(operation, Node)) andalso
                 lists:any(IsBoolean, Content)
         end,
     ComparisonsWithBoolean =
@@ -1724,7 +1724,7 @@ no_operation_on_same_value(Config, Target, RuleConfig) ->
 
     IsInterestingOp =
         fun(Node) ->
-            ktn_code:type(Node) == op andalso
+            (ktn_code:type(Node) == op) andalso
                 lists:member(ktn_code:attr(operation, Node), InterestingOps)
         end,
 
@@ -1761,18 +1761,18 @@ same_except_location_attr([LeftNode | LeftNodes], [RightNode | RigthNodes]) ->
 same_except_location_attr(LeftNode, RightNode) ->
     %% If we're evaluating a function, then even if we evaluate the same function on both sides,
     %% the results may be different.
-    ktn_code:type(LeftNode) /= call andalso
-        ktn_code:type(RightNode) /= call andalso
-        ktn_code:type(LeftNode) == ktn_code:type(RightNode) andalso
-        maps:remove(location, maps:get(attrs, LeftNode)) ==
-            maps:remove(location, maps:get(attrs, RightNode)) andalso
+    (ktn_code:type(LeftNode) /= call) andalso
+        (ktn_code:type(RightNode) /= call) andalso
+        (ktn_code:type(LeftNode) == ktn_code:type(RightNode)) andalso
+        (maps:remove(location, maps:get(attrs, LeftNode)) ==
+            maps:remove(location, maps:get(attrs, RightNode))) andalso
         same_except_location_attr(ktn_code:content(LeftNode), ktn_code:content(RightNode)).
 
 -spec has_include_ms_transform(ktn_code:tree_node()) -> boolean().
 has_include_ms_transform(Root) ->
     Fun = fun(Node) ->
-        ktn_code:type(Node) == include_lib andalso
-            ktn_code:attr(value, Node) == "stdlib/include/ms_transform.hrl"
+        (ktn_code:type(Node) == include_lib) andalso
+            (ktn_code:attr(value, Node) == "stdlib/include/ms_transform.hrl")
     end,
 
     [] /= elvis_code:find(Fun, Root).
@@ -1799,7 +1799,7 @@ no_throw(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 no_dollar_space(Config, Target, RuleConfig) ->
     IsDollarSpace =
-        fun(Node) -> ktn_code:type(Node) == char andalso ktn_code:attr(text, Node) == "$ " end,
+        fun(Node) -> (ktn_code:type(Node) == char) andalso (ktn_code:attr(text, Node) == "$ ") end,
     Root = get_root(Config, Target, RuleConfig),
     Opts = #{mode => node, traverse => all},
     DollarSpaceNodes = elvis_code:find(IsDollarSpace, Root, Opts),
@@ -1880,14 +1880,14 @@ no_single_clause_case(Config, Target, RuleConfig) ->
     ).
 
 is_single_clause_case_statement(Node) ->
-    ktn_code:type(Node) == 'case' andalso
-        length([
+    (ktn_code:type(Node) == 'case') andalso
+        (length([
             Clause
          || SubNode <- ktn_code:content(Node),
             ktn_code:type(SubNode) == case_clauses,
             Clause <- ktn_code:content(SubNode)
         ]) ==
-            1.
+            1).
 
 -type no_single_match_maybe_config() :: #{ignore => [ignorable()]}.
 
@@ -1909,7 +1909,7 @@ no_single_match_maybe(Config, Target, RuleConfig) ->
     ).
 
 is_single_match_maybe_statement(Node) ->
-    ktn_code:type(Node) == 'maybe' andalso length(ktn_code:content(Node)) == 1.
+    (ktn_code:type(Node) == 'maybe') andalso (length(ktn_code:content(Node)) == 1).
 
 -type no_match_in_condition_config() :: #{ignore => [ignorable()]}.
 
@@ -1931,13 +1931,13 @@ no_match_in_condition(Config, Target, RuleConfig) ->
     ).
 
 is_match_in_condition(Node) ->
-    ktn_code:type(Node) == case_expr andalso
+    (ktn_code:type(Node) == case_expr) andalso
         %% case_expr followed by a match
         (has_match_child(Node) orelse
             %% or case_expr followed by a block which contains a match in the first layer
             lists:any(
                 fun(Node1) ->
-                    ktn_code:type(Node1) == block andalso has_match_child(Node1)
+                    (ktn_code:type(Node1) == block) andalso has_match_child(Node1)
                 end,
                 ktn_code:content(Node)
             )).
@@ -1986,7 +1986,7 @@ behaviour_spelling(Config, Target, RuleConfig) ->
     Predicate =
         fun(Node) ->
             NodeType = ktn_code:type(Node),
-            lists:member(NodeType, [behaviour, behavior]) andalso NodeType /= Spelling
+            lists:member(NodeType, [behaviour, behavior]) andalso (NodeType /= Spelling)
         end,
     case elvis_code:find(Predicate, Root) of
         [] ->
@@ -2318,7 +2318,7 @@ check_atom_names(
                 unicode:characters_to_list(AtomName, unicode), RE
             )
         of
-            _ when IsExceptionClass andalso not IsEnclosed ->
+            _ when IsExceptionClass andalso (not IsEnclosed) ->
                 AccIn;
             nomatch when not IsEnclosed ->
                 Msg = ?ATOM_NAMING_CONVENTION_MSG,
@@ -2377,11 +2377,7 @@ re_compile_for_atom_type(true = _IsEnclosed, _Regex, RegexEnclosed) ->
 
 %% @private
 is_atom_node(MaybeAtom) ->
-    ktn_code:type(
-        zipper:node(MaybeAtom)
-    ) =:=
-        atom andalso
-        not check_parent_remote(MaybeAtom).
+    (ktn_code:type(zipper:node(MaybeAtom)) =:= atom) andalso (not check_parent_remote(MaybeAtom)).
 
 %% Variables name
 %% @private
@@ -2534,9 +2530,9 @@ check_spaces(Lines, UnfilteredNodes, {Position, Text}, Encoding, {How0, _} = How
         fun(Node) ->
             Location = ktn_code:attr(location, Node),
             case character_at_location(Position, Lines, Text, Location, Encoding, How) of
-                Char when Char =:= SpaceChar andalso How0 =:= should_have ->
+                Char when (Char =:= SpaceChar) andalso (How0 =:= should_have) ->
                     [];
-                Char when Char =/= SpaceChar andalso How0 =:= should_not_have ->
+                Char when (Char =/= SpaceChar) andalso (How0 =:= should_not_have) ->
                     [];
                 _ when How0 =:= should_have ->
                     Msg = ?MISSING_SPACE_MSG,
@@ -2712,7 +2708,7 @@ is_ignored_var(Zipper) ->
             Name = ktn_code:attr(name, Node),
             [FirstChar | _] = atom_to_list(Name),
             (FirstChar == $_) andalso (Name =/= '_') andalso
-                not check_parent_match_or_macro(Zipper);
+                (not check_parent_match_or_macro(Zipper));
         _OtherType ->
             false
     end.
@@ -2945,9 +2941,9 @@ call_mfa(Call) ->
 
 %% @private
 is_call(Node, {F, A}) ->
-    ktn_code:type(Node) =:= call andalso
-        list_to_atom(ktn_code:attr(text, Node)) =:= F andalso
-        length(ktn_code:content(Node)) =:= A;
+    (ktn_code:type(Node) =:= call) andalso
+        (list_to_atom(ktn_code:attr(text, Node)) =:= F) andalso
+        (length(ktn_code:content(Node)) =:= A);
 is_call(Node, {M, F, A}) ->
     call_mfa(Node) =:= {M, F, A}.
 
@@ -3005,7 +3001,7 @@ consistent_generic_type_predicate(TypePreference) ->
         NodeName = ktn_code:attr(name, Node),
         lists:member(NodeType, [type, callback]) andalso
             lists:member(NodeName, [term, any]) andalso
-            NodeName /= TypePreference
+            (NodeName /= TypePreference)
     end.
 
 %% @private

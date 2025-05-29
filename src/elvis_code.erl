@@ -137,7 +137,7 @@ find_by_location(Root, Location) ->
 is_at_location(#{attrs := #{location := {Line, NodeCol}}} = Node, {Line, Column}) ->
     Text = ktn_code:attr(text, Node),
     Length = length(Text),
-    NodeCol =< Column andalso Column < NodeCol + Length;
+    (Column >= NodeCol) andalso (Column < NodeCol + Length);
 is_at_location(_, _) ->
     false.
 
