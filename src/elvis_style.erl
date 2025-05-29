@@ -1196,7 +1196,7 @@ max_module_length(Config, Target, RuleConfig) ->
         end,
     Lines =
         case elvis_utils:split_all_lines(Src, [trim]) of
-            Ls when CountComments andalso CountWhitespace ->
+            Ls when CountComments, CountWhitespace ->
                 Ls;
             Ls ->
                 lists:filter(FilterFun, Ls)
@@ -2319,7 +2319,7 @@ check_atom_names(
                 unicode:characters_to_list(AtomName, unicode), RE
             )
         of
-            _ when IsExceptionClass andalso not (IsEnclosed) ->
+            _ when IsExceptionClass, not IsEnclosed ->
                 AccIn;
             nomatch when not IsEnclosed ->
                 Msg = ?ATOM_NAMING_CONVENTION_MSG,
@@ -2531,9 +2531,9 @@ check_spaces(Lines, UnfilteredNodes, {Position, Text}, Encoding, {How0, _} = How
         fun(Node) ->
             Location = ktn_code:attr(location, Node),
             case character_at_location(Position, Lines, Text, Location, Encoding, How) of
-                Char when (Char =:= SpaceChar) andalso (How0 =:= should_have) ->
+                Char when Char =:= SpaceChar, How0 =:= should_have ->
                     [];
-                Char when (Char =/= SpaceChar) andalso (How0 =:= should_not_have) ->
+                Char when Char =/= SpaceChar, How0 =:= should_not_have ->
                     [];
                 _ when How0 =:= should_have ->
                     Msg = ?MISSING_SPACE_MSG,
@@ -2604,15 +2604,9 @@ character_at_location(
             SpaceChar;
         true when How =:= should_not_have ->
             "";
-        false when
-            (How =:= should_have) andalso (Position =:= right) andalso
-                (ColToCheck > length(TextLineStr))
-        ->
+        false when How =:= should_have, Position =:= right, ColToCheck > length(TextLineStr) ->
             SpaceChar;
-        false when
-            (How =:= should_not_have) andalso (Position =:= right) andalso
-                (ColToCheck > length(TextLineStr))
-        ->
+        false when How =:= should_not_have, Position =:= right, ColToCheck > length(TextLineStr) ->
             "";
         _ ->
             case How of

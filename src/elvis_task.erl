@@ -22,7 +22,8 @@ chunk_fold({M, F} = FunWork, FunAcc, InitialAcc, ExtraArgs, List, ChunkSize) whe
     is_function(FunAcc, 2),
     is_list(ExtraArgs),
     is_list(List),
-    is_integer(ChunkSize) andalso (ChunkSize > 0)
+    is_integer(ChunkSize),
+    ChunkSize > 0
 ->
     try
         Term =
