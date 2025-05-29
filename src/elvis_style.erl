@@ -1665,7 +1665,7 @@ no_boolean_in_comparison(Config, Target, RuleConfig) ->
         fun(Node) ->
             Content = ktn_code:content(Node),
             is_op_node(Node) andalso
-                '==' =:= ktn_code:attr(operation, Node) andalso
+                '==' =:= elvis_ktn:operation(Node) andalso
                 lists:any(IsBoolean, Content)
         end,
     ComparisonsWithBoolean =
@@ -1698,7 +1698,7 @@ no_operation_on_same_value(Config, Target, RuleConfig) ->
     IsInterestingOp =
         fun(Node) ->
             is_op_node(Node) andalso
-                lists:member(ktn_code:attr(operation, Node), InterestingOps)
+                lists:member(elvis_ktn:operation(Node), InterestingOps)
         end,
 
     OpNodes =
@@ -1711,7 +1711,7 @@ no_operation_on_same_value(Config, Target, RuleConfig) ->
     ResultFun =
         fun(Node) ->
             Line = elvis_ktn:line(Node),
-            Info = [ktn_code:attr(operation, Node), Line],
+            Info = [elvis_ktn:operation(Node), Line],
             Msg = ?NO_OPERATION_ON_SAME_VALUE,
             elvis_result:new(item, Msg, Info, Line)
         end,
@@ -2069,7 +2069,7 @@ always_shortcircuit(Config, Target, RuleConfig) ->
         fun(Node) ->
             is_operator_node(Node) andalso
                 lists:member(
-                    ktn_code:attr(operation, Node), maps:keys(Operators)
+                    elvis_ktn:operation(Node), maps:keys(Operators)
                 )
         end,
     case elvis_code:find(Predicate, Root, #{traverse => all}) of
@@ -2079,7 +2079,7 @@ always_shortcircuit(Config, Target, RuleConfig) ->
             ResultFun =
                 fun(Node) ->
                     Line = elvis_ktn:line(Node),
-                    BadOperator = ktn_code:attr(operation, Node),
+                    BadOperator = elvis_ktn:operation(Node),
                     GoodOperator = maps:get(BadOperator, Operators),
                     Info = [BadOperator, Line, GoodOperator],
                     elvis_result:new(item, ?ALWAYS_SHORTCIRCUIT_MSG, Info, Line)
