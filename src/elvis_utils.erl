@@ -209,7 +209,7 @@ parse_colors(Message) ->
         },
     Opts = [global, {return, list}],
     case elvis_config:from_application_or_config(output_format, colors) of
-        P when (P =:= plain) orelse (P =:= parsable) ->
+        P when P =:= plain; P =:= parsable ->
             re:replace(Message, "{{.*?}}", "", Opts);
         colors ->
             Fun = fun(Key, Acc) ->

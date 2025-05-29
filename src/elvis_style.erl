@@ -2504,9 +2504,7 @@ macro_as_atom(
     {call, _CallText, {Type, _AtomText, MacroAsAtom}, _VarArg},
     _Types,
     _MacroNodeValue
-) when
-    (Type =:= var) orelse (Type =:= atom)
-->
+) when Type =:= var; Type =:= atom ->
     MacroAsAtom;
 macro_as_atom(false, [Type | OtherTypes], MacroNodeValue) ->
     macro_as_atom(lists:keyfind(Type, _N = 1, MacroNodeValue), OtherTypes, MacroNodeValue).
@@ -2612,7 +2610,7 @@ character_at_location(
             case How of
                 should_have ->
                     lists:nth(ColToCheck, TextLineStr);
-                should_not_have when (TextRegex =:= false) orelse (TextRegex =:= nomatch) ->
+                should_not_have when TextRegex =:= false; TextRegex =:= nomatch ->
                     lists:nth(ColToCheck, TextLineStr);
                 _ ->
                     ""
