@@ -6,6 +6,8 @@
 -export([name/1]).
 -export([operation/1]).
 -export([text/1]).
+-export([tokens/1]).
+-export([value/1]).
 
 arity(Node) ->
     ktn_code:attr(arity, Node).
@@ -25,3 +27,9 @@ operation(Node) ->
 
 text(Node) ->
     ktn_code:attr(text, Node).
+
+tokens(Node) ->
+    ktn_code:attr(tokens, Node).
+
+value(Node) ->
+    ktn_code:attr(value, Node).

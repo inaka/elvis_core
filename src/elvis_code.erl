@@ -144,7 +144,7 @@ is_at_location(_, _) ->
 -spec find_token(ktn_code:tree_node(), {integer(), integer()}) -> not_found | {ok, map()}.
 find_token(Root, Location) ->
     Fun = fun(Token) -> is_at_location(Token, Location) end,
-    Tokens = ktn_code:attr(tokens, Root),
+    Tokens = elvis_ktn:tokens(Root),
     case lists:filter(Fun, Tokens) of
         [] ->
             not_found;
@@ -193,7 +193,7 @@ module_name(#{type := root, content := Content}) ->
     Fun = fun(#{type := Type}) -> Type == module end,
     case lists:filter(Fun, Content) of
         [ModuleNode | _] ->
-            ktn_code:attr(value, ModuleNode);
+            elvis_ktn:value(ModuleNode);
         [] ->
             undefined
     end.
@@ -242,14 +242,14 @@ level_increment(#{type := Type}) ->
 make_extractor_fun(exported_functions) ->
     fun
         (#{type := export} = Node) ->
-            ktn_code:attr(value, Node);
+            elvis_ktn:value(Node);
         (_) ->
             []
     end;
 make_extractor_fun(exported_types) ->
     fun
         (#{type := export_type} = Node) ->
-            ktn_code:attr(value, Node);
+            elvis_ktn:value(Node);
         (_) ->
             []
     end;
