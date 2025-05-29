@@ -1880,14 +1880,15 @@ no_single_clause_case(Config, Target, RuleConfig) ->
     ).
 
 is_single_clause_case_statement(Node) ->
-    (ktn_code:type(Node) == 'case') andalso
-        (length([
-            Clause
-         || SubNode <- ktn_code:content(Node),
-            ktn_code:type(SubNode) == case_clauses,
-            Clause <- ktn_code:content(SubNode)
-        ]) ==
-            1).
+    (ktn_code:type(Node) == 'case') andalso (length(case_clauses_in(Node)) == 1).
+
+case_clauses_in(Node) ->
+    [
+        Clause
+     || SubNode <- ktn_code:content(Node),
+        ktn_code:type(SubNode) == case_clauses,
+        Clause <- ktn_code:content(SubNode)
+    ].
 
 -type no_single_match_maybe_config() :: #{ignore => [ignorable()]}.
 
