@@ -6,14 +6,14 @@
 -export([name/1]).
 
 arity(Node) ->
-  ktn_code:attr(arity, Node).
+    ktn_code:attr(arity, Node).
 
 line(Node) ->
-  {Line, _Col} = location(Node),
-  Line.
+    {Line, _Col} = location(Node),
+    Line.
 
 location(Node) ->
-  ktn_code:attr(location, Node).
+    ktn_code:attr(location, Node).
 
 name(Node) ->
-  ktn_code:attr(name, Node).
+    ktn_code:attr(name, Node).
