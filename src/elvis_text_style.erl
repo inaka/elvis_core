@@ -124,7 +124,7 @@ prefer_unquoted_atoms(_Config, Target, _RuleConfig) ->
 check_atom_quotes([] = _AtomNodes, Acc) ->
     Acc;
 check_atom_quotes([AtomNode | RemainingAtomNodes], AccIn) ->
-    AtomName = ktn_code:attr(text, AtomNode),
+    AtomName = elvis_ktn:text(AtomNode),
 
     IsException = is_exception_prefer_quoted(AtomName),
 

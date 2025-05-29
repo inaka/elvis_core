@@ -914,7 +914,7 @@ no_space(Config, Target, RuleConfig) ->
     lists:flatmap(FlatMap, Rules).
 
 is_text_node(Node) ->
-    ktn_code:attr(text, Node) =/= "".
+    elvis_ktn:text(Node) =/= "".
 
 %% @doc Returns true when the token is one of the ?PUNCTUATION_SYMBOLS
 -spec is_punctuation_token(ktn_code:tree_node()) -> boolean().
@@ -1772,7 +1772,7 @@ no_throw(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 no_dollar_space(Config, Target, RuleConfig) ->
     IsDollarSpace =
-        fun(Node) -> ktn_code:type(Node) == char andalso ktn_code:attr(text, Node) == "$ " end,
+        fun(Node) -> ktn_code:type(Node) == char andalso elvis_ktn:text(Node) == "$ " end,
     Root = get_root(Config, Target, RuleConfig),
     Opts = #{mode => node, traverse => all},
     DollarSpaceNodes = elvis_code:find(IsDollarSpace, Root, Opts),
@@ -2219,7 +2219,7 @@ check_numeric_format(_Regex, [], Acc) ->
     lists:reverse(Acc);
 check_numeric_format(Regex, [NumNode | RemainingNumNodes], AccIn) ->
     AccOut =
-        case ktn_code:attr(text, NumNode) of
+        case elvis_ktn:text(NumNode) of
             undefined ->
                 AccIn;
             Number ->
@@ -2271,7 +2271,7 @@ check_atom_names(
     [AtomNode | RemainingAtomNodes],
     AccIn
 ) ->
-    AtomName0 = ktn_code:attr(text, AtomNode),
+    AtomName0 = elvis_ktn:text(AtomNode),
     ValueAtomName = ktn_code:attr(value, AtomNode),
     {IsEnclosed, AtomName} = string_strip_enclosed(AtomName0),
     IsExceptionClass = is_exception_or_non_reversible(ValueAtomName),
@@ -2498,7 +2498,7 @@ macro_as_atom(false, [Type | OtherTypes], MacroNodeValue) ->
 % _ is re:mp()
 
 check_spaces(Lines, UnfilteredNodes, {Position, Text}, Encoding, {How0, _} = How) ->
-    FilterFun = fun(Node) -> ktn_code:attr(text, Node) =:= Text end,
+    FilterFun = fun(Node) -> elvis_ktn:text(Node) =:= Text end,
     Nodes = lists:filter(FilterFun, UnfilteredNodes),
     SpaceChar = $\s,
     FlatFun =
@@ -2915,7 +2915,7 @@ call_mfa(Call) ->
 %% @private
 is_call(Node, {F, A}) ->
     is_call_node(Node) andalso
-        list_to_atom(ktn_code:attr(text, Node)) =:= F andalso
+        list_to_atom(elvis_ktn:text(Node)) =:= F andalso
         length(ktn_code:content(Node)) =:= A;
 is_call(Node, {M, F, A}) ->
     call_mfa(Node) =:= {M, F, A}.
