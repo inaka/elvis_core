@@ -2598,14 +2598,21 @@ character_at_location(
     % NOTE: text below only applies when the given Position is equal to `right`,
     %       or Position is equal to `left` and Col is 1.
     SpaceChar = $\s,
-    case ColToCheck =:= 0 orelse {Position, ColToCheck > length(TextLineStr)} of
+
+    case ColToCheck =:= 0 of
         true when How =:= should_have ->
             SpaceChar;
         true when How =:= should_not_have ->
             "";
-        {right, true} when How =:= should_have ->
+        false when
+            (How =:= should_have) andalso (Position =:= right) andalso
+                (ColToCheck > length(TextLineStr))
+        ->
             SpaceChar;
-        {right, true} when How =:= should_not_have ->
+        false when
+            (How =:= should_not_have) andalso (Position =:= right) andalso
+                (ColToCheck > length(TextLineStr))
+        ->
             "";
         _ ->
             case How of
