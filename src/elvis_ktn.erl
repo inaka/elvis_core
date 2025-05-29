@@ -4,6 +4,7 @@
 -export([function/1]).
 -export([line/1]).
 -export([location/1]).
+-export([module/1]).
 -export([name/1]).
 -export([operation/1]).
 -export([text/1]).
@@ -22,6 +23,9 @@ line(Node) ->
 
 location(Node) ->
     ktn_code:attr(location, Node).
+
+module(Node) ->
+    ktn_code:node_attr(module, Node).
 
 name(Node) ->
     ktn_code:attr(name, Node).
