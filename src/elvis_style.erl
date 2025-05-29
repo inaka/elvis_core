@@ -646,7 +646,7 @@ macro_names(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 macro_module_names(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    Calls = elvis_code:find(fun is_call/1, Root),
+    Calls = elvis_code:find(fun is_call_node/1, Root),
     check_no_macro_calls(Calls).
 
 -spec check_no_macro_calls([ktn_code:tree_node()]) -> [elvis_result:item()].
@@ -731,7 +731,7 @@ is_macro_node(Node) ->
 no_types(ElvisConfig, RuleTarget, RuleConfig) ->
     TreeRootNode = get_root(ElvisConfig, RuleTarget, RuleConfig),
     TypeNodes =
-        elvis_code:find(fun is_type_attribute/1, TreeRootNode, #{traverse => all, mode => node}),
+        elvis_code:find(fun is_type_attr_node/1, TreeRootNode, #{traverse => all, mode => node}),
 
     lists:foldl(
         fun(TypeNode, Acc) ->
@@ -743,7 +743,7 @@ no_types(ElvisConfig, RuleTarget, RuleConfig) ->
         TypeNodes
     ).
 
-is_type_attribute(Node) ->
+is_type_attr_node(Node) ->
     ktn_code:type(Node) =:= type_attr.
 
 -type no_nested_hrls_config() :: #{allow => [atom()], ignore => [ignorable()]}.
@@ -753,7 +753,7 @@ is_type_attribute(Node) ->
 no_nested_hrls(ElvisConfig, RuleTarget, RuleConfig) ->
     TreeRootNode = get_root(ElvisConfig, RuleTarget, RuleConfig),
     TypeNodes =
-        elvis_code:find(fun is_include/1, TreeRootNode, #{traverse => all, mode => node}),
+        elvis_code:find(fun is_include_node/1, TreeRootNode, #{traverse => all, mode => node}),
 
     lists:foldl(
         fun(TypeNode, Acc) ->
@@ -765,8 +765,11 @@ no_nested_hrls(ElvisConfig, RuleTarget, RuleConfig) ->
         TypeNodes
     ).
 
-is_include(Node) ->
-    ktn_code:type(Node) =:= include orelse ktn_code:type(Node) =:= include_lib.
+is_include_node(Node) ->
+    (ktn_code:type(Node) =:= include) orelse is_include_lib_node(Node).
+
+is_include_lib_node(Node) ->
+    ktn_code:type(Node) =:= include_lib.
 
 -type no_specs_config() :: #{allow => [atom()], ignore => [ignorable()]}.
 
@@ -775,7 +778,7 @@ is_include(Node) ->
 no_specs(ElvisConfig, RuleTarget, RuleConfig) ->
     TreeRootNode = get_root(ElvisConfig, RuleTarget, RuleConfig),
     SpecNodes =
-        elvis_code:find(fun is_spec_attribute/1, TreeRootNode, #{traverse => all, mode => node}),
+        elvis_code:find(fun is_spec_node/1, TreeRootNode, #{traverse => all, mode => node}),
 
     lists:foldl(
         fun(SpecNode, Acc) ->
@@ -787,7 +790,7 @@ no_specs(ElvisConfig, RuleTarget, RuleConfig) ->
         SpecNodes
     ).
 
-is_spec_attribute(Node) ->
+is_spec_node(Node) ->
     ktn_code:type(Node) =:= spec.
 
 -type no_block_expressions_config() :: #{ignore => [ignorable()]}.
@@ -894,7 +897,7 @@ operator_spaces(Config, Target, RuleConfig) ->
 %% @doc Returns true when the node is an operator with more than one operand
 -spec is_operator_node(ktn_code:tree_node()) -> boolean().
 is_operator_node(Node) ->
-    ktn_code:type(Node) =:= op andalso length(ktn_code:content(Node)) > 1.
+    is_op_node(Node) andalso length(ktn_code:content(Node)) > 1.
 
 -type no_space_config() ::
     #{ignore => [ignorable()], rules => [{right | left, string()}]}.
@@ -1022,11 +1025,11 @@ no_behavior_info(Config, Target, RuleConfig) ->
 
     FilterFun =
         fun(Node) ->
-            case ktn_code:type(Node) of
-                function ->
+            case is_function_node(Node) of
+                true ->
                     Name = elvis_ktn:name(Node),
                     lists:member(Name, [behavior_info, behaviour_info]);
-                _ ->
+                false ->
                     false
             end
         end,
@@ -1231,17 +1234,16 @@ max_module_length(Config, Target, RuleConfig) ->
 max_anonymous_function_arity(Config, Target, RuleConfig) ->
     MaxArity = option(max_arity, RuleConfig, max_anonymous_function_arity),
     Root = get_root(Config, Target, RuleConfig),
-    IsClause = fun(Node) -> ktn_code:type(Node) == clause end,
     IsFun =
         fun(Node) ->
             %% Not having clauses means it's something like fun mod:f/10 and we don't want
             %% this rule to raise warnings for those. max_function_arity should take care of them.
-            ktn_code:type(Node) == 'fun' andalso [] /= elvis_code:find(IsClause, Node)
+            ktn_code:type(Node) == 'fun' andalso [] /= elvis_code:find(fun is_clause_node/1, Node)
         end,
     Funs = elvis_code:find(IsFun, Root),
     lists:filtermap(
         fun(Fun) ->
-            [FirstClause | _] = elvis_code:find(IsClause, Fun),
+            [FirstClause | _] = elvis_code:find(fun is_clause_node/1, Fun),
             case length(ktn_code:node_attr(pattern, FirstClause)) of
                 Arity when Arity =< MaxArity ->
                     false;
@@ -1260,6 +1262,9 @@ max_anonymous_function_arity(Config, Target, RuleConfig) ->
         Funs
     ).
 
+is_clause_node(Node) ->
+    ktn_code:type(Node) == clause.
+
 -type max_function_arity_config() ::
     #{max_arity => non_neg_integer(), non_exported_max_arity => pos_integer()}.
 
@@ -1277,8 +1282,7 @@ max_function_arity(Config, Target, RuleConfig) ->
             ExportedMaxArity
         ),
     Root = get_root(Config, Target, RuleConfig),
-    IsFunction = fun(Node) -> ktn_code:type(Node) == function end,
-    Functions = elvis_code:find(IsFunction, Root),
+    Functions = elvis_code:find(fun is_function_node/1, Root),
     lists:filtermap(
         fun(#{attrs := #{arity := Arity, name := Name}} = Function) ->
             IsExported =
@@ -1303,6 +1307,9 @@ max_function_arity(Config, Target, RuleConfig) ->
         Functions
     ).
 
+is_function_node(Node) ->
+    ktn_code:type(Node) == function.
+
 -spec max_function_clause_length(
     elvis_config:config(),
     elvis_file:file(),
@@ -1318,8 +1325,7 @@ max_function_clause_length(Config, Target, RuleConfig) ->
     {Src, _} = elvis_file:src(Target),
     Lines = elvis_utils:split_all_lines(Src, [trim]),
 
-    IsFunction = fun(Node) -> ktn_code:type(Node) == function end,
-    Functions0 = elvis_code:find(IsFunction, Root),
+    Functions0 = elvis_code:find(fun is_function_node/1, Root),
 
     % clause
     FilterClause =
@@ -1345,8 +1351,7 @@ max_function_clause_length(Config, Target, RuleConfig) ->
             Name = elvis_ktn:name(FunctionNode),
             Arity = elvis_ktn:arity(FunctionNode),
 
-            IsClause = fun(Node) -> ktn_code:type(Node) == clause end,
-            Clauses = elvis_code:find(IsClause, FunctionNode),
+            Clauses = elvis_code:find(fun is_clause_node/1, FunctionNode),
 
             {ClauseLenInfos, _} = lists:foldl(PairClause, {[], 0}, Clauses),
 
@@ -1400,8 +1405,7 @@ max_function_length(Config, Target, RuleConfig) ->
     {Src, _} = elvis_file:src(Target),
     Lines = elvis_utils:split_all_lines(Src, [trim]),
 
-    IsFunction = fun(Node) -> ktn_code:type(Node) == function end,
-    Functions0 = elvis_code:find(IsFunction, Root),
+    Functions0 = elvis_code:find(fun is_function_node/1, Root),
     FilterFun =
         fun(Line) ->
             (CountComments orelse not line_is_comment(Line)) andalso
@@ -1487,9 +1491,8 @@ node_line_limits(FunctionNode) ->
     [elvis_result:item()].
 no_nested_try_catch(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    Predicate = fun(Node) -> ktn_code:type(Node) == 'try' end,
     ResultFun = result_node_line_fun(?NO_NESTED_TRY_CATCH),
-    case elvis_code:find(Predicate, Root) of
+    case elvis_code:find(fun is_try_node/1, Root) of
         [] ->
             [];
         TryExprs ->
@@ -1556,7 +1559,7 @@ no_init_lists(Config, Target, RuleConfig) ->
             true ->
                 IsInit1Function =
                     fun(Node) ->
-                        ktn_code:type(Node) == function andalso
+                        is_function_node(Node) andalso
                             elvis_ktn:name(Node) == init andalso
                             elvis_ktn:arity(Node) == 1
                     end,
@@ -1652,7 +1655,7 @@ ms_transform_included(Config, Target, RuleConfig) ->
 -spec get_fun_2_ms_calls(ktn_code:tree_node()) -> [term()].
 get_fun_2_ms_calls(Root) ->
     IsFun2MsFunctionCall =
-        fun(Node) -> ktn_code:type(Node) == call andalso is_ets_fun2ms(Node) end,
+        fun(Node) -> is_call_node(Node) andalso is_ets_fun2ms(Node) end,
 
     Functions = elvis_code:find(IsFun2MsFunctionCall, Root),
 
@@ -1685,7 +1688,7 @@ no_boolean_in_comparison(Config, Target, RuleConfig) ->
     IsComparisonWithBoolean =
         fun(Node) ->
             Content = ktn_code:content(Node),
-            ktn_code:type(Node) == op andalso
+            is_op_node(Node) andalso
                 '==' =:= ktn_code:attr(operation, Node) andalso
                 lists:any(IsBoolean, Content)
         end,
@@ -1704,6 +1707,9 @@ no_boolean_in_comparison(Config, Target, RuleConfig) ->
 
     lists:map(ResultFun, ComparisonsWithBoolean).
 
+is_op_node(Node) ->
+    ktn_code:type(Node) =:= op.
+
 -type no_operation_on_same_value_config() :: #{operations := [atom()]}.
 
 -spec no_operation_on_same_value(
@@ -1718,7 +1724,7 @@ no_operation_on_same_value(Config, Target, RuleConfig) ->
 
     IsInterestingOp =
         fun(Node) ->
-            ktn_code:type(Node) == op andalso
+            is_op_node(Node) andalso
                 lists:member(ktn_code:attr(operation, Node), InterestingOps)
         end,
 
@@ -1765,7 +1771,7 @@ same_except_location_attr(LeftNode, RightNode) ->
 -spec has_include_ms_transform(ktn_code:tree_node()) -> boolean().
 has_include_ms_transform(Root) ->
     Fun = fun(Node) ->
-        ktn_code:type(Node) == include_lib andalso
+        is_include_lib_node(Node) andalso
             ktn_code:attr(value, Node) == "stdlib/include/ms_transform.hrl"
     end,
 
@@ -2118,7 +2124,7 @@ export_used_types(Config, Target, RuleConfig) ->
     ExportedFunctions = elvis_code:exported_functions(TreeRootNode),
     ExportedTypes = elvis_code:exported_types(TreeRootNode),
     SpecNodes =
-        elvis_code:find(fun is_spec_attribute/1, TreeRootNode, #{traverse => all, mode => node}),
+        elvis_code:find(fun is_spec_node/1, TreeRootNode, #{traverse => all, mode => node}),
     ExportedSpecs =
         lists:filter(
             fun(#{attrs := #{arity := Arity, name := Name}}) ->
@@ -2214,7 +2220,7 @@ name_arity_from_type_line(#{attrs := #{name := Name}, node_attrs := #{args := Ar
     #{{atom(), number()} => number()}.
 map_type_declarations_to_line_numbers(TreeRootNode) ->
     AllTypes =
-        elvis_code:find(fun is_type_attribute/1, TreeRootNode, #{traverse => all, mode => node}),
+        elvis_code:find(fun is_type_attr_node/1, TreeRootNode, #{traverse => all, mode => node}),
     lists:foldl(
         fun
             (
@@ -2799,7 +2805,7 @@ spec_includes_record(Node) ->
             (ktn_code:type(Child) == type) andalso (elvis_ktn:name(Child) == record)
         end,
     Opts = #{traverse => all},
-    (ktn_code:type(Node) == spec) andalso (elvis_code:find(IsTypeRecord, Node, Opts) /= []).
+    is_spec_node(Node) andalso (elvis_code:find(IsTypeRecord, Node, Opts) /= []).
 
 %% Don't repeat yourself
 
@@ -2906,7 +2912,7 @@ is_children(Parent, Node) ->
 no_call_common(Config, Target, NoCallFuns, Msg, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
 
-    Calls = elvis_code:find(fun is_call/1, Root),
+    Calls = elvis_code:find(fun is_call_node/1, Root),
     check_no_call(Calls, Msg, NoCallFuns).
 
 %% @private
@@ -2938,14 +2944,14 @@ call_mfa(Call) ->
 
 %% @private
 is_call(Node, {F, A}) ->
-    ktn_code:type(Node) =:= call andalso
+    is_call_node(Node) andalso
         list_to_atom(ktn_code:attr(text, Node)) =:= F andalso
         length(ktn_code:content(Node)) =:= A;
 is_call(Node, {M, F, A}) ->
     call_mfa(Node) =:= {M, F, A}.
 
 %% @private
-is_call(Node) ->
+is_call_node(Node) ->
     ktn_code:type(Node) =:= call.
 
 %% @private
@@ -2965,7 +2971,7 @@ wildcard_match(X, Y) ->
 check_nested_try_catchs(ResultFun, TryExp) ->
     lists:filtermap(
         fun(Node) ->
-            case ktn_code:type(Node) == 'try' of
+            case is_try_node(Node) of
                 true ->
                     {true, ResultFun(Node)};
                 false ->
@@ -2974,6 +2980,9 @@ check_nested_try_catchs(ResultFun, TryExp) ->
         end,
         ktn_code:content(TryExp)
     ).
+
+is_try_node(Node) ->
+    ktn_code:type(Node) == 'try'.
 
 %% @private
 %% @doc No #{...}#{...}
