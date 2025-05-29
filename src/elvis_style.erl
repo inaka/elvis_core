@@ -598,7 +598,7 @@ consistent_variable_casing(Config, Target, RuleConfig) ->
     lists:flatmap(fun check_variable_casing_consistency/1, Grouped).
 
 canonical_variable_name(Var) ->
-    case atom_to_list(ktn_code:attr(name, Var)) of
+    case atom_to_list(elvis_ktn:name(Var)) of
         [$_ | Rest] ->
             Rest;
         VarNameStr ->
@@ -657,9 +657,9 @@ check_no_macro_calls(Calls) ->
             ModuleAttr = ktn_code:node_attr(module, FunctionSpec),
             FuncAttr = ktn_code:node_attr(function, FunctionSpec),
             M = ktn_code:type(ModuleAttr),
-            MN = ktn_code:attr(name, ModuleAttr),
+            MN = elvis_ktn:name(ModuleAttr),
             F = ktn_code:type(FuncAttr),
-            FN = ktn_code:attr(name, FuncAttr),
+            FN = elvis_ktn:name(FuncAttr),
             #{
                 call => Call,
                 module_type => M,
@@ -708,7 +708,7 @@ no_macros(ElvisConfig, RuleTarget, RuleConfig) ->
 
     lists:foldl(
         fun(MacroNode, Acc) ->
-            Macro = list_to_atom(ktn_code:attr(name, MacroNode)),
+            Macro = list_to_atom(elvis_ktn:name(MacroNode)),
             case lists:member(Macro, AllowedMacros) of
                 true ->
                     Acc;
@@ -735,7 +735,7 @@ no_types(ElvisConfig, RuleTarget, RuleConfig) ->
 
     lists:foldl(
         fun(TypeNode, Acc) ->
-            Type = ktn_code:attr(name, TypeNode),
+            Type = elvis_ktn:name(TypeNode),
             Line = elvis_ktn:line(TypeNode),
             [elvis_result:new(item, ?NO_TYPES_MSG, [Type, Line], Line) | Acc]
         end,
@@ -757,7 +757,7 @@ no_nested_hrls(ElvisConfig, RuleTarget, RuleConfig) ->
 
     lists:foldl(
         fun(TypeNode, Acc) ->
-            Type = ktn_code:attr(name, TypeNode),
+            Type = elvis_ktn:name(TypeNode),
             Line = elvis_ktn:line(TypeNode),
             [elvis_result:new(item, ?NO_NESTED_HRLS_MSG, [Type, Line], Line) | Acc]
         end,
@@ -779,7 +779,7 @@ no_specs(ElvisConfig, RuleTarget, RuleConfig) ->
 
     lists:foldl(
         fun(SpecNode, Acc) ->
-            FunctionName = ktn_code:attr(name, SpecNode),
+            FunctionName = elvis_ktn:name(SpecNode),
             Line = elvis_ktn:line(SpecNode),
             [elvis_result:new(item, ?NO_SPECS_MSG, [FunctionName, Line], Line) | Acc]
         end,
@@ -1024,7 +1024,7 @@ no_behavior_info(Config, Target, RuleConfig) ->
         fun(Node) ->
             case ktn_code:type(Node) of
                 function ->
-                    Name = ktn_code:attr(name, Node),
+                    Name = elvis_ktn:name(Node),
                     lists:member(Name, [behavior_info, behaviour_info]);
                 _ ->
                     false
@@ -1294,7 +1294,7 @@ max_function_arity(Config, Target, RuleConfig) ->
                 Arity when Arity =< MaxArity ->
                     false;
                 Arity ->
-                    Name = ktn_code:attr(name, Function),
+                    Name = elvis_ktn:name(Function),
                     Line = elvis_ktn:line(Function),
                     Info = [Name, Arity, MaxArity],
                     {true, elvis_result:new(item, ?MAX_FUNCTION_ARITY_MSG, Info, Line)}
@@ -1342,7 +1342,7 @@ max_function_clause_length(Config, Target, RuleConfig) ->
     % fun
     PairFun =
         fun(FunctionNode) ->
-            Name = ktn_code:attr(name, FunctionNode),
+            Name = elvis_ktn:name(FunctionNode),
             Arity = elvis_ktn:arity(FunctionNode),
 
             IsClause = fun(Node) -> ktn_code:type(Node) == clause end,
@@ -1410,7 +1410,7 @@ max_function_length(Config, Target, RuleConfig) ->
 
     PairFun =
         fun(FunctionNode) ->
-            Name = ktn_code:attr(name, FunctionNode),
+            Name = elvis_ktn:name(FunctionNode),
             Arity = elvis_ktn:arity(FunctionNode),
             {Min, Max} = node_line_limits(FunctionNode),
             FunLines = lists:sublist(Lines, Min, Max - Min + 1),
@@ -1557,7 +1557,7 @@ no_init_lists(Config, Target, RuleConfig) ->
                 IsInit1Function =
                     fun(Node) ->
                         ktn_code:type(Node) == function andalso
-                            ktn_code:attr(name, Node) == init andalso
+                            elvis_ktn:name(Node) == init andalso
                             elvis_ktn:arity(Node) == 1
                     end,
 
@@ -2029,13 +2029,13 @@ param_pattern_matching(Config, Target, RuleConfig) ->
                 [var, _] when Side == right ->
                     Line = elvis_ktn:line(Match),
                     [Var, _] = ktn_code:content(Match),
-                    VarName = ktn_code:attr(name, Var),
+                    VarName = elvis_ktn:name(Var),
                     Info = [VarName, Line, Side],
                     {true, elvis_result:new(item, ?PARAM_PATTERN_MATCHING_MSG, Info, Line)};
                 [_, var] when Side == left ->
                     Line = elvis_ktn:line(Match),
                     [_, Var] = ktn_code:content(Match),
-                    VarName = ktn_code:attr(name, Var),
+                    VarName = elvis_ktn:name(Var),
                     Info = [VarName, Line, Side],
                     {true, elvis_result:new(item, ?PARAM_PATTERN_MATCHING_MSG, Info, Line)};
                 _ ->
@@ -2383,7 +2383,7 @@ is_atom_node(MaybeAtom) ->
 check_variables_name(_Regex, _, []) ->
     [];
 check_variables_name(Regex, ForbiddenRegex, [Variable | RemainingVars]) ->
-    VariableNameStr = atom_to_list(ktn_code:attr(name, Variable)),
+    VariableNameStr = atom_to_list(elvis_ktn:name(Variable)),
     case re:run(VariableNameStr, Regex) of
         nomatch when VariableNameStr == "_" ->
             check_variables_name(Regex, ForbiddenRegex, RemainingVars);
@@ -2702,7 +2702,7 @@ is_ignored_var(Zipper) ->
     Node = zipper:node(Zipper),
     case ktn_code:type(Node) of
         var ->
-            Name = ktn_code:attr(name, Node),
+            Name = elvis_ktn:name(Node),
             [FirstChar | _] = atom_to_list(Name),
             (FirstChar == $_) andalso (Name =/= '_') andalso
                 not check_parent_match_or_macro(Zipper);
@@ -2764,7 +2764,7 @@ is_otp_module(Root) ->
 has_state_record(Root) ->
     IsStateRecord =
         fun(Node) ->
-            (record_attr == ktn_code:type(Node)) andalso (state == ktn_code:attr(name, Node))
+            (record_attr == ktn_code:type(Node)) andalso (state == elvis_ktn:name(Node))
         end,
     [] /= elvis_code:find(IsStateRecord, Root).
 
@@ -2775,7 +2775,7 @@ has_state_type(Root) ->
         fun(Node) ->
             case ktn_code:type(Node) of
                 type_attr ->
-                    state == ktn_code:attr(name, Node);
+                    state == elvis_ktn:name(Node);
                 opaque ->
                     case ktn_code:attr(value, Node) of
                         {state, _, _} ->
@@ -2796,7 +2796,7 @@ has_state_type(Root) ->
 spec_includes_record(Node) ->
     IsTypeRecord =
         fun(Child) ->
-            (ktn_code:type(Child) == type) andalso (ktn_code:attr(name, Child) == record)
+            (ktn_code:type(Child) == type) andalso (elvis_ktn:name(Child) == record)
         end,
     Opts = #{traverse => all},
     (ktn_code:type(Node) == spec) andalso (elvis_code:find(IsTypeRecord, Node, Opts) /= []).
@@ -2995,7 +2995,7 @@ check_successive_maps(ResultFun, MapExp) ->
 consistent_generic_type_predicate(TypePreference) ->
     fun(Node) ->
         NodeType = ktn_code:type(Node),
-        NodeName = ktn_code:attr(name, Node),
+        NodeName = elvis_ktn:name(Node),
         lists:member(NodeType, [type, callback]) andalso
             lists:member(NodeName, [term, any]) andalso
             NodeName /= TypePreference
@@ -3005,7 +3005,7 @@ consistent_generic_type_predicate(TypePreference) ->
 consistent_generic_type_result(TypePreference) ->
     fun(Node) ->
         Line = elvis_ktn:line(Node),
-        NodeName = ktn_code:attr(name, Node),
+        NodeName = elvis_ktn:name(Node),
         Info = [NodeName, Line, TypePreference],
         elvis_result:new(item, ?CONSISTENT_GENERIC_TYPE, Info, Line)
     end.
