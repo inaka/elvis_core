@@ -1030,11 +1030,11 @@ no_behavior_info(Config, Target, RuleConfig) ->
 
     FilterFun =
         fun(Node) ->
-            case is_function_node(Node) of
-                true ->
+            case ktn_code:type(Node) of
+                function ->
                     Name = ktn_code:attr(name, Node),
                     lists:member(Name, [behavior_info, behaviour_info]);
-                false ->
+                _ ->
                     false
             end
         end,
@@ -2052,16 +2052,16 @@ param_pattern_matching(Config, Target, RuleConfig) ->
 
     lists:filtermap(
         fun(Match) ->
-            case lists:map(fun is_var_node/1, ktn_code:content(Match)) of
-                [true, true] ->
+            case lists:map(fun ktn_code:type/1, ktn_code:content(Match)) of
+                [var, var] ->
                     false;
-                [true, _] when Side == right ->
+                [var, _] when Side == right ->
                     {Line, _} = ktn_code:attr(location, Match),
                     [Var, _] = ktn_code:content(Match),
                     VarName = ktn_code:attr(name, Var),
                     Info = [VarName, Line, Side],
                     {true, elvis_result:new(item, ?PARAM_PATTERN_MATCHING_MSG, Info, Line)};
-                [_, true] when Side == left ->
+                [_, var] when Side == left ->
                     {Line, _} = ktn_code:attr(location, Match),
                     [_, Var] = ktn_code:content(Match),
                     VarName = ktn_code:attr(name, Var),
@@ -2672,11 +2672,11 @@ check_invalid_dynamic_calls(Root) ->
 %% @private
 -spec is_dynamic_call(ktn_code:tree_node()) -> boolean().
 is_dynamic_call(Node) ->
-    case is_call(Node) of
-        true ->
+    case ktn_code:type(Node) of
+        call ->
             FunctionSpec = ktn_code:node_attr(function, Node),
-            case is_remote_node(FunctionSpec) of
-                true ->
+            case ktn_code:type(FunctionSpec) of
+                remote ->
                     ModuleName = ktn_code:node_attr(module, FunctionSpec),
                     is_var_node(ModuleName);
                 _Other ->
@@ -2693,8 +2693,12 @@ is_remote_node(Node) ->
 %% @private
 -spec is_var(zipper:zipper(_)) -> boolean().
 is_var(Zipper) ->
-    case is_var_node(zipper:node(Zipper)) of
-        true ->
+    case
+        ktn_code:type(
+            zipper:node(Zipper)
+        )
+    of
+        var ->
             PrevLocation =
                 case ktn_code:attr(location, zipper:node(Zipper)) of
                     {L, 1} ->
@@ -2722,8 +2726,8 @@ is_var(Zipper) ->
 -spec is_ignored_var(zipper:zipper(_)) -> boolean().
 is_ignored_var(Zipper) ->
     Node = zipper:node(Zipper),
-    case is_var_node(Node) of
-        true ->
+    case ktn_code:type(Node) of
+        var ->
             Name = ktn_code:attr(name, Node),
             [FirstChar | _] = atom_to_list(Name),
             (FirstChar == $_) andalso (Name =/= '_') andalso
@@ -2988,10 +2992,10 @@ wildcard_match(X, Y) ->
 check_nested_try_catchs(ResultFun, TryExp) ->
     lists:filtermap(
         fun(Node) ->
-            case is_try_expr(Node) of
-                true ->
+            case ktn_code:type(Node) of
+                'try' ->
                     {true, ResultFun(Node)};
-                false ->
+                _ ->
                     false
             end
         end,
@@ -3005,8 +3009,8 @@ check_successive_maps(ResultFun, MapExp) ->
         undefined ->
             [];
         InnerVar ->
-            case is_map_node(InnerVar) of
-                true ->
+            case ktn_code:type(InnerVar) of
+                map ->
                     [ResultFun(InnerVar)];
                 _ ->
                     []
