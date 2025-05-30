@@ -803,7 +803,7 @@ is_spec_attribute(Node) ->
     [elvis_result:item()].
 no_block_expressions(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    Tokens = elvis_ktn:tokens(Root),
+    Tokens = ktn_code:attr(tokens, Root),
     BeginNodes = lists:filter(fun is_begin_node/1, Tokens),
     lists:foldl(
         fun(BeginNode, Acc) ->
@@ -859,7 +859,7 @@ logger_macros() ->
     [elvis_result:item()].
 no_space_after_pound(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    Tokens = elvis_ktn:tokens(Root),
+    Tokens = ktn_code:attr(tokens, Root),
     TextNodes = lists:filter(fun is_text_node/1, Tokens),
     {Src, #{encoding := Encoding}} = elvis_file:src(Target),
     Lines = elvis_utils:split_all_lines(Src),
@@ -884,7 +884,7 @@ operator_spaces(Config, Target, RuleConfig) ->
     Zipper = elvis_code:code_zipper(Root),
     OpNodes = zipper:filter(fun is_operator_node/1, Zipper),
 
-    Tokens = elvis_ktn:tokens(Root),
+    Tokens = ktn_code:attr(tokens, Root),
     PunctuationTokens = lists:filter(fun is_punctuation_token/1, Tokens),
 
     Lines = elvis_utils:split_all_lines(Src),
@@ -910,7 +910,7 @@ is_op(Node) ->
 no_space(Config, Target, RuleConfig) ->
     Rules = option(rules, RuleConfig, no_space),
     Root = get_root(Config, Target, RuleConfig),
-    Tokens = elvis_ktn:tokens(Root),
+    Tokens = ktn_code:attr(tokens, Root),
     TextNodes = lists:filter(fun is_text_node/1, Tokens),
     {Src, #{encoding := Encoding}} = elvis_file:src(Target),
     Lines = elvis_utils:split_all_lines(Src),

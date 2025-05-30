@@ -144,7 +144,7 @@ is_at_location(_, _) ->
 -spec find_token(ktn_code:tree_node(), {integer(), integer()}) -> not_found | {ok, map()}.
 find_token(Root, Location) ->
     Fun = fun(Token) -> is_at_location(Token, Location) end,
-    Tokens = elvis_ktn:tokens(Root),
+    Tokens = ktn_code:attr(tokens, Root),
     case lists:filter(Fun, Tokens) of
         [] ->
             not_found;
