@@ -195,7 +195,7 @@ is_elvis_attr(Node) ->
 elvis_attr_rules([] = _ElvisAttrs) ->
     [];
 elvis_attr_rules(ElvisAttrs) ->
-    [Rule || ElvisAttr <- ElvisAttrs, Rule <- elvis_ktn:value(ElvisAttr)].
+    [Rule || ElvisAttr <- ElvisAttrs, Rule <- ktn_code:attr(value, ElvisAttr)].
 
 %% @private
 -spec apply_rule({Mod, Fun} | {Mod, Fun, RuleCfg}, {Results, ElvisCfg, File}) -> Result when

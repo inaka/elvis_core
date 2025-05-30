@@ -193,7 +193,7 @@ module_name(#{type := root, content := Content}) ->
     Fun = fun(#{type := Type}) -> Type == module end,
     case lists:filter(Fun, Content) of
         [ModuleNode | _] ->
-            elvis_ktn:value(ModuleNode);
+            ktn_code:attr(value, ModuleNode);
         [] ->
             undefined
     end.
@@ -242,14 +242,14 @@ level_increment(#{type := Type}) ->
 make_extractor_fun(exported_functions) ->
     fun
         (#{type := export} = Node) ->
-            elvis_ktn:value(Node);
+            ktn_code:attr(value, Node);
         (_) ->
             []
     end;
 make_extractor_fun(exported_types) ->
     fun
         (#{type := export_type} = Node) ->
-            elvis_ktn:value(Node);
+            ktn_code:attr(value, Node);
         (_) ->
             []
     end;

@@ -1613,7 +1613,7 @@ is_relevant_behaviour(Root, RuleConfig) ->
         lists:map(
             fun(BehaviourNode) ->
                 lists:member(
-                    elvis_ktn:value(BehaviourNode), ConfigBehaviors
+                    ktn_code:attr(value, BehaviourNode), ConfigBehaviors
                 )
             end,
             Behaviours
@@ -1684,7 +1684,7 @@ is_ets_fun2ms(Node) ->
     Fun2 = ktn_code:node_attr(function, Fun),
     Module = ktn_code:node_attr(module, Fun),
 
-    ets == elvis_ktn:value(Module) andalso fun2ms == elvis_ktn:value(Fun2).
+    ets == ktn_code:attr(value, Module) andalso fun2ms == ktn_code:attr(value, Fun2).
 
 -spec no_boolean_in_comparison(
     elvis_config:config(),
@@ -1698,7 +1698,7 @@ no_boolean_in_comparison(Config, Target, RuleConfig) ->
     IsBoolean =
         fun(Node) ->
             lists:member(
-                elvis_ktn:value(Node), [true, false]
+                ktn_code:attr(value, Node), [true, false]
             )
         end,
 
@@ -1786,7 +1786,7 @@ same_except_location_attr(LeftNode, RightNode) ->
 has_include_ms_transform(Root) ->
     Fun = fun(Node) ->
         is_include_lib_attr(Node) andalso
-            elvis_ktn:value(Node) == "stdlib/include/ms_transform.hrl"
+            ktn_code:attr(value, Node) == "stdlib/include/ms_transform.hrl"
     end,
 
     [] /= elvis_code:find(Fun, Root).
@@ -2315,7 +2315,7 @@ check_atom_names(
     AccIn
 ) ->
     AtomName0 = ktn_code:attr(text, AtomNode),
-    ValueAtomName = elvis_ktn:value(AtomNode),
+    ValueAtomName = ktn_code:attr(value, AtomNode),
     {IsEnclosed, AtomName} = string_strip_enclosed(AtomName0),
     IsExceptionClass = is_exception_or_non_reversible(ValueAtomName),
     RE = re_compile_for_atom_type(IsEnclosed, Regex, RegexEnclosed),
@@ -2502,7 +2502,7 @@ is_macro_define_node(MaybeMacro) ->
 
 %% @private
 macro_name_from_node(MacroNode) ->
-    MacroNodeValue = elvis_ktn:value(MacroNode),
+    MacroNodeValue = ktn_code:attr(value, MacroNode),
     MacroAsAtom = macro_as_atom(false, [call, var, atom], MacroNodeValue),
     MacroNameOriginal = atom_to_list(MacroAsAtom),
     MacroNameStripped = string:strip(MacroNameOriginal, both, $'),
@@ -2763,7 +2763,7 @@ is_otp_module(Root) ->
         [] ->
             false;
         Behaviors ->
-            ValueFun = fun(Node) -> elvis_ktn:value(Node) end,
+            ValueFun = fun(Node) -> ktn_code:attr(value, Node) end,
             Names = lists:map(ValueFun, Behaviors),
             BehaviorsSet = sets:from_list(Names),
             not sets:is_empty(
@@ -2789,7 +2789,7 @@ has_state_type(Root) ->
                 type_attr ->
                     state == ktn_code:attr(name, Node);
                 opaque ->
-                    case elvis_ktn:value(Node) of
+                    case ktn_code:attr(value, Node) of
                         {state, _, _} ->
                             true;
                         _ ->
@@ -2946,8 +2946,8 @@ is_in_call_list(Call, DisallowedFuns) ->
 %% @private
 call_mfa(Call) ->
     FunctionSpec = ktn_code:node_attr(function, Call),
-    M = elvis_ktn:value(ktn_code:node_attr(module, FunctionSpec)),
-    F = elvis_ktn:value(ktn_code:node_attr(function, FunctionSpec)),
+    M = ktn_code:attr(value, ktn_code:node_attr(module, FunctionSpec)),
+    F = ktn_code:attr(value, ktn_code:node_attr(function, FunctionSpec)),
     A = length(ktn_code:content(Call)),
     {M, F, A}.
 
