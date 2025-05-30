@@ -83,7 +83,7 @@ content_zipper(Root) ->
 -spec all_zipper(ktn_code:tree_node()) -> zipper:zipper(_).
 all_zipper(Root) ->
     IsBranch =
-        fun(#{} = Node) -> (ktn_code:content(Node) =/= []) orelse maps:is_key(node_attrs, Node) end,
+        fun(#{} = Node) -> ktn_code:content(Node) =/= [] orelse maps:is_key(node_attrs, Node) end,
     Children =
         fun
             (#{content := Content, node_attrs := NodeAttrs}) ->
@@ -137,7 +137,7 @@ find_by_location(Root, Location) ->
 is_at_location(#{attrs := #{location := {Line, NodeCol}}} = Node, {Line, Column}) ->
     Text = ktn_code:attr(text, Node),
     Length = length(Text),
-    (Column >= NodeCol) andalso (Column < NodeCol + Length);
+    NodeCol =< Column andalso Column < NodeCol + Length;
 is_at_location(_, _) ->
     false.
 
