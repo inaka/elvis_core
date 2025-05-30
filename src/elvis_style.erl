@@ -974,8 +974,7 @@ no_if_expression(Config, Target, RuleConfig) ->
 invalid_dynamic_call(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
 
-    Predicate = fun(Node) -> is_callback_node(Node) end,
-    case elvis_code:find(Predicate, Root) of
+    case elvis_code:find(fun is_callback_node/1, Root) of
         [] ->
             check_invalid_dynamic_calls(Root);
         _Callbacks ->
@@ -1479,10 +1478,9 @@ no_nested_try_catch(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 no_successive_maps(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    Predicate = fun(Node) -> is_map_node(Node) end,
     ResultFun = result_node_line_fun(?NO_SUCCESSIVE_MAPS_MSG),
     FindOpts = #{mode => node, traverse => all},
-    case elvis_code:find(Predicate, Root, FindOpts) of
+    case elvis_code:find(fun is_map_node/1, Root, FindOpts) of
         [] ->
             [];
         MapExprs ->
@@ -1569,8 +1567,7 @@ no_init_lists(Config, Target, RuleConfig) ->
 
 is_relevant_behaviour(Root, RuleConfig) ->
     ConfigBehaviors = option(behaviours, RuleConfig, no_init_lists),
-    IsBehaviour = fun(Node) -> is_behaviour_node(Node) end,
-    Behaviours = elvis_code:find(IsBehaviour, Root),
+    Behaviours = elvis_code:find(fun is_behaviour_node/1, Root),
     lists:any(
         fun(Elem) -> Elem end,
         lists:map(
@@ -1597,7 +1594,7 @@ is_list_node(#{type := cons}) ->
 is_list_node(#{type := nil}) ->
     true;
 is_list_node(#{type := match, content := Content}) ->
-    lists:any(fun(Elem) -> is_list_node(Elem) end, Content);
+    lists:any(fun is_list_node/1, Content);
 is_list_node(_) ->
     false.
 
@@ -1956,7 +1953,7 @@ behaviour_spelling(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
     Predicate =
         fun(Node) ->
-            is_behaviour_node(Node) andalso NodeType /= Spelling
+            is_behaviour_node(Node) andalso ktn_code:type(Node) /= Spelling
         end,
     case elvis_code:find(Predicate, Root) of
         [] ->
@@ -1994,7 +1991,7 @@ param_pattern_matching(Config, Target, RuleConfig) ->
         ),
 
     MatchesInFunctionClauses =
-        lists:filter(fun(Pattern) -> is_match_node(Pattern) end, FunctionClausePatterns),
+        lists:filter(fun is_match_node/1, FunctionClausePatterns),
 
     lists:filtermap(
         fun(Match) ->
@@ -2695,9 +2692,7 @@ check_parent_remote(Zipper) ->
 -spec is_otp_module(ktn_code:tree_node()) -> boolean().
 is_otp_module(Root) ->
     OtpSet = sets:from_list([gen_server, gen_event, gen_fsm, gen_statem, supervisor_bridge]),
-    IsBehaviorAttr =
-        fun(Node) -> is_behaviour_node(Node) end,
-    case elvis_code:find(IsBehaviorAttr, Root) of
+    case elvis_code:find(fun is_behaviour_node/1, Root) of
         [] ->
             false;
         Behaviors ->
