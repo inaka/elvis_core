@@ -140,8 +140,8 @@ main([]) ->
     ok = application:load(elvis_core),
     {module, _} = code:ensure_loaded(elvis_style),
     case rock(elvis_config:from_file("elvis.config")) of
-        ok -> halt(1);
-        _ -> true
+        ok -> true;
+        _ -> halt(1)
     end.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
