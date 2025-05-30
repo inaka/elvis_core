@@ -1252,7 +1252,7 @@ max_anonymous_function_arity(Config, Target, RuleConfig) ->
     lists:filtermap(
         fun(Fun) ->
             [FirstClause | _] = elvis_code:find(fun is_clause_node/1, Fun),
-            case length(elvis_ktn:pattern(FirstClause)) of
+            case length(ktn_code:node_attr(pattern, FirstClause)) of
                 Arity when Arity =< MaxArity ->
                     false;
                 Arity ->
@@ -1624,7 +1624,7 @@ is_behaviour_attr(Node) ->
     (ktn_code:type(Node) == behaviour) orelse (ktn_code:type(Node) =:= behavior).
 
 filter_list_clause_location(Clause) ->
-    [Attribute] = elvis_ktn:pattern(Clause),
+    [Attribute] = ktn_code:node_attr(pattern, Clause),
     case is_list_node(Attribute) of
         true ->
             {true, ktn_code:attr(location, Clause)};
@@ -2035,7 +2035,7 @@ param_pattern_matching(Config, Target, RuleConfig) ->
 
     FunctionClausePatterns =
         lists:flatmap(
-            fun(Clause) -> elvis_ktn:pattern(Clause) end,
+            fun(Clause) -> ktn_code:node_attr(pattern, Clause) end,
             elvis_code:find(
                 fun is_function_clause/1,
                 Root,
