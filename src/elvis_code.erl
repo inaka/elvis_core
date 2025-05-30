@@ -135,7 +135,7 @@ find_by_location(Root, Location) ->
     end.
 
 is_at_location(#{attrs := #{location := {Line, NodeCol}}} = Node, {Line, Column}) ->
-    Text = elvis_ktn:text(Node),
+    Text = ktn_code:attr(text, Node),
     Length = length(Text),
     NodeCol =< Column andalso Column < NodeCol + Length;
 is_at_location(_, _) ->
