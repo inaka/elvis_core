@@ -1706,7 +1706,7 @@ no_boolean_in_comparison(Config, Target, RuleConfig) ->
         fun(Node) ->
             Content = ktn_code:content(Node),
             is_op(Node) andalso
-                '==' =:= elvis_ktn:operation(Node) andalso
+                '==' =:= ktn_code:attr(operation, Node) andalso
                 lists:any(IsBoolean, Content)
         end,
     ComparisonsWithBoolean =
@@ -1739,7 +1739,7 @@ no_operation_on_same_value(Config, Target, RuleConfig) ->
     IsInterestingOp =
         fun(Node) ->
             is_op(Node) andalso
-                lists:member(elvis_ktn:operation(Node), InterestingOps)
+                lists:member(ktn_code:attr(operation, Node), InterestingOps)
         end,
 
     OpNodes =
@@ -1752,7 +1752,7 @@ no_operation_on_same_value(Config, Target, RuleConfig) ->
     ResultFun =
         fun(Node) ->
             {Line, _Col} = ktn_code:attr(location, Node),
-            Info = [elvis_ktn:operation(Node), Line],
+            Info = [ktn_code:attr(operation, Node), Line],
             Msg = ?NO_OPERATION_ON_SAME_VALUE,
             elvis_result:new(item, Msg, Info, Line)
         end,
@@ -2112,7 +2112,7 @@ always_shortcircuit(Config, Target, RuleConfig) ->
         fun(Node) ->
             is_operator_node(Node) andalso
                 lists:member(
-                    elvis_ktn:operation(Node), maps:keys(Operators)
+                    ktn_code:attr(operation, Node), maps:keys(Operators)
                 )
         end,
     case elvis_code:find(Predicate, Root, #{traverse => all}) of
@@ -2122,7 +2122,7 @@ always_shortcircuit(Config, Target, RuleConfig) ->
             ResultFun =
                 fun(Node) ->
                     {Line, _Col} = ktn_code:attr(location, Node),
-                    BadOperator = elvis_ktn:operation(Node),
+                    BadOperator = ktn_code:attr(operation, Node),
                     GoodOperator = maps:get(BadOperator, Operators),
                     Info = [BadOperator, Line, GoodOperator],
                     elvis_result:new(item, ?ALWAYS_SHORTCIRCUIT_MSG, Info, Line)
