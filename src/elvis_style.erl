@@ -1842,9 +1842,9 @@ no_catch_expressions(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 no_single_clause_case(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    IsSingleClauseCaseStatement = fun (Node) ->
+    IsSingleClauseCaseStatement = fun(Node) ->
         ktn_code:type(Node) =:= 'case' andalso length(case_clauses_in(Node)) =:= 1
-        end,
+    end,
     CaseNodes = elvis_code:find(IsSingleClauseCaseStatement, Root),
     lists:map(
         fun(CaseNode) ->
@@ -1872,7 +1872,7 @@ case_clauses_in(Node) ->
     [elvis_result:item()].
 no_single_match_maybe(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    IsSingleMatchMaybeStatement = fun (Node) ->
+    IsSingleMatchMaybeStatement = fun(Node) ->
         ktn_code:type(Node) =:= 'maybe' andalso length(ktn_code:content(Node)) =:= 1
     end,
     CaseNodes = elvis_code:find(IsSingleMatchMaybeStatement, Root),
@@ -1956,12 +1956,12 @@ numeric_format(Config, Target, RuleConfig) ->
 behaviour_spelling(Config, Target, RuleConfig) ->
     Spelling = option(spelling, RuleConfig, behaviour_spelling),
     Root = get_root(Config, Target, RuleConfig),
-    Predicate =
+    IsWronglySpelledBehaviour =
         fun(Node) ->
             (ktn_code:type(Node) =:= behaviour orelse ktn_code:type(Node) =:= behavior) andalso
                 ktn_code:type(Node) =/= Spelling
         end,
-    case elvis_code:find(Predicate, Root) of
+    case elvis_code:find(IsWronglySpelledBehaviour, Root) of
         [] ->
             [];
         InconsistentBehaviorNodes ->
@@ -2040,8 +2040,8 @@ is_function_or_fun(Zipper) ->
 consistent_generic_type(Config, Target, RuleConfig) ->
     TypePreference = option(preferred_type, RuleConfig, consistent_generic_type),
     Root = get_root(Config, Target, RuleConfig),
-    Predicate = consistent_generic_type_predicate(TypePreference),
-    case elvis_code:find(Predicate, Root, #{traverse => all, mode => node}) of
+    IsInconsistentGenType = consistent_generic_type_predicate(TypePreference),
+    case elvis_code:find(IsInconsistentGenType, Root, #{traverse => all, mode => node}) of
         [] ->
             [];
         InconsistentTypeNodes ->
@@ -2058,14 +2058,14 @@ consistent_generic_type(Config, Target, RuleConfig) ->
 always_shortcircuit(Config, Target, RuleConfig) ->
     Operators = #{'and' => 'andalso', 'or' => 'orelse'},
     Root = get_root(Config, Target, RuleConfig),
-    Predicate =
+    IsBadOperator =
         fun(Node) ->
             is_operator_node(Node) andalso
                 lists:member(
                     ktn_code:attr(operation, Node), maps:keys(Operators)
                 )
         end,
-    case elvis_code:find(Predicate, Root, #{traverse => all}) of
+    case elvis_code:find(IsBadOperator, Root, #{traverse => all}) of
         [] ->
             [];
         BadOperators ->
