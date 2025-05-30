@@ -2826,7 +2826,7 @@ filter_repeated(NodesLocs) ->
 %% @private
 is_children(Parent, Node) ->
     Zipper = elvis_code:code_zipper(Parent),
-    [] =/= zipper:filter(fun(Child) -> Child =:= Node end, Zipper).
+    zipper:filter(fun(Child) -> Child =:= Node end, Zipper) =/= [].
 
 %% No call
 %% @private
