@@ -672,7 +672,7 @@ check_no_macro_calls(Calls) ->
 
     MacroInM =
         [
-            {?MACRO_AS_MODULE_NAME_MSG, MN, elvis_ktn:location(Call)}
+            {?MACRO_AS_MODULE_NAME_MSG, MN, ktn_code:attr(location, Call)}
          || #{
                 module_type := macro,
                 call := Call,
@@ -683,7 +683,7 @@ check_no_macro_calls(Calls) ->
         ],
     MacroInF =
         [
-            {?MACRO_AS_FUNCTION_NAME_MSG, FN, elvis_ktn:location(Call)}
+            {?MACRO_AS_FUNCTION_NAME_MSG, FN, ktn_code:attr(location, Call)}
          || #{
                 func_type := macro,
                 call := Call,
@@ -1479,7 +1479,7 @@ node_line_limits(FunctionNode) ->
     Zipper = elvis_code:code_zipper(FunctionNode),
     % The first number in `lineNums' list is the location of the first
     % line of the function. That's why we use it for the `Min' value.
-    Predicate = fun (Node) -> ktn_code:attr(location, Node) end,
+    Predicate = fun(Node) -> ktn_code:attr(location, Node) end,
     LineNums = zipper:map(Predicate, Zipper),
     % Last function's line
     Max = lists:max(LineNums),
@@ -1627,7 +1627,7 @@ filter_list_clause_location(Clause) ->
     [Attribute] = elvis_ktn:pattern(Clause),
     case is_list_node(Attribute) of
         true ->
-            {true, elvis_ktn:location(Clause)};
+            {true, ktn_code:attr(location, Clause)};
         false ->
             false
     end.
@@ -1674,8 +1674,9 @@ get_fun_2_ms_calls(Root) ->
         fun(Node) -> is_call(Node) andalso is_ets_fun2ms(Node) end,
 
     Functions = elvis_code:find(IsFun2MsFunctionCall, Root),
+    Predicate = fun(Node) -> ktn_code:attr(location, Node) end,
 
-    lists:map(fun elvis_ktn:location/1, Functions).
+    lists:map(Predicate, Functions).
 
 -spec is_ets_fun2ms(ktn_code:tree_node()) -> boolean().
 is_ets_fun2ms(Node) ->
@@ -2437,7 +2438,7 @@ result_node_line_fun(Msg) ->
 %% @private
 result_node_line_col_fun(Msg) ->
     fun(Node) ->
-        {Line, Col} = elvis_ktn:location(Node),
+        {Line, Col} = ktn_code:attr(location, Node),
         Info = [Line, Col],
         elvis_result:new(item, Msg, Info, Line)
     end.
@@ -2541,7 +2542,7 @@ check_spaces(Lines, UnfilteredNodes, {Position, Text}, Encoding, {How0, _} = How
     SpaceChar = $\s,
     FlatFun =
         fun(Node) ->
-            Location = elvis_ktn:location(Node),
+            Location = ktn_code:attr(location, Node),
             case character_at_location(Position, Lines, Text, Location, Encoding, How) of
                 Char when Char =:= SpaceChar, How0 =:= should_have ->
                     [];
@@ -2639,7 +2640,7 @@ check_nesting_level(ParentNode, [MaxLevel]) ->
             Msg = ?NESTING_LEVEL_MSG,
 
             Fun = fun(Node) ->
-                {Line, Col} = elvis_ktn:location(Node),
+                {Line, Col} = ktn_code:attr(location, Node),
                 Info = [Line, Col, MaxLevel],
                 elvis_result:new(item, Msg, Info, Line)
             end,
@@ -2687,7 +2688,7 @@ is_var(Zipper) ->
     case is_var_node(zipper:node(Zipper)) of
         true ->
             PrevLocation =
-                case elvis_ktn:location(zipper:node(Zipper)) of
+                case ktn_code:attr(location, zipper:node(Zipper)) of
                     {L, 1} ->
                         {L - 1, 9999};
                     {L, C} ->
@@ -2828,7 +2829,7 @@ find_repeated_nodes(Root, MinComplexity) ->
             Zipper = elvis_code:code_zipper(Node),
             case zipper:size(Zipper) of
                 Count when Count >= MinComplexity ->
-                    Loc = elvis_ktn:location(Node),
+                    Loc = ktn_code:attr(location, Node),
                     StrippedNode = remove_attrs_zipper(Zipper, TypeAttrs),
 
                     ValsSet = maps:get(StrippedNode, Map, sets:new()),
