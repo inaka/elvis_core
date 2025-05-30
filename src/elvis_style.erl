@@ -1196,7 +1196,7 @@ max_module_length(Config, Target, RuleConfig) ->
         end,
     Lines =
         case elvis_utils:split_all_lines(Src, [trim]) of
-            Ls when CountComments andalso CountWhitespace ->
+            Ls when CountComments, CountWhitespace ->
                 Ls;
             Ls ->
                 lists:filter(FilterFun, Ls)
@@ -1880,14 +1880,15 @@ no_single_clause_case(Config, Target, RuleConfig) ->
     ).
 
 is_single_clause_case_statement(Node) ->
-    ktn_code:type(Node) == 'case' andalso
-        length([
-            Clause
-         || SubNode <- ktn_code:content(Node),
-            ktn_code:type(SubNode) == case_clauses,
-            Clause <- ktn_code:content(SubNode)
-        ]) ==
-            1.
+    ktn_code:type(Node) == 'case' andalso length(case_clauses_in(Node)) == 1.
+
+case_clauses_in(Node) ->
+    [
+        Clause
+     || SubNode <- ktn_code:content(Node),
+        ktn_code:type(SubNode) == case_clauses,
+        Clause <- ktn_code:content(SubNode)
+    ].
 
 -type no_single_match_maybe_config() :: #{ignore => [ignorable()]}.
 
@@ -2318,7 +2319,7 @@ check_atom_names(
                 unicode:characters_to_list(AtomName, unicode), RE
             )
         of
-            _ when IsExceptionClass andalso not IsEnclosed ->
+            _ when IsExceptionClass, not IsEnclosed ->
                 AccIn;
             nomatch when not IsEnclosed ->
                 Msg = ?ATOM_NAMING_CONVENTION_MSG,
@@ -2508,7 +2509,7 @@ macro_as_atom(
     _Types,
     _MacroNodeValue
 ) when
-    Type =:= var orelse Type =:= atom
+    Type =:= var; Type =:= atom
 ->
     MacroAsAtom;
 macro_as_atom(false, [Type | OtherTypes], MacroNodeValue) ->
@@ -2534,9 +2535,9 @@ check_spaces(Lines, UnfilteredNodes, {Position, Text}, Encoding, {How0, _} = How
         fun(Node) ->
             Location = ktn_code:attr(location, Node),
             case character_at_location(Position, Lines, Text, Location, Encoding, How) of
-                Char when Char =:= SpaceChar andalso How0 =:= should_have ->
+                Char when Char =:= SpaceChar, How0 =:= should_have ->
                     [];
-                Char when Char =/= SpaceChar andalso How0 =:= should_not_have ->
+                Char when Char =/= SpaceChar, How0 =:= should_not_have ->
                     [];
                 _ when How0 =:= should_have ->
                     Msg = ?MISSING_SPACE_MSG,
@@ -2601,24 +2602,22 @@ character_at_location(
     % NOTE: text below only applies when the given Position is equal to `right`,
     %       or Position is equal to `left` and Col is 1.
     SpaceChar = $\s,
-    case ColToCheck =:= 0 orelse {Position, ColToCheck > length(TextLineStr)} of
-        true when How =:= should_have ->
+
+    case {ColToCheck, Position, length(TextLineStr)} of
+        {0, _, _} when How =:= should_have ->
             SpaceChar;
-        true when How =:= should_not_have ->
+        {0, _, _} when How =:= should_not_have ->
             "";
-        {right, true} when How =:= should_have ->
+        {_, right, LenLine} when How =:= should_have, ColToCheck > LenLine ->
             SpaceChar;
-        {right, true} when How =:= should_not_have ->
+        {_, right, LenLine} when How =:= should_not_have, ColToCheck > LenLine ->
             "";
+        _ when How =:= should_have ->
+            lists:nth(ColToCheck, TextLineStr);
+        _ when How =:= should_not_have, TextRegex =:= false; TextRegex =:= nomatch ->
+            lists:nth(ColToCheck, TextLineStr);
         _ ->
-            case How of
-                should_have ->
-                    lists:nth(ColToCheck, TextLineStr);
-                should_not_have when TextRegex =:= false orelse TextRegex =:= nomatch ->
-                    lists:nth(ColToCheck, TextLineStr);
-                _ ->
-                    ""
-            end
+            ""
     end.
 
 %% Nesting Level

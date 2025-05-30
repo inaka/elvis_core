@@ -139,8 +139,10 @@ load_file_data(Config, File) ->
 main([]) ->
     ok = application:load(elvis_core),
     {module, _} = code:ensure_loaded(elvis_style),
-    R = rock(elvis_config:from_file("elvis.config")),
-    R =:= ok orelse halt(1).
+    case rock(elvis_config:from_file("elvis.config")) of
+        ok -> true;
+        _ -> halt(1)
+    end.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Private
