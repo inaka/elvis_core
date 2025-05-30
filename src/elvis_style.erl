@@ -63,8 +63,14 @@
     guard_operators/2,
     simplify_anonymous_functions/2,
     prefer_include/2,
-    strict_term_equivalence/2
+    strict_term_equivalence/2,
+    parentheses_in_macro_defs/3
 ]).
+
+% -define(PARENTHESES_IN_MACRO_DEFS,
+%     "Invalid parenthesis at a macro in line ~p"
+%     "Functions should contain parenthesis, constants shouldn't"
+% ).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
@@ -2499,6 +2505,56 @@ is_public_data_type_in(TypesToCheck, TypeAttrNode) ->
     TypeAttrNodeType = ktn_code:node_attr(type, TypeAttrNode),
     TypeAttrNodeType =/= undefined andalso
         lists:member(ktn_code:attr(name, TypeAttrNodeType), TypesToCheck).
+
+parentheses_in_macro_defs(Config, Target, RuleConfig) ->
+    _ = Config,
+    _ = Target,
+    _ = RuleConfig,
+    [].
+% Root = get_root(Config, Target, RuleConfig),
+% MacroNodes =
+%     elvis_code:find(fun is_macro_define_node/1, Root),
+%
+% IsCall = fun
+%     ({tree, _, _, String}) ->
+%         io:format(user, "~n----------------------------------~n", []),
+%         io:format(user, "~p~n", [String]),
+%         io:format(user, "------------------------------------~n", []),
+%         % lists:member($(, String);
+%         case re:run(String, "^[a-z0-9_]+\( [A-Za-z0-9_]+ \)$") of
+%             {match, _} ->
+%                 true;
+%             nomatch ->
+%                 false
+%         end;
+%     ({call, _, _, _}) ->
+%         true;
+%     (_) ->
+%         false
+% end,
+%
+% ResultFun =
+%     fun(Node) ->
+%         {Line, _} = ktn_code:attr(location, Node),
+%         elvis_result:new(item, ?PARENTHESES_IN_MACRO_DEFS, [Line], Line)
+%     end,
+%
+% lists:filtermap(
+%     fun(MacroNode) ->
+%         [Left, Right] = ktn_code:attr(value, MacroNode),
+%         case {IsCall(Left), IsCall(Right)} of
+%             {true, true} ->
+%                 false;
+%             {false, false} ->
+%                 false;
+%             {true, false} ->
+%                 {true, ResultFun(MacroNode)};
+%             {false, true} ->
+%                 {true, ResultFun(MacroNode)}
+%         end
+%     end,
+%     MacroNodes
+% ).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private

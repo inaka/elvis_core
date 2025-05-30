@@ -70,6 +70,7 @@
     verify_simplify_anonymous_functions/1,
     verify_prefer_include/1,
     verify_strict_term_equivalence/1
+    % verify_parentheses_in_macro_defs/1
 ]).
 %% -elvis attribute
 -export([
@@ -3068,6 +3069,21 @@ oddities(_Config) ->
         ],
     {fail, [#{rules := [_, _, _, _]}]} = elvis_core:rock(ElvisConfig),
     true.
+
+% verify_parentheses_in_macro_defs(Config) ->
+%     Ext = proplists:get_value(test_file_ext, Config, "erl"),
+%
+%     PassModule = pass_parentheses_in_macro_defs,
+%     PassPath = atom_to_list(PassModule) ++ "." ++ Ext,
+%
+%     [] =
+%         elvis_core_apply_rule(Config, elvis_style, parentheses_in_macro_defs, #{}, PassPath),
+%
+%     FailModule = fail_parentheses_in_macro_defs,
+%     FailPath = atom_to_list(FailModule) ++ "." ++ Ext,
+%
+%     [_, _, _] =
+%         elvis_core_apply_rule(Config, elvis_style, parentheses_in_macro_defs, #{}, FailPath).
 
 verify_elvis_attr_atom_naming_convention(Config) ->
     verify_elvis_attr(Config, "pass_atom_naming_convention_elvis_attr").
