@@ -2483,6 +2483,7 @@ check_macro_names(Regexp, [MacroNode | RemainingMacroNodes], ResultsIn) ->
         end,
     check_macro_names(Regexp, RemainingMacroNodes, ResultsOut).
 
+% This is a bug in ktn_code: https://github.com/inaka/katana-code/issues/87
 -dialyzer({no_match, is_macro_define_node/1}).
 
 %% @private
