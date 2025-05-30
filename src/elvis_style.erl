@@ -703,8 +703,7 @@ check_no_macro_calls(Calls) ->
 no_macros(ElvisConfig, RuleTarget, RuleConfig) ->
     TreeRootNode = get_root(ElvisConfig, RuleTarget, RuleConfig),
     AllowedMacros = maps:get(allow, RuleConfig, []) ++ eep_predef_macros() ++ logger_macros(),
-    MacroNodes =
-        elvis_code:find(fun is_macro_node/1, TreeRootNode, #{traverse => all, mode => node}),
+    MacroNodes = elvis_code:find_by_types([macro], TreeRootNode),
 
     lists:foldl(
         fun(MacroNode, Acc) ->
@@ -720,9 +719,6 @@ no_macros(ElvisConfig, RuleTarget, RuleConfig) ->
         [],
         MacroNodes
     ).
-
-is_macro_node(Node) ->
-    ktn_code:type(Node) =:= macro.
 
 -type no_types_config() :: #{allow => [atom()], ignore => [ignorable()]}.
 
