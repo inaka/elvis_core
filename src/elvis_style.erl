@@ -465,34 +465,34 @@ default(no_operation_on_same_value) ->
         ]
     };
 default(RuleWithEmptyDefault) when
-    RuleWithEmptyDefault == macro_module_names;
-    RuleWithEmptyDefault == no_macros;
-    RuleWithEmptyDefault == no_specs;
-    RuleWithEmptyDefault == no_types;
-    RuleWithEmptyDefault == no_nested_hrls;
-    RuleWithEmptyDefault == no_block_expressions;
-    RuleWithEmptyDefault == no_if_expression;
-    RuleWithEmptyDefault == no_nested_try_catch;
-    RuleWithEmptyDefault == no_successive_maps;
-    RuleWithEmptyDefault == invalid_dynamic_call;
-    RuleWithEmptyDefault == used_ignored_variable;
-    RuleWithEmptyDefault == no_behavior_info;
-    RuleWithEmptyDefault == state_record_and_type;
-    RuleWithEmptyDefault == no_spec_with_records;
-    RuleWithEmptyDefault == no_throw;
-    RuleWithEmptyDefault == no_dollar_space;
-    RuleWithEmptyDefault == no_author;
-    RuleWithEmptyDefault == no_import;
-    RuleWithEmptyDefault == no_catch_expressions;
-    RuleWithEmptyDefault == no_single_clause_case;
-    RuleWithEmptyDefault == no_single_match_maybe;
-    RuleWithEmptyDefault == no_match_in_condition;
-    RuleWithEmptyDefault == always_shortcircuit;
-    RuleWithEmptyDefault == no_space_after_pound;
-    RuleWithEmptyDefault == export_used_types;
-    RuleWithEmptyDefault == consistent_variable_casing;
-    RuleWithEmptyDefault == ms_transform_included;
-    RuleWithEmptyDefault == no_boolean_in_comparison
+    RuleWithEmptyDefault =:= macro_module_names;
+    RuleWithEmptyDefault =:= no_macros;
+    RuleWithEmptyDefault =:= no_specs;
+    RuleWithEmptyDefault =:= no_types;
+    RuleWithEmptyDefault =:= no_nested_hrls;
+    RuleWithEmptyDefault =:= no_block_expressions;
+    RuleWithEmptyDefault =:= no_if_expression;
+    RuleWithEmptyDefault =:= no_nested_try_catch;
+    RuleWithEmptyDefault =:= no_successive_maps;
+    RuleWithEmptyDefault =:= invalid_dynamic_call;
+    RuleWithEmptyDefault =:= used_ignored_variable;
+    RuleWithEmptyDefault =:= no_behavior_info;
+    RuleWithEmptyDefault =:= state_record_and_type;
+    RuleWithEmptyDefault =:= no_spec_with_records;
+    RuleWithEmptyDefault =:= no_throw;
+    RuleWithEmptyDefault =:= no_dollar_space;
+    RuleWithEmptyDefault =:= no_author;
+    RuleWithEmptyDefault =:= no_import;
+    RuleWithEmptyDefault =:= no_catch_expressions;
+    RuleWithEmptyDefault =:= no_single_clause_case;
+    RuleWithEmptyDefault =:= no_single_match_maybe;
+    RuleWithEmptyDefault =:= no_match_in_condition;
+    RuleWithEmptyDefault =:= always_shortcircuit;
+    RuleWithEmptyDefault =:= no_space_after_pound;
+    RuleWithEmptyDefault =:= export_used_types;
+    RuleWithEmptyDefault =:= consistent_variable_casing;
+    RuleWithEmptyDefault =:= ms_transform_included;
+    RuleWithEmptyDefault =:= no_boolean_in_comparison
 ->
     #{}.
 
@@ -606,7 +606,7 @@ canonical_variable_name(Var) ->
     end.
 
 check_variable_casing_consistency({_, [#{name := FirstName, var := FirstVar} | Others]}) ->
-    case lists:usort([OtherName || #{name := OtherName} <- Others, OtherName /= FirstName]) of
+    case lists:usort([OtherName || #{name := OtherName} <- Others, OtherName =/= FirstName]) of
         [] ->
             [];
         OtherNames ->
@@ -641,7 +641,7 @@ variable_naming_convention(Config, Target, RuleConfig) ->
 macro_names(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
     Regexp = option(regex, RuleConfig, macro_names),
-    Predicate = fun(Node) ->
+    IsMacroDefine = fun(Node) ->
         case ktn_code:type(Node) of
             {atom, [_, _], define} ->
                 true;
@@ -649,8 +649,7 @@ macro_names(Config, Target, RuleConfig) ->
                 false
         end
     end,
-    MacroNodes =
-        elvis_code:find(Predicate, Root, #{traverse => all, mode => node}),
+    MacroNodes = elvis_code:find(IsMacroDefine, Root, #{traverse => all, mode => node}),
     check_macro_names(Regexp, MacroNodes, _ResultsIn = []).
 
 -spec macro_module_names(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
@@ -796,8 +795,8 @@ no_specs(ElvisConfig, RuleTarget, RuleConfig) ->
 no_block_expressions(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
     Tokens = ktn_code:attr(tokens, Root),
-    Predicate = fun(Node) -> ktn_code:type(Node) =:= 'begin' end,
-    BeginNodes = lists:filter(Predicate, Tokens),
+    IsBeginNode = fun(Node) -> ktn_code:type(Node) =:= 'begin' end,
+    BeginNodes = lists:filter(IsBeginNode, Tokens),
     lists:foldl(
         fun(BeginNode, Acc) ->
             {Line, _Col} = ktn_code:attr(location, BeginNode),
@@ -964,7 +963,7 @@ god_modules(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 no_if_expression(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    Predicate = fun(Node) -> ktn_code:type(Node) == 'if' end,
+    Predicate = fun(Node) -> ktn_code:type(Node) =:= 'if' end,
     ResultFun = result_node_line_fun(?NO_IF_EXPRESSION_MSG),
     case elvis_code:find(Predicate, Root) of
         [] ->
@@ -1227,7 +1226,7 @@ max_anonymous_function_arity(Config, Target, RuleConfig) ->
         fun(Node) ->
             %% Not having clauses means it's something like fun mod:f/10 and we don't want
             %% this rule to raise warnings for those. max_function_arity should take care of them.
-            ktn_code:type(Node) =:= 'fun' andalso [] /= elvis_code:find_by_types([clause], Node)
+            ktn_code:type(Node) =:= 'fun' andalso [] =/= elvis_code:find_by_types([clause], Node)
         end,
     Funs = elvis_code:find(IsFun, Root),
     lists:filtermap(
@@ -1364,11 +1363,11 @@ max_function_clause_length(Config, Target, RuleConfig) ->
 
 parse_clause_num(Num) when Num rem 100 >= 11, Num rem 100 =< 13 ->
     integer_to_list(Num) ++ "th";
-parse_clause_num(Num) when Num rem 10 == 1 ->
+parse_clause_num(Num) when Num rem 10 =:= 1 ->
     integer_to_list(Num) ++ "st";
-parse_clause_num(Num) when Num rem 10 == 2 ->
+parse_clause_num(Num) when Num rem 10 =:= 2 ->
     integer_to_list(Num) ++ "nd";
-parse_clause_num(Num) when Num rem 10 == 3 ->
+parse_clause_num(Num) when Num rem 10 =:= 3 ->
     integer_to_list(Num) ++ "rd";
 parse_clause_num(Num) ->
     integer_to_list(Num) ++ "th".
@@ -1479,7 +1478,7 @@ node_line_limits(FunctionNode) ->
     [elvis_result:item()].
 no_nested_try_catch(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    Predicate = fun(Node) -> ktn_code:type(Node) == 'try' end,
+    Predicate = fun(Node) -> ktn_code:type(Node) =:= 'try' end,
     ResultFun = result_node_line_fun(?NO_NESTED_TRY_CATCH),
     case elvis_code:find(Predicate, Root) of
         [] ->
@@ -1492,7 +1491,7 @@ no_nested_try_catch(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 no_successive_maps(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    Predicate = fun(Node) -> ktn_code:type(Node) == map end,
+    Predicate = fun(Node) -> ktn_code:type(Node) =:= map end,
     ResultFun = result_node_line_fun(?NO_SUCCESSIVE_MAPS_MSG),
     FindOpts = #{mode => node, traverse => all},
     case elvis_code:find(Predicate, Root, FindOpts) of
@@ -1549,8 +1548,8 @@ no_init_lists(Config, Target, RuleConfig) ->
                 IsInit1Function =
                     fun(Node) ->
                         ktn_code:type(Node) =:= function andalso
-                            ktn_code:attr(name, Node) == init andalso
-                            ktn_code:attr(arity, Node) == 1
+                            ktn_code:attr(name, Node) =:= init andalso
+                            ktn_code:attr(arity, Node) =:= 1
                     end,
 
                 case elvis_code:find(IsInit1Function, Root) of
@@ -1609,7 +1608,7 @@ is_list_node(#{type := cons}) ->
 is_list_node(#{type := nil}) ->
     true;
 is_list_node(#{type := match, content := Content}) ->
-    lists:any(fun is_list_node/1, Content);
+    lists:any(fun(Elem) -> is_list_node(Elem) end, Content);
 is_list_node(_) ->
     false.
 
@@ -1624,7 +1623,7 @@ ms_transform_included(Config, Target, RuleConfig) ->
 
     FunctionCalls = get_fun_2_ms_calls(Root),
 
-    IsIncluded = FunctionCalls /= [] andalso has_include_ms_transform(Root),
+    IsIncluded = FunctionCalls =/= [] andalso has_include_ms_transform(Root),
 
     ResultFun =
         fun(Location) ->
@@ -1656,7 +1655,7 @@ is_ets_fun2ms(Node) ->
     Fun2 = ktn_code:node_attr(function, Fun),
     Module = ktn_code:node_attr(module, Fun),
 
-    ets == ktn_code:attr(value, Module) andalso fun2ms == ktn_code:attr(value, Fun2).
+    ktn_code:attr(value, Module) =:= ets andalso ktn_code:attr(value, Fun2) =:= fun2ms.
 
 -spec no_boolean_in_comparison(
     elvis_config:config(),
@@ -1749,8 +1748,8 @@ same_except_location_attr(LeftNode, RightNode) ->
     %% the results may be different.
     not is_call(LeftNode) andalso
         not is_call(RightNode) andalso
-        ktn_code:type(LeftNode) == ktn_code:type(RightNode) andalso
-        maps:remove(location, maps:get(attrs, LeftNode)) ==
+        ktn_code:type(LeftNode) =:= ktn_code:type(RightNode) andalso
+        maps:remove(location, maps:get(attrs, LeftNode)) =:=
             maps:remove(location, maps:get(attrs, RightNode)) andalso
         same_except_location_attr(ktn_code:content(LeftNode), ktn_code:content(RightNode)).
 
@@ -1758,10 +1757,10 @@ same_except_location_attr(LeftNode, RightNode) ->
 has_include_ms_transform(Root) ->
     Fun = fun(Node) ->
         ktn_code:type(Node) =:= include_lib andalso
-            ktn_code:attr(value, Node) == "stdlib/include/ms_transform.hrl"
+            ktn_code:attr(value, Node) =:= "stdlib/include/ms_transform.hrl"
     end,
 
-    [] /= elvis_code:find(Fun, Root).
+    [] =/= elvis_code:find(Fun, Root).
 
 -spec no_throw(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
     [elvis_result:item()].
@@ -1785,7 +1784,7 @@ no_throw(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 no_dollar_space(Config, Target, RuleConfig) ->
     IsDollarSpace =
-        fun(Node) -> ktn_code:type(Node) == char andalso ktn_code:attr(text, Node) == "$ " end,
+        fun(Node) -> ktn_code:type(Node) =:= char andalso ktn_code:attr(text, Node) =:= "$ " end,
     Root = get_root(Config, Target, RuleConfig),
     Opts = #{mode => node, traverse => all},
     DollarSpaceNodes = elvis_code:find(IsDollarSpace, Root, Opts),
@@ -1863,13 +1862,13 @@ no_single_clause_case(Config, Target, RuleConfig) ->
     ).
 
 is_single_clause_case_statement(Node) ->
-    ktn_code:type(Node) == 'case' andalso length(case_clauses_in(Node)) == 1.
+    ktn_code:type(Node) =:= 'case' andalso length(case_clauses_in(Node)) =:= 1.
 
 case_clauses_in(Node) ->
     [
         Clause
      || SubNode <- ktn_code:content(Node),
-        ktn_code:type(SubNode) == case_clauses,
+        ktn_code:type(SubNode) =:= case_clauses,
         Clause <- ktn_code:content(SubNode)
     ].
 
@@ -1893,7 +1892,7 @@ no_single_match_maybe(Config, Target, RuleConfig) ->
     ).
 
 is_single_match_maybe_statement(Node) ->
-    ktn_code:type(Node) == 'maybe' andalso length(ktn_code:content(Node)) == 1.
+    ktn_code:type(Node) =:= 'maybe' andalso length(ktn_code:content(Node)) =:= 1.
 
 -type no_match_in_condition_config() :: #{ignore => [ignorable()]}.
 
@@ -1915,22 +1914,22 @@ no_match_in_condition(Config, Target, RuleConfig) ->
     ).
 
 is_match_in_condition(Node) ->
-    ktn_code:type(Node) == case_expr andalso
+    ktn_code:type(Node) =:= case_expr andalso
         %% case_expr followed by a match
         (has_match_child(Node) orelse
             %% or case_expr followed by a block which contains a match in the first layer
             lists:any(
                 fun(Node1) ->
-                    ktn_code:type(Node1) == block andalso has_match_child(Node1)
+                    ktn_code:type(Node1) =:= block andalso has_match_child(Node1)
                 end,
                 ktn_code:content(Node)
             )).
 
 has_match_child(Node) ->
-    Predicate = fun(InnerNode) ->
+    IsMatch = fun(InnerNode) ->
         ktn_code:type(InnerNode) =:= match orelse ktn_code:type(InnerNode) =:= maybe_match
     end,
-    lists:any(Predicate, ktn_code:content(Node)).
+    lists:any(IsMatch, ktn_code:content(Node)).
 
 -type numeric_format_config() ::
     #{
@@ -1970,7 +1969,7 @@ behaviour_spelling(Config, Target, RuleConfig) ->
     Predicate =
         fun(Node) ->
             (ktn_code:type(Node) =:= behaviour orelse ktn_code:type(Node) =:= behavior) andalso
-                ktn_code:type(Node) /= Spelling
+                ktn_code:type(Node) =/= Spelling
         end,
     case elvis_code:find(Predicate, Root) of
         [] ->
@@ -2007,21 +2006,21 @@ param_pattern_matching(Config, Target, RuleConfig) ->
             )
         ),
 
-    Predicate = fun(Node) -> ktn_code:type(Node) =:= match end,
-    MatchesInFunctionClauses = lists:filter(Predicate, FunctionClausePatterns),
+    IsMatch = fun(Node) -> ktn_code:type(Node) =:= match end,
+    MatchesInFunctionClauses = lists:filter(IsMatch, FunctionClausePatterns),
 
     lists:filtermap(
         fun(Match) ->
             case lists:map(fun ktn_code:type/1, ktn_code:content(Match)) of
                 [var, var] ->
                     false;
-                [var, _] when Side == right ->
+                [var, _] when Side =:= right ->
                     {Line, _} = ktn_code:attr(location, Match),
                     [Var, _] = ktn_code:content(Match),
                     VarName = ktn_code:attr(name, Var),
                     Info = [VarName, Line, Side],
                     {true, elvis_result:new(item, ?PARAM_PATTERN_MATCHING_MSG, Info, Line)};
-                [_, var] when Side == left ->
+                [_, var] when Side =:= left ->
                     {Line, _} = ktn_code:attr(location, Match),
                     [_, Var] = ktn_code:content(Match),
                     VarName = ktn_code:attr(name, Var),
@@ -2351,7 +2350,7 @@ check_variables_name(_Regex, _, []) ->
 check_variables_name(Regex, ForbiddenRegex, [Variable | RemainingVars]) ->
     VariableNameStr = atom_to_list(ktn_code:attr(name, Variable)),
     case re:run(VariableNameStr, Regex) of
-        nomatch when VariableNameStr == "_" ->
+        nomatch when VariableNameStr =:= "_" ->
             check_variables_name(Regex, ForbiddenRegex, RemainingVars);
         nomatch ->
             Msg = ?VARIABLE_NAMING_CONVENTION_MSG,
@@ -2643,7 +2642,7 @@ is_var(Zipper) ->
                 not_found ->
                     true;
                 {ok, PrevToken} ->
-                    ktn_code:type(PrevToken) /= '?'
+                    ktn_code:type(PrevToken) =/= '?'
             end;
         _NotVar ->
             false
@@ -2659,7 +2658,7 @@ is_ignored_var(Zipper) ->
         var ->
             Name = ktn_code:attr(name, Node),
             [FirstChar | _] = atom_to_list(Name),
-            (FirstChar == $_) andalso (Name =/= '_') andalso
+            (FirstChar =:= $_) andalso (Name =/= '_') andalso
                 not check_parent_match_or_macro(Zipper);
         _OtherType ->
             false
@@ -2674,11 +2673,11 @@ check_parent_match_or_macro(Zipper) ->
             Parent = zipper:node(ParentZipper),
             case ktn_code:type(Parent) of
                 match ->
-                    zipper:down(ParentZipper) == Zipper;
+                    zipper:down(ParentZipper) =:= Zipper;
                 macro ->
-                    zipper:down(ParentZipper) == Zipper;
+                    zipper:down(ParentZipper) =:= Zipper;
                 maybe_match ->
-                    zipper:down(ParentZipper) == Zipper;
+                    zipper:down(ParentZipper) =:= Zipper;
                 _ ->
                     check_parent_match_or_macro(ParentZipper)
             end
@@ -2717,7 +2716,7 @@ is_otp_module(Root) ->
 has_state_record(Root) ->
     IsStateRecord =
         fun(Node) ->
-            (record_attr == ktn_code:type(Node)) andalso (state == ktn_code:attr(name, Node))
+            (ktn_code:type(Node) =:= record_attr) andalso (ktn_code:attr(name, Node) =:= state)
         end,
     [] =/= elvis_code:find(IsStateRecord, Root).
 
@@ -2728,7 +2727,7 @@ has_state_type(Root) ->
         fun(Node) ->
             case ktn_code:type(Node) of
                 type_attr ->
-                    state == ktn_code:attr(name, Node);
+                    ktn_code:attr(name, Node) =:= state;
                 opaque ->
                     case ktn_code:attr(value, Node) of
                         {state, _, _} ->
@@ -2740,7 +2739,7 @@ has_state_type(Root) ->
                     false
             end
         end,
-    elvis_code:find(IsStateType, Root) /= [].
+    elvis_code:find(IsStateType, Root) =/= [].
 
 %% Spec includes records
 
@@ -2749,10 +2748,10 @@ has_state_type(Root) ->
 spec_includes_record(Node) ->
     IsTypeRecord =
         fun(Child) ->
-            (ktn_code:type(Node) =:= 'type') andalso (ktn_code:attr(name, Child) =:= record)
+            (ktn_code:type(Child) =:= 'type') andalso (ktn_code:attr(name, Child) =:= record)
         end,
     Opts = #{traverse => all},
-    ktn_code:type(Node) =:= spec andalso (elvis_code:find(IsTypeRecord, Node, Opts) =/= []).
+    (ktn_code:type(Node) =:= spec) andalso (elvis_code:find(IsTypeRecord, Node, Opts) =/= []).
 
 %% Don't repeat yourself
 
@@ -2825,7 +2824,7 @@ remove_attrs(Node, _TypeAttrs) ->
 -spec filter_repeated(map()) -> map().
 filter_repeated(NodesLocs) ->
     NotRepeated =
-        [Node || {Node, LocationSet} <- maps:to_list(NodesLocs), sets:size(LocationSet) == 1],
+        [Node || {Node, LocationSet} <- maps:to_list(NodesLocs), sets:size(LocationSet) =:= 1],
 
     RepeatedMap = maps:without(NotRepeated, NodesLocs),
 
@@ -2844,7 +2843,7 @@ filter_repeated(NodesLocs) ->
 %% @private
 is_children(Parent, Node) ->
     Zipper = elvis_code:code_zipper(Parent),
-    [] =/= zipper:filter(fun(Child) -> Child == Node end, Zipper).
+    [] =/= zipper:filter(fun(Child) -> Child =:= Node end, Zipper).
 
 %% No call
 %% @private
@@ -2948,7 +2947,7 @@ check_successive_maps(ResultFun, MapExp) ->
 consistent_generic_type_predicate(TypePreference) ->
     fun(Node) ->
         NodeName = ktn_code:attr(name, Node),
-        (ktn_code:type(Node) =:= 'type' orelse ktn_code:type(Node) == callback) andalso
+        (ktn_code:type(Node) =:= 'type' orelse ktn_code:type(Node) =:= callback) andalso
             lists:member(NodeName, [term, any]) andalso
             NodeName =/= TypePreference
     end.
