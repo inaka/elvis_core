@@ -633,13 +633,24 @@ variable_naming_convention(Config, Target, RuleConfig) ->
 
 -type macro_names_config() :: #{ignore => [ignorable()], regex => string()}.
 
+% There is a bug in ktn_code: https://github.com/inaka/katana-code/issues/87
+-dialyzer({no_match, macro_names/3}).
+
 -spec macro_names(elvis_config:config(), elvis_file:file(), macro_names_config()) ->
     [elvis_result:item()].
 macro_names(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
     Regexp = option(regex, RuleConfig, macro_names),
+    Predicate = fun(Node) ->
+        case ktn_code:type(Node) of
+            {atom, [_, _], define} ->
+                true;
+            _ ->
+                false
+        end
+    end,
     MacroNodes =
-        elvis_code:find(fun is_macro_define_node/1, Root, #{traverse => all, mode => node}),
+        elvis_code:find(Predicate, Root, #{traverse => all, mode => node}),
     check_macro_names(Regexp, MacroNodes, _ResultsIn = []).
 
 -spec macro_module_names(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
@@ -2482,18 +2493,6 @@ check_macro_names(Regexp, [MacroNode | RemainingMacroNodes], ResultsIn) ->
                 ResultsIn
         end,
     check_macro_names(Regexp, RemainingMacroNodes, ResultsOut).
-
-% This is a bug in ktn_code: https://github.com/inaka/katana-code/issues/87
--dialyzer({no_match, is_macro_define_node/1}).
-
-%% @private
-is_macro_define_node(MaybeMacro) ->
-    case ktn_code:type(MaybeMacro) of
-        {atom, [_, _], define} ->
-            true;
-        _ ->
-            false
-    end.
 
 %% @private
 macro_name_from_node(MacroNode) ->
