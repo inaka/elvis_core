@@ -1,6 +1,5 @@
 -module(elvis_ktn).
 
--export([arity/1]).
 -export([function/1]).
 -export([line/1]).
 -export([location/1]).
@@ -11,9 +10,6 @@
 -export([text/1]).
 -export([tokens/1]).
 -export([value/1]).
-
-arity(Node) ->
-    ktn_code:attr(arity, Node).
 
 function(Node) ->
     ktn_code:node_attr(function, Node).
