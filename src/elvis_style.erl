@@ -794,9 +794,7 @@ no_specs(ElvisConfig, RuleTarget, RuleConfig) ->
     [elvis_result:item()].
 no_block_expressions(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    Tokens = ktn_code:attr(tokens, Root),
-    IsBeginNode = fun(Node) -> ktn_code:type(Node) =:= 'begin' end,
-    BeginNodes = lists:filter(IsBeginNode, Tokens),
+    BeginNodes = elvis_code:find_by_types_in_tokens(['begin'], Root),
     lists:foldl(
         fun(BeginNode, Acc) ->
             {Line, _Col} = ktn_code:attr(location, BeginNode),
@@ -873,8 +871,7 @@ operator_spaces(Config, Target, RuleConfig) ->
     Zipper = elvis_code:code_zipper(Root),
     OpNodes = zipper:filter(fun is_operator_node/1, Zipper),
 
-    Tokens = ktn_code:attr(tokens, Root),
-    PunctuationTokens = lists:filter(fun is_punctuation_token/1, Tokens),
+    PunctuationTokens = elvis_code:find_by_types_in_tokens(?PUNCTUATION_SYMBOLS, Root),
 
     Lines = elvis_utils:split_all_lines(Src),
     AllNodes = OpNodes ++ PunctuationTokens,
@@ -923,12 +920,6 @@ no_space(Config, Target, RuleConfig) ->
 is_text_node(Node) ->
     ktn_code:attr(text, Node) =/= "".
 
-%% @doc Returns true when the token is one of the ?PUNCTUATION_SYMBOLS
--spec is_punctuation_token(ktn_code:tree_node()) -> boolean().
-is_punctuation_token(Node) ->
-    Type = ktn_code:type(Node),
-    lists:member(Type, ?PUNCTUATION_SYMBOLS).
-
 -type nesting_level_config() :: #{ignore => [ignorable()], level => integer()}.
 
 -spec nesting_level(elvis_config:config(), elvis_file:file(), nesting_level_config()) ->
@@ -963,9 +954,8 @@ god_modules(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 no_if_expression(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    Predicate = fun(Node) -> ktn_code:type(Node) =:= 'if' end,
     ResultFun = result_node_line_fun(?NO_IF_EXPRESSION_MSG),
-    case elvis_code:find(Predicate, Root) of
+    case elvis_code:find_by_types(['if'], Root) of
         [] ->
             [];
         IfExprs ->
@@ -1478,9 +1468,8 @@ node_line_limits(FunctionNode) ->
     [elvis_result:item()].
 no_nested_try_catch(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    Predicate = fun(Node) -> ktn_code:type(Node) =:= 'try' end,
     ResultFun = result_node_line_fun(?NO_NESTED_TRY_CATCH),
-    case elvis_code:find(Predicate, Root) of
+    case elvis_code:find_by_types(['try'], Root) of
         [] ->
             [];
         TryExprs ->
@@ -1491,10 +1480,9 @@ no_nested_try_catch(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 no_successive_maps(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    Predicate = fun(Node) -> ktn_code:type(Node) =:= map end,
     ResultFun = result_node_line_fun(?NO_SUCCESSIVE_MAPS_MSG),
     FindOpts = #{mode => node, traverse => all},
-    case elvis_code:find(Predicate, Root, FindOpts) of
+    case elvis_code:find_by_types([map], Root, FindOpts) of
         [] ->
             [];
         MapExprs ->
@@ -1525,7 +1513,10 @@ atom_naming_convention(Config, Target, RuleConfig) ->
             option(forbidden_enclosed_regex, RuleConfig, atom_naming_convention),
             ForbiddenRegex
         ),
-    AtomNodes = elvis_code:find(fun is_atom_node/1, Root, #{traverse => all, mode => zipper}),
+    IsAtomNode = fun(Node) ->
+        ktn_code:type(zipper:node(Node)) =:= atom andalso not check_parent_remote(Node)
+    end,
+    AtomNodes = elvis_code:find(IsAtomNode, Root, #{traverse => all, mode => zipper}),
     check_atom_names(
         Regex,
         ForbiddenRegex,
@@ -1760,7 +1751,7 @@ has_include_ms_transform(Root) ->
             ktn_code:attr(value, Node) =:= "stdlib/include/ms_transform.hrl"
     end,
 
-    [] =/= elvis_code:find(Fun, Root).
+    elvis_code:find(Fun, Root) =/= [].
 
 -spec no_throw(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
     [elvis_result:item()].
@@ -1811,9 +1802,8 @@ no_import(Config, Target, RuleConfig) ->
     no_attribute(import, ?NO_IMPORT_MSG, Config, Target, RuleConfig).
 
 no_attribute(Attribute, Msg, Config, Target, RuleConfig) ->
-    Zipper = fun(Node) -> ktn_code:type(Node) =:= Attribute end,
     Root = get_root(Config, Target, RuleConfig),
-    Nodes = elvis_code:find(Zipper, Root),
+    Nodes = elvis_code:find_by_types([Attribute], Root),
     lists:map(
         fun(Node) ->
             {Line, _} = ktn_code:attr(location, Node),
@@ -2108,12 +2098,9 @@ export_used_types(Config, Target, RuleConfig) ->
         lists:usort(
             lists:flatmap(
                 fun(Spec) ->
-                    Types =
-                        elvis_code:find(
-                            fun(Node) -> ktn_code:type(Node) =:= user_type end,
-                            Spec,
-                            #{mode => node, traverse => all}
-                        ),
+                    Types = elvis_code:find_by_types([user_type], Spec, #{
+                        mode => node, traverse => all
+                    }),
                     % yes, on a -type line, the arity is based on `args`, but on
                     % a -spec line, it's based on `content`
                     [
@@ -2338,10 +2325,6 @@ re_compile_for_atom_type(false = _IsEnclosed, Regex, _RegexEnclosed) ->
 re_compile_for_atom_type(true = _IsEnclosed, _Regex, RegexEnclosed) ->
     {ok, RE} = re:compile(RegexEnclosed, [unicode]),
     RE.
-
-%% @private
-is_atom_node(MaybeAtom) ->
-    ktn_code:type(zipper:node(MaybeAtom)) =:= atom andalso not check_parent_remote(MaybeAtom).
 
 %% Variables name
 %% @private
@@ -2718,7 +2701,7 @@ has_state_record(Root) ->
         fun(Node) ->
             (ktn_code:type(Node) =:= record_attr) andalso (ktn_code:attr(name, Node) =:= state)
         end,
-    [] =/= elvis_code:find(IsStateRecord, Root).
+    elvis_code:find(IsStateRecord, Root) =/= [].
 
 %% @private
 -spec has_state_type(ktn_code:tree_node()) -> boolean().
@@ -2858,7 +2841,7 @@ is_children(Parent, Node) ->
 no_call_common(Config, Target, NoCallFuns, Msg, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
 
-    Calls = elvis_code:find(fun is_call/1, Root),
+    Calls = elvis_code:find_by_types([call], Root),
     check_no_call(Calls, Msg, NoCallFuns).
 
 %% @private
