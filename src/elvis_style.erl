@@ -1842,7 +1842,10 @@ no_catch_expressions(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 no_single_clause_case(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    CaseNodes = elvis_code:find(fun is_single_clause_case_statement/1, Root),
+    IsSingleClauseCaseStatement = fun (Node) ->
+        ktn_code:type(Node) =:= 'case' andalso length(case_clauses_in(Node)) =:= 1
+        end,
+    CaseNodes = elvis_code:find(IsSingleClauseCaseStatement, Root),
     lists:map(
         fun(CaseNode) ->
             {Line, _Col} = ktn_code:attr(location, CaseNode),
@@ -1850,9 +1853,6 @@ no_single_clause_case(Config, Target, RuleConfig) ->
         end,
         CaseNodes
     ).
-
-is_single_clause_case_statement(Node) ->
-    ktn_code:type(Node) =:= 'case' andalso length(case_clauses_in(Node)) =:= 1.
 
 case_clauses_in(Node) ->
     [
@@ -1872,7 +1872,10 @@ case_clauses_in(Node) ->
     [elvis_result:item()].
 no_single_match_maybe(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    CaseNodes = elvis_code:find(fun is_single_match_maybe_statement/1, Root),
+    IsSingleMatchMaybeStatement = fun (Node) ->
+        ktn_code:type(Node) =:= 'maybe' andalso length(ktn_code:content(Node)) =:= 1
+    end,
+    CaseNodes = elvis_code:find(IsSingleMatchMaybeStatement, Root),
     lists:map(
         fun(CaseNode) ->
             {Line, _Col} = ktn_code:attr(location, CaseNode),
@@ -1880,9 +1883,6 @@ no_single_match_maybe(Config, Target, RuleConfig) ->
         end,
         CaseNodes
     ).
-
-is_single_match_maybe_statement(Node) ->
-    ktn_code:type(Node) =:= 'maybe' andalso length(ktn_code:content(Node)) =:= 1.
 
 -type no_match_in_condition_config() :: #{ignore => [ignorable()]}.
 
