@@ -1731,8 +1731,8 @@ same_except_location_attr([LeftNode | LeftNodes], [RightNode | RigthNodes]) ->
 same_except_location_attr(LeftNode, RightNode) ->
     %% If we're evaluating a function, then even if we evaluate the same function on both sides,
     %% the results may be different.
-    not (is_call_node(LeftNode)) andalso
-        not (is_call_node(RightNode)) andalso
+    not is_call_node(LeftNode) andalso
+        not is_call_node(RightNode) andalso
         ktn_code:type(LeftNode) == ktn_code:type(RightNode) andalso
         maps:remove(location, maps:get(attrs, LeftNode)) ==
             maps:remove(location, maps:get(attrs, RightNode)) andalso
@@ -2327,7 +2327,7 @@ re_compile_for_atom_type(true = _IsEnclosed, _Regex, RegexEnclosed) ->
 
 %% @private
 is_atom_node(MaybeAtom) ->
-    ktn_code:type(zipper:node(MaybeAtom)) =:= atom andalso not (check_parent_remote(MaybeAtom)).
+    ktn_code:type(zipper:node(MaybeAtom)) =:= atom andalso not check_parent_remote(MaybeAtom).
 
 %% Variables name
 %% @private
