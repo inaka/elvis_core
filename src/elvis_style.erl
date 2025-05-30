@@ -2603,24 +2603,21 @@ character_at_location(
     %       or Position is equal to `left` and Col is 1.
     SpaceChar = $\s,
 
-    case ColToCheck =:= 0 of
-        true when How =:= should_have ->
+    case {ColToCheck, Position, length(TextLineStr)} of
+        {0, _, _} when How =:= should_have ->
             SpaceChar;
-        true when How =:= should_not_have ->
+        {0, _, _} when How =:= should_not_have ->
             "";
-        false when How =:= should_have, Position =:= right, ColToCheck > length(TextLineStr) ->
+        {_, right, LenLine} when How =:= should_have, ColToCheck > LenLine ->
             SpaceChar;
-        false when How =:= should_not_have, Position =:= right, ColToCheck > length(TextLineStr) ->
+        {_, right, LenLine} when How =:= should_not_have, ColToCheck > LenLine ->
             "";
+        _ when How =:= should_have ->
+            lists:nth(ColToCheck, TextLineStr);
+        _ when How =:= should_not_have, TextRegex =:= false; TextRegex =:= nomatch ->
+            lists:nth(ColToCheck, TextLineStr);
         _ ->
-            case How of
-                should_have ->
-                    lists:nth(ColToCheck, TextLineStr);
-                should_not_have when TextRegex =:= false; TextRegex =:= nomatch ->
-                    lists:nth(ColToCheck, TextLineStr);
-                _ ->
-                    ""
-            end
+            ""
     end.
 
 %% Nesting Level
