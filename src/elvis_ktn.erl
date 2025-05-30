@@ -1,6 +1,5 @@
 -module(elvis_ktn).
 
--export([line/1]).
 -export([location/1]).
 -export([module/1]).
 -export([name/1]).
@@ -9,10 +8,6 @@
 -export([text/1]).
 -export([tokens/1]).
 -export([value/1]).
-
-line(Node) ->
-    {Line, _Col} = location(Node),
-    Line.
 
 location(Node) ->
     ktn_code:attr(location, Node).

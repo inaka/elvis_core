@@ -610,7 +610,7 @@ check_variable_casing_consistency({_, [#{name := FirstName, var := FirstVar} | O
         [] ->
             [];
         OtherNames ->
-            Line = elvis_ktn:line(FirstVar),
+            {Line, _Col} = ktn_code:attr(location, FirstVar),
             Info = [FirstName, Line, OtherNames],
             [elvis_result:new(item, ?CONSISTENT_VARIABLE_CASING_MSG, Info, Line)]
     end.
@@ -713,7 +713,7 @@ no_macros(ElvisConfig, RuleTarget, RuleConfig) ->
                 true ->
                     Acc;
                 false ->
-                    Line = elvis_ktn:line(MacroNode),
+                    {Line, _Col} = ktn_code:attr(location, MacroNode),
                     [elvis_result:new(item, ?NO_MACROS_MSG, [Macro, Line], Line) | Acc]
             end
         end,
@@ -736,7 +736,7 @@ no_types(ElvisConfig, RuleTarget, RuleConfig) ->
     lists:foldl(
         fun(TypeNode, Acc) ->
             Type = elvis_ktn:name(TypeNode),
-            Line = elvis_ktn:line(TypeNode),
+            {Line, _Col} = ktn_code:attr(location, TypeNode),
             [elvis_result:new(item, ?NO_TYPES_MSG, [Type, Line], Line) | Acc]
         end,
         [],
@@ -758,7 +758,7 @@ no_nested_hrls(ElvisConfig, RuleTarget, RuleConfig) ->
     lists:foldl(
         fun(TypeNode, Acc) ->
             Type = elvis_ktn:name(TypeNode),
-            Line = elvis_ktn:line(TypeNode),
+            {Line, _Col} = ktn_code:attr(location, TypeNode),
             [elvis_result:new(item, ?NO_NESTED_HRLS_MSG, [Type, Line], Line) | Acc]
         end,
         [],
@@ -783,7 +783,7 @@ no_specs(ElvisConfig, RuleTarget, RuleConfig) ->
     lists:foldl(
         fun(SpecNode, Acc) ->
             FunctionName = elvis_ktn:name(SpecNode),
-            Line = elvis_ktn:line(SpecNode),
+            {Line, _Col} = ktn_code:attr(location, SpecNode),
             [elvis_result:new(item, ?NO_SPECS_MSG, [FunctionName, Line], Line) | Acc]
         end,
         [],
@@ -807,7 +807,7 @@ no_block_expressions(Config, Target, RuleConfig) ->
     BeginNodes = lists:filter(fun is_begin_node/1, Tokens),
     lists:foldl(
         fun(BeginNode, Acc) ->
-            Line = elvis_ktn:line(BeginNode),
+            {Line, _Col} = ktn_code:attr(location, BeginNode),
             [elvis_result:new(item, ?NO_BLOCK_EXPRESSIONS_MSG, [Line], Line) | Acc]
         end,
         [],
@@ -1256,7 +1256,7 @@ max_anonymous_function_arity(Config, Target, RuleConfig) ->
                 Arity when Arity =< MaxArity ->
                     false;
                 Arity ->
-                    Line = elvis_ktn:line(Fun),
+                    {Line, _Col} = ktn_code:attr(location, Fun),
                     Info = [Line, Arity, MaxArity],
                     {true,
                         elvis_result:new(
@@ -1310,7 +1310,7 @@ max_function_arity(Config, Target, RuleConfig) ->
                     false;
                 Arity ->
                     Name = elvis_ktn:name(Function),
-                    Line = elvis_ktn:line(Function),
+                    {Line, _Col} = ktn_code:attr(location, Function),
                     Info = [Name, Arity, MaxArity],
                     {true, elvis_result:new(item, ?MAX_FUNCTION_ARITY_MSG, Info, Line)}
             end
@@ -1479,7 +1479,8 @@ node_line_limits(FunctionNode) ->
     Zipper = elvis_code:code_zipper(FunctionNode),
     % The first number in `lineNums' list is the location of the first
     % line of the function. That's why we use it for the `Min' value.
-    LineNums = zipper:map(fun elvis_ktn:line/1, Zipper),
+    Predicate = fun (Node) -> ktn_code:attr(location, Node) end,
+    LineNums = zipper:map(Predicate, Zipper),
     % Last function's line
     Max = lists:max(LineNums),
     % If you use `lists:min/1' here, you will get weird results when using
@@ -1714,7 +1715,7 @@ no_boolean_in_comparison(Config, Target, RuleConfig) ->
 
     ResultFun =
         fun(Node) ->
-            Line = elvis_ktn:line(Node),
+            {Line, _Col} = ktn_code:attr(location, Node),
             Info = [Line],
             Msg = ?NO_BOOLEAN_IN_COMPARISON,
             elvis_result:new(item, Msg, Info, Line)
@@ -1749,7 +1750,7 @@ no_operation_on_same_value(Config, Target, RuleConfig) ->
 
     ResultFun =
         fun(Node) ->
-            Line = elvis_ktn:line(Node),
+            {Line, _Col} = ktn_code:attr(location, Node),
             Info = [elvis_ktn:operation(Node), Line],
             Msg = ?NO_OPERATION_ON_SAME_VALUE,
             elvis_result:new(item, Msg, Info, Line)
@@ -1800,7 +1801,7 @@ no_throw(Config, Target, RuleConfig) ->
     ThrowNodes = elvis_code:find(Zipper, Root),
     lists:foldl(
         fun(ThrowNode, AccIn) ->
-            Line = elvis_ktn:line(ThrowNode),
+            {Line, _Col} = ktn_code:attr(location, ThrowNode),
             [elvis_result:new(item, ?NO_THROW_MSG, [Line], Line) | AccIn]
         end,
         [],
@@ -1817,7 +1818,7 @@ no_dollar_space(Config, Target, RuleConfig) ->
     DollarSpaceNodes = elvis_code:find(IsDollarSpace, Root, Opts),
     lists:map(
         fun(ThrowNode) ->
-            Line = elvis_ktn:line(ThrowNode),
+            {Line, _Col} = ktn_code:attr(location, ThrowNode),
             elvis_result:new(item, ?NO_DOLLAR_SPACE_MSG, [Line], Line)
         end,
         DollarSpaceNodes
@@ -1843,7 +1844,7 @@ no_attribute(Attribute, Msg, Config, Target, RuleConfig) ->
     Nodes = elvis_code:find(Zipper, Root),
     lists:map(
         fun(Node) ->
-            Line = elvis_ktn:line(Node),
+            {Line, _Col} = ktn_code:attr(location, Node),
             elvis_result:new(item, Msg, [Line], Line)
         end,
         Nodes
@@ -1862,7 +1863,7 @@ no_catch_expressions(Config, Target, RuleConfig) ->
     CatchNodes = elvis_code:find(fun is_catch_node/1, Root),
     lists:foldl(
         fun(CatchNode, Acc) ->
-            Line = elvis_ktn:line(CatchNode),
+            {Line, _Col} = ktn_code:attr(location, CatchNode),
             [elvis_result:new(item, ?NO_CATCH_EXPRESSIONS_MSG, [Line], Line) | Acc]
         end,
         [],
@@ -1885,7 +1886,7 @@ no_single_clause_case(Config, Target, RuleConfig) ->
     CaseNodes = elvis_code:find(fun is_single_clause_case_statement/1, Root),
     lists:map(
         fun(CaseNode) ->
-            Line = elvis_ktn:line(CaseNode),
+            {Line, _Col} = ktn_code:attr(location, CaseNode),
             elvis_result:new(item, ?NO_SINGLE_CLAUSE_CASE_MSG, [Line], Line)
         end,
         CaseNodes
@@ -1915,7 +1916,7 @@ no_single_match_maybe(Config, Target, RuleConfig) ->
     CaseNodes = elvis_code:find(fun is_single_match_maybe_statement/1, Root),
     lists:map(
         fun(CaseNode) ->
-            Line = elvis_ktn:line(CaseNode),
+            {Line, _Col} = ktn_code:attr(location, CaseNode),
             elvis_result:new(item, ?NO_SINGLE_MATCH_MAYBE_MSG, [Line], Line)
         end,
         CaseNodes
@@ -1937,7 +1938,7 @@ no_match_in_condition(Config, Target, RuleConfig) ->
     CaseNodes = elvis_code:find(fun is_match_in_condition/1, Root),
     lists:map(
         fun(CaseNode) ->
-            Line = elvis_ktn:line(CaseNode),
+            {Line, _Col} = ktn_code:attr(location, CaseNode),
             elvis_result:new(item, ?NO_MATCH_IN_CONDITION_MSG, [Line], Line)
         end,
         CaseNodes
@@ -2012,7 +2013,7 @@ behaviour_spelling(Config, Target, RuleConfig) ->
         InconsistentBehaviorNodes ->
             ResultFun =
                 fun(Node) ->
-                    Line = elvis_ktn:line(Node),
+                    {Line, _Col} = ktn_code:attr(location, Node),
                     Info = [Line, Spelling],
                     elvis_result:new(item, ?BEHAVIOUR_SPELLING_MSG, Info, Line)
                 end,
@@ -2050,13 +2051,13 @@ param_pattern_matching(Config, Target, RuleConfig) ->
                 [true, true] ->
                     false;
                 [true, _] when Side == right ->
-                    Line = elvis_ktn:line(Match),
+                    {Line, _Col} = ktn_code:attr(location, Match),
                     [Var, _] = ktn_code:content(Match),
                     VarName = elvis_ktn:name(Var),
                     Info = [VarName, Line, Side],
                     {true, elvis_result:new(item, ?PARAM_PATTERN_MATCHING_MSG, Info, Line)};
                 [_, true] when Side == left ->
-                    Line = elvis_ktn:line(Match),
+                    {Line, _Col} = ktn_code:attr(location, Match),
                     [_, Var] = ktn_code:content(Match),
                     VarName = elvis_ktn:name(Var),
                     Info = [VarName, Line, Side],
@@ -2119,7 +2120,7 @@ always_shortcircuit(Config, Target, RuleConfig) ->
         BadOperators ->
             ResultFun =
                 fun(Node) ->
-                    Line = elvis_ktn:line(Node),
+                    {Line, _Col} = ktn_code:attr(location, Node),
                     BadOperator = elvis_ktn:operation(Node),
                     GoodOperator = maps:get(BadOperator, Operators),
                     Info = [BadOperator, Line, GoodOperator],
@@ -2266,7 +2267,7 @@ check_numeric_format(Regex, [NumNode | RemainingNumNodes], AccIn) ->
             Number ->
                 case re:run(Number, Regex) of
                     nomatch ->
-                        Line = elvis_ktn:line(NumNode),
+                        {Line, _Col} = ktn_code:attr(location, NumNode),
                         Result =
                             elvis_result:new(
                                 item,
@@ -2334,13 +2335,13 @@ check_atom_names(
                 AccIn;
             nomatch when not IsEnclosed ->
                 Msg = ?ATOM_NAMING_CONVENTION_MSG,
-                Line = elvis_ktn:line(AtomNode),
+                {Line, _Col} = ktn_code:attr(location, AtomNode),
                 Info = [AtomName0, Line, Regex],
                 Result = elvis_result:new(item, Msg, Info, Line),
                 AccIn ++ [Result];
             nomatch when IsEnclosed ->
                 Msg = ?ATOM_NAMING_CONVENTION_MSG,
-                Line = elvis_ktn:line(AtomNode),
+                {Line, _Col} = ktn_code:attr(location, AtomNode),
                 Info = [AtomName0, Line, RegexEnclosed],
                 Result = elvis_result:new(item, Msg, Info, Line),
                 AccIn ++ [Result];
@@ -2402,7 +2403,7 @@ check_variables_name(Regex, ForbiddenRegex, [Variable | RemainingVars]) ->
             check_variables_name(Regex, ForbiddenRegex, RemainingVars);
         nomatch ->
             Msg = ?VARIABLE_NAMING_CONVENTION_MSG,
-            Line = elvis_ktn:line(Variable),
+            {Line, _Col} = ktn_code:attr(location, Variable),
             Info = [VariableNameStr, Line, Regex],
             Result = elvis_result:new(item, Msg, Info, Line),
             [Result | check_variables_name(Regex, ForbiddenRegex, RemainingVars)];
@@ -2428,7 +2429,7 @@ check_variables_name(Regex, ForbiddenRegex, [Variable | RemainingVars]) ->
 %% @private
 result_node_line_fun(Msg) ->
     fun(Node) ->
-        Line = elvis_ktn:line(Node),
+        {Line, _Col} = ktn_code:attr(location, Node),
         Info = [Line],
         elvis_result:new(item, Msg, Info, Line)
     end.
@@ -2478,7 +2479,7 @@ check_macro_names(Regexp, [MacroNode | RemainingMacroNodes], ResultsIn) ->
         case re:run(MacroNameStripped, RE) of
             nomatch ->
                 Msg = ?INVALID_MACRO_NAME_REGEX_MSG,
-                Line = elvis_ktn:line(MacroNode),
+                {Line, _Col} = ktn_code:attr(location, MacroNode),
                 Info = [MacroNameOriginal, Line, Regexp],
                 Result = elvis_result:new(item, Msg, Info, Line),
                 ResultsIn ++ [Result];
@@ -2930,7 +2931,7 @@ check_no_call(Calls, Msg, NoCallFuns) ->
     ResultFun =
         fun(Call) ->
             {M, F, A} = call_mfa(Call),
-            Line = elvis_ktn:line(Call),
+            {Line, _Col} = ktn_code:attr(location, Call),
             elvis_result:new(item, Msg, [M, F, A, Line], Line)
         end,
     lists:map(ResultFun, BadCalls).
@@ -3016,7 +3017,7 @@ consistent_generic_type_predicate(TypePreference) ->
 %% @private
 consistent_generic_type_result(TypePreference) ->
     fun(Node) ->
-        Line = elvis_ktn:line(Node),
+        {Line, _Col} = ktn_code:attr(location, Node),
         NodeName = elvis_ktn:name(Node),
         Info = [NodeName, Line, TypePreference],
         elvis_result:new(item, ?CONSISTENT_GENERIC_TYPE, Info, Line)
