@@ -1504,32 +1504,28 @@ node_line_limits(FunctionNode) ->
     [elvis_result:item()].
 no_nested_try_catch(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
+    Predicate = fun(Node) -> ktn_code:type(Node) == 'try' end,
     ResultFun = result_node_line_fun(?NO_NESTED_TRY_CATCH),
-    case elvis_code:find(fun is_try_expr/1, Root) of
+    case elvis_code:find(Predicate, Root) of
         [] ->
             [];
         TryExprs ->
             lists:flatmap(fun(TryExp) -> check_nested_try_catchs(ResultFun, TryExp) end, TryExprs)
     end.
 
-is_try_expr(Node) ->
-    ktn_code:type(Node) =:= 'try'.
-
 -spec no_successive_maps(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
     [elvis_result:item()].
 no_successive_maps(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
+    Predicate = fun(Node) -> ktn_code:type(Node) == map end,
     ResultFun = result_node_line_fun(?NO_SUCCESSIVE_MAPS_MSG),
     FindOpts = #{mode => node, traverse => all},
-    case elvis_code:find(fun is_map_node/1, Root, FindOpts) of
+    case elvis_code:find(Predicate, Root, FindOpts) of
         [] ->
             [];
         MapExprs ->
             lists:flatmap(fun(MapExp) -> check_successive_maps(ResultFun, MapExp) end, MapExprs)
     end.
-
-is_map_node(Node) ->
-    ktn_code:type(Node) =:= map.
 
 -type atom_naming_convention_config() ::
     #{
@@ -1965,13 +1961,10 @@ has_match_child(Node) ->
     lists:any(fun is_match/1, ktn_code:content(Node)).
 
 is_match(Node) ->
-    is_match_node(Node) orelse is_maybe_match_node(Node).
+    is_match_node(Node) orelse (ktn_code:type(Node) =:= maybe_match).
 
 is_match_node(Node) ->
     ktn_code:type(Node) =:= match.
-
-is_maybe_match_node(Node) ->
-    ktn_code:type(Node) =:= maybe_match.
 
 -type numeric_format_config() ::
     #{
@@ -2081,9 +2074,6 @@ is_function_clause(Zipper) ->
 is_function_or_fun(Zipper) ->
     Node = zipper:node(Zipper),
     is_function_node(Node) orelse is_fun(Node).
-
-is_var_node(Node) ->
-    ktn_code:type(Node) =:= var.
 
 -spec consistent_generic_type(
     elvis_config:config(),
@@ -2678,16 +2668,13 @@ is_dynamic_call(Node) ->
             case ktn_code:type(FunctionSpec) of
                 remote ->
                     ModuleName = ktn_code:node_attr(module, FunctionSpec),
-                    is_var_node(ModuleName);
+                    ktn_code:type(ModuleName) =:= var;
                 _Other ->
                     false
             end;
         _ ->
             false
     end.
-
-is_remote_node(Node) ->
-    ktn_code:type(Node) =:= remote.
 
 %% Plain Variable
 %% @private
@@ -2762,7 +2749,7 @@ check_parent_remote(Zipper) ->
             false;
         ParentZipper ->
             Parent = zipper:node(ParentZipper),
-            is_remote_node(Parent)
+            ktn_code:type(Parent) =:= remote
     end.
 
 %% State record in OTP module
