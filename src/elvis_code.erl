@@ -256,7 +256,7 @@ make_extractor_fun(exported_types) ->
 make_extractor_fun(function_names) ->
     fun
         (#{type := function} = Node) ->
-            [elvis_ktn:name(Node)];
+            [ktn_code:attr(name, Node)];
         (_) ->
             []
     end.

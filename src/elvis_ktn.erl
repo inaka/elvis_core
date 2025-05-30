@@ -1,14 +1,10 @@
 -module(elvis_ktn).
 
--export([name/1]).
 -export([operation/1]).
 -export([pattern/1]).
 -export([text/1]).
 -export([tokens/1]).
 -export([value/1]).
-
-name(Node) ->
-    ktn_code:attr(name, Node).
 
 operation(Node) ->
     ktn_code:attr(operation, Node).
