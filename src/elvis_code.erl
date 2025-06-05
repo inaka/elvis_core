@@ -1,7 +1,18 @@
 -module(elvis_code).
 
 %% General
--export([find/2, find/3, find_by_location/2, find_token/2, code_zipper/1, code_zipper/2]).
+-export([
+    find/2,
+    find/3,
+    find_by_location/2,
+    find_by_names/2,
+    find_by_types/2,
+    find_by_types/3,
+    find_by_types_in_tokens/2,
+    find_token/2,
+    code_zipper/1,
+    code_zipper/2
+]).
 %% Specific
 -export([
     past_nesting_limit/2,
@@ -133,6 +144,35 @@ find_by_location(Root, Location) ->
         [Node | _] ->
             {ok, Node}
     end.
+
+find_by_names(Names, Root) ->
+    find(
+        fun(Node) ->
+            lists:member(ktn_code:attr(name, Node), Names)
+        end,
+        Root
+    ).
+
+find_by_types(Types, Root) ->
+    find_by_types(Types, Root, #{mode => node, traverse => content}).
+
+find_by_types(Types, Root, Opts) ->
+    find(
+        fun(Node) ->
+            lists:member(ktn_code:type(Node), Types)
+        end,
+        Root,
+        Opts
+    ).
+
+find_by_types_in_tokens(Types, Root) ->
+    Tokens = ktn_code:attr(tokens, Root),
+    lists:filter(
+        fun(Node) ->
+            lists:member(ktn_code:type(Node), Types)
+        end,
+        Tokens
+    ).
 
 is_at_location(#{attrs := #{location := {Line, NodeCol}}} = Node, {Line, Column}) ->
     Text = ktn_code:attr(text, Node),
