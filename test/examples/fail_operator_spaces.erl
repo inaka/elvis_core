@@ -2,6 +2,8 @@
 %% Another initial comment
 -module(fail_operator_spaces).
 
+-feature(maybe_expr, enable).
+
 -dialyzer({nowarn_function, function7/0}).
 
 -export([ function1/2
@@ -21,6 +23,7 @@
         , pass_more_operators/0
         , fail_more_operators/0
         , fail_no_space_excl/0
+        , fail_maybe/0
         ]).
 
 %% No space before and after coma,on a comment.
@@ -154,3 +157,12 @@ fail_more_operators()->
 
 fail_no_space_excl() ->
     self()!'a'.
+
+fail_maybe() ->
+    maybe
+        A = 2,
+        A?=throw(error)
+    else
+        _ ->
+            ok
+    end.

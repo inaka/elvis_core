@@ -41,6 +41,8 @@ compromised without adequate spacing.
 
 `{left, "!"}, {right, "!"}` was added in [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0)).
 
+`{left, "?="}, {right, "?="}` was added in [4.1.0](https://github.com/inaka/elvis_core/releases/tag/4.1.0)).
+
 ## Example configuration
 
 ```erlang
