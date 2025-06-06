@@ -345,7 +345,9 @@ default(operator_spaces) ->
                 {left, "->"},
                 {right, ","},
                 {left, "!"},
-                {right, "!"}
+                {right, "!"},
+                {right, "?="},
+                {left, "?="}
             ]
     };
 default(no_space) ->
@@ -871,7 +873,7 @@ operator_spaces(Config, Target, RuleConfig) ->
     Zipper = elvis_code:code_zipper(Root),
     OpNodes = zipper:filter(fun is_operator_node/1, Zipper),
 
-    PunctuationTokens = elvis_code:find_by_types_in_tokens(?PUNCTUATION_SYMBOLS, Root),
+    PunctuationTokens = elvis_code:find_by_types_in_tokens(['=' | ?PUNCTUATION_SYMBOLS], Root),
 
     Lines = elvis_utils:split_all_lines(Src),
     AllNodes = OpNodes ++ PunctuationTokens,
@@ -883,7 +885,14 @@ operator_spaces(Config, Target, RuleConfig) ->
 %% @doc Returns true when the node is an operator with more than one operand
 -spec is_operator_node(ktn_code:tree_node()) -> boolean().
 is_operator_node(Node) ->
-    ktn_code:type(Node) =:= op andalso length(ktn_code:content(Node)) > 1.
+    NodeType = ktn_code:type(Node),
+    OpOrMatch = [op | match_operators()],
+    ExtraOpsTypes = [map_field_exact, generate, b_generate, map_field_assoc],
+    (length(ktn_code:content(Node)) > 1 andalso lists:member(NodeType, OpOrMatch)) orelse
+        lists:member(NodeType, ExtraOpsTypes).
+
+match_operators() ->
+    [match, maybe_match].
 
 -type no_space_config() ::
     #{ignore => [ignorable()], rules => [{right | left, string()}]}.
@@ -1915,11 +1924,11 @@ is_match_in_condition(Node) ->
                 ktn_code:content(Node)
             )).
 
+is_match(Node) ->
+    lists:member(ktn_code:type(Node), match_operators()).
+
 has_match_child(Node) ->
-    IsMatch = fun(InnerNode) ->
-        ktn_code:type(InnerNode) =:= match orelse ktn_code:type(InnerNode) =:= maybe_match
-    end,
-    lists:any(IsMatch, ktn_code:content(Node)).
+    lists:any(fun is_match/1, ktn_code:content(Node)).
 
 -type numeric_format_config() ::
     #{
@@ -2654,12 +2663,9 @@ check_parent_match_or_macro(Zipper) ->
             false;
         ParentZipper ->
             Parent = zipper:node(ParentZipper),
-            case ktn_code:type(Parent) of
-                match ->
-                    zipper:down(ParentZipper) =:= Zipper;
-                macro ->
-                    zipper:down(ParentZipper) =:= Zipper;
-                maybe_match ->
+            IsMatchOrMacro = lists:member(ktn_code:type(Parent), [macro | match_operators()]),
+            case IsMatchOrMacro of
+                true ->
                     zipper:down(ParentZipper) =:= Zipper;
                 _ ->
                     check_parent_match_or_macro(ParentZipper)
