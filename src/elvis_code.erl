@@ -15,7 +15,6 @@
 %% Specific
 -export([
     past_nesting_limit/2,
-    exported_types/1,
     module_name/1,
     print_node/1, print_node/2
 ]).
@@ -227,11 +226,6 @@ module_name(#{type := root, content := Content}) ->
             undefined
     end.
 
--spec exported_types(ktn_code:tree_node()) -> [{atom(), integer()}].
-exported_types(#{type := root, content := Content}) ->
-    Fun = make_extractor_fun(exported_types),
-    lists:flatmap(Fun, Content).
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Internal
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -249,12 +243,4 @@ level_increment(#{type := Type}) ->
             1;
         false ->
             0
-    end.
-
-make_extractor_fun(exported_types) ->
-    fun
-        (#{type := export_type} = Node) ->
-            ktn_code:attr(value, Node);
-        (_) ->
-            []
     end.

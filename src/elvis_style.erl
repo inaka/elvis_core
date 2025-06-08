@@ -2097,9 +2097,8 @@ always_shortcircuit(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 export_used_types(Config, Target, RuleConfig) ->
     TreeRootNode = get_root(Config, Target, RuleConfig),
-    Exports = elvis_code:find_by_types([export], TreeRootNode),
-    ExportedFunctions = lists:flatmap(fun(Node) -> ktn_code:attr(value, Node) end, Exports),
-    ExportedTypes = elvis_code:exported_types(TreeRootNode),
+    FunctionExports = elvis_code:find_by_types([export], TreeRootNode),
+    ExportedFunctions = lists:flatmap(fun(Node) -> ktn_code:attr(value, Node) end, FunctionExports),
     SpecNodes = elvis_code:find_by_types([spec], TreeRootNode),
     ExportedSpecs =
         lists:filter(
@@ -2125,6 +2124,8 @@ export_used_types(Config, Target, RuleConfig) ->
                 ExportedSpecs
             )
         ),
+    TypeExports = elvis_code:find_by_types([export_type], TreeRootNode),
+    ExportedTypes = lists:flatmap(fun(Node) -> ktn_code:attr(value, Node) end, TypeExports),
     UnexportedUsedTypes = lists:subtract(UsedTypes, ExportedTypes),
     LineNumbers = map_type_declarations_to_line_numbers(TreeRootNode),
 
@@ -2157,7 +2158,8 @@ get_type_of_type(_) ->
 private_data_types(Config, Target, RuleConfig) ->
     TypesToCheck = option(apply_to, RuleConfig, private_data_types),
     TreeRootNode = get_root(Config, Target, RuleConfig),
-    ExportedTypes = elvis_code:exported_types(TreeRootNode),
+    TypeExports = elvis_code:find_by_types([export_type], TreeRootNode),
+    ExportedTypes = lists:flatmap(fun(Node) -> ktn_code:attr(value, Node) end, TypeExports),
     LineNumbers = map_type_declarations_to_line_numbers(TreeRootNode),
 
     PublicDataTypes = public_data_types(TypesToCheck, TreeRootNode, ExportedTypes),
