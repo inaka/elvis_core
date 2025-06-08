@@ -17,7 +17,6 @@
     past_nesting_limit/2,
     exported_functions/1,
     exported_types/1,
-    function_names/1,
     module_name/1,
     print_node/1, print_node/2
 ]).
@@ -241,13 +240,6 @@ exported_types(#{type := root, content := Content}) ->
     Fun = make_extractor_fun(exported_types),
     lists:flatmap(Fun, Content).
 
-%% @doc Takes the root node of a parse_tree and returns the name
-%%      of each function, whether exported or not.
--spec function_names(ktn_code:tree_node()) -> [atom()].
-function_names(#{type := root, content := Content}) ->
-    Fun = make_extractor_fun(function_names),
-    lists:flatmap(Fun, Content).
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Internal
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -281,13 +273,6 @@ make_extractor_fun(exported_types) ->
     fun
         (#{type := export_type} = Node) ->
             ktn_code:attr(value, Node);
-        (_) ->
-            []
-    end;
-make_extractor_fun(function_names) ->
-    fun
-        (#{type := function} = Node) ->
-            [ktn_code:attr(name, Node)];
         (_) ->
             []
     end.

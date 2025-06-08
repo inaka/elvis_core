@@ -532,7 +532,8 @@ function_naming_convention(Config, Target, RuleConfig) ->
     Regex = option(regex, RuleConfig, function_naming_convention),
     ForbiddenRegex = option(forbidden_regex, RuleConfig, function_naming_convention),
     Root = get_root(Config, Target, RuleConfig),
-    FunctionNames0 = elvis_code:function_names(Root),
+    Functions = elvis_code:find_by_types([function], Root),
+    FunctionNames0 = lists:map(fun(Node) -> ktn_code:attr(name, Node) end, Functions),
     errors_for_function_names(Regex, ForbiddenRegex, FunctionNames0).
 
 errors_for_function_names(_Regex, _ForbiddenRegex, []) ->
