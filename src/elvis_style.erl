@@ -1589,15 +1589,12 @@ is_relevant_behaviour(Root, RuleConfig) ->
     ConfigBehaviors = option(behaviours, RuleConfig, no_init_lists),
     Behaviours = elvis_code:find_by_types([behaviour, behavior], Root),
     lists:any(
-        fun(Elem) -> Elem end,
-        lists:map(
-            fun(BehaviourNode) ->
-                lists:member(
-                    ktn_code:attr(value, BehaviourNode), ConfigBehaviors
-                )
-            end,
-            Behaviours
-        )
+        fun(BehaviourNode) ->
+            lists:member(
+                ktn_code:attr(value, BehaviourNode), ConfigBehaviors
+            )
+        end,
+        Behaviours
     ).
 
 filter_list_clause_location(Clause) ->
