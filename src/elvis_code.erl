@@ -32,7 +32,7 @@
 -spec find(fun((zipper:zipper(_)) -> boolean()), ktn_code:tree_node()) ->
     [ktn_code:tree_node()].
 find(Pred, Root) ->
-    find(Pred, Root, #{mode => node, traverse => content}).
+    find(Pred, Root, #{}).
 
 %% @doc Find all nodes in the tree for which the predicate function returns
 %%      `true'. The options map has two keys:
@@ -141,7 +141,7 @@ find_by_location(Root, Location) ->
     end.
 
 find_by_types(Types, Root) ->
-    find_by_types(Types, Root, #{mode => node, traverse => content}).
+    find_by_types(Types, Root, #{}).
 
 find_by_types(Types, Root, Opts) ->
     find(
