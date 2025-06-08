@@ -15,7 +15,6 @@
 %% Specific
 -export([
     past_nesting_limit/2,
-    exported_functions/1,
     exported_types/1,
     module_name/1,
     print_node/1, print_node/2
@@ -228,13 +227,6 @@ module_name(#{type := root, content := Content}) ->
             undefined
     end.
 
-%% @doc Takes the root node of a parse_tree and returns name and arity
-%%      of each exported function.
--spec exported_functions(ktn_code:tree_node()) -> [{atom(), integer()}].
-exported_functions(#{type := root, content := Content}) ->
-    Fun = make_extractor_fun(exported_functions),
-    lists:flatmap(Fun, Content).
-
 -spec exported_types(ktn_code:tree_node()) -> [{atom(), integer()}].
 exported_types(#{type := root, content := Content}) ->
     Fun = make_extractor_fun(exported_types),
@@ -259,16 +251,6 @@ level_increment(#{type := Type}) ->
             0
     end.
 
-%% @private
-%% @doc Returns an anonymous Fun to be flatmapped over node content, as
-%% appropriate for the exported function whose name is the argument given.
-make_extractor_fun(exported_functions) ->
-    fun
-        (#{type := export} = Node) ->
-            ktn_code:attr(value, Node);
-        (_) ->
-            []
-    end;
 make_extractor_fun(exported_types) ->
     fun
         (#{type := export_type} = Node) ->

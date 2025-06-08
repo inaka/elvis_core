@@ -950,7 +950,8 @@ god_modules(Config, Target, RuleConfig) ->
 
     Root = get_root(Config, Target, RuleConfig),
 
-    Exported = elvis_code:exported_functions(Root),
+    Exports = elvis_code:find_by_types([export], Root),
+    Exported = lists:flatmap(fun(Node) -> ktn_code:attr(value, Node) end, Exports),
     case length(Exported) of
         Count when Count > Limit ->
             Msg = ?GOD_MODULES_MSG,
@@ -1270,8 +1271,10 @@ max_function_arity(Config, Target, RuleConfig) ->
     Functions = elvis_code:find_by_types([function], Root),
     lists:filtermap(
         fun(#{attrs := #{arity := Arity, name := Name}} = Function) ->
+            Exports = elvis_code:find_by_types([export], Root),
+            ExportedFunctions = lists:flatmap(fun(Node) -> ktn_code:attr(value, Node) end, Exports),
             IsExported =
-                lists:member({Name, Arity}, elvis_code:exported_functions(Root)),
+                lists:member({Name, Arity}, ExportedFunctions),
             MaxArity =
                 case IsExported of
                     true ->
@@ -2094,7 +2097,8 @@ always_shortcircuit(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 export_used_types(Config, Target, RuleConfig) ->
     TreeRootNode = get_root(Config, Target, RuleConfig),
-    ExportedFunctions = elvis_code:exported_functions(TreeRootNode),
+    Exports = elvis_code:find_by_types([export], TreeRootNode),
+    ExportedFunctions = lists:flatmap(fun(Node) -> ktn_code:attr(value, Node) end, Exports),
     ExportedTypes = elvis_code:exported_types(TreeRootNode),
     SpecNodes = elvis_code:find_by_types([spec], TreeRootNode),
     ExportedSpecs =
