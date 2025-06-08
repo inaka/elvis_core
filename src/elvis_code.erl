@@ -14,9 +14,8 @@
 ]).
 %% Specific
 -export([
-    past_nesting_limit/2,
-    module_name/1,
-    print_node/1, print_node/2
+    print_node/1,
+    print_node/2
 ]).
 
 -export_type([find_options/0]).
@@ -180,26 +179,6 @@ find_token(Root, Location) ->
             {ok, Token}
     end.
 
-%%% Processing functions
-
-%% @doc Takes a node and returns all nodes where the nesting limit is exceeded.
--spec past_nesting_limit(ktn_code:tree_node(), integer()) ->
-    [{ktn_code:tree_node(), integer()}].
-past_nesting_limit(Node, MaxLevel) ->
-    ResultNodes = past_nesting_limit(Node, 1, MaxLevel),
-    lists:reverse(ResultNodes).
-
-past_nesting_limit(Node, CurrentLevel, MaxLevel) when CurrentLevel > MaxLevel ->
-    [Node];
-past_nesting_limit(#{content := Content}, CurrentLevel, MaxLevel) ->
-    Fun = fun(ChildNode) ->
-        Increment = level_increment(ChildNode),
-        past_nesting_limit(ChildNode, Increment + CurrentLevel, MaxLevel)
-    end,
-    lists:flatmap(Fun, Content);
-past_nesting_limit(_Node, _CurrentLeve, _MaxLevel) ->
-    [].
-
 %% @doc Debugging utility function.
 -spec print_node(ktn_code:tree_node()) -> ok.
 print_node(Node) ->
@@ -214,33 +193,3 @@ print_node(#{type := Type} = Node, CurrentLevel) ->
     ok = elvis_utils:info("~s - [~p] ~p~n", [Indentation, CurrentLevel, Type]),
     _ = lists:map(fun(Child) -> print_node(Child, CurrentLevel + 1) end, Content),
     ok.
-
-%% @doc Takes the root node and returns the module's name.
--spec module_name(ktn_code:tree_node()) -> atom().
-module_name(#{type := root, content := Content}) ->
-    Fun = fun(#{type := Type}) -> Type == module end,
-    case lists:filter(Fun, Content) of
-        [ModuleNode | _] ->
-            ktn_code:attr(value, ModuleNode);
-        [] ->
-            undefined
-    end.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Internal
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%% @private
-%% @doc Takes a node and determines its nesting level increment.
-level_increment(#{type := 'fun', content := _}) ->
-    1;
-level_increment(#{type := 'fun'}) ->
-    0;
-level_increment(#{type := Type}) ->
-    IncrementOne = [function, 'case', 'if', try_case, try_catch, named_fun, receive_case],
-    case lists:member(Type, IncrementOne) of
-        true ->
-            1;
-        false ->
-            0
-    end.

@@ -1046,7 +1046,8 @@ module_naming_convention(Config, Target, RuleConfig) ->
     IgnoreModules = option(ignore, RuleConfig, module_naming_convention),
 
     Root = get_root(Config, Target, RuleConfig),
-    ModuleName = elvis_code:module_name(Root),
+    [Module] = elvis_code:find_by_types([module], Root),
+    ModuleName = ktn_code:attr(value, Module),
 
     case lists:member(ModuleName, IgnoreModules) of
         false ->
@@ -1174,7 +1175,8 @@ max_module_length(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
     {Src0, _} = elvis_file:src(Target),
 
-    ModuleName = elvis_code:module_name(Root),
+    [Module] = elvis_code:find_by_types([module], Root),
+    ModuleName = ktn_code:attr(value, Module),
 
     DocParts = doc_bin_parts(Src0),
     Docs = iolist_to_binary(bin_parts_to_iolist(Src0, DocParts)),
@@ -2571,7 +2573,7 @@ character_at_location(
 %% @private
 -spec check_nesting_level(ktn_code:tree_node(), [integer()]) -> [elvis_result:item()].
 check_nesting_level(ParentNode, [MaxLevel]) ->
-    case elvis_code:past_nesting_limit(ParentNode, MaxLevel) of
+    case past_nesting_limit(ParentNode, MaxLevel) of
         [] ->
             [];
         NestedNodes ->
@@ -2584,6 +2586,38 @@ check_nesting_level(ParentNode, [MaxLevel]) ->
             end,
 
             lists:map(Fun, NestedNodes)
+    end.
+
+%% @doc Takes a node and returns all nodes where the nesting limit is exceeded.
+-spec past_nesting_limit(ktn_code:tree_node(), integer()) ->
+    [{ktn_code:tree_node(), integer()}].
+past_nesting_limit(Node, MaxLevel) ->
+    ResultNodes = past_nesting_limit(Node, 1, MaxLevel),
+    lists:reverse(ResultNodes).
+
+past_nesting_limit(Node, CurrentLevel, MaxLevel) when CurrentLevel > MaxLevel ->
+    [Node];
+past_nesting_limit(#{content := Content}, CurrentLevel, MaxLevel) ->
+    Fun = fun(ChildNode) ->
+        Increment = level_increment(ChildNode),
+        past_nesting_limit(ChildNode, Increment + CurrentLevel, MaxLevel)
+    end,
+    lists:flatmap(Fun, Content);
+past_nesting_limit(_Node, _CurrentLeve, _MaxLevel) ->
+    [].
+
+%% @doc Takes a node and determines its nesting level increment.
+level_increment(#{type := 'fun', content := _}) ->
+    1;
+level_increment(#{type := 'fun'}) ->
+    0;
+level_increment(#{type := Type}) ->
+    IncrementOne = [function, 'case', 'if', try_case, try_catch, named_fun, receive_case],
+    case lists:member(Type, IncrementOne) of
+        true ->
+            1;
+        false ->
+            0
     end.
 
 %% Invalid Dynamic Calls
