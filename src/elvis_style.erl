@@ -2497,7 +2497,7 @@ check_spaces(Lines, UnfilteredNodes, {Position, Text}, Encoding, {How0, _} = How
 
 %% @private
 maybe_run_regex(undefined = _Regex, _Line) ->
-    false;
+    undefined;
 maybe_run_regex({ok, Regex}, Line) ->
     re:run(Line, Regex).
 
@@ -2524,7 +2524,7 @@ character_at_location(
     TextRegex =
         case TextRegexes of
             [] ->
-                false;
+                undefined;
             _ ->
                 maybe_run_regex(proplists:get_value(Text, TextRegexes), Line)
         end,
@@ -2554,7 +2554,7 @@ character_at_location(
             "";
         _ when How =:= should_have ->
             lists:nth(ColToCheck, TextLineStr);
-        _ when How =:= should_not_have, not TextRegex; TextRegex =:= nomatch ->
+        _ when How =:= should_not_have, TextRegex =:= undefined; TextRegex =:= nomatch ->
             lists:nth(ColToCheck, TextLineStr);
         _ ->
             ""
