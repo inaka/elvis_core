@@ -1094,7 +1094,7 @@ is_forbidden_module_name(Target, Regex, Message) ->
     [elvis_result:item()].
 state_record_and_type(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    case is_otp_module(Root) of
+    case is_otp_behaviour(Root) of
         true ->
             case {has_state_record(Root), has_state_type(Root)} of
                 {true, true} ->
@@ -2693,8 +2693,8 @@ check_parent_remote(Zipper) ->
 
 %% State record in OTP module
 
--spec is_otp_module(ktn_code:tree_node()) -> boolean().
-is_otp_module(Root) ->
+-spec is_otp_behaviour(ktn_code:tree_node()) -> boolean().
+is_otp_behaviour(Root) ->
     OtpSet = sets:from_list([gen_server, gen_event, gen_fsm, gen_statem, supervisor_bridge]),
     case elvis_code:find_by_types([behaviour, behavior], Root) of
         [] ->
