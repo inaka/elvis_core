@@ -50,7 +50,6 @@ find(Pred, Root) ->
 %%        </li>
 %%      </ul>
 %% @end
-
 -spec find(fun((zipper:zipper(_)) -> boolean()), ktn_code:tree_node(), find_options()) ->
     [ktn_code:tree_node()].
 find(Pred, Root, Opts) ->
@@ -184,6 +183,7 @@ find_token(Root, Location) ->
 print_node(Node) ->
     print_node(Node, 0).
 
+%% @doc Debugging utility function.
 -spec print_node(ktn_code:tree_node(), integer()) -> ok.
 print_node(#{type := Type} = Node, CurrentLevel) ->
     Type = ktn_code:type(Node),
