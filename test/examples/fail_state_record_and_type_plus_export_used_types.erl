@@ -2,8 +2,6 @@
 
 -dialyzer(no_behaviours).
 
--behaviour(gen_server).
-
 -export([
          init/1,
          handle_call/3,

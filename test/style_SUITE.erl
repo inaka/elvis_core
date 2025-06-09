@@ -1238,7 +1238,6 @@ verify_consistent_generic_type(Config) ->
             #{preferred_type => term},
             PathPass2
         ),
-    PathPass2 = "consistent_generic_type_no_checks." ++ Ext,
     [] =
         elvis_core_apply_rule(
             Config,
