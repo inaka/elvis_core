@@ -36,8 +36,6 @@ start() ->
     {ok, _} = application:ensure_all_started(elvis_core),
     ok.
 
-%%% Rock Command
-
 -spec rock(elvis_config:configs()) ->
     ok | {fail, [{throw, term()} | elvis_result:file() | elvis_result:rule()]}.
 rock(Config) ->
