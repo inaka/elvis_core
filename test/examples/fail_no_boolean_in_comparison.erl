@@ -15,6 +15,12 @@ other_examples(A) ->
     %% A regular match operator
     Y = X == true,
 
+    %% And a stricter one
+    Y = X =:= true,
+
+    %% And yet another (stricter) one
+    Y1 = X =/= true,
+
     %% A list comprehension (different places)
     [ E || E <- build:a_list(), false == check:something_on(E)],
 
@@ -22,7 +28,7 @@ other_examples(A) ->
     F = fun(X2, Y2) when X2 == true, false == Y2 -> {shake, my, head} end,
     F(X, Y),
 
-    case the:result(F, Y) of
-        Bool when Bool == true; Bool == false -> do:something_with(the, Bool);
+    case the:result(F, Y1) of
+        Bool when Bool == true; Bool /= false -> do:something_with(the, Bool);
         NotBool -> do:something_else_with(this, NotBool, thingy)
     end.

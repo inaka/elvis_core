@@ -1670,7 +1670,7 @@ no_boolean_in_comparison(Config, Target, RuleConfig) ->
         fun(Node) ->
             Content = ktn_code:content(Node),
             ktn_code:type(Node) =:= op andalso
-                ktn_code:attr(operation, Node) =:= '==' andalso
+                lists:member(ktn_code:attr(operation, Node), ['==', '=:=', '/=', '=/=']) andalso
                 lists:any(IsBoolean, Content)
         end,
     ComparisonsWithBoolean =
@@ -2475,7 +2475,7 @@ check_spaces(Lines, UnfilteredNodes, {Position, Text}, Encoding, {How0, _} = How
     lists:flatmap(FlatFun, Nodes).
 
 maybe_run_regex(undefined = _Regex, _Line) ->
-    false;
+    nomatch;
 maybe_run_regex({ok, Regex}, Line) ->
     re:run(Line, Regex).
 
@@ -2501,7 +2501,7 @@ character_at_location(
     TextRegex =
         case TextRegexes of
             [] ->
-                false;
+                nomatch;
             _ ->
                 maybe_run_regex(proplists:get_value(Text, TextRegexes), Line)
         end,
@@ -2529,9 +2529,7 @@ character_at_location(
             SpaceChar;
         {_, right, LenLine} when How =:= should_not_have, ColToCheck > LenLine ->
             "";
-        _ when How =:= should_have ->
-            lists:nth(ColToCheck, TextLineStr);
-        _ when How =:= should_not_have, TextRegex =:= false; TextRegex =:= nomatch ->
+        _ when How =:= should_have; TextRegex =:= nomatch ->
             lists:nth(ColToCheck, TextLineStr);
         _ ->
             ""
