@@ -1044,9 +1044,10 @@ module_naming_convention(Config, Target, RuleConfig) ->
             [Module] ->
                 ktn_code:attr(value, Module);
             _ ->
-                % .hrl, maybe?
+                % .hrl, maybe? or .beam?
                 #{path := Path} = Target,
-                Basename = filename:basename(Path, ".hrl"),
+                Basename0 = filename:basename(Path, ".hrl"),
+                Basename = filename:basename(Basename0, ".beam"),
                 list_to_atom(Basename)
         end,
 
