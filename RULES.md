@@ -105,7 +105,8 @@ The six pre-defined rulesets are:
 - `erl_files`, for Erlang source files (pre-defined rule set).
 - `erl_files_strict`, for Erlang source files (all available rules).
 - `gitignore`, for `.gitignore` files.
-- `hrl_files`, for Erlang header files.
+- `hrl_files`, for Erlang header files (pre-defined rule set).
+- `hrl_files_strict`, for Erlang header files (all available rules).
 - `rebar_config`, for rebar configuration files.
 
 Custom rulesets are defined in a `{<ruleset>, #{}}` tuple in `elvis`' configuration. Each key in the
@@ -194,6 +195,11 @@ To target these, specifiy `beam_files` (or `beam_files_strict`), instead of `erl
 
 Though this analysis may be useful for pin-pointing certain elements, beware that, e.g., reported
 line numbers will most surely not correspond with those in the source file.
+
+## HRL files
+
+Specific rules (signaled with ![](https://img.shields.io/badge/HRL--only-yes-magenta)) are reserved
+for `.hrl` files.
 
 ## Example `elvis.config`
 
