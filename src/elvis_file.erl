@@ -190,11 +190,11 @@ find_encoding(Content) ->
     Ignore :: [elvis_style:ignorable()],
     Res :: file().
 maybe_add_abstract_parse_tree(
-    #{ruleset := beam_files},
+    #{ruleset := Ruleset},
     #{path := Path} = File,
     Mod,
     Ignore
-) ->
+) when Ruleset =:= beam_files; Ruleset =:= beam_files_strict ->
     AbstractParseTree = get_abstract_parse_tree(Path, Mod, Ignore),
     File#{abstract_parse_tree => AbstractParseTree};
 maybe_add_abstract_parse_tree(_Config, File, _Mod, _Ignore) ->
