@@ -15,6 +15,12 @@ other_examples(A) ->
     %% A regular match operator
     Y = X == true,
 
+    %% And a stricter one
+    Y = X =:= true,
+
+    %% And yet another (stricter) one
+    Y = X =/= true,
+
     %% A list comprehension (different places)
     [ E || E <- build:a_list(), false == check:something_on(E)],
 
