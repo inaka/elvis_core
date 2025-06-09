@@ -120,11 +120,11 @@ prefer_unquoted_atoms(_Config, Target, _RuleConfig) ->
     AtomNodes = elvis_code:find_by_types([atom], Tree, #{traverse => all, mode => node}),
     check_atom_quotes(AtomNodes, []).
 
-needs_quoting(AtomStr) ->
-    case re:run(AtomStr, "^'[a-z][a-zA-Z0-9_@]*'$", [{capture, none}]) of
+needs_quoting(AtomName0) ->
+    case re:run(AtomName0, "^'[a-z][a-zA-Z0-9_@]*'$", [{capture, none}]) of
         match ->
-            AtomAsString = string:trim(AtomStr, both, "'"),
-            Atom = list_to_atom(AtomAsString),
+            AtomName = string:trim(AtomName0, both, "'"),
+            Atom = list_to_atom(AtomName),
             Atom =:= 'maybe' orelse erl_scan:f_reserved_word(Atom);
         _ ->
             true
@@ -133,14 +133,14 @@ needs_quoting(AtomStr) ->
 check_atom_quotes([] = _AtomNodes, Acc) ->
     Acc;
 check_atom_quotes([AtomNode | RemainingAtomNodes], AccIn) ->
-    AtomStr = ktn_code:attr(text, AtomNode),
+    AtomName = ktn_code:attr(text, AtomNode),
 
     AccOut =
-        case needs_quoting(AtomStr) of
+        case needs_quoting(AtomName) of
             false ->
                 Msg = ?ATOM_PREFERRED_QUOTES_MSG,
                 {Line, _} = ktn_code:attr(location, AtomNode),
-                Info = [AtomStr, Line],
+                Info = [AtomName, Line],
                 Result = elvis_result:new(item, Msg, Info, Line),
                 AccIn ++ [Result];
             _ ->
