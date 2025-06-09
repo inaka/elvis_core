@@ -28,6 +28,9 @@ results in clearer, faster, and more maintainable code.
              , {gen_event, call, 3}
               ]`
 
+`{gen_statem, call, 2}`, `{gen_server, call, 2}`, and `{gen_event, call, 3}` were added in
+[4.1.0](https://github.com/inaka/elvis_core/releases/tag/4.1.0)
+
 ## Example configuration
 
 ```erlang
