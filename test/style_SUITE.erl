@@ -875,24 +875,33 @@ verify_invalid_dynamic_call(Config) ->
         case Group of
             beam_files ->
                 [
+                    % Module:call()
                     #{line_num := _},
+                    % Module:call_to_function()
                     #{line_num := _},
+                    % Module:call_to__another_function()
                     #{line_num := _},
+                    % Module:call_to_function()
                     #{line_num := _},
+                    % Module:call_to_function()
                     #{line_num := _},
+                    % Module:call_to_function()
                     #{line_num := _},
+                    % Module:call_to_function()
+                    #{line_num := _},
+                    % ?CALL(Module, call_to_function, [])
                     #{line_num := _}
                 ] =
                     elvis_core_apply_rule(Config, elvis_style, invalid_dynamic_call, #{}, PathFail);
             erl_files ->
                 [
-                    #{line_num := 19},
-                    #{line_num := 31},
-                    #{line_num := 32},
-                    #{line_num := 40},
-                    #{line_num := 48},
-                    #{line_num := 59},
-                    #{line_num := 66}
+                    #{line_num := 21},
+                    #{line_num := 33},
+                    #{line_num := 34},
+                    #{line_num := 42},
+                    #{line_num := 50},
+                    #{line_num := 61},
+                    #{line_num := 68}
                 ] =
                     elvis_core_apply_rule(Config, elvis_style, invalid_dynamic_call, #{}, PathFail)
         end,
@@ -1661,12 +1670,27 @@ verify_no_debug_call(Config) ->
 
     _ =
         case Group of
-            % io:format is preprocessed
             beam_files ->
-                [_, _, _, _, _, _] =
+                [
+                    #{info := [erlang, display, 1, 8]},
+                    #{info := [io, format, 1, 9]},
+                    % ?DBG is preprocessed
+                    #{info := [io, format, 2, 10]},
+                    #{info := [ct, print, 1, 16]},
+                    #{info := [ct, print, 2, 17]},
+                    #{info := [io, put_chars, 1, 18]}
+                ] =
                     elvis_core_apply_rule(Config, elvis_style, no_debug_call, #{}, PathFail);
             erl_files ->
-                [_, _, _, _, _, _, _, _] =
+                [
+                    #{info := [erlang, display, 1, 8]},
+                    #{info := [io, format, 1, 9]},
+                    #{info := [ct, pal, 1, 13]},
+                    #{info := [ct, pal, 2, 14]},
+                    #{info := [ct, print, 1, 15]},
+                    #{info := [ct, print, 2, 16]},
+                    #{info := [io, put_chars, 1, 17]}
+                ] =
                     elvis_core_apply_rule(Config, elvis_style, no_debug_call, #{}, PathFail)
         end,
 
@@ -1710,8 +1734,18 @@ verify_no_debug_call(Config) ->
         end,
 
     RuleConfig4 = #{debug_functions => [{io, format}]},
-    [_, _, _] =
-        elvis_core_apply_rule(Config, elvis_style, no_debug_call, RuleConfig4, PathFail),
+    _ =
+        case Group of
+            beam_files ->
+                % pre-processing surfaces further issues with no_debug_call
+                [_, _, _] = elvis_core_apply_rule(
+                    Config, elvis_style, no_debug_call, RuleConfig4, PathFail
+                );
+            erl_files ->
+                [_, _] = elvis_core_apply_rule(
+                    Config, elvis_style, no_debug_call, RuleConfig4, PathFail
+                )
+        end,
 
     RuleConfig5 = #{debug_functions => [{ct, print}]},
     [_, _] = elvis_core_apply_rule(Config, elvis_style, no_debug_call, RuleConfig5, PathFail).
