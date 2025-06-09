@@ -1720,7 +1720,7 @@ verify_no_debug_call(Config) ->
 %% other than defaults, they behave the same
 -spec verify_no_common_caveats_call(config()) -> any().
 verify_no_common_caveats_call(Config) ->
-    verify_no_call_flavours(Config, no_common_caveats_call, caveat_functions, 6).
+    verify_no_call_flavours(Config, no_common_caveats_call, caveat_functions, 9).
 
 -spec verify_no_call(config()) -> any().
 verify_no_call(Config) ->

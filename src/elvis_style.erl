@@ -421,7 +421,10 @@ default(no_common_caveats_call) ->
                 {timer, send_after, 3},
                 {timer, send_interval, 2},
                 {timer, send_interval, 3},
-                {erlang, size, 1}
+                {erlang, size, 1},
+                {gen_statem, call, 2},
+                {gen_server, call, 2},
+                {gen_event, call, 3}
             ]
     };
 default(atom_naming_convention) ->
