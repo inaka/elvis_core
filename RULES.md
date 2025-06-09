@@ -103,10 +103,10 @@ The six pre-defined rulesets are:
 
 - `elvis_config`, for elvis configuration files.
 - `erl_files`, for Erlang source files (pre-defined rule set).
-- `erl_files_strict`, for Erlang source files (all available rules).
+- `erl_files_strict`, for Erlang source files (all applicable rules).
 - `gitignore`, for `.gitignore` files.
 - `hrl_files`, for Erlang header files (pre-defined rule set).
-- `hrl_files_strict`, for Erlang header files (all available rules).
+- `hrl_files_strict`, for Erlang header files (all applicable rules).
 - `rebar_config`, for rebar configuration files.
 
 Custom rulesets are defined in a `{<ruleset>, #{}}` tuple in `elvis`' configuration. Each key in the
