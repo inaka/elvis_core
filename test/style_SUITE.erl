@@ -875,24 +875,33 @@ verify_invalid_dynamic_call(Config) ->
         case Group of
             beam_files ->
                 [
+                    % Module:call()
                     #{line_num := _},
+                    % Module:call_to_function()
                     #{line_num := _},
+                    % Module:call_to__another_function()
                     #{line_num := _},
+                    % Module:call_to_function()
                     #{line_num := _},
+                    % Module:call_to_function()
                     #{line_num := _},
+                    % Module:call_to_function()
                     #{line_num := _},
+                    % Module:call_to_function()
+                    #{line_num := _},
+                    % ?CALL(Module, call_to_function, [])
                     #{line_num := _}
                 ] =
                     elvis_core_apply_rule(Config, elvis_style, invalid_dynamic_call, #{}, PathFail);
             erl_files ->
                 [
-                    #{line_num := 19},
-                    #{line_num := 31},
-                    #{line_num := 32},
-                    #{line_num := 40},
-                    #{line_num := 48},
-                    #{line_num := 59},
-                    #{line_num := 66}
+                    #{line_num := 21},
+                    #{line_num := 33},
+                    #{line_num := 34},
+                    #{line_num := 42},
+                    #{line_num := 50},
+                    #{line_num := 61},
+                    #{line_num := 68}
                 ] =
                     elvis_core_apply_rule(Config, elvis_style, invalid_dynamic_call, #{}, PathFail)
         end,

@@ -1,5 +1,7 @@
 -module(fail_invalid_dynamic_call).
 
+-define(CALL(M, F, A), M:F(A)).
+
 -elvis([{elvis_style, no_catch_expressions, disable}]).
 -dialyzer(no_match).
 
@@ -63,4 +65,5 @@ dynamic_module_name_call_in_try_catch() ->
 
 dynamic_module_name_call_in_catch() ->
     Module = yammm,
-    catch Module:call_to_function().
+    catch Module:call_to_function(),
+    ?CALL(Module, call_to_function, []).
