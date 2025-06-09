@@ -53,7 +53,9 @@ default(no_tabs) ->
 default(no_trailing_whitespace) ->
     #{ignore_empty_lines => false};
 default(no_redundant_blank_lines) ->
-    #{max_lines => 1}.
+    #{max_lines => 1};
+default(prefer_unquoted_atoms) ->
+    #{}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Rules

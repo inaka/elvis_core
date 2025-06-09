@@ -209,7 +209,7 @@ beam_files_strict_rules() ->
     erl_files_strict_rules() -- doesnt_work_on_beam_files().
 
 doesnt_work_on_beam_files() ->
-    not_on_beam() ++ elvis_style_rules() ++ elvis_style_stricter_rules().
+    not_on_beam() ++ elvis_text_style_rules() ++ elvis_text_style_stricter_rules().
 
 not_on_beam() ->
     [

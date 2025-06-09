@@ -1,6 +1,6 @@
 -module(elvis_gitignore).
 
--export([required_patterns/3, forbidden_patterns/3]).
+-export([required_patterns/3, forbidden_patterns/3, default/1]).
 
 -define(REQUIRED_PATTERN, "Your .gitignore file should contain pattern '~s'.").
 -define(FORBIDDEN_PATTERN, "Your .gitignore file should not contain pattern '~s'.").
