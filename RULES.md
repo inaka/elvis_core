@@ -189,6 +189,9 @@ rules only**)
 Specific rules (signaled with ![](https://img.shields.io/badge/BEAM-yes-orange)) allow you to
 perform analysis directly on beam files (instead of source code).
 
+To target these, specifiy `beam_files` (or `beam_files_strict`), instead of `erl_files` (or
+`erl_files_strict`), as the target `ruleset`.
+
 Though this analysis may be useful for pin-pointing certain elements, beware that, e.g., reported
 line numbers will most surely not correspond with those in the source file.
 
