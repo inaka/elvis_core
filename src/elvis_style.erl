@@ -2733,7 +2733,7 @@ has_state_type(Root) ->
 spec_includes_record(Node) ->
     IsTypeRecord =
         fun(Child) ->
-            (ktn_code:type(Child) =:= 'type') andalso (ktn_code:attr(name, Child) =:= record)
+            (ktn_code:type(Child) =:= type) andalso (ktn_code:attr(name, Child) =:= record)
         end,
     Opts = #{traverse => all},
     (ktn_code:type(Node) =:= spec) andalso (elvis_code:find(IsTypeRecord, Node, Opts) =/= []).
@@ -2916,7 +2916,7 @@ check_successive_maps(ResultFun, MapExp) ->
 consistent_generic_type_predicate(TypePreference) ->
     fun(Node) ->
         NodeName = ktn_code:attr(name, Node),
-        (ktn_code:type(Node) =:= 'type' orelse ktn_code:type(Node) =:= callback) andalso
+        (ktn_code:type(Node) =:= type orelse ktn_code:type(Node) =:= callback) andalso
             lists:member(NodeName, [term, any]) andalso
             NodeName =/= TypePreference
     end.
