@@ -219,7 +219,6 @@ status(_Rules) ->
 clean(Files) ->
     clean(Files, []).
 
-%% @private
 -spec clean([file() | rule()], [file() | rule()]) -> [file() | rule()].
 clean([], Result) ->
     lists:reverse(Result);

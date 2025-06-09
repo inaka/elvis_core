@@ -120,7 +120,6 @@ prefer_unquoted_atoms(_Config, Target, _RuleConfig) ->
     AtomNodes = elvis_code:find(fun is_atom_node/1, Tree, #{traverse => all, mode => node}),
     check_atom_quotes(AtomNodes, []).
 
-%% @private
 check_atom_quotes([] = _AtomNodes, Acc) ->
     Acc;
 check_atom_quotes([AtomNode | RemainingAtomNodes], AccIn) ->
@@ -187,7 +186,6 @@ redundant_blank_lines(Lines, {CurrentLineNum, ResultList}) ->
 
 %% Line Length
 
-%% @private
 -spec line_is_comment(binary()) -> boolean().
 line_is_comment(Line) ->
     case re:run(Line, "^[ \t]*%") of
@@ -197,7 +195,6 @@ line_is_comment(Line) ->
             true
     end.
 
-%% @private
 -spec remove_comment(binary()) -> binary().
 remove_comment(Line) ->
     case re:run(Line, "([^%]+)", [{capture, first, binary}]) of
@@ -207,7 +204,6 @@ remove_comment(Line) ->
             Without
     end.
 
-%% @private
 -spec check_line_length(binary(), integer(), [term()]) ->
     no_result | {ok, elvis_result:item()}.
 check_line_length(Line, Num, [Limit, whole_line, Encoding, NoWhitespace]) ->
@@ -246,7 +242,6 @@ check_line_length(Line0, Num, [Limit, Encoding, NoWhitespace]) ->
 
 %% No Tabs
 
-%% @private
 -spec check_no_tabs(binary(), integer()) -> no_result | {ok, elvis_result:item()}.
 check_no_tabs(Line, Num) ->
     case binary:match(Line, <<"\t">>) of
@@ -261,7 +256,6 @@ check_no_tabs(Line, Num) ->
 
 %% No Trailing Whitespace
 
-%% @private
 -spec check_no_trailing_whitespace(binary(), integer(), boolean()) ->
     no_result | {ok, elvis_result:item()}.
 check_no_trailing_whitespace(Line, Num, IgnoreEmptyLines) ->
@@ -284,11 +278,9 @@ check_no_trailing_whitespace(Line, Num, IgnoreEmptyLines) ->
             {ok, Result}
     end.
 
-%% @private
 is_atom_node(MaybeAtom) ->
     ktn_code:type(MaybeAtom) =:= atom.
 
-%% @private
 is_exception_prefer_quoted(Elem) ->
     KeyWords =
         [

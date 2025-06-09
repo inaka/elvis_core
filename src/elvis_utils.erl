@@ -43,7 +43,6 @@ check_lines_with_context(Src, Fun, Args, Ctx) ->
     LinesContext = context(Lines, Ctx),
     check_lines(LinesContext, Fun, Args, [], 1).
 
-%% @private
 check_lines([], _Fun, _Args, Results, _Num) ->
     lists:flatten(
         lists:reverse(Results)
@@ -63,7 +62,6 @@ check_lines([Line | Lines], Fun, Args, Results, Num) ->
             check_lines(Lines, Fun, Args, Results, Num + 1)
     end.
 
-%% @private
 context(List, CtxCount) ->
     context(List, [], CtxCount, []).
 
@@ -84,7 +82,6 @@ check_nodes(RootNode, Fun, Args) ->
     ChildNodes = ktn_code:content(RootNode),
     check_nodes(ChildNodes, Fun, Args, []).
 
-%% @private
 check_nodes([], _Fun, _Args, Results) ->
     FlatResults = lists:flatten(Results),
     lists:reverse(FlatResults);

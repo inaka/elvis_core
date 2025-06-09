@@ -140,7 +140,6 @@ module(#{path := Path}) ->
 %% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% @private
 -spec resolve_parse_tree(string(), string() | binary(), module(), list()) ->
     undefined | ktn_code:tree_node().
 resolve_parse_tree(".erl", Content, Mod, Ignore) ->
@@ -152,7 +151,6 @@ resolve_parse_tree(".hrl", Content, Mod, Ignore) ->
 resolve_parse_tree(_, _, _, _) ->
     undefined.
 
-%% @private
 filter_tree_for(Tree, Mod, Ignore) when is_map(Tree) ->
     TreeContent = maps:get(content, Tree, []),
     Tree#{
@@ -176,7 +174,6 @@ filter_tree_for(Tree, Mod, Ignore) when is_map(Tree) ->
 filter_tree_for(Tree, _Mod, _Ignore) ->
     Tree.
 
-%% @private
 -spec find_encoding(Content :: binary()) -> atom().
 find_encoding(Content) ->
     case epp:read_encoding_from_binary(Content) of
@@ -186,7 +183,6 @@ find_encoding(Content) ->
             Enc
     end.
 
-%% @private
 -spec maybe_add_abstract_parse_tree(Config, File, Mod, Ignore) -> Res when
     Config :: elvis_config:configs() | elvis_config:config(),
     File :: file(),
@@ -204,7 +200,6 @@ maybe_add_abstract_parse_tree(
 maybe_add_abstract_parse_tree(_Config, File, _Mod, _Ignore) ->
     File.
 
-%% @private
 -spec get_abstract_parse_tree(BeamPath, Mod, Ignore) -> Res when
     BeamPath :: file:filename(),
     Mod :: module(),
@@ -214,7 +209,6 @@ get_abstract_parse_tree(BeamPath, Mod, Ignore) ->
     AbstractSrc = get_abstract_source(BeamPath),
     resolve_parse_tree(".erl", AbstractSrc, Mod, Ignore).
 
-%% @private
 -spec get_abstract_source(BeamPath) -> Res when
     BeamPath :: file:filename() | binary(),
     Res :: string().
