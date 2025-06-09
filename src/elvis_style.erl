@@ -2094,7 +2094,15 @@ always_shortcircuit(Config, Target, RuleConfig) ->
 -spec export_used_types(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
     [elvis_result:item()].
 export_used_types(Config, Target, RuleConfig) ->
-    TreeRootNode = get_root(Config, Target, RuleConfig),
+    Root = get_root(Config, Target, RuleConfig),
+    case is_otp_behaviour(Root) of
+        false ->
+            export_used_types_in(Root);
+        true ->
+            []
+    end.
+
+export_used_types_in(TreeRootNode) ->
     FunctionExports = elvis_code:find_by_types([export], TreeRootNode),
     ExportedFunctions = lists:flatmap(fun(Node) -> ktn_code:attr(value, Node) end, FunctionExports),
     SpecNodes = elvis_code:find_by_types([spec], TreeRootNode),
