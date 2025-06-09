@@ -137,8 +137,8 @@ elvis_style_rules() ->
         {elvis_style, no_operation_on_same_value},
         {elvis_style, no_single_clause_case},
         {elvis_style, no_single_match_maybe},
-        {elvis_style, no_space},
         {elvis_style, no_space_after_pound},
+        {elvis_style, no_space},
         {elvis_style, no_spec_with_records},
         {elvis_style, no_successive_maps},
         {elvis_style, no_throw},
@@ -199,8 +199,8 @@ not_on_beam() ->
         {elvis_style, max_module_length},
         {elvis_style, no_dollar_space},
         {elvis_style, no_macros},
-        {elvis_style, no_space},
         {elvis_style, no_space_after_pound},
+        {elvis_style, no_space},
         {elvis_style, numeric_format},
         {elvis_style, operator_spaces}
     ].
