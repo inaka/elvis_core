@@ -117,7 +117,7 @@ no_trailing_whitespace(_Config, Target, RuleConfig) ->
 prefer_unquoted_atoms(_Config, Target, _RuleConfig) ->
     {Content, #{encoding := _Encoding}} = elvis_file:src(Target),
     Tree = ktn_code:parse_tree(Content),
-    AtomNodes = elvis_code:find(fun is_atom_node/1, Tree, #{traverse => all, mode => node}),
+    AtomNodes = elvis_code:find_by_types([atom], Tree, #{traverse => all, mode => node}),
     check_atom_quotes(AtomNodes, []).
 
 check_atom_quotes([] = _AtomNodes, Acc) ->
@@ -188,12 +188,7 @@ redundant_blank_lines(Lines, {CurrentLineNum, ResultList}) ->
 
 -spec line_is_comment(binary()) -> boolean().
 line_is_comment(Line) ->
-    case re:run(Line, "^[ \t]*%") of
-        nomatch ->
-            false;
-        {match, _} ->
-            true
-    end.
+    re:run(Line, "^[ \t]*%") =/= nomatch.
 
 -spec remove_comment(binary()) -> binary().
 remove_comment(Line) ->
@@ -277,9 +272,6 @@ check_no_trailing_whitespace(Line, Num, IgnoreEmptyLines) ->
             Result = elvis_result:new(item, Msg, Info, Num),
             {ok, Result}
     end.
-
-is_atom_node(MaybeAtom) ->
-    ktn_code:type(MaybeAtom) =:= atom.
 
 is_exception_prefer_quoted(Elem) ->
     KeyWords =
