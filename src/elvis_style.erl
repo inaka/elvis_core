@@ -639,23 +639,12 @@ variable_naming_convention(Config, Target, RuleConfig) ->
 
 -type macro_names_config() :: #{ignore => [ignorable()], regex => string()}.
 
-% There is a bug in ktn_code: https://github.com/inaka/katana-code/issues/87
--dialyzer({no_match, macro_names/3}).
-
 -spec macro_names(elvis_config:config(), elvis_file:file(), macro_names_config()) ->
     [elvis_result:item()].
 macro_names(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
     Regexp = option(regex, RuleConfig, macro_names),
-    IsMacroDefine = fun(Node) ->
-        case ktn_code:type(Node) of
-            {atom, [_, _], define} ->
-                true;
-            _ ->
-                false
-        end
-    end,
-    MacroNodes = elvis_code:find(IsMacroDefine, Root, #{traverse => all, mode => node}),
+    MacroNodes = elvis_code:find_by_types([define], Root, #{traverse => all, mode => node}),
     check_macro_names(Regexp, MacroNodes, _ResultsIn = []).
 
 -spec macro_module_names(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
