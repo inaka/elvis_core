@@ -555,15 +555,15 @@ verify_macro_module_names(Config) ->
 
     Path = "fail_macro_module_names." ++ Ext,
     [
-        #{line_num := 20},
-        #{line_num := 20},
-        #{line_num := 21},
-        #{line_num := 22},
-        #{line_num := 23},
-        #{line_num := 23},
+        #{line_num := 24},
+        #{line_num := 24},
+        #{line_num := 25},
+        #{line_num := 26},
         #{line_num := 27},
-        #{line_num := 28},
-        #{line_num := 29}
+        #{line_num := 27},
+        #{line_num := 31},
+        #{line_num := 32},
+        #{line_num := 33}
     ] =
         elvis_core_apply_rule(Config, elvis_style, macro_module_names, #{}, Path).
 
