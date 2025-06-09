@@ -120,19 +120,27 @@ prefer_unquoted_atoms(_Config, Target, _RuleConfig) ->
     AtomNodes = elvis_code:find_by_types([atom], Tree, #{traverse => all, mode => node}),
     check_atom_quotes(AtomNodes, []).
 
+needs_quoting(AtomStr) ->
+    case re:run(AtomStr, "^'[a-z][a-zA-Z0-9_@]*'$", [{capture, none}]) of
+        match ->
+            AtomAsString = string:trim(AtomStr, both, "'"),
+            Atom = list_to_atom(AtomAsString),
+            Atom =:= 'maybe' orelse erl_scan:f_reserved_word(Atom);
+        _ ->
+            true
+    end.
+
 check_atom_quotes([] = _AtomNodes, Acc) ->
     Acc;
 check_atom_quotes([AtomNode | RemainingAtomNodes], AccIn) ->
-    AtomName = ktn_code:attr(text, AtomNode),
-
-    IsException = is_exception_prefer_quoted(AtomName),
+    AtomStr = ktn_code:attr(text, AtomNode),
 
     AccOut =
-        case unicode:characters_to_list(AtomName, unicode) of
-            [$' | _] when not IsException ->
+        case needs_quoting(AtomStr) of
+            false ->
                 Msg = ?ATOM_PREFERRED_QUOTES_MSG,
                 {Line, _} = ktn_code:attr(location, AtomNode),
-                Info = [AtomName, Line],
+                Info = [AtomStr, Line],
                 Result = elvis_result:new(item, Msg, Info, Line),
                 AccIn ++ [Result];
             _ ->
@@ -272,40 +280,6 @@ check_no_trailing_whitespace(Line, Num, IgnoreEmptyLines) ->
             Result = elvis_result:new(item, Msg, Info, Num),
             {ok, Result}
     end.
-
-is_exception_prefer_quoted(Elem) ->
-    KeyWords =
-        [
-            "'after'",
-            "'and'",
-            "'andalso'",
-            "'band'",
-            "'begin'",
-            "'bnot'",
-            "'bor'",
-            "'bsl'",
-            "'bsr'",
-            "'bxor'",
-            "'case'",
-            "'catch'",
-            "'cond'",
-            "'div'",
-            "'end'",
-            "'fun'",
-            "'if'",
-            "'let'",
-            "'not'",
-            "'of'",
-            "'or'",
-            "'orelse'",
-            "'receive'",
-            "'rem'",
-            "'try'",
-            "'when'",
-            "'xor'",
-            "'maybe'"
-        ],
-    lists:member(Elem, KeyWords).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Internal Function Definitions
