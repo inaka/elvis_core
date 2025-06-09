@@ -1049,8 +1049,16 @@ module_naming_convention(Config, Target, RuleConfig) ->
     IgnoreModules = option(ignore, RuleConfig, module_naming_convention),
 
     Root = get_root(Config, Target, RuleConfig),
-    [Module] = elvis_code:find_by_types([module], Root),
-    ModuleName = ktn_code:attr(value, Module),
+    ModuleName =
+        case elvis_code:find_by_types([module], Root) of
+            [Module] ->
+                ktn_code:attr(value, Module);
+            _ ->
+                % .hrl, maybe?
+                #{path := Path} = Target,
+                Basename = filename:basename(Path, ".hrl"),
+                list_to_atom(Basename)
+        end,
 
     case lists:member(ModuleName, IgnoreModules) of
         false ->

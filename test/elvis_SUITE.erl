@@ -448,7 +448,7 @@ rock_with_invalid_rules(_Config) ->
 custom_ruleset(_Config) ->
     ConfigPath = "../../config/elvis-test-custom-ruleset.config",
     ElvisConfig = elvis_config:from_file(ConfigPath),
-    [[{elvis_text_style, no_tabs}]] = elvis_config:rules(ElvisConfig),
+    [[{elvis_text_style, no_tabs, #{}}]] = elvis_config:rules(ElvisConfig),
 
     %% read unknown ruleset configuration to ensure rulesets from
     %% previous load do not stick around
@@ -462,9 +462,9 @@ hrl_ruleset(_Config) ->
     ConfigPath = "../../config/elvis-test-hrl-files.config",
     ElvisConfig = elvis_config:from_file(ConfigPath),
     {fail, [
-        #{file := "../../_build/test/lib/elvis_core/test/examples/test-good.hrl", rules := []},
+        #{file := "../../_build/test/lib/elvis_core/test/examples/test_good.hrl", rules := []},
         #{
-            file := "../../_build/test/lib/elvis_core/test/examples/test-bad.hrl",
+            file := "../../_build/test/lib/elvis_core/test/examples/test_bad.hrl",
             rules := [#{name := line_length}]
         }
     ]} =
