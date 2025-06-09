@@ -167,6 +167,7 @@ print_rules(Format, File, [Error | Items]) ->
     print_rules(Format, File, Items).
 
 %% Item
+
 print_item(
     Format,
     File,
