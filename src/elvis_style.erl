@@ -1671,9 +1671,7 @@ no_boolean_in_comparison(Config, Target, RuleConfig) ->
 
     IsBoolean =
         fun(Node) ->
-            lists:member(
-                ktn_code:attr(value, Node), [true, false]
-            )
+            is_boolean(ktn_code:attr(value, Node))
         end,
 
     IsComparisonWithBoolean =
