@@ -1946,6 +1946,10 @@ verify_no_boolean_in_comparison(Config) ->
         #{line_num := 6},
         #{line_num := 13},
         #{line_num := 16},
+        % =:=
+        #{line_num := 19},
+        % =/=
+        #{line_num := 22},
         #{line_num := 25},
         #{line_num := 28},
         #{line_num := 28},

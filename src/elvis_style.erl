@@ -1677,7 +1677,7 @@ no_boolean_in_comparison(Config, Target, RuleConfig) ->
         fun(Node) ->
             Content = ktn_code:content(Node),
             ktn_code:type(Node) =:= op andalso
-                ktn_code:attr(operation, Node) =:= '==' andalso
+                lists:member(ktn_code:attr(operation, Node), ['==', '=:=', '/=', '=/=']) andalso
                 lists:any(IsBoolean, Content)
         end,
     ComparisonsWithBoolean =

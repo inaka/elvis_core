@@ -29,6 +29,6 @@ other_examples(A) ->
     F(X, Y),
 
     case the:result(F, Y) of
-        Bool when Bool == true; Bool == false -> do:something_with(the, Bool);
+        Bool when Bool == true; Bool /= false -> do:something_with(the, Bool);
         NotBool -> do:something_else_with(this, NotBool, thingy)
     end.

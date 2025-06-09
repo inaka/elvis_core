@@ -8,6 +8,10 @@ Explicit comparisons of expressions to boolean literals (`true` or `false`) shou
 mycondition(Assumptions) == true
 
 mycondition(Assumptions) == false
+
+mycondition(Assumptions) =/= true
+
+mycondition(Assumptions) =:= false
 ```
 
 ## Prefer
@@ -16,11 +20,15 @@ mycondition(Assumptions) == false
 mycondition(Assumptions)
 
 not(mycondition(Assumptions))
+
+not(mycondition(Assumptions))
+
+not(mycondition(Assumptions))
 ```
 
 ## Rationale
 
-Explicitly comparing expressions to boolean literals (e.g., `Expr == true` or `Expr == false`) is
+Explicitly comparing expressions to boolean literals (e.g., `Expr == true` or `Expr =/= false`) is
 redundant and non-idiomatic in Erlang. Erlang's control flow constructs (such as `if`, `case`,
 guards, and boolean operators like `andalso`/`orelse`) are designed to evaluate the truthiness of
 expressions directly. Using direct comparisons can obscure intent, reduce readability, and increase
