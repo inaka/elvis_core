@@ -1,4 +1,5 @@
 -module(elvis_style).
+-behaviour(elvis_ruleset).
 
 -export([
     default/1,
@@ -285,7 +286,7 @@
 %% Default values
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec default(Rule :: atom()) -> DefaultRuleConfig :: term().
+-spec default(RuleName :: atom()) -> DefaultRuleConfig :: #{atom() := term()}.
 default(no_init_lists) ->
     #{
         behaviours =>

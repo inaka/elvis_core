@@ -69,7 +69,7 @@ load(Key, ElvisConfig, Default) ->
 load_initial(AppConfig) ->
     ElvisConfig = proplists:get_value(elvis, AppConfig, []),
     RulesetsConfig = proplists:get_value(rulesets, ElvisConfig, #{}),
-    elvis_rulesets:set_rulesets(RulesetsConfig),
+    elvis_ruleset:set_rulesets(RulesetsConfig),
     ElvisConfig.
 
 ensure_config_list(config, Config) when is_map(Config) ->
@@ -192,12 +192,12 @@ files(#{}) ->
 rules(Rules) when is_list(Rules) ->
     lists:map(fun rules/1, Rules);
 rules(#{rules := UserRules, ruleset := RuleSet}) ->
-    DefaultRules = elvis_rulesets:rules(RuleSet),
+    DefaultRules = elvis_ruleset:rules(RuleSet),
     merge_rules(UserRules, DefaultRules);
 rules(#{rules := Rules}) ->
     Rules;
 rules(#{ruleset := RuleSet}) ->
-    elvis_rulesets:rules(RuleSet);
+    elvis_ruleset:rules(RuleSet);
 rules(#{}) ->
     [].
 

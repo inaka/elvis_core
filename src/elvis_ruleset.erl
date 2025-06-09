@@ -1,8 +1,15 @@
--module(elvis_rulesets).
+-module(elvis_ruleset).
 
 -format(#{inline_items => none}).
 
 -export([rules/1, set_rulesets/1]).
+-export([default/2]).
+
+-callback default(RuleName :: atom()) -> DefaultRuleConfig :: #{atom() := term()}.
+
+-spec default(Module :: module(), RuleName :: atom()) -> DefaultRuleConfig :: #{atom() := term()}.
+default(Module, RuleName) ->
+    Module:default(RuleName).
 
 -spec set_rulesets(#{atom() => list()}) -> ok.
 set_rulesets(RuleSets) ->
@@ -43,7 +50,7 @@ rules(Group) ->
                 end
         end,
     lists:map(
-        fun({Mod, Rule}) -> {Mod, Rule, apply(Mod, default, [Rule])} end,
+        fun({Mod, Rule}) -> {Mod, Rule, default(Mod, Rule)} end,
         Rules
     ).
 
