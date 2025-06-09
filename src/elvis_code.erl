@@ -5,7 +5,6 @@
     find/2,
     find/3,
     find_by_location/2,
-    find_by_names/2,
     find_by_types/2,
     find_by_types/3,
     find_by_types_in_tokens/2,
@@ -15,12 +14,8 @@
 ]).
 %% Specific
 -export([
-    past_nesting_limit/2,
-    exported_functions/1,
-    exported_types/1,
-    function_names/1,
-    module_name/1,
-    print_node/1, print_node/2
+    print_node/1,
+    print_node/2
 ]).
 
 -export_type([find_options/0]).
@@ -37,7 +32,7 @@
 -spec find(fun((zipper:zipper(_)) -> boolean()), ktn_code:tree_node()) ->
     [ktn_code:tree_node()].
 find(Pred, Root) ->
-    find(Pred, Root, #{mode => node, traverse => content}).
+    find(Pred, Root, #{}).
 
 %% @doc Find all nodes in the tree for which the predicate function returns
 %%      `true'. The options map has two keys:
@@ -55,7 +50,6 @@ find(Pred, Root) ->
 %%        </li>
 %%      </ul>
 %% @end
-
 -spec find(fun((zipper:zipper(_)) -> boolean()), ktn_code:tree_node(), find_options()) ->
     [ktn_code:tree_node()].
 find(Pred, Root, Opts) ->
@@ -145,16 +139,8 @@ find_by_location(Root, Location) ->
             {ok, Node}
     end.
 
-find_by_names(Names, Root) ->
-    find(
-        fun(Node) ->
-            lists:member(ktn_code:attr(name, Node), Names)
-        end,
-        Root
-    ).
-
 find_by_types(Types, Root) ->
-    find_by_types(Types, Root, #{mode => node, traverse => content}).
+    find_by_types(Types, Root, #{}).
 
 find_by_types(Types, Root, Opts) ->
     find(
@@ -192,31 +178,12 @@ find_token(Root, Location) ->
             {ok, Token}
     end.
 
-%%% Processing functions
-
-%% @doc Takes a node and returns all nodes where the nesting limit is exceeded.
--spec past_nesting_limit(ktn_code:tree_node(), integer()) ->
-    [{ktn_code:tree_node(), integer()}].
-past_nesting_limit(Node, MaxLevel) ->
-    ResultNodes = past_nesting_limit(Node, 1, MaxLevel),
-    lists:reverse(ResultNodes).
-
-past_nesting_limit(Node, CurrentLevel, MaxLevel) when CurrentLevel > MaxLevel ->
-    [Node];
-past_nesting_limit(#{content := Content}, CurrentLevel, MaxLevel) ->
-    Fun = fun(ChildNode) ->
-        Increment = level_increment(ChildNode),
-        past_nesting_limit(ChildNode, Increment + CurrentLevel, MaxLevel)
-    end,
-    lists:flatmap(Fun, Content);
-past_nesting_limit(_Node, _CurrentLeve, _MaxLevel) ->
-    [].
-
 %% @doc Debugging utility function.
 -spec print_node(ktn_code:tree_node()) -> ok.
 print_node(Node) ->
     print_node(Node, 0).
 
+%% @doc Debugging utility function.
 -spec print_node(ktn_code:tree_node(), integer()) -> ok.
 print_node(#{type := Type} = Node, CurrentLevel) ->
     Type = ktn_code:type(Node),
@@ -226,77 +193,3 @@ print_node(#{type := Type} = Node, CurrentLevel) ->
     ok = elvis_utils:info("~s - [~p] ~p~n", [Indentation, CurrentLevel, Type]),
     _ = lists:map(fun(Child) -> print_node(Child, CurrentLevel + 1) end, Content),
     ok.
-
-%% @doc Takes the root node and returns the module's name.
--spec module_name(ktn_code:tree_node()) -> atom().
-module_name(#{type := root, content := Content}) ->
-    Fun = fun(#{type := Type}) -> Type == module end,
-    case lists:filter(Fun, Content) of
-        [ModuleNode | _] ->
-            ktn_code:attr(value, ModuleNode);
-        [] ->
-            undefined
-    end.
-
-%% @doc Takes the root node of a parse_tree and returns name and arity
-%%      of each exported function.
--spec exported_functions(ktn_code:tree_node()) -> [{atom(), integer()}].
-exported_functions(#{type := root, content := Content}) ->
-    Fun = make_extractor_fun(exported_functions),
-    lists:flatmap(Fun, Content).
-
--spec exported_types(ktn_code:tree_node()) -> [{atom(), integer()}].
-exported_types(#{type := root, content := Content}) ->
-    Fun = make_extractor_fun(exported_types),
-    lists:flatmap(Fun, Content).
-
-%% @doc Takes the root node of a parse_tree and returns the name
-%%      of each function, whether exported or not.
--spec function_names(ktn_code:tree_node()) -> [atom()].
-function_names(#{type := root, content := Content}) ->
-    Fun = make_extractor_fun(function_names),
-    lists:flatmap(Fun, Content).
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Internal
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%% @private
-%% @doc Takes a node and determines its nesting level increment.
-level_increment(#{type := 'fun', content := _}) ->
-    1;
-level_increment(#{type := 'fun'}) ->
-    0;
-level_increment(#{type := Type}) ->
-    IncrementOne = [function, 'case', 'if', try_case, try_catch, named_fun, receive_case],
-    case lists:member(Type, IncrementOne) of
-        true ->
-            1;
-        false ->
-            0
-    end.
-
-%% @private
-%% @doc Returns an anonymous Fun to be flatmapped over node content, as
-%% appropriate for the exported function whose name is the argument given.
-make_extractor_fun(exported_functions) ->
-    fun
-        (#{type := export} = Node) ->
-            ktn_code:attr(value, Node);
-        (_) ->
-            []
-    end;
-make_extractor_fun(exported_types) ->
-    fun
-        (#{type := export_type} = Node) ->
-            ktn_code:attr(value, Node);
-        (_) ->
-            []
-    end;
-make_extractor_fun(function_names) ->
-    fun
-        (#{type := function} = Node) ->
-            [ktn_code:attr(name, Node)];
-        (_) ->
-            []
-    end.

@@ -167,6 +167,7 @@ print_rules(Format, File, [Error | Items]) ->
     print_rules(Format, File, Items).
 
 %% Item
+
 print_item(
     Format,
     File,
@@ -219,7 +220,6 @@ status(_Rules) ->
 clean(Files) ->
     clean(Files, []).
 
-%% @private
 -spec clean([file() | rule()], [file() | rule()]) -> [file() | rule()].
 clean([], Result) ->
     lists:reverse(Result);

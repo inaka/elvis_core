@@ -36,8 +36,6 @@ start() ->
     {ok, _} = application:ensure_all_started(elvis_core),
     ok.
 
-%%% Rock Command
-
 -spec rock(elvis_config:configs()) ->
     ok | {fail, [{throw, term()} | elvis_result:file() | elvis_result:rule()]}.
 rock(Config) ->
@@ -82,7 +80,6 @@ rock_this(Path, Config) ->
             elvis_result_status(Results)
     end.
 
-%% @private
 -spec do_parallel_rock(elvis_config:config()) ->
     ok
     | {fail, [{throw, term()} | elvis_result:file() | elvis_result:rule()]}.
@@ -119,7 +116,6 @@ do_rock(File, Config) ->
     Results = apply_rules(Config, LoadedFile),
     {ok, Results}.
 
-%% @private
 -spec load_file_data(elvis_config:configs() | elvis_config:config(), elvis_file:file()) ->
     elvis_file:file().
 load_file_data(Config, File) ->
@@ -134,7 +130,6 @@ load_file_data(Config, File) ->
             File
     end.
 
-%% @private
 -spec main([]) -> true | no_return().
 main([]) ->
     ok = application:load(elvis_core),
@@ -148,7 +143,6 @@ main([]) ->
 %%% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% @private
 -spec combine_results(
     ok | {fail, [elvis_result:file()]},
     ok | {fail, [elvis_result:file()]}
@@ -166,7 +160,6 @@ apply_rules_and_print(Config, File) ->
     elvis_result:print_results(Results),
     Results.
 
-%% @private
 -spec apply_rules(
     elvis_config:configs() | elvis_config:config(),
     File :: elvis_file:file()
@@ -180,24 +173,20 @@ apply_rules(Config, File) ->
         lists:foldl(fun apply_rule/2, Acc, merge_rules({file, ParseTree}, lists:flatten(Rules))),
     elvis_result:new(file, File, RulesResults).
 
-%% @private
 merge_rules({file, ParseTree}, ElvisConfigRules) ->
     ElvisAttrs =
         elvis_code:find(fun is_elvis_attr/1, ParseTree, #{traverse => content, mode => node}),
     ElvisAttrRules = elvis_attr_rules(ElvisAttrs),
     elvis_config:merge_rules(ElvisAttrRules, ElvisConfigRules).
 
-%% @private
 is_elvis_attr(Node) ->
     ktn_code:type(Node) =:= elvis.
 
-%% @private
 elvis_attr_rules([] = _ElvisAttrs) ->
     [];
 elvis_attr_rules(ElvisAttrs) ->
     [Rule || ElvisAttr <- ElvisAttrs, Rule <- ktn_code:attr(value, ElvisAttr)].
 
-%% @private
 -spec apply_rule({Mod, Fun} | {Mod, Fun, RuleCfg}, {Results, ElvisCfg, File}) -> Result when
     Mod :: module(),
     Fun :: atom(),
@@ -241,7 +230,6 @@ apply_rule({Module, Function, ConfigArgs}, {Result, Config, File}) ->
         end,
     {[RuleResult | Result], Config, File}.
 
-%% @private
 %% @doc Process a tules configuration argument and converts it to a map.
 ensure_config_map(_, _, Map) when is_map(Map) ->
     Map;
@@ -262,7 +250,6 @@ ensure_config_map(elvis_style, module_naming_convention, [Regex, IgnoreModules])
 ensure_config_map(_, _, []) ->
     #{}.
 
-%% @private
 elvis_result_status(Results) ->
     case elvis_result:status(Results) of
         fail ->

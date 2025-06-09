@@ -146,7 +146,6 @@ is_invalid_rule({Module, RuleName}) ->
 normalize(Config) when is_list(Config) ->
     lists:map(fun do_normalize/1, Config).
 
-%% @private
 do_normalize(#{src_dirs := Dirs} = Config) ->
     %% NOTE: Provided for backwards compatibility.
     %% Rename 'src_dirs' key to 'dirs'.
