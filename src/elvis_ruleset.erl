@@ -65,12 +65,8 @@ ensure_clean_table() ->
 
 gitignore_rules() ->
     [
-        {elvis_gitignore, Rule}
-     || Rule <-
-            [
-                forbidden_patterns,
-                required_patterns
-            ]
+        {elvis_gitignore, forbidden_patterns},
+        {elvis_gitignore, required_patterns}
     ].
 
 hrl_files_rules() ->
@@ -78,13 +74,9 @@ hrl_files_rules() ->
 
 hrl_only_files_rules() ->
     [
-        {elvis_style, Rule}
-     || Rule <-
-            [
-                no_nested_hrls,
-                no_specs,
-                no_types
-            ]
+        {elvis_style, no_nested_hrls},
+        {elvis_style, no_specs},
+        {elvis_style, no_types}
     ].
 
 hrl_files_strict_rules() ->
@@ -92,28 +84,24 @@ hrl_files_strict_rules() ->
 
 doesnt_work_on_hrl_files() ->
     [
-        {elvis_style, Rule}
-     || Rule <-
-            [
-                behaviour_spelling,
-                dont_repeat_yourself,
-                export_used_types,
-                function_naming_convention,
-                god_modules,
-                invalid_dynamic_call,
-                max_anonymous_function_arity,
-                max_function_clause_length,
-                max_function_length,
-                ms_transform_included,
-                no_call,
-                no_common_caveats_call,
-                no_init_lists,
-                no_macros,
-                no_spec_with_records,
-                param_pattern_matching,
-                private_data_types,
-                state_record_and_type
-            ]
+        {elvis_style, behaviour_spelling},
+        {elvis_style, dont_repeat_yourself},
+        {elvis_style, export_used_types},
+        {elvis_style, function_naming_convention},
+        {elvis_style, god_modules},
+        {elvis_style, invalid_dynamic_call},
+        {elvis_style, max_anonymous_function_arity},
+        {elvis_style, max_function_clause_length},
+        {elvis_style, max_function_length},
+        {elvis_style, ms_transform_included},
+        {elvis_style, no_call},
+        {elvis_style, no_common_caveats_call},
+        {elvis_style, no_init_lists},
+        {elvis_style, no_macros},
+        {elvis_style, no_spec_with_records},
+        {elvis_style, param_pattern_matching},
+        {elvis_style, private_data_types},
+        {elvis_style, state_record_and_type}
     ].
 
 erl_files_rules() ->
@@ -121,60 +109,52 @@ erl_files_rules() ->
 
 elvis_style_rules() ->
     [
-        {elvis_style, Rule}
-     || Rule <-
-            [
-                atom_naming_convention,
-                behaviour_spelling,
-                consistent_variable_casing,
-                dont_repeat_yourself,
-                export_used_types,
-                function_naming_convention,
-                god_modules,
-                invalid_dynamic_call,
-                macro_module_names,
-                macro_names,
-                max_anonymous_function_arity,
-                max_function_arity,
-                module_naming_convention,
-                nesting_level,
-                no_author,
-                no_behavior_info,
-                no_block_expressions,
-                no_boolean_in_comparison,
-                no_catch_expressions,
-                no_debug_call,
-                no_dollar_space,
-                no_if_expression,
-                no_import,
-                no_match_in_condition,
-                no_nested_try_catch,
-                no_operation_on_same_value,
-                no_single_clause_case,
-                no_single_match_maybe,
-                no_space,
-                no_space_after_pound,
-                no_spec_with_records,
-                no_successive_maps,
-                no_throw,
-                numeric_format,
-                operator_spaces,
-                param_pattern_matching,
-                private_data_types,
-                used_ignored_variable,
-                variable_naming_convention
-            ]
+        {elvis_style, atom_naming_convention},
+        {elvis_style, behaviour_spelling},
+        {elvis_style, consistent_variable_casing},
+        {elvis_style, dont_repeat_yourself},
+        {elvis_style, export_used_types},
+        {elvis_style, function_naming_convention},
+        {elvis_style, god_modules},
+        {elvis_style, invalid_dynamic_call},
+        {elvis_style, macro_module_names},
+        {elvis_style, macro_names},
+        {elvis_style, max_anonymous_function_arity},
+        {elvis_style, max_function_arity},
+        {elvis_style, module_naming_convention},
+        {elvis_style, nesting_level},
+        {elvis_style, no_author},
+        {elvis_style, no_behavior_info},
+        {elvis_style, no_block_expressions},
+        {elvis_style, no_boolean_in_comparison},
+        {elvis_style, no_catch_expressions},
+        {elvis_style, no_debug_call},
+        {elvis_style, no_dollar_space},
+        {elvis_style, no_if_expression},
+        {elvis_style, no_import},
+        {elvis_style, no_match_in_condition},
+        {elvis_style, no_nested_try_catch},
+        {elvis_style, no_operation_on_same_value},
+        {elvis_style, no_single_clause_case},
+        {elvis_style, no_single_match_maybe},
+        {elvis_style, no_space},
+        {elvis_style, no_space_after_pound},
+        {elvis_style, no_spec_with_records},
+        {elvis_style, no_successive_maps},
+        {elvis_style, no_throw},
+        {elvis_style, numeric_format},
+        {elvis_style, operator_spaces},
+        {elvis_style, param_pattern_matching},
+        {elvis_style, private_data_types},
+        {elvis_style, used_ignored_variable},
+        {elvis_style, variable_naming_convention}
     ].
 
 elvis_text_style_rules() ->
     [
-        {elvis_text_style, Rule}
-     || Rule <-
-            [
-                line_length,
-                no_tabs,
-                no_trailing_whitespace
-            ]
+        {elvis_text_style, line_length},
+        {elvis_text_style, no_tabs},
+        {elvis_text_style, no_trailing_whitespace}
     ].
 
 erl_files_strict_rules() ->
@@ -182,31 +162,23 @@ erl_files_strict_rules() ->
 
 elvis_style_stricter_rules() ->
     [
-        {elvis_style, Rule}
-     || Rule <-
-            [
-                always_shortcircuit,
-                consistent_generic_type,
-                max_function_clause_length,
-                max_function_length,
-                max_module_length,
-                ms_transform_included,
-                no_call,
-                no_common_caveats_call,
-                no_init_lists,
-                no_macros,
-                state_record_and_type
-            ]
+        {elvis_style, always_shortcircuit},
+        {elvis_style, consistent_generic_type},
+        {elvis_style, max_function_clause_length},
+        {elvis_style, max_function_length},
+        {elvis_style, max_module_length},
+        {elvis_style, ms_transform_included},
+        {elvis_style, no_call},
+        {elvis_style, no_common_caveats_call},
+        {elvis_style, no_init_lists},
+        {elvis_style, no_macros},
+        {elvis_style, state_record_and_type}
     ].
 
 elvis_text_style_stricter_rules() ->
     [
-        {elvis_text_style, Rule}
-     || Rule <-
-            [
-                no_redundant_blank_lines,
-                prefer_unquoted_atoms
-            ]
+        {elvis_text_style, no_redundant_blank_lines},
+        {elvis_text_style, prefer_unquoted_atoms}
     ].
 
 beam_files_rules() ->
@@ -220,38 +192,26 @@ doesnt_work_on_beam_files() ->
 
 not_on_beam() ->
     [
-        {elvis_style, Rule}
-     || Rule <-
-            [
-                macro_module_names,
-                macro_names,
-                max_function_clause_length,
-                max_function_length,
-                max_module_length,
-                no_dollar_space,
-                no_macros,
-                no_space,
-                no_space_after_pound,
-                numeric_format,
-                operator_spaces
-            ]
+        {elvis_style, macro_module_names},
+        {elvis_style, macro_names},
+        {elvis_style, max_function_clause_length},
+        {elvis_style, max_function_length},
+        {elvis_style, max_module_length},
+        {elvis_style, no_dollar_space},
+        {elvis_style, no_macros},
+        {elvis_style, no_space},
+        {elvis_style, no_space_after_pound},
+        {elvis_style, numeric_format},
+        {elvis_style, operator_spaces}
     ].
 
 rebar_config_rules() ->
     [
-        {elvis_project, Rule}
-     || Rule <-
-            [
-                no_branch_deps,
-                protocol_for_deps
-            ]
+        {elvis_project, no_branch_deps},
+        {elvis_project, protocol_for_deps}
     ].
 
 elvis_config_rules() ->
     [
-        {elvis_project, Rule}
-     || Rule <-
-            [
-                old_configuration_format
-            ]
+        {elvis_project, old_configuration_format}
     ].
