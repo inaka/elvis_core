@@ -2554,7 +2554,7 @@ character_at_location(
             "";
         _ when How =:= should_have ->
             lists:nth(ColToCheck, TextLineStr);
-        _ when How =:= should_not_have, TextRegex =:= false; TextRegex =:= nomatch ->
+        _ when How =:= should_not_have, not TextRegex; TextRegex =:= nomatch ->
             lists:nth(ColToCheck, TextLineStr);
         _ ->
             ""
