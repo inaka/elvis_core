@@ -1,17 +1,16 @@
 -module(elvis_gitignore).
+-behaviour(elvis_ruleset).
 
--export([required_patterns/3, forbidden_patterns/3]).
+-export([required_patterns/3, forbidden_patterns/3, default/1]).
 
 -define(REQUIRED_PATTERN, "Your .gitignore file should contain pattern '~s'.").
 -define(FORBIDDEN_PATTERN, "Your .gitignore file should not contain pattern '~s'.").
-
--hank([{unnecessary_function_arguments, [{required_patterns, 3}, {forbidden_patterns, 3}]}]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec default(Rule :: atom()) -> DefaultRuleConfig :: term().
+-spec default(RuleName :: atom()) -> DefaultRuleConfig :: #{atom() := term()}.
 default(required_patterns) ->
     #{
         regexes =>

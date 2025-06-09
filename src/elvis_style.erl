@@ -1,4 +1,5 @@
 -module(elvis_style).
+-behaviour(elvis_ruleset).
 
 -export([
     default/1,
@@ -285,7 +286,7 @@
 %% Default values
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec default(Rule :: atom()) -> DefaultRuleConfig :: term().
+-spec default(RuleName :: atom()) -> DefaultRuleConfig :: #{atom() := term()}.
 default(no_init_lists) ->
     #{
         behaviours =>
@@ -1038,8 +1039,16 @@ module_naming_convention(Config, Target, RuleConfig) ->
     IgnoreModules = option(ignore, RuleConfig, module_naming_convention),
 
     Root = get_root(Config, Target, RuleConfig),
-    [Module] = elvis_code:find_by_types([module], Root),
-    ModuleName = ktn_code:attr(value, Module),
+    ModuleName =
+        case elvis_code:find_by_types([module], Root) of
+            [Module] ->
+                ktn_code:attr(value, Module);
+            _ ->
+                % .hrl, maybe?
+                #{path := Path} = Target,
+                Basename = filename:basename(Path, ".hrl"),
+                list_to_atom(Basename)
+        end,
 
     case lists:member(ModuleName, IgnoreModules) of
         false ->

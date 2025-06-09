@@ -1,4 +1,5 @@
 -module(elvis_text_style).
+-behaviour(elvis_ruleset).
 
 -export([
     default/1,
@@ -23,25 +24,11 @@
     "when the maximum is set to ~p."
 ).
 
-% These are part of a non-declared "behaviour"
-% The reason why we don't try to handle them with different arity is
-%  that arguments are ignored in different positions (1 and 3) so that'd
-%  probably be messier than to ignore the warning
--hank([
-    {unnecessary_function_arguments, [
-        {no_trailing_whitespace, 3},
-        {no_tabs, 3},
-        {line_length, 3},
-        {prefer_unquoted_atoms, 3},
-        {no_redundant_blank_lines, 3}
-    ]}
-]).
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec default(Rule :: atom()) -> DefaultRuleConfig :: term().
+-spec default(RuleName :: atom()) -> DefaultRuleConfig :: #{atom() := term()}.
 default(line_length) ->
     #{
         limit => 100,
@@ -53,7 +40,9 @@ default(no_tabs) ->
 default(no_trailing_whitespace) ->
     #{ignore_empty_lines => false};
 default(no_redundant_blank_lines) ->
-    #{max_lines => 1}.
+    #{max_lines => 1};
+default(prefer_unquoted_atoms) ->
+    #{}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Rules
