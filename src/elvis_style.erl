@@ -1044,9 +1044,10 @@ module_naming_convention(Config, Target, RuleConfig) ->
             [Module] ->
                 ktn_code:attr(value, Module);
             _ ->
-                % .hrl, maybe?
+                % .hrl, maybe? or .beam?
                 #{path := Path} = Target,
-                Basename = filename:basename(Path, ".hrl"),
+                Basename0 = filename:basename(Path, ".hrl"),
+                Basename = filename:basename(Basename0, ".beam"),
                 list_to_atom(Basename)
         end,
 
@@ -2976,7 +2977,7 @@ maybe_default_option(UserDefinedOptionValue, _OptionName, _Rule) ->
 get_root(Config, Target, RuleConfig) ->
     {Root0, File0} = elvis_file:parse_tree(Config, Target, RuleConfig),
     case maps:get(ruleset, Config, undefined) of
-        beam_files ->
+        Ruleset when Ruleset =:= beam_files; Ruleset =:= beam_files_strict ->
             maps:get(abstract_parse_tree, File0);
         _ ->
             Root0

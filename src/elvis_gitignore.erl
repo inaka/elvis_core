@@ -69,7 +69,7 @@ forbidden_patterns(_Config, #{path := Path}, RuleConfig) ->
 
 %% .gitignore
 check_patterns_in_lines(_Lines, [], Results, _Mode) ->
-    {ok, Results};
+    Results;
 check_patterns_in_lines(Lines, [Pattern | Rest], Results0, Mode) ->
     ModeRespected =
         case Mode of
