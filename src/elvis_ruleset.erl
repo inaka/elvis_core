@@ -33,6 +33,8 @@ rules(Group) ->
                 erl_files_rules();
             erl_files_strict ->
                 erl_files_strict_rules();
+            erl_files_test ->
+                erl_files_test_rules();
             beam_files ->
                 beam_files_rules();
             beam_files_strict ->
@@ -149,6 +151,9 @@ elvis_style_rules() ->
         {elvis_style, used_ignored_variable},
         {elvis_style, variable_naming_convention}
     ].
+
+erl_files_test_rules() ->
+    elvis_style_rules() -- [{elvis_style, dont_repeat_yourself}].
 
 elvis_text_style_rules() ->
     [
