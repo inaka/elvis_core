@@ -1044,11 +1044,7 @@ module_naming_convention(Config, Target, RuleConfig) ->
             [Module] ->
                 ktn_code:attr(value, Module);
             _ ->
-                % .hrl, maybe? or .beam?
-                #{path := Path} = Target,
-                Basename0 = filename:basename(Path, ".hrl"),
-                Basename = filename:basename(Basename0, ".beam"),
-                list_to_atom(Basename)
+                elvis_file:module(Target)
         end,
 
     case lists:member(ModuleName, IgnoreModules) of
