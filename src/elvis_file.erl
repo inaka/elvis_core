@@ -130,11 +130,15 @@ filter_files(Files, Dirs, Filter, IgnoreList) ->
 %% @doc Return module name corresponding to a given .hrl/.erl/.beam file
 -spec module(file()) -> module().
 module(#{path := Path}) ->
-    list_to_atom(
-        filename:basename(
-            filename:basename(Path, ".erl"), ".beam"
-        )
-    ).
+    BaseName = filename:basename(Path),
+    Stripped = lists:foldl(
+        fun(Ext, Acc) ->
+            filename:basename(Acc, Ext)
+        end,
+        BaseName,
+        [".hrl", ".erl", ".beam"]
+    ),
+    list_to_atom(Stripped).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
