@@ -1,41 +1,23 @@
 -module(pass_invalid_dynamic_call).
 
--dialyzer(no_match).
+-type q(X) :: queue:quueue(X).
+-type t() :: ?MODULE:q(?MODULE).
 
 -export([
-         dynamic_module_name_call/0,
-         dynamic_function_name_call/0,
-         another_dynamic_module_name_call/0,
-         dynamic_module_name_call_in_case/0
+         regular_call/1,
+         erlang_apply/3,
+         module_name/0
         ]).
 
--callback init(Arg :: any()) ->
-    any().
+-spec regular_call(Arg1) -> ?MODULE:q(Arg1).
+regular_call(Argument) ->
+    regular:call(),
+    regular:call(with, Argument).
 
-dynamic_module_name_call() ->
-    normal:call(),
-    Module = a_module,
-    Module:call().
+-spec erlang_apply(erlang:module(), atom(), any()) -> pass_invalid_dynamic_call:t().
+erlang_apply(Module, Function, Args) ->
+    erlang:apply(Module, Function, Args).
 
-dynamic_function_name_call() ->
-    normal:call(),
-    Function = a_function,
-    a_module:Function(),
-    normal:call().
-
-another_dynamic_module_name_call() ->
-    normal:call(),
-    another_normal:call(),
-    Module = another_module,
-    Module:call_to_function(),
-    Module:call_to__another_function().
-
-dynamic_module_name_call_in_case() ->
-    normal:call(),
-    another_normal:call(),
-    case 1 of
-        1 ->
-            Module = another_module,
-            Module:call_to_function();
-        2 -> ok
-    end.
+-spec module_name() -> ?MODULE:q(string:string()).
+module_name() ->
+    ?MODULE:regular_call("Using ?MODULE is valid").
