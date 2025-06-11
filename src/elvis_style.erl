@@ -2557,14 +2557,19 @@ is_dynamic_call(Node) ->
             FunctionSpec = ktn_code:node_attr(function, Node),
             case ktn_code:type(FunctionSpec) of
                 remote ->
-                    ModuleName = ktn_code:node_attr(module, FunctionSpec),
-                    ktn_code:type(ModuleName) =:= var;
+                    Module = ktn_code:node_attr(module, FunctionSpec),
+                    Function = ktn_code:node_attr(function, FunctionSpec),
+                    (ktn_code:type(Module) =/= atom andalso not is_the_module_macro(Module)) orelse
+                        ktn_code:type(Function) =/= atom;
                 _Other ->
                     false
             end;
         _ ->
             false
     end.
+
+is_the_module_macro(Module) ->
+    ktn_code:type(Module) =:= macro andalso ktn_code:attr(name, Module) =:= "MODULE".
 
 %% Plain Variable
 -spec is_var(zipper:zipper(_)) -> boolean().

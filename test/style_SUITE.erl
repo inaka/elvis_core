@@ -850,38 +850,45 @@ verify_invalid_dynamic_call(Config) ->
     PathPass = "pass_invalid_dynamic_call." ++ Ext,
     [] = elvis_core_apply_rule(Config, elvis_style, invalid_dynamic_call, #{}, PathPass),
 
+    PathPass2 = "pass_invalid_dynamic_call_callback." ++ Ext,
+    [] = elvis_core_apply_rule(Config, elvis_style, invalid_dynamic_call, #{}, PathPass2),
+
     PathFail = "fail_invalid_dynamic_call." ++ Ext,
     _ =
         case Group of
             beam_files ->
                 [
-                    % Module:call()
+                    % variable_module_name_call
                     #{line_num := _},
-                    % Module:call_to_function()
+                    % variable_function_name_call
                     #{line_num := _},
-                    % Module:call_to__another_function()
                     #{line_num := _},
-                    % Module:call_to_function()
+                    % call_module_name_call
                     #{line_num := _},
-                    % Module:call_to_function()
+                    % call_function_name_call
                     #{line_num := _},
-                    % Module:call_to_function()
                     #{line_num := _},
-                    % Module:call_to_function()
-                    #{line_num := _},
-                    % ?CALL(Module, call_to_function, [])
+                    % macro_call
                     #{line_num := _}
                 ] =
                     elvis_core_apply_rule(Config, elvis_style, invalid_dynamic_call, #{}, PathFail);
             erl_files ->
                 [
+                    % variable_module_name_call
+                    #{line_num := 18},
+                    % variable_function_name_call
                     #{line_num := 21},
-                    #{line_num := 33},
-                    #{line_num := 34},
-                    #{line_num := 42},
-                    #{line_num := 50},
-                    #{line_num := 61},
-                    #{line_num := 68}
+                    #{line_num := 22},
+                    % macro_module_name_call
+                    #{line_num := 25},
+                    % macro_function_name_call
+                    #{line_num := 28},
+                    #{line_num := 29},
+                    % call_module_name_call
+                    #{line_num := 32},
+                    % call_function_name_call
+                    #{line_num := 35},
+                    #{line_num := 36}
                 ] =
                     elvis_core_apply_rule(Config, elvis_style, invalid_dynamic_call, #{}, PathFail)
         end,
