@@ -214,8 +214,7 @@
 -define(NO_CALL_MSG, "The call to ~p:~p/~p on line ~p is in the no_call list.").
 -define(NO_DEBUG_CALL_MSG, "Remove the debug call to ~p:~p/~p on line ~p.").
 -define(NO_COMMON_CAVEATS_CALL_MSG,
-    "The call to ~p:~p/~p on line ~p is in the list of "
-    "Erlang Efficiency Guide common caveats."
+    "The call to ~p:~p/~p on line ~p might have performance drawbacks or implicit behavior."
 ).
 -define(NO_NESTED_TRY_CATCH, "Nested try...catch block starting at line ~p.").
 -define(NO_SUCCESSIVE_MAPS_MSG,
@@ -425,7 +424,10 @@ default(no_common_caveats_call) ->
                 {erlang, size, 1},
                 {gen_statem, call, 2},
                 {gen_server, call, 2},
-                {gen_event, call, 3}
+                {gen_event, call, 3},
+                {erlang, list_to_atom, 1},
+                {erlang, binary_to_atom, 1},
+                {erlang, binary_to_atom, 2}
             ]
     };
 default(atom_naming_convention) ->
@@ -2873,8 +2875,24 @@ is_in_call_list(Call, DisallowedFuns) ->
 
 call_mfa(Call) ->
     FunctionSpec = ktn_code:node_attr(function, Call),
-    M = ktn_code:attr(value, ktn_code:node_attr(module, FunctionSpec)),
-    F = ktn_code:attr(value, ktn_code:node_attr(function, FunctionSpec)),
+    M0 = ktn_code:attr(value, ktn_code:node_attr(module, FunctionSpec)),
+    M =
+        case M0 of
+            undefined ->
+                % this is a bare call, e.g. list_to_atom/1; assume 'erlang'
+                erlang;
+            _ ->
+                M0
+        end,
+    F0 = ktn_code:attr(value, ktn_code:node_attr(function, FunctionSpec)),
+    F =
+        case F0 of
+            undefined ->
+                % this is what we get for local (or erlang:) calls
+                ktn_code:attr(value, FunctionSpec);
+            _ ->
+                F0
+        end,
     A = length(ktn_code:content(Call)),
     {M, F, A}.
 

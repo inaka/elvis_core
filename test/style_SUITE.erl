@@ -1753,7 +1753,7 @@ verify_no_debug_call(Config) ->
 %% other than defaults, they behave the same
 -spec verify_no_common_caveats_call(config()) -> any().
 verify_no_common_caveats_call(Config) ->
-    verify_no_call_flavours(Config, no_common_caveats_call, caveat_functions, 9).
+    verify_no_call_flavours(Config, no_common_caveats_call, caveat_functions, 12).
 
 -spec verify_no_call(config()) -> any().
 verify_no_call(Config) ->
@@ -1795,7 +1795,10 @@ verify_no_call_flavours(
             {{'_', tuple_size, 1}, 1},
             {{gen_statem, call, 2}, 1},
             {{gen_server, call, 2}, 1},
-            {{gen_event, call, 3}, 1}
+            {{gen_event, call, 3}, 1},
+            {{erlang, list_to_atom, 1}, 1},
+            {{erlang, binary_to_atom, 1}, 1},
+            {{erlang, binary_to_atom, 2}, 1}
         ],
 
     lists:foreach(

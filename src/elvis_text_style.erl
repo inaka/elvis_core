@@ -265,7 +265,7 @@ check_no_trailing_whitespace(Line, Num, IgnoreEmptyLines) ->
             no_result;
         {match, [PosLen]} ->
             Msg = ?NO_TRAILING_WHITESPACE_MSG,
-            Info = [Num, size(binary:part(Line, PosLen))],
+            Info = [Num, byte_size(binary:part(Line, PosLen))],
             Result = elvis_result:new(item, Msg, Info, Num),
             {ok, Result}
     end.
