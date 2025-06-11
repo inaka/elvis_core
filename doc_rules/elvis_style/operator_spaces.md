@@ -34,7 +34,9 @@ compromised without adequate spacing.
          , {right, "<="}, {left, "<="}, {right, "||"}, {left, "||"}
          , {right, "|"}, {left, "|"}, {right, "::"}, {left, "::"}
          , {right, "->"}, {left, "->"}, {right, ","}, {right, "!"}
-         , {left, "!"}, {right, "?="}, {left, "?="}, {right, ";"}
+         , {left, "!"}, {right, "?="}, {left, "?="}, {right, ";"},
+         , {right, "<:="}, {left, "<:="}, {right, "<:-"}, {left, "<:-"}
+         , {right, "&&"}, {left, "&&"}
           ]
 ```
 
@@ -42,7 +44,9 @@ compromised without adequate spacing.
 
 `{right, "!"}, {left, "!"}` was added in [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0).
 
-`{right, "?="}, {left, "?="}, {right, ";"}` was added in [4.1.0](https://github.com/inaka/elvis_core/releases/tag/4.1.0).
+<!-- markdownlint-disable MD013 -->
+`{right, "?="}, {left, "?="}, {right, ";"}, {right, "<:="}, {left, "<:="}, {right, "<:-"}, {left, "<:-"}, {right, "&&"}, {left, "&&"}` was added in [4.1.0](https://github.com/inaka/elvis_core/releases/tag/4.1.0).
+<!-- markdownlint-enable MD013 -->
 
 ## Example configuration
 
@@ -59,7 +63,9 @@ compromised without adequate spacing.
                                           , {right, "<="}, {left, "<="}, {right, "||"}, {left, "||"}
                                           , {right, "|"}, {left, "|"}, {right, "::"}, {left, "::"}
                                           , {right, "->"}, {left, "->"}, {right, ","}, {right, "!"}
-                                          , {left, "!"}, {right, "?="}, {left, "?="}, {right, ";"}
+                                          , {left, "!"}, {right, "?="}, {left, "?="}, {right, ";"},
+                                          , {right, "<:="}, {left, "<:="}, {right, "<:-"}, {left, "<:-"}
+                                          , {right, "&&"}, {left, "&&"}
                                            ]
                                 }}
 ```

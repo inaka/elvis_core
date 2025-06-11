@@ -344,7 +344,13 @@ default(operator_spaces) ->
                 {left, "!"},
                 {right, "?="},
                 {left, "?="},
-                {right, ";"}
+                {right, ";"},
+                {right, "<:="},
+                {left, "<:="},
+                {right, "<:-"},
+                {left, "<:-"},
+                {right, "&&"},
+                {left, "&&"}
             ]
     };
 default(no_space) ->
@@ -818,7 +824,8 @@ operator_spaces(Config, Target, RuleConfig) ->
     Zipper = elvis_code:code_zipper(Root),
     OpNodes = zipper:filter(fun is_operator_node/1, Zipper),
 
-    PunctuationTokens = elvis_code:find_by_types_in_tokens(['=' | ?PUNCTUATION_SYMBOLS], Root),
+    OperatorsInTokens = ['=', '&&' | ?PUNCTUATION_SYMBOLS],
+    PunctuationTokens = elvis_code:find_by_types_in_tokens(OperatorsInTokens, Root),
 
     Lines = elvis_utils:split_all_lines(Src),
     AllNodes = OpNodes ++ PunctuationTokens,
@@ -832,7 +839,16 @@ operator_spaces(Config, Target, RuleConfig) ->
 is_operator_node(Node) ->
     NodeType = ktn_code:type(Node),
     OpOrMatch = [op | match_operators()],
-    ExtraOpsTypes = [map_field_exact, generate, b_generate, map_field_assoc],
+    ExtraOpsTypes = [
+        b_generate,
+        b_generate_strict,
+        generate,
+        generate_strict,
+        m_generate,
+        m_generate_strict,
+        map_field_assoc,
+        map_field_exact
+    ],
     (length(ktn_code:content(Node)) > 1 andalso lists:member(NodeType, OpOrMatch)) orelse
         lists:member(NodeType, ExtraOpsTypes).
 
