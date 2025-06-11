@@ -29,6 +29,7 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [Include `ms_transform` for `ets:fun2ms/1`](doc_rules/elvis_style/ms_transform_included.md)
 - [Invalid Dynamic Calls](doc_rules/elvis_style/invalid_dynamic_call.md)
 - [Line Length](doc_rules/elvis_text_style/line_length.md)
+- [Macro Module Names - *deprecated*](doc_rules/elvis_style/macro_module_names.md)
 - [Macro Names](doc_rules/elvis_style/macro_names.md)
 - [Max Anonymous Function Arity](doc_rules/elvis_style/max_anonymous_function_arity.md)
 - [Max Function Arity](doc_rules/elvis_style/max_function_arity.md)
