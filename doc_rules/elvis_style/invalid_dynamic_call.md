@@ -13,8 +13,8 @@ attribute, should be avoided. This includes:
 
 ## Rationale
 
-The usage of dynamic function calls hinders (and sometimes outright prevents) static code analyzers
-like Xref, Dialyzer, and Hank from checking the code. At the same time, it makes the code obscurer
+The use of dynamic function calls hinders (and sometimes outright prevents) static code analyzers
+like Xref, Dialyzer, and Hank from checking the code. At the same time, it makes the code obscure
 for developers reading and debugging it.
 The reason why this is allowed for callback-defining modules is a relatively complex topic,
 which is thoroughly covered in
@@ -22,7 +22,7 @@ which is thoroughly covered in
 
 ## Options
 
-* None.
+- None.
 
 ## Example configuration
 
