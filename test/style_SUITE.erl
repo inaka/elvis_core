@@ -725,8 +725,8 @@ verify_operator_spaces(Config) ->
         #{info := [left, "||" | _]},
         #{info := [right, "|" | _]},
         #{info := [left, "|" | _]},
-        #{info := [left, "!" | _]},
         #{info := [right, "!" | _]},
+        #{info := [left, "!" | _]},
         #{info := [right, "?=" | _]},
         #{info := [left, "?=" | _]}
     ] =
