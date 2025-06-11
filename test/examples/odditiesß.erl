@@ -1,14 +1,14 @@
 -module('odditiesß').
 
--export([macro_module_names/0]).
+-export([strange_module_name/0]).
 -export(['function_naming_convention🎱'/0]).
 -export([atom_naming_convention/0]).
 
 -define('macro_names🎱', 0]).
--define('macro_module_namesß', 'odditiesß').
+-define('strange_module_nameß', 'odditiesß').
 
-macro_module_names() ->
-    'macro_module_namesß':macro_module_names().
+strange_module_name() ->
+    'strange_module_nameß':strange_module_name().
 
 'function_naming_convention🎱'() -> {}.
 

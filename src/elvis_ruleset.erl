@@ -117,7 +117,6 @@ elvis_style_rules() ->
         {elvis_style, function_naming_convention},
         {elvis_style, god_modules},
         {elvis_style, invalid_dynamic_call},
-        {elvis_style, macro_module_names},
         {elvis_style, macro_names},
         {elvis_style, max_anonymous_function_arity},
         {elvis_style, max_function_arity},
@@ -192,7 +191,6 @@ doesnt_work_on_beam_files() ->
 
 not_on_beam() ->
     [
-        {elvis_style, macro_module_names},
         {elvis_style, macro_names},
         {elvis_style, max_function_clause_length},
         {elvis_style, max_function_length},

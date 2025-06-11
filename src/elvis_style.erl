@@ -7,7 +7,6 @@
     variable_naming_convention/3,
     consistent_variable_casing/3,
     macro_names/3,
-    macro_module_names/3,
     no_macros/3,
     no_specs/3,
     no_types/3,
@@ -110,13 +109,6 @@
 -define(INVALID_MACRO_NAME_REGEX_MSG,
     "The macro named ~p on line ~p does not respect the format "
     "defined by the regular expression '~p'."
-).
--define(MACRO_AS_MODULE_NAME_MSG,
-    "Don't use macros (like ~s on line ~p) as module names."
-).
--define(MACRO_MODULE_NAMES_EXCEPTIONS, ["MODULE"]).
--define(MACRO_AS_FUNCTION_NAME_MSG,
-    "Don't use macros (like ~s on line ~p) as function names."
 ).
 -define(NO_MACROS_MSG, "Unexpected macro (~p) used on line ~p.").
 -define(NO_SPECS_MSG, "Unexpected spec for function ~p defined on line ~p.").
@@ -473,7 +465,6 @@ default(no_operation_on_same_value) ->
         ]
     };
 default(RuleWithEmptyDefault) when
-    RuleWithEmptyDefault =:= macro_module_names;
     RuleWithEmptyDefault =:= no_macros;
     RuleWithEmptyDefault =:= no_specs;
     RuleWithEmptyDefault =:= no_types;
@@ -649,60 +640,6 @@ macro_names(Config, Target, RuleConfig) ->
     Regexp = option(regex, RuleConfig, macro_names),
     MacroNodes = elvis_code:find_by_types([define], Root, #{traverse => all, mode => node}),
     check_macro_names(Regexp, MacroNodes, _ResultsIn = []).
-
--spec macro_module_names(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
-    [elvis_result:item()].
-macro_module_names(Config, Target, RuleConfig) ->
-    Root = get_root(Config, Target, RuleConfig),
-    Calls = elvis_code:find_by_types([call], Root),
-    check_no_macro_calls(Calls).
-
--spec check_no_macro_calls([ktn_code:tree_node()]) -> [elvis_result:item()].
-check_no_macro_calls(Calls) ->
-    TypeFun =
-        fun(Call) ->
-            FunctionSpec = ktn_code:node_attr(function, Call),
-            ModuleAttr = ktn_code:node_attr(module, FunctionSpec),
-            FuncAttr = ktn_code:node_attr(function, FunctionSpec),
-            M = ktn_code:type(ModuleAttr),
-            MN = ktn_code:attr(name, ModuleAttr),
-            F = ktn_code:type(FuncAttr),
-            FN = ktn_code:attr(name, FuncAttr),
-            #{
-                call => Call,
-                module_type => M,
-                func_type => F,
-                module_name => MN,
-                func_name => FN
-            }
-        end,
-    CallsWithTypes = lists:map(TypeFun, Calls),
-
-    MacroInM =
-        [
-            {?MACRO_AS_MODULE_NAME_MSG, MN, ktn_code:attr(location, Call)}
-         || #{
-                module_type := macro,
-                call := Call,
-                module_name := MN
-            } <-
-                CallsWithTypes,
-            not lists:member(MN, ?MACRO_MODULE_NAMES_EXCEPTIONS)
-        ],
-    MacroInF =
-        [
-            {?MACRO_AS_FUNCTION_NAME_MSG, FN, ktn_code:attr(location, Call)}
-         || #{
-                func_type := macro,
-                call := Call,
-                func_name := FN
-            } <-
-                CallsWithTypes
-        ],
-
-    ResultFun =
-        fun({Msg, Subject, {Line, _}}) -> elvis_result:new(item, Msg, [Subject, Line], Line) end,
-    lists:map(ResultFun, MacroInM ++ MacroInF).
 
 -type no_macros_config() :: #{allow => [atom()], ignore => [ignorable()]}.
 

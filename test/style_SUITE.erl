@@ -20,7 +20,6 @@
     verify_no_trailing_whitespace_rule/1,
     verify_no_trailing_whitespace_rule_lf_crlf/1,
     verify_macro_names_rule/1,
-    verify_macro_module_names/1,
     verify_no_macros/1,
     verify_no_block_expressions/1,
     verify_operator_spaces/1,
@@ -83,7 +82,6 @@
     verify_elvis_attr_god_modules/1,
     verify_elvis_attr_invalid_dynamic_call/1,
     verify_elvis_attr_line_length/1,
-    verify_elvis_attr_macro_module_names/1,
     verify_elvis_attr_macro_names/1,
     verify_elvis_attr_max_anonymous_function_arity/1,
     verify_elvis_attr_max_function_arity/1,
@@ -548,24 +546,6 @@ verify_macro_names_rule(Config) ->
             #{ignore => [fail_macro_names]},
             Path
         ).
-
--spec verify_macro_module_names(config()) -> any().
-verify_macro_module_names(Config) ->
-    Ext = proplists:get_value(test_file_ext, Config, "erl"),
-
-    Path = "fail_macro_module_names." ++ Ext,
-    [
-        #{line_num := 24},
-        #{line_num := 24},
-        #{line_num := 25},
-        #{line_num := 26},
-        #{line_num := 27},
-        #{line_num := 27},
-        #{line_num := 31},
-        #{line_num := 32},
-        #{line_num := 33}
-    ] =
-        elvis_core_apply_rule(Config, elvis_style, macro_module_names, #{}, Path).
 
 -spec verify_no_macros(config()) -> any().
 verify_no_macros(Config) ->
@@ -2622,10 +2602,6 @@ verify_elvis_attr_invalid_dynamic_call(Config) ->
 -spec verify_elvis_attr_line_length(config()) -> true.
 verify_elvis_attr_line_length(Config) ->
     verify_elvis_attr(Config, "pass_line_length_elvis_attr").
-
--spec verify_elvis_attr_macro_module_names(config()) -> true.
-verify_elvis_attr_macro_module_names(Config) ->
-    verify_elvis_attr(Config, "pass_macro_module_names_elvis_attr").
 
 -spec verify_elvis_attr_macro_names(config()) -> true.
 verify_elvis_attr_macro_names(Config) ->
