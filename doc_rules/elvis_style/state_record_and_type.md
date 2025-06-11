@@ -6,6 +6,7 @@ corresponding state type (public - `type()` - or private - `opaque`).
 - `gen_server`
 - `gen_event` [![](https://img.shields.io/badge/since-0.7.0-blue)](https://github.com/inaka/elvis_core/releases/tag/0.7.0)
 - `gen_fsm`
+- `gen_statem` [![](https://img.shields.io/badge/since-0.7.0-blue)](https://github.com/inaka/elvis_core/releases/tag/0.7.0)
 - `supervisor_bridge`
 
 **Note**: if used together with `export_used_types`, the `state` record **should be** defined as a

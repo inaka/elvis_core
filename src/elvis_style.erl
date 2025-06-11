@@ -336,8 +336,8 @@ default(operator_spaces) ->
                 {right, "->"},
                 {left, "->"},
                 {right, ","},
-                {left, "!"},
                 {right, "!"},
+                {left, "!"},
                 {right, "?="},
                 {left, "?="}
             ]
