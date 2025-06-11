@@ -26,10 +26,15 @@ results in clearer, faster, and more maintainable code.
              , {gen_statem, call, 2}
              , {gen_server, call, 2}
              , {gen_event, call, 3}
+             , {erlang, list_to_atom, 1}
+             , {erlang, binary_to_atom, 1}
+             , {erlang, binary_to_atom, 2}
               ]`
 
-`{gen_statem, call, 2}`, `{gen_server, call, 2}`, and `{gen_event, call, 3}` were added in
-[4.1.0](https://github.com/inaka/elvis_core/releases/tag/4.1.0)
+`{gen_statem, call, 2}`, `{gen_server, call, 2}`, `{gen_event, call, 3}`,
+`{erlang, list_to_atom, 1}`, `{erlang, binary_to_atom, 1}`, and `{erlang, binary_to_atom, 2}`
+were added in
+[4.1.0](https://github.com/inaka/elvis_core/releases/tag/4.1.0).
 
 ## Example configuration
 
@@ -42,6 +47,9 @@ results in clearer, faster, and more maintainable code.
                                                             , {gen_statem, call, 2}
                                                             , {gen_server, call, 2}
                                                             , {gen_event, call, 3}
+                                                            , {erlang, list_to_atom, 1}
+                                                            , {erlang, binary_to_atom, 1}
+                                                            , {erlang, binary_to_atom, 2}
                                                              ]
                                        }}
 ```
