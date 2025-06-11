@@ -113,7 +113,7 @@ needs_quoting(AtomName0) ->
     case re:run(AtomName0, "^'[a-z][a-zA-Z0-9_@]*'$", [{capture, none}]) of
         match ->
             AtomName = string:trim(AtomName0, both, "'"),
-            Atom = list_to_atom(AtomName),
+            Atom = list_to_existing_atom(AtomName),
             Atom =:= 'maybe' orelse erl_scan:f_reserved_word(Atom);
         _ ->
             true
@@ -265,7 +265,7 @@ check_no_trailing_whitespace(Line, Num, IgnoreEmptyLines) ->
             no_result;
         {match, [PosLen]} ->
             Msg = ?NO_TRAILING_WHITESPACE_MSG,
-            Info = [Num, size(binary:part(Line, PosLen))],
+            Info = [Num, byte_size(binary:part(Line, PosLen))],
             Result = elvis_result:new(item, Msg, Info, Num),
             {ok, Result}
     end.
