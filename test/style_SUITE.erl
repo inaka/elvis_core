@@ -557,13 +557,9 @@ verify_macro_module_names(Config) ->
     [
         #{line_num := 24},
         #{line_num := 24},
-        #{line_num := 25},
-        #{line_num := 26},
-        #{line_num := 27},
-        #{line_num := 27},
-        #{line_num := 31},
-        #{line_num := 32},
-        #{line_num := 33}
+        #{line_num := 28},
+        #{line_num := 29},
+        #{line_num := 30}
     ] =
         elvis_core_apply_rule(Config, elvis_style, macro_module_names, #{}, Path).
 
@@ -725,8 +721,8 @@ verify_operator_spaces(Config) ->
         #{info := [left, "||" | _]},
         #{info := [right, "|" | _]},
         #{info := [left, "|" | _]},
-        #{info := [left, "!" | _]},
         #{info := [right, "!" | _]},
+        #{info := [left, "!" | _]},
         #{info := [right, "?=" | _]},
         #{info := [left, "?=" | _]}
     ] =
@@ -923,7 +919,7 @@ verify_used_ignored_variable(Config) ->
                 [#{line_num := _}, #{line_num := _}, #{line_num := _}, #{line_num := _}] =
                     elvis_core_apply_rule(Config, elvis_style, used_ignored_variable, #{}, Path);
             erl_files ->
-                [#{line_num := 31}, #{line_num := 34}, #{line_num := 38}, #{line_num := 38}] =
+                [#{line_num := 23}, #{line_num := 26}, #{line_num := 30}, #{line_num := 30}] =
                     elvis_core_apply_rule(Config, elvis_style, used_ignored_variable, #{}, Path),
                 [] = elvis_core_apply_rule(Config, elvis_style, used_ignored_variable, #{}, Path2)
         end,
