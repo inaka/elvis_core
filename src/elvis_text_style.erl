@@ -113,7 +113,7 @@ needs_quoting(AtomName0) ->
     case re:run(AtomName0, "^'[a-z][a-zA-Z0-9_@]*'$", [{capture, none}]) of
         match ->
             AtomName = string:trim(AtomName0, both, "'"),
-            Atom = list_to_existing_atom(AtomName),
+            Atom = list_to_atom(AtomName),
             Atom =:= 'maybe' orelse erl_scan:f_reserved_word(Atom);
         _ ->
             true

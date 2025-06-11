@@ -715,7 +715,7 @@ no_macros(ElvisConfig, RuleTarget, RuleConfig) ->
 
     lists:foldl(
         fun(MacroNode, Acc) ->
-            Macro = list_to_existing_atom(ktn_code:attr(name, MacroNode)),
+            Macro = list_to_atom(ktn_code:attr(name, MacroNode)),
             case lists:member(Macro, AllowedMacros) of
                 true ->
                     Acc;
