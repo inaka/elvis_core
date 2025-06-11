@@ -6,7 +6,7 @@ attribute, should be avoided. This includes:
 * Calls with a variable in the module position (e.g., `Module:call()`).
 * Calls with a variable in the function position (e.g., `module:Function()`).
 * Calls with a macro in the module position (e.g., `?A_MODULE:call()`).
-    - Except when the macro is `?MDOULE`, because this is a common pattern used for hot-code reloading.
+  * Except when the macro is `?MDOULE`, because this is a common pattern used for hot-code reloading.
 * Calls with a macro in the function position (e.g., `module:?FUNCTION_NAME()`).
 * Calls with a function call in the module position (e.g., `(get:the_module()):call()`).
 * Calls with a function call in the function position (e.g., `module:(get:the_function())()`).
@@ -22,7 +22,7 @@ which is thoroughly covered in
 
 ## Options
 
-- None.
+* None.
 
 ## Example configuration
 
