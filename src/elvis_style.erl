@@ -402,7 +402,10 @@ default(no_debug_call) ->
                 {io, format, 1},
                 {io, format, 2},
                 {io, put_chars, 1},
-                {io, put_chars, 2}
+                {io, put_chars, 2},
+                {dbg, '_'},
+                {dyntrace, '_'},
+                {instrument, '_'}
             ]
     };
 default(no_common_caveats_call) ->

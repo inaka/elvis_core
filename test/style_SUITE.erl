@@ -1664,7 +1664,10 @@ verify_no_debug_call(Config) ->
                     #{info := [io, format, 2, 10]},
                     #{info := [ct, print, 1, 16]},
                     #{info := [ct, print, 2, 17]},
-                    #{info := [io, put_chars, 1, 18]}
+                    #{info := [io, put_chars, 1, 18]},
+                    #{info := [dbg, whatever_function, 0, 19]},
+                    #{info := [dyntrace, calls, 1, 20]},
+                    #{info := [instrument, this, 0, 21]}
                 ] =
                     elvis_core_apply_rule(Config, elvis_style, no_debug_call, #{}, PathFail);
             erl_files ->
@@ -1675,7 +1678,10 @@ verify_no_debug_call(Config) ->
                     #{info := [ct, pal, 2, 14]},
                     #{info := [ct, print, 1, 15]},
                     #{info := [ct, print, 2, 16]},
-                    #{info := [io, put_chars, 1, 17]}
+                    #{info := [io, put_chars, 1, 17]},
+                    #{info := [dbg, whatever_function, 0, 18]},
+                    #{info := [dyntrace, calls, 1, 19]},
+                    #{info := [instrument, this, 0, 20]}
                 ] =
                     elvis_core_apply_rule(Config, elvis_style, no_debug_call, #{}, PathFail)
         end,
