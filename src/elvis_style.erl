@@ -344,6 +344,7 @@ default(operator_spaces) ->
             ]
     };
 default(no_space) ->
+    % ) one can happen at the start of lines; all others can't
     #{
         rules =>
             [
@@ -2480,16 +2481,20 @@ character_at_location(
     SpaceChar = $\s,
 
     case {ColToCheck, Position, length(TextLineStr)} of
-        {0, _, _} when How =:= should_have ->
+        {0, _, _} when Text =/= ")" ->
             SpaceChar;
-        {0, _, _} when How =:= should_not_have ->
-            "";
         {_, right, LenLine} when How =:= should_have, ColToCheck > LenLine ->
             SpaceChar;
         {_, right, LenLine} when How =:= should_not_have, ColToCheck > LenLine ->
             "";
-        _ when How =:= should_have; TextRegex =:= nomatch ->
+        _ when How =:= should_have; TextRegex =:= nomatch, ColToCheck > 1 ->
             lists:nth(ColToCheck, TextLineStr);
+        _ when
+            How =:= should_not_have,
+            ColToCheck > 1,
+            (Text =:= ":" orelse Text =:= "." orelse Text =:= ";")
+        ->
+            lists:nth(ColToCheck - 1, TextLineStr);
         _ ->
             ""
     end.

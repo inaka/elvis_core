@@ -18,7 +18,7 @@
         , windows_newlines/0
         , this/0
         , this/2
-        , use_record/0
+        , use_record/0, dot_alone_1/0, dot_alone_2/0, dot_alone/1
         ]).
 
 -define(MACRO, "Brujo loves these").
@@ -119,3 +119,20 @@ this(shouldnt_either, _A)
 
 use_record() ->
     # a{one = 1, two = ? MACRO} .
+
+dot_alone_1() ->
+    "The dot is in the next line"
+.
+
+dot_alone_2() ->
+    "The dot is in the next line"
+    .
+
+dot_alone(a) ->
+    "The ; is in the next line"
+;
+dot_alone(b) ->
+    "The ; is in the next line"
+    ;
+dot_alone(c) ->
+    ok.
