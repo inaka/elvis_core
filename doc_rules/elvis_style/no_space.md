@@ -32,7 +32,7 @@ codebase.
 
 - `rules :: [{right | left, string()}]`
   - default: `[{right, "("}, {left, ")"}, {left, ","}, {left, ":"}, {right, "#"}, {right, "?"},
-  {right, "?"}]`
+  {right, "?"}, {left, "."}, {left, ";"}]`
 
 `{right, "#"}, {right, "?"}` was added in [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0).
 
@@ -48,6 +48,8 @@ codebase.
                                    , {right, "#"}
                                    , {right, "?"}
                                    , {right, "?"}
+                                   , {left, "."}
+                                   , {left, ";"}
                                     ]
                                 }}
 ```
