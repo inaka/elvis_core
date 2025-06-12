@@ -722,6 +722,7 @@ verify_no_space(Config) ->
     Path1 = "fail_no_space." ++ Ext,
     [
         #{info := [right, "(", 3]},
+        #{info := [left, ",", 20]},
         #{info := [right, "(", 36]},
         #{info := [right, "(", 52]},
         #{info := [left, ")", 52]},
@@ -737,7 +738,9 @@ verify_no_space(Config) ->
         #{info := [left, ".", 125]},
         #{info := [left, ".", 129]},
         #{info := [left, ";", 133]},
-        #{info := [left, ";", 136]}
+        #{info := [left, ";", 136]},
+        #{info := [left, ":", 142]},
+        #{info := [left, ":", 146]}
     ] =
         elvis_core_apply_rule(
             Config,

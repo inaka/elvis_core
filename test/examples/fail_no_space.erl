@@ -17,8 +17,8 @@
         , unicode_characters/0
         , windows_newlines/0
         , this/0
-        , this/2
-        , use_record/0, dot_alone_1/0, dot_alone_2/0, dot_alone/1
+, this/2
+        , use_record/0, dot_alone_1/0, dot_alone_2/0, dot_alone/1, colon_hurrah/0, colon_hurrah_2/0
         ]).
 
 -define(MACRO, "Brujo loves these").
@@ -136,3 +136,11 @@ dot_alone(b) ->
     ;
 dot_alone(c) ->
     ok.
+
+colon_hurrah() ->
+    m
+:a().
+
+colon_hurrah_2() ->
+    m
+  :a().
