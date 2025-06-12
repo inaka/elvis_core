@@ -134,6 +134,7 @@ elvis_style_rules() ->
         {elvis_style, no_match_in_condition},
         {elvis_style, no_nested_try_catch},
         {elvis_style, no_operation_on_same_value},
+        {elvis_style, no_receive_without_timeout},
         {elvis_style, no_single_clause_case},
         {elvis_style, no_single_match_maybe},
         {elvis_style, no_space_after_pound},

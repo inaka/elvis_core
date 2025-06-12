@@ -55,7 +55,8 @@
     no_init_lists/3,
     ms_transform_included/3,
     no_boolean_in_comparison/3,
-    no_operation_on_same_value/3
+    no_operation_on_same_value/3,
+    no_receive_without_timeout/3
 ]).
 
 -export_type([empty_rule_config/0]).
@@ -271,6 +272,9 @@
 -define(NO_OPERATION_ON_SAME_VALUE,
     "Operation ~p on line ~p is has the same value on both sides."
     " Since the result is known, it is redundant."
+).
+-define(NO_RECEIVE_WITHOUT_TIMEOUT,
+    "Receive block on line ~p doesn't have an after clause"
 ).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -494,7 +498,8 @@ default(RuleWithEmptyDefault) when
     RuleWithEmptyDefault =:= export_used_types;
     RuleWithEmptyDefault =:= consistent_variable_casing;
     RuleWithEmptyDefault =:= ms_transform_included;
-    RuleWithEmptyDefault =:= no_boolean_in_comparison
+    RuleWithEmptyDefault =:= no_boolean_in_comparison;
+    RuleWithEmptyDefault =:= no_receive_without_timeout
 ->
     #{}.
 
@@ -1635,6 +1640,32 @@ no_boolean_in_comparison(Config, Target, RuleConfig) ->
         end,
 
     lists:map(ResultFun, ComparisonsWithBoolean).
+
+-spec no_receive_without_timeout(
+    elvis_config:config(),
+    elvis_file:file(),
+    empty_rule_config()
+) ->
+    [elvis_result:item()].
+no_receive_without_timeout(Config, Target, RuleConfig) ->
+    Root = get_root(Config, Target, RuleConfig),
+
+    Receives = elvis_code:find_by_types(['receive'], Root),
+
+    ReceivesWithoutTimeout = lists:filter(fun is_receive_without_timeout/1, Receives),
+
+    ResultFun =
+        fun(Node) ->
+            {Line, _} = ktn_code:attr(location, Node),
+            Info = [Line],
+            Msg = ?NO_RECEIVE_WITHOUT_TIMEOUT,
+            elvis_result:new(item, Msg, Info, Line)
+        end,
+
+    lists:map(ResultFun, ReceivesWithoutTimeout).
+
+is_receive_without_timeout(Receive) ->
+    [] == elvis_code:find_by_types([receive_after], Receive).
 
 -type no_operation_on_same_value_config() :: #{operations := [atom()]}.
 
