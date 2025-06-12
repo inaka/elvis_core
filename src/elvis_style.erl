@@ -339,7 +339,8 @@ default(operator_spaces) ->
                 {right, "!"},
                 {left, "!"},
                 {right, "?="},
-                {left, "?="}
+                {left, "?="},
+                {right, ";"}
             ]
     };
 default(no_space) ->

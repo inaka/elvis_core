@@ -68,7 +68,7 @@ function8() ->
 function9() ->
     [X|| X <- [fail]] ++ [X ||X <- [fail]] ++ [X || X <- [notfail]].
 
-tag_filters(DocName, #{conn := Conn} = State) ->
+tag_filters(DocName, #{conn := Conn} = State) when is_list(DocName);is_binary(DocName) ->
   TableName = atom_to_list(DocName),
   Sql = ["SELECT "
          " 'tag' AS \"type\", "
@@ -82,10 +82,10 @@ tag_filters(DocName, #{conn := Conn} = State) ->
          "ORDER BY tag_name "],
   Values = [],
   case {Conn, Sql, Values} of
-    {ok, Maps, _} ->
+    {ok, Maps, _} when Maps=:=#{};Conn=:=established ->
       {ok, {raw, Maps}, State};
     {error, Error, _} ->
-      {error, Error, State}
+      {error, Error, State};{finally, this, _} -> nok
   end.
 
 unicode_characters() ->
