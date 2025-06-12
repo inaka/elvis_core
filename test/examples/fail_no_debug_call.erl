@@ -14,4 +14,7 @@ fail() ->
     ct:pal("Debug ~s", ["Debug Info"]),
     ct:print("Debug"),
     ct:print("Debug ~s", ["Debug Info"]),
-    io:put_chars("Debug").
+    io:put_chars("Debug"),
+    dbg:whatever_function(),
+    dyntrace:calls(missing),
+    instrument:this().
