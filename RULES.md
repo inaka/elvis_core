@@ -57,6 +57,7 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [No Nested `try...catch` Blocks](doc_rules/elvis_style/no_nested_try_catch.md)
 - [No Operator With Same Values](doc_rules/elvis_style/no_operation_on_same_value.md)
 - [No Redundant Blank Lines](doc_rules/elvis_text_style/no_redundant_blank_lines.md)
+- [No `receive` Without Timeout](doc_rules/elvis_style/no_receive_without_timeout.md)
 - [No Single-Clause Case Statements](doc_rules/elvis_style/no_single_clause_case.md)
 - [No Single-Match Maybe Statements](doc_rules/elvis_style/no_single_match_maybe.md)
 - [No Space After `#`](doc_rules/elvis_style/no_space_after_pound.md)

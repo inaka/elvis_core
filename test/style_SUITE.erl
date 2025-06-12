@@ -71,7 +71,8 @@
     verify_ms_transform_included/1,
     verify_redundant_blank_lines/1,
     verify_no_boolean_in_comparison/1,
-    verify_no_operation_on_same_value/1
+    verify_no_operation_on_same_value/1,
+    verify_no_receive_without_timeout/1
 ]).
 %% -elvis attribute
 -export([
@@ -1987,6 +1988,21 @@ verify_no_boolean_in_comparison(Config) ->
     ] =
         elvis_core_apply_rule(Config, elvis_style, no_boolean_in_comparison, #{}, FailPath).
 
+-spec verify_no_receive_without_timeout(config()) -> any().
+verify_no_receive_without_timeout(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PassPath = "pass_no_receive_without_timeout." ++ Ext,
+    [] = elvis_core_apply_rule(Config, elvis_style, no_receive_without_timeout, #{}, PassPath),
+
+    FailPath = "fail_no_receive_without_timeout." ++ Ext,
+    [
+        #{line_num := 6},
+        #{line_num := 10},
+        #{line_num := 20}
+    ] =
+        elvis_core_apply_rule(Config, elvis_style, no_receive_without_timeout, #{}, FailPath).
+
 -spec verify_atom_naming_convention(config()) -> any().
 verify_atom_naming_convention(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
@@ -2736,11 +2752,13 @@ verify_elvis_attr(Config, FilenameNoExt) ->
     SrcDirs = elvis_config:dirs(ElvisConfig),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, FilenameNoExt ++ "." ++ Ext),
+    FullFilename = FilenameNoExt ++ "." ++ Ext,
+    {ok, File} = elvis_test_utils:find_file(SrcDirs, FullFilename),
 
+    ct:comment("Checking ~ts", [FullFilename]),
     {ok, #{rules := RuleResults}} = elvis_core:do_rock(File, ElvisConfig),
     [[] = Items || #{items := Items} <- RuleResults],
-    true.
+    {comment, ""}.
 
 -spec is_item_line_sort([elvis_result:file()]) -> [boolean()].
 is_item_line_sort(Result) ->
