@@ -91,7 +91,7 @@ tag_filters(DocName, #{conn := Conn} = State ) ->
   Values = [],
   case {Conn, Sql, Values} of
     {ok, Maps, _} ->
-      {ok, {raw, Maps}, State};
+      {ok, {raw, Maps}, State} ;
     {error, Error, _} ->
       {error, Error, State}
   end.

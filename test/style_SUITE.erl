@@ -724,6 +724,7 @@ verify_no_space(Config) ->
         #{info := [left, ")", 52]},
         #{info := [left, ",", 76]},
         #{info := [left, ")", 79]},
+        #{info := [left, ";", 94]},
         #{info := [right, "(", 109]},
         #{info := [left, ")", 109]},
         #{info := [left, ".", 118]},

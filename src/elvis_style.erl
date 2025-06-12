@@ -353,7 +353,8 @@ default(no_space) ->
                 {right, ":"},
                 {right, "#"},
                 {right, "?"},
-                {left, "."}
+                {left, "."},
+                {left, ";"}
             ]
     };
 default(nesting_level) ->
