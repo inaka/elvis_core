@@ -726,8 +726,10 @@ verify_no_space(Config) ->
         #{info := [left, ")", 79]},
         #{info := [right, "(", 109]},
         #{info := [left, ")", 109]},
+        #{info := [left, ".", 118]},
         #{info := [right, "#", 121]},
-        #{info := [right, "?", 121]}
+        #{info := [right, "?", 121]},
+        #{info := [left, ".", 121]}
     ] =
         elvis_core_apply_rule(
             Config,

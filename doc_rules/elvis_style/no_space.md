@@ -36,6 +36,8 @@ codebase.
 
 `{right, "#"}, {right, "?"}` was added in [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0).
 
+`{left, "."}` was added in [4.1.0](https://github.com/inaka/elvis_core/releases/tag/4.1.0).
+
 ## Example configuration
 
 ```erlang

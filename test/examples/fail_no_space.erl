@@ -118,4 +118,4 @@ this(shouldnt_either, _A)
 - 2, A, $ . 
 
 use_record() ->
-    # a{one = 1, two = ? MACRO}.
+    # a{one = 1, two = ? MACRO} .

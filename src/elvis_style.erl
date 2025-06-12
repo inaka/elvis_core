@@ -352,7 +352,8 @@ default(no_space) ->
                 {left, ":"},
                 {right, ":"},
                 {right, "#"},
-                {right, "?"}
+                {right, "?"},
+                {left, "."}
             ]
     };
 default(nesting_level) ->
@@ -2400,7 +2401,10 @@ macro_as_atom(false, [Type | OtherTypes], MacroNodeValue) ->
 % _ is re:mp()
 
 check_spaces(Lines, UnfilteredNodes, {Position, Text}, Encoding, {How0, _} = How) ->
-    FilterFun = fun(Node) -> ktn_code:attr(text, Node) =:= Text end,
+    FilterFun = fun(Node) ->
+        ktn_code:attr(text, Node) =:= Text orelse
+            (ktn_code:type(Node) =:= dot andalso Text =:= ".")
+    end,
     Nodes = lists:filter(FilterFun, UnfilteredNodes),
     SpaceChar = $\s,
     FlatFun =
