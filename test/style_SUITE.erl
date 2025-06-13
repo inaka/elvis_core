@@ -8,17 +8,12 @@
     init_per_suite/1,
     end_per_suite/1,
     init_per_group/2,
-    end_per_group/2
+    end_per_group/2,
+    elvis_core_apply_rule/5
 ]).
 -export([
     verify_function_naming_convention/1,
     verify_variable_naming_convention/1,
-    verify_line_length_rule/1,
-    verify_line_length_rule_latin1/1,
-    verify_unicode_line_length_rule/1,
-    verify_no_tabs_rule/1,
-    verify_no_trailing_whitespace_rule/1,
-    verify_no_trailing_whitespace_rule_lf_crlf/1,
     verify_macro_names_rule/1,
     verify_no_macros/1,
     verify_no_block_expressions/1,
@@ -66,10 +61,8 @@
     verify_no_match_in_condition/1,
     verify_param_pattern_matching/1,
     verify_private_data_types/1,
-    verify_unquoted_atoms/1,
     verify_no_init_lists/1,
     verify_ms_transform_included/1,
-    verify_redundant_blank_lines/1,
     verify_no_boolean_in_comparison/1,
     verify_no_operation_on_same_value/1,
     verify_no_receive_without_timeout/1
@@ -130,7 +123,8 @@
     init_per_suite,
     end_per_suite,
     init_per_group,
-    end_per_group
+    end_per_group,
+    elvis_core_apply_rule
 ]).
 
 -type config() :: [{atom(), term()}].
@@ -189,8 +183,7 @@ groups() ->
             verify_no_match_in_condition,
             verify_behaviour_spelling,
             verify_param_pattern_matching,
-            verify_private_data_types,
-            verify_unquoted_atoms
+            verify_private_data_types
         ]}
     ].
 
@@ -398,108 +391,6 @@ verify_consistent_variable_casing(Config) ->
         #{info := ["IgnVar", _, ["IGNVar"]]}
     ] =
         elvis_core_apply_rule(Config, elvis_style, consistent_variable_casing, #{}, PathFail).
-
--spec verify_line_length_rule(config()) -> any().
-verify_line_length_rule(Config) ->
-    Ext = proplists:get_value(test_file_ext, Config, "erl"),
-
-    Path = "fail_line_length." ++ Ext,
-
-    Result =
-        elvis_core_apply_rule(Config, elvis_text_style, line_length, #{limit => 100}, Path),
-    8 = length(Result),
-    #{info := Info, message := Msg} = lists:nth(7, Result),
-    <<"Line 32 is too long. It has ", _/binary>> = list_to_binary(io_lib:format(Msg, Info)),
-
-    WholeLineResult =
-        elvis_core_apply_rule(
-            Config,
-            elvis_text_style,
-            line_length,
-            #{limit => 100, skip_comments => whole_line},
-            Path
-        ),
-    6 = length(WholeLineResult),
-
-    AnyResult =
-        elvis_core_apply_rule(
-            Config,
-            elvis_text_style,
-            line_length,
-            #{limit => 100, skip_comments => any},
-            Path
-        ),
-    6 = length(AnyResult),
-
-    WhistespaceResult =
-        elvis_core_apply_rule(
-            Config,
-            elvis_text_style,
-            line_length,
-            #{
-                limit => 100,
-                skip_comments => false,
-                no_whitespace_after_limit => false
-            },
-            Path
-        ),
-    3 = length(WhistespaceResult).
-
--spec verify_line_length_rule_latin1(config()) -> any().
-verify_line_length_rule_latin1(Config) ->
-    Ext = proplists:get_value(test_file_ext, Config, "erl"),
-
-    Path = "fail_line_length_latin1." ++ Ext,
-
-    Result =
-        elvis_core_apply_rule(Config, elvis_text_style, line_length, #{limit => 100}, Path),
-    1 = length(Result),
-    #{info := Info, message := Msg} = lists:nth(1, Result),
-    <<"Line 13 is too long. It has", _/binary>> = list_to_binary(io_lib:format(Msg, Info)).
-
--spec verify_unicode_line_length_rule(config()) -> any().
-verify_unicode_line_length_rule(Config) ->
-    Ext = proplists:get_value(test_file_ext, Config, "erl"),
-
-    Path = "pass_unicode_comments." ++ Ext,
-
-    Result =
-        elvis_core_apply_rule(Config, elvis_text_style, line_length, #{limit => 100}, Path),
-    0 = length(Result).
-
--spec verify_no_tabs_rule(config()) -> any().
-verify_no_tabs_rule(Config) ->
-    Ext = proplists:get_value(test_file_ext, Config, "erl"),
-
-    Path = "fail_no_tabs." ++ Ext,
-
-    [_, _] = elvis_core_apply_rule(Config, elvis_text_style, no_tabs, #{}, Path).
-
--spec verify_no_trailing_whitespace_rule(config()) -> any().
-verify_no_trailing_whitespace_rule(Config) ->
-    Ext = proplists:get_value(test_file_ext, Config, "erl"),
-
-    Path = "fail_no_trailing_whitespace." ++ Ext,
-
-    do_verify_no_trailing_whitespace(Path, Config, #{ignore_empty_lines => true}, 3),
-    do_verify_no_trailing_whitespace(Path, Config, #{ignore_empty_lines => false}, 4),
-    do_verify_no_trailing_whitespace(Path, Config, #{}, 4).
-
--spec verify_no_trailing_whitespace_rule_lf_crlf(config()) -> any().
-verify_no_trailing_whitespace_rule_lf_crlf(Config) ->
-    Ext = proplists:get_value(test_file_ext, Config, "erl"),
-
-    PathCrLf = "pass_no_trailing_whitespace_crlf." ++ Ext,
-    do_verify_no_trailing_whitespace(PathCrLf, Config, #{ignore_empty_lines => false}, 0),
-
-    PathLf = "pass_no_trailing_whitespace_lf." ++ Ext,
-    do_verify_no_trailing_whitespace(PathLf, Config, #{ignore_empty_lines => false}, 0).
-
-do_verify_no_trailing_whitespace(Path, Config, RuleConfig, ExpectedNumItems) ->
-    Items =
-        elvis_core_apply_rule(Config, elvis_text_style, no_trailing_whitespace, RuleConfig, Path),
-    length(Items) == ExpectedNumItems orelse
-        ct:fail("Expected ~b error items. Got: ~p", [ExpectedNumItems, Items]).
 
 -spec verify_macro_names_rule(config()) -> any().
 verify_macro_names_rule(Config) ->
@@ -1918,16 +1809,6 @@ verify_no_successive_maps(_Config) ->
 
 -endif.
 
--spec verify_unquoted_atoms(config()) -> any().
-verify_unquoted_atoms(Config) ->
-    PassPath = "pass_unquoted_atoms." ++ "erl",
-    [] =
-        elvis_core_apply_rule(Config, elvis_text_style, prefer_unquoted_atoms, #{}, PassPath),
-
-    FailPath = "fail_quoted_atoms." ++ "erl",
-    [_, _] =
-        elvis_core_apply_rule(Config, elvis_text_style, prefer_unquoted_atoms, #{}, FailPath).
-
 -spec verify_ms_transform_included(config()) -> any().
 verify_ms_transform_included(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
@@ -2622,24 +2503,6 @@ oddities(_Config) ->
         ],
     {fail, [#{rules := [_, _, _, _]}]} = elvis_core:rock(ElvisConfig),
     true.
-
--spec verify_redundant_blank_lines(config()) -> true.
-verify_redundant_blank_lines(Config) ->
-    Ext = proplists:get_value(test_file_ext, Config, "erl"),
-
-    % pass
-    PassModule = pass_redundant_blank_lines,
-    PassPath = atom_to_list(PassModule) ++ "." ++ Ext,
-
-    [] =
-        elvis_core_apply_rule(Config, elvis_text_style, no_redundant_blank_lines, #{}, PassPath),
-
-    % fail
-    FailModule = fail_redundant_blank_lines,
-    FailPath = atom_to_list(FailModule) ++ "." ++ Ext,
-
-    [_, _, _] =
-        elvis_core_apply_rule(Config, elvis_text_style, no_redundant_blank_lines, #{}, FailPath).
 
 -spec verify_elvis_attr_atom_naming_convention(config()) -> true.
 verify_elvis_attr_atom_naming_convention(Config) ->
