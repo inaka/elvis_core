@@ -34,7 +34,7 @@ compromised without adequate spacing.
          , {right, "<="}, {left, "<="}, {right, "||"}, {left, "||"}
          , {right, "|"}, {left, "|"}, {right, "::"}, {left, "::"}
          , {right, "->"}, {left, "->"}, {right, ","}, {right, "!"}
-         , {left, "!"}, {right, "?="}, {left, "?="}
+         , {left, "!"}, {right, "?="}, {left, "?="}, {right, ";"}
           ]
 ```
 
@@ -42,7 +42,7 @@ compromised without adequate spacing.
 
 `{right, "!"}, {left, "!"}` was added in [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0).
 
-`{right, "?="}, {left, "?="}` was added in [4.1.0](https://github.com/inaka/elvis_core/releases/tag/4.1.0).
+`{right, "?="}, {left, "?="}, {right, ";"}` was added in [4.1.0](https://github.com/inaka/elvis_core/releases/tag/4.1.0).
 
 ## Example configuration
 
@@ -59,7 +59,7 @@ compromised without adequate spacing.
                                           , {right, "<="}, {left, "<="}, {right, "||"}, {left, "||"}
                                           , {right, "|"}, {left, "|"}, {right, "::"}, {left, "::"}
                                           , {right, "->"}, {left, "->"}, {right, ","}, {right, "!"}
-                                          , {left, "!"}, {right, "?="}, {left, "?="}
+                                          , {left, "!"}, {right, "?="}, {left, "?="}, {right, ";"}
                                            ]
                                 }}
 ```

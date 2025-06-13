@@ -652,6 +652,9 @@ verify_operator_spaces(Config) ->
         #{info := [left, "|" | _]},
         #{info := [right, "||" | _]},
         #{info := [left, "||" | _]},
+        #{info := [right, ";" | _]},
+        #{info := [right, ";" | _]},
+        #{info := [right, ";" | _]},
         #{info := [right, "::" | _]},
         #{info := [left, "::" | _]},
         #{info := [right, "->" | _]},
@@ -720,15 +723,25 @@ verify_no_space(Config) ->
     Path1 = "fail_no_space." ++ Ext,
     [
         #{info := [right, "(", 3]},
+        #{info := [left, ",", 20]},
         #{info := [right, "(", 36]},
         #{info := [right, "(", 52]},
         #{info := [left, ")", 52]},
         #{info := [left, ",", 76]},
         #{info := [left, ")", 79]},
+        #{info := [left, ";", 94]},
         #{info := [right, "(", 109]},
         #{info := [left, ")", 109]},
+        #{info := [left, ".", 118]},
         #{info := [right, "#", 121]},
-        #{info := [right, "?", 121]}
+        #{info := [right, "?", 121]},
+        #{info := [left, ".", 121]},
+        #{info := [left, ".", 125]},
+        #{info := [left, ".", 129]},
+        #{info := [left, ";", 133]},
+        #{info := [left, ";", 136]},
+        #{info := [left, ":", 142]},
+        #{info := [left, ":", 146]}
     ] =
         elvis_core_apply_rule(
             Config,
