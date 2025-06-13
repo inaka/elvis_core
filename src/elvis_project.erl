@@ -5,20 +5,6 @@
 
 -export_type([protocol_for_deps_config/0]).
 
--define(DEP_BRANCH,
-    "Dependency '~s' uses a branch. "
-    "Please change this to a tag or specific commit."
-).
--define(DEP_NO_GIT,
-    "Dependency '~s' is not using appropriate protocol, "
-    "please change this to something like '~s'"
-).
--define(OLD_CONFIG_FORMAT,
-    "The current Elvis configuration file has an outdated format. "
-    "Please check Elvis's GitHub repository to find out what the "
-    "new format is."
-).
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -50,7 +36,27 @@ protocol_for_deps(_Config, Target, RuleConfig) ->
     NoHexDeps = lists:filter(fun(Dep) -> not is_hex_dep(Dep) end, Deps),
     BadDeps = lists:filter(fun(Dep) -> is_not_git_dep(Dep, Regex) end, NoHexDeps),
     lists:flatmap(
-        fun(Line) -> dep_to_result(Line, ?DEP_NO_GIT, {IgnoreDeps, Regex}) end,
+        fun(Line) ->
+            AppName =
+                case Line of
+                    {AppName0, _} -> AppName0;
+                    {AppName0, _, _GitInfo} -> AppName0;
+                    {AppName0, _Vsn, _GitInfo, _Opts} -> AppName0
+                end,
+
+            case lists:member(AppName, IgnoreDeps) of
+                true ->
+                    [];
+                false ->
+                    [
+                        elvis_result:new_item(
+                            "Dependency '~s' is not using appropriate protocol. "
+                            "Please change this to something like '~s'",
+                            [AppName, Regex]
+                        )
+                    ]
+            end
+        end,
         BadDeps
     ).
 
@@ -64,7 +70,29 @@ no_branch_deps(_Config, Target, RuleConfig) ->
     IgnoreDeps = option(ignore, RuleConfig, no_branch_deps),
     Deps = get_deps(Target),
     BadDeps = lists:filter(fun is_branch_dep/1, Deps),
-    lists:flatmap(fun(Line) -> dep_to_result(Line, ?DEP_BRANCH, IgnoreDeps) end, BadDeps).
+    lists:flatmap(
+        fun(Line) ->
+            AppName =
+                case Line of
+                    {AppName0, _} -> AppName0;
+                    {AppName0, _, _GitInfo} -> AppName0;
+                    {AppName0, _Vsn, _GitInfo, _Opts} -> AppName0
+                end,
+            case lists:member(AppName, IgnoreDeps) of
+                true ->
+                    [];
+                false ->
+                    [
+                        elvis_result:new_item(
+                            "Dependency '~s' uses a branch. "
+                            "Please change this to a tag or specific commit.",
+                            [AppName]
+                        )
+                    ]
+            end
+        end,
+        BadDeps
+    ).
 
 -spec old_configuration_format(
     elvis_config:config(),
@@ -83,7 +111,13 @@ old_configuration_format(_Config, Target, _RuleConfig) ->
                 false ->
                     [];
                 true ->
-                    [elvis_result:new(item, ?OLD_CONFIG_FORMAT, [])]
+                    [
+                        elvis_result:new_item(
+                            "The current Elvis configuration file has an outdated format. "
+                            "Please check Elvis's GitHub repository to find out what the "
+                            "new format is."
+                        )
+                    ]
             end
     end.
 
@@ -164,27 +198,6 @@ is_not_git_dep({_AppName, _Vsn, {_SCM, Url, {BranchTagOrRefType, _Branch}}, _Opt
     BranchTagOrRefType =:= ref
 ->
     nomatch == re:run(Url, Regex, []).
-
-dep_to_result({AppName, _}, Message, {IgnoreDeps, Regex}) ->
-    case lists:member(AppName, IgnoreDeps) of
-        true ->
-            [];
-        false ->
-            [elvis_result:new(item, Message, [AppName, Regex])]
-    end;
-dep_to_result({AppName, _}, Message, IgnoreDeps) ->
-    case lists:member(AppName, IgnoreDeps) of
-        true ->
-            [];
-        false ->
-            [elvis_result:new(item, Message, [AppName])]
-    end;
-dep_to_result({AppName, _, GitInfo}, Message, {IgnoreDeps, Regex}) ->
-    dep_to_result({AppName, GitInfo}, Message, {IgnoreDeps, Regex});
-dep_to_result({AppName, _, GitInfo}, Message, IgnoreDeps) ->
-    dep_to_result({AppName, GitInfo}, Message, IgnoreDeps);
-dep_to_result({AppName, _Vsn, GitInfo, _Opts}, Message, IgnoreDeps) ->
-    dep_to_result({AppName, GitInfo}, Message, IgnoreDeps).
 
 %% Old config
 
