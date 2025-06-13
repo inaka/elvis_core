@@ -3,7 +3,7 @@
 -compile({no_auto_import, [error/2]}).
 
 %% API
--export([new/3, new/4, status/1, clean/1, print_results/1]).
+-export([new_item/3, new/3, new/4, status/1, clean/1, print_results/1]).
 -export([
     get_path/1,
     get_rules/1,
@@ -42,6 +42,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% New
+
+new_item(Format, Data, {line, Line}) ->
+    new(item, Format, Data, Line);
+new_item(Format, Data, Node) ->
+    {Line, _} = ktn_code:attr(location, Node),
+    new_item(Format, Data, {line, Line}).
 
 -spec new
     (item, string(), [term()]) -> item();
