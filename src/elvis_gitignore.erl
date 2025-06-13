@@ -3,9 +3,6 @@
 
 -export([required_patterns/3, forbidden_patterns/3, default/1]).
 
--define(REQUIRED_PATTERN, "Your .gitignore file should contain pattern '~s'.").
--define(FORBIDDEN_PATTERN, "Your .gitignore file should not contain pattern '~s'.").
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -83,9 +80,21 @@ check_patterns_in_lines(Lines, [Pattern | Rest], Results0, Mode) ->
             true ->
                 Results0;
             false when Mode =:= required ->
-                [elvis_result:new(item, ?REQUIRED_PATTERN, [Pattern]) | Results0];
+                [
+                    elvis_result:new_item(
+                        "Your .gitignore file should contain pattern '~s'.",
+                        [Pattern]
+                    )
+                    | Results0
+                ];
             false when Mode =:= forbidden ->
-                [elvis_result:new(item, ?FORBIDDEN_PATTERN, [Pattern]) | Results0]
+                [
+                    elvis_result:new_item(
+                        "Your .gitignore file should not contain pattern '~s'.",
+                        [Pattern]
+                    )
+                    | Results0
+                ]
         end,
     check_patterns_in_lines(Lines, Rest, Results, Mode).
 

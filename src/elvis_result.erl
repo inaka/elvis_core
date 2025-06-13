@@ -47,7 +47,7 @@ new_item(Format) ->
     new_item(Format, []).
 
 new_item(Format, Data) ->
-    new_item(Format, Data, {line, 0}).
+    new_item(Format, Data, {line, -1}).
 
 new_item(Format, Data, {line, Line}) ->
     new(item, Format, Data, Line);
