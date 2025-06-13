@@ -58,7 +58,7 @@ verify_line_length_rule(Config) ->
         ),
     8 = length(Result),
     #{info := Info, message := Msg} = lists:nth(7, Result),
-    <<"Line 32 is too long. It has ", _/binary>> = list_to_binary(io_lib:format(Msg, Info)),
+    <<"At line 32, there are too many ", _/binary>> = list_to_binary(io_lib:format(Msg, Info)),
 
     WholeLineResult =
         style_SUITE:elvis_core_apply_rule(
@@ -106,7 +106,7 @@ verify_line_length_rule_latin1(Config) ->
         ),
     1 = length(Result),
     #{info := Info, message := Msg} = lists:nth(1, Result),
-    <<"Line 13 is too long. It has", _/binary>> = list_to_binary(io_lib:format(Msg, Info)).
+    <<"At line 13, there are too many ", _/binary>> = list_to_binary(io_lib:format(Msg, Info)).
 
 -spec verify_unicode_line_length_rule(config()) -> any().
 verify_unicode_line_length_rule(Config) ->

@@ -85,7 +85,7 @@ no_branch_deps(_Config, Target, RuleConfig) ->
                     [
                         elvis_result:new_item(
                             "Dependency '~s' uses a branch. "
-                            "Please change this to a tag or specific commit.",
+                            "Please change this to a tag or specific commit",
                             [AppName]
                         )
                     ]
@@ -115,7 +115,7 @@ old_configuration_format(_Config, Target, _RuleConfig) ->
                         elvis_result:new_item(
                             "The current Elvis configuration file has an outdated format. "
                             "Please check Elvis's GitHub repository to find out what the "
-                            "new format is."
+                            "new format is"
                         )
                     ]
             end

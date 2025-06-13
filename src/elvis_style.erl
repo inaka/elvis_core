@@ -1543,9 +1543,9 @@ no_init_lists(Config, Target, RuleConfig) ->
 
     ResultFun =
         fun(Location) ->
-            Info = [Location],
+            {Line, Column} = Location,
             Msg = ?NO_INIT_LISTS_MSG,
-            elvis_result:new(item, Msg, Info, Location)
+            elvis_result:new_item(Msg, [], #{line => Line, column => Column})
         end,
 
     lists:map(ResultFun, ListInitClauses).
@@ -1595,9 +1595,9 @@ ms_transform_included(Config, Target, RuleConfig) ->
 
     ResultFun =
         fun(Location) ->
-            Info = [Location],
+            {Line, Column} = Location,
             Msg = ?MS_TRANSFORM_INCLUDED_MSG,
-            elvis_result:new(item, Msg, Info, Location)
+            elvis_result:new_item(Msg, [], #{line => Line, column => Column})
         end,
 
     case IsIncluded of

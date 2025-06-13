@@ -118,9 +118,9 @@ check_atom_quotes([AtomNode | RemainingAtomNodes], AccIn) ->
                 AccIn ++
                     [
                         elvis_result:new_item(
-                            "Atom ~p on line ~p is quoted but quotes are not needed.",
+                            "atom ~p is quoted but quotes are not needed",
                             [AtomName],
-                            AtomNode
+                            #{node => AtomNode}
                         )
                     ];
             _ ->
@@ -140,9 +140,9 @@ no_redundant_blank_lines(_Config, Target, RuleConfig) ->
             ({Line, BlankLinesLength}) when BlankLinesLength >= MaxLines ->
                 {true,
                     elvis_result:new_item(
-                        "Too many blank lines at line ~p. ~p sequential blank lines found.",
-                        [BlankLinesLength, MaxLines],
-                        {line, Line}
+                        "there are too many blank lines",
+                        [],
+                        #{line => Line, limit => BlankLinesLength}
                     )};
             (_) ->
                 false
@@ -223,9 +223,9 @@ check_line_length(Line0, Num, [Limit, Encoding, NoWhitespace]) ->
 
 line_length_res(Num, Len) ->
     elvis_result:new_item(
-        "Line ~p is too long. It has ~p characters.",
-        [Num, Len],
-        {line, Num}
+        "there are too many characters",
+        [],
+        #{line => Num, limit => Len}
     ).
 
 %% No Tabs
@@ -238,9 +238,9 @@ check_no_tabs(Line, Num) ->
         {Index, _} ->
             {ok,
                 elvis_result:new_item(
-                    "Line ~p has a tab at column ~p.",
-                    [Num, Index],
-                    {line, Num}
+                    "there is a tab at column ~p",
+                    [Index],
+                    #{line => Num}
                 )}
     end.
 
@@ -264,9 +264,9 @@ check_no_trailing_whitespace(Line, Num, IgnoreEmptyLines) ->
         {match, [PosLen]} ->
             {ok,
                 elvis_result:new_item(
-                    "Line ~b has ~b trailing whitespace characters.",
-                    [Num, byte_size(binary:part(Line, PosLen))],
-                    {line, Num}
+                    "there are too trailing whitespace characters",
+                    [],
+                    #{line => Num, limit => byte_size(binary:part(Line, PosLen))}
                 )}
     end.
 
