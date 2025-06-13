@@ -82,7 +82,7 @@ check_patterns_in_lines(Lines, [Pattern | Rest], Results0, Mode) ->
             false when Mode =:= required ->
                 [
                     elvis_result:new_item(
-                        "Your .gitignore file should contain pattern '~s'.",
+                        "Your .gitignore file should contain pattern '~s'",
                         [Pattern]
                     )
                     | Results0
@@ -90,7 +90,7 @@ check_patterns_in_lines(Lines, [Pattern | Rest], Results0, Mode) ->
             false when Mode =:= forbidden ->
                 [
                     elvis_result:new_item(
-                        "Your .gitignore file should not contain pattern '~s'.",
+                        "Your .gitignore file should not contain pattern '~s'",
                         [Pattern]
                     )
                     | Results0

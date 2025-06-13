@@ -47,13 +47,15 @@ new_item(Format) ->
     new_item(Format, []).
 
 new_item(Format, Data) ->
-    new_item(Format, Data, {line, -1}).
+    new_item(Format, Data, #{line => -1}).
 
-new_item(Format, Data, {line, Line}) ->
-    new(item, Format, Data, Line);
-new_item(Format, Data, Node) ->
-    {Line, _} = ktn_code:attr(location, Node),
-    new_item(Format, Data, {line, Line}).
+new_item(Format, Data, #{line := Line} = Attrs) ->
+    Limit = maps:get(limit, Attrs, -1),
+    Column = maps:get(column, Attrs, -1),
+    new(item, Format, Data, {Line, Column}, Limit);
+new_item(Format, Data, #{node := Node}) ->
+    {Line, Column} = ktn_code:attr(location, Node),
+    new_item(Format, Data, Node#{line => Line, columm => Column}).
 
 -spec new
     (item, string(), [term()]) -> item();
@@ -62,7 +64,7 @@ new_item(Format, Data, Node) ->
     (error, string(), string()) -> elvis_error();
     (warn, string(), string()) -> elvis_warn().
 new(item, Msg, Info) ->
-    new(item, Msg, Info, 0);
+    new_item(Msg, Info);
 new(rule, {Scope, Name}, Results) ->
     #{
         scope => Scope,
@@ -78,10 +80,34 @@ new(warn, Msg, Info) ->
 
 -spec new(item, string(), [term()], integer()) -> item().
 new(item, Msg, Info, LineNum) ->
+    new_item(Msg, Info, #{line => LineNum}).
+
+new(item, Msg0, Info, {Line, Column}, Limit) ->
+    Msg1 =
+        case Line > 0 of
+            false ->
+                Msg0;
+            _ ->
+                "At line " ++ integer_to_list(Line) ++ ", " ++ Msg0
+        end,
+    Msg2 =
+        case Column > 0 of
+            false ->
+                Msg1;
+            _ ->
+                ", column " ++ integer_to_list(Column) ++ ", " ++ Msg1
+        end,
+    Msg =
+        case Limit of
+            -1 ->
+                Msg2;
+            _ ->
+                Msg2 ++ " (limit: " ++ integer_to_list(Limit) ++ ")"
+        end,
     #{
-        message => Msg,
+        message => Msg ++ ".",
         info => Info,
-        line_num => LineNum
+        line_num => Line
     }.
 
 %% Getters
