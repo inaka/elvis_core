@@ -135,7 +135,7 @@ If you want to override the [pre-defined rules](#pre-defined-rules), for a given
 to specify them in a `rules` key which is a list of items with the following structure
 `{Module, Function, RuleConfig}`, or `{Module, Function}` - if the rule takes no configuration
 values. You can also `disable` certain rules if you want to, by specifying them in the `rules` key
-and passing `disable` as a third parameter.
+and passing `disable` as a third argument.
 
 #### Disabling Rules
 
