@@ -14,8 +14,8 @@ jobs:
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
-        otp_vsn: ['25', '26', '27']
-        rebar3_vsn: ['3.24']
+        otp_vsn: ['26', '27', '28']
+        rebar3_vsn: ['3.25']
         os: [ubuntu-24.04, windows-2022]
     steps:
       - uses: actions/checkout@v4
