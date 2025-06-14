@@ -501,7 +501,7 @@ verify_no_block_expressions(Config) ->
 
     Path = "fail_no_block_expressions." ++ Ext,
 
-    [#{info := [9]}] =
+    [#{line_num := 9}] =
         elvis_core_apply_rule(Config, elvis_style, no_block_expressions, #{}, Path).
 
 -spec verify_operator_spaces(config()) -> any().
