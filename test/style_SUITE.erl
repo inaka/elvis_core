@@ -112,6 +112,12 @@
 -export([
     verify_no_single_match_maybe/1
 ]).
+
+-if(?OTP_RELEASE >= 28).
+-export([
+    verify_operator_spaces_otp28/1
+]).
+-endif.
 -endif.
 %% Non-rule
 -export([results_are_ordered_by_line/1, oddities/1]).
@@ -715,6 +721,23 @@ verify_operator_spaces(Config) ->
         #{info := [left, "?=" | _]}
     ] =
         elvis_core_apply_rule(Config, elvis_style, operator_spaces, DefaultOptions, Path).
+
+-if(?OTP_RELEASE >= 28).
+verify_operator_spaces_otp28(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    Path = "fail_operator_spaces_otp28." ++ Ext,
+    DefaultOptions = #{},
+    [
+        #{info := [right, "<:-" | _]},
+        #{info := [left, "<:=" | _]},
+        #{info := [right, "<:-" | _]},
+        #{info := [left, "<:-" | _]},
+        #{info := [right, "&&" | _]},
+        #{info := [left, "&&" | _]}
+    ] =
+        elvis_core_apply_rule(Config, elvis_style, operator_spaces, DefaultOptions, Path).
+-endif.
 
 -spec verify_no_space(config()) -> any().
 verify_no_space(Config) ->
