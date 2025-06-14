@@ -22,8 +22,6 @@
 -type config() :: map().
 -type configs() :: [config()].
 
--define(DEFAULT_FILTER, "*.erl").
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Public
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -176,7 +174,7 @@ filter(Config) when is_list(Config) ->
 filter(#{filter := Filter}) ->
     Filter;
 filter(#{}) ->
-    ?DEFAULT_FILTER.
+    "*.erl".
 
 -spec files(RuleGroup :: configs() | config()) -> [elvis_file:file()].
 files(RuleGroup) when is_list(RuleGroup) ->
