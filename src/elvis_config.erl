@@ -225,7 +225,7 @@ resolve_files(RuleGroup, Files) ->
                         warn,
                         "Searching for files in ~p, for ruleset ~p, "
                         "with filter ~p, yielded none. "
-                        "Update your configuration.",
+                        "Update your configuration",
                         [Dirs, RuleSet, Filter]
                     ),
                 ok = elvis_result:print_results([Error]);
