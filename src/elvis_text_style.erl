@@ -115,14 +115,14 @@ check_atom_quotes([AtomNode | RemainingAtomNodes], AccIn) ->
     AccOut =
         case needs_quoting(AtomName) of
             false ->
-                AccIn ++
-                    [
-                        elvis_result:new_item(
-                            "atom ~p is quoted but quotes are not needed",
-                            [AtomName],
-                            #{node => AtomNode}
-                        )
-                    ];
+                [
+                    elvis_result:new_item(
+                        "atom ~p is quoted but quotes are not needed",
+                        [AtomName],
+                        #{node => AtomNode}
+                    )
+                    | AccIn
+                ];
             _ ->
                 AccIn
         end,
