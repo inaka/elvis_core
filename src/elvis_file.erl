@@ -146,10 +146,7 @@ module(#{path := Path}) ->
 
 -spec resolve_parse_tree(string(), string() | binary(), module(), list()) ->
     undefined | ktn_code:tree_node().
-resolve_parse_tree(".erl", Content, Mod, Ignore) ->
-    Tree = ktn_code:parse_tree(Content),
-    filter_tree_for(Tree, Mod, Ignore);
-resolve_parse_tree(".hrl", Content, Mod, Ignore) ->
+resolve_parse_tree(Ext, Content, Mod, Ignore) when Ext =:= ".erl"; Ext =:= ".hrl" ->
     Tree = ktn_code:parse_tree(Content),
     filter_tree_for(Tree, Mod, Ignore);
 resolve_parse_tree(_, _, _, _) ->
