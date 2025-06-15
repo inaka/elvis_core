@@ -500,24 +500,21 @@ no_macros(ElvisConfig, RuleTarget, RuleConfig) ->
     AllowedMacros = maps:get(allow, RuleConfig, []) ++ eep_predef_macros() ++ logger_macros(),
     MacroNodes = elvis_code:find_by_types([macro], TreeRootNode),
 
-    lists:foldl(
-        fun(MacroNode, Acc) ->
+    lists:filtermap(
+        fun(MacroNode) ->
             Macro = list_to_atom(ktn_code:attr(name, MacroNode)),
             case lists:member(Macro, AllowedMacros) of
                 true ->
-                    Acc;
+                    false;
                 false ->
-                    [
+                    {true,
                         elvis_result:new_item(
                             "an avoidable macro '~p' was found; prefer no macros",
                             [Macro],
                             #{node => MacroNode}
-                        )
-                        | Acc
-                    ]
+                        )}
             end
         end,
-        [],
         MacroNodes
     ).
 
@@ -529,20 +526,15 @@ no_types(ElvisConfig, RuleTarget, RuleConfig) ->
     TreeRootNode = get_root(ElvisConfig, RuleTarget, RuleConfig),
     TypeNodes = elvis_code:find_by_types([type_attr], TreeRootNode),
 
-    lists:foldl(
-        fun(TypeNode, Acc) ->
-            Type = ktn_code:attr(name, TypeNode),
-            [
-                elvis_result:new_item(
-                    "unexpected `-type` attribute '~p' was found; "
-                    "avoid specifying types in .hrl files",
-                    [Type],
-                    #{node => TypeNode}
-                )
-                | Acc
-            ]
+    lists:map(
+        fun(TypeNode) ->
+            elvis_result:new_item(
+                "unexpected `-type` attribute '~p' was found; "
+                "avoid specifying types in .hrl files",
+                [ktn_code:attr(name, TypeNode)],
+                #{node => TypeNode}
+            )
         end,
-        [],
         TypeNodes
     ).
 
@@ -554,20 +546,16 @@ no_nested_hrls(ElvisConfig, RuleTarget, RuleConfig) ->
     TreeRootNode = get_root(ElvisConfig, RuleTarget, RuleConfig),
     IncludeNodes = elvis_code:find_by_types([include, include_lib], TreeRootNode),
 
-    lists:foldl(
-        fun(IncludeNode, Acc) ->
+    lists:map(
+        fun(IncludeNode) ->
             Filename = ktn_code:attr(value, IncludeNode),
-            [
-                elvis_result:new_item(
-                    "unexpected nested '-include[_lib]' attribute ('~p') was found; "
-                    "avoid including .hrl files in .hrl files",
-                    [Filename],
-                    #{node => IncludeNode}
-                )
-                | Acc
-            ]
+            elvis_result:new_item(
+                "unexpected nested '-include[_lib]' attribute ('~p') was found; "
+                "avoid including .hrl files in .hrl files",
+                [Filename],
+                #{node => IncludeNode}
+            )
         end,
-        [],
         IncludeNodes
     ).
 
@@ -579,19 +567,14 @@ no_specs(ElvisConfig, RuleTarget, RuleConfig) ->
     TreeRootNode = get_root(ElvisConfig, RuleTarget, RuleConfig),
     SpecNodes = elvis_code:find_by_types([spec], TreeRootNode),
 
-    lists:foldl(
-        fun(SpecNode, Acc) ->
-            FunctionName = ktn_code:attr(name, SpecNode),
-            [
-                elvis_result:new_item(
-                    "an unexpected spec for was found function '~p'; avoid specs in .hrl files",
-                    [FunctionName],
-                    #{node => SpecNode}
-                )
-                | Acc
-            ]
+    lists:map(
+        fun(SpecNode) ->
+            elvis_result:new_item(
+                "an unexpected spec for was found function '~p'; avoid specs in .hrl files",
+                [ktn_code:attr(name, SpecNode)],
+                #{node => SpecNode}
+            )
         end,
-        [],
         SpecNodes
     ).
 
@@ -606,17 +589,13 @@ no_specs(ElvisConfig, RuleTarget, RuleConfig) ->
 no_block_expressions(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
     BeginNodes = elvis_code:find_by_types_in_tokens(['begin'], Root),
-    lists:foldl(
-        fun(BeginNode, Acc) ->
-            [
-                elvis_result:new_item(
-                    "an avoidable block expression ('begin'...'end') was found",
-                    #{node => BeginNode}
-                )
-                | Acc
-            ]
+    lists:map(
+        fun(BeginNode) ->
+            elvis_result:new_item(
+                "an avoidable block expression ('begin'...'end') was found",
+                #{node => BeginNode}
+            )
         end,
-        [],
         BeginNodes
     ).
 
@@ -791,18 +770,14 @@ god_modules(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 no_if_expression(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    case elvis_code:find_by_types(['if'], Root) of
-        [] ->
-            [];
-        IfExprs ->
-            ResultFun = fun(Node) ->
-                elvis_result:new_item(
-                    "an unexpected 'if' expression was found; prefer 'case' expressions",
-                    #{node => Node}
-                )
-            end,
-            lists:map(ResultFun, IfExprs)
-    end.
+    IfExprs = elvis_code:find_by_types(['if'], Root),
+    ResultFun = fun(Node) ->
+        elvis_result:new_item(
+            "an unexpected 'if' expression was found; prefer 'case' expressions",
+            #{node => Node}
+        )
+    end,
+    lists:map(ResultFun, IfExprs).
 
 -spec invalid_dynamic_call(
     elvis_config:config(),
@@ -828,19 +803,15 @@ invalid_dynamic_call(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 used_ignored_variable(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
+
+    UsedIgnoredVars = elvis_code:find(fun is_ignored_var/1, Root, #{mode => zipper}),
     ResultFun = fun(Node) ->
         elvis_result:new_item(
             "an unexpected use of an ignored variable was found",
             #{node => Node}
         )
     end,
-
-    case elvis_code:find(fun is_ignored_var/1, Root, #{mode => zipper}) of
-        [] ->
-            [];
-        UsedIgnoredVars ->
-            lists:map(ResultFun, UsedIgnoredVars)
-    end.
+    lists:map(ResultFun, UsedIgnoredVars).
 
 -spec no_behavior_info(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
     [elvis_result:item()].
@@ -859,19 +830,15 @@ no_behavior_info(Config, Target, RuleConfig) ->
             end
         end,
 
-    case lists:filter(FilterFun, Children) of
-        [] ->
-            [];
-        BehaviorInfos ->
-            ResultFun = fun(Node) ->
-                elvis_result:new_item(
-                    "an avoidable 'behavio[u]r_info/1' declaration was found; prefer '-callback' "
-                    "attributes",
-                    #{node => Node}
-                )
-            end,
-            lists:map(ResultFun, BehaviorInfos)
-    end.
+    BehaviorInfos = lists:filter(FilterFun, Children),
+    ResultFun = fun(Node) ->
+        elvis_result:new_item(
+            "an avoidable 'behavio[u]r_info/1' declaration was found; prefer '-callback' "
+            "attributes",
+            #{node => Node}
+        )
+    end,
+    lists:map(ResultFun, BehaviorInfos).
 
 -type module_naming_convention_config() :: #{ignore => [ignorable()], regex => string()}.
 
@@ -883,7 +850,6 @@ no_behavior_info(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 module_naming_convention(Config, Target, RuleConfig) ->
     Regex = option(regex, RuleConfig, module_naming_convention),
-    ForbiddenRegex = option(forbidden_regex, RuleConfig, module_naming_convention),
     IgnoreModules = option(ignore, RuleConfig, module_naming_convention),
 
     Root = get_root(Config, Target, RuleConfig),
@@ -907,6 +873,7 @@ module_naming_convention(Config, Target, RuleConfig) ->
                         )
                     ];
                 {match, _} ->
+                    ForbiddenRegex = option(forbidden_regex, RuleConfig, module_naming_convention),
                     case ForbiddenRegex of
                         undefined ->
                             [];
@@ -974,19 +941,15 @@ state_record_and_type(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 no_spec_with_records(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    case elvis_code:find(fun spec_includes_record/1, Root) of
-        [] ->
-            [];
-        SpecNodes ->
-            ResultFun = fun(Node) ->
-                elvis_result:new_item(
-                    "an unexpected record was found in a spec; prefer creating a type for it and "
-                    "using that",
-                    #{node => Node}
-                )
-            end,
-            lists:map(ResultFun, SpecNodes)
-    end.
+    SpecNodes = elvis_code:find(fun spec_includes_record/1, Root),
+    ResultFun = fun(Node) ->
+        elvis_result:new_item(
+            "an unexpected record was found in a spec; prefer creating a type for it and "
+            "using that",
+            #{node => Node}
+        )
+    end,
+    lists:map(ResultFun, SpecNodes).
 
 -type dont_repeat_yourself_config() ::
     #{ignore => [ignorable()], min_complexity => non_neg_integer()}.
@@ -1353,12 +1316,8 @@ no_nested_try_catch(Config, Target, RuleConfig) ->
             #{node => Node}
         )
     end,
-    case elvis_code:find_by_types(['try'], Root) of
-        [] ->
-            [];
-        TryExprs ->
-            lists:flatmap(fun(TryExp) -> check_nested_try_catchs(ResultFun, TryExp) end, TryExprs)
-    end.
+    TryExprs = elvis_code:find_by_types(['try'], Root),
+    lists:flatmap(fun(TryExp) -> check_nested_try_catchs(ResultFun, TryExp) end, TryExprs).
 
 -spec no_successive_maps(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
     [elvis_result:item()].
@@ -1371,12 +1330,8 @@ no_successive_maps(Config, Target, RuleConfig) ->
         )
     end,
     FindOpts = #{mode => node, traverse => all},
-    case elvis_code:find_by_types([map], Root, FindOpts) of
-        [] ->
-            [];
-        MapExprs ->
-            lists:flatmap(fun(MapExp) -> check_successive_maps(ResultFun, MapExp) end, MapExprs)
-    end.
+    MapExprs = elvis_code:find_by_types([map], Root, FindOpts),
+    lists:flatmap(fun(MapExp) -> check_successive_maps(ResultFun, MapExp) end, MapExprs).
 
 -type atom_naming_convention_config() ::
     #{
@@ -1504,19 +1459,18 @@ ms_transform_included(Config, Target, RuleConfig) ->
 
     IsIncluded = Functions =/= [] andalso has_include_ms_transform(Root),
 
-    ResultFun =
-        fun(Function) ->
-            elvis_result:new_item(
-                "'ets:fun2ms/1' is used but the module is missing "
-                "'-include_lib(\"stdlib/include/ms_transform.hrl\").'",
-                #{node => Function}
-            )
-        end,
-
     case IsIncluded of
         true ->
             [];
         false ->
+            ResultFun =
+                fun(Function) ->
+                    elvis_result:new_item(
+                        "'ets:fun2ms/1' is used but the module is missing "
+                        "'-include_lib(\"stdlib/include/ms_transform.hrl\").'",
+                        #{node => Function}
+                    )
+                end,
             lists:map(ResultFun, Functions)
     end.
 
@@ -1689,17 +1643,13 @@ no_throw(Config, Target, RuleConfig) ->
         end,
     Root = get_root(Config, Target, RuleConfig),
     ThrowNodes = elvis_code:find(Zipper, Root),
-    lists:foldl(
-        fun(ThrowNode, AccIn) ->
-            [
-                elvis_result:new_item(
-                    "an avoidable call to 'throw/1' was found",
-                    #{node => ThrowNode}
-                )
-                | AccIn
-            ]
+    lists:map(
+        fun(ThrowNode) ->
+            elvis_result:new_item(
+                "an avoidable call to 'throw/1' was found",
+                #{node => ThrowNode}
+            )
         end,
-        [],
         ThrowNodes
     ).
 
@@ -1766,17 +1716,13 @@ no_import(Config, Target, RuleConfig) ->
 no_catch_expressions(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
     CatchNodes = elvis_code:find_by_types(['catch'], Root),
-    lists:foldl(
-        fun(CatchNode, Acc) ->
-            [
-                elvis_result:new_item(
-                    "an unexpected 'catch' expression was found; prefer a 'try' expression",
-                    #{node => CatchNode}
-                )
-                | Acc
-            ]
+    lists:map(
+        fun(CatchNode) ->
+            elvis_result:new_item(
+                "an unexpected 'catch' expression was found; prefer a 'try' expression",
+                #{node => CatchNode}
+            )
         end,
-        [],
         CatchNodes
     ).
 
@@ -1916,20 +1862,16 @@ behaviour_spelling(Config, Target, RuleConfig) ->
             (ktn_code:type(Node) =:= behaviour orelse ktn_code:type(Node) =:= behavior) andalso
                 ktn_code:type(Node) =/= Spelling
         end,
-    case elvis_code:find(IsWronglySpelledBehaviour, Root) of
-        [] ->
-            [];
-        InconsistentBehaviorNodes ->
-            ResultFun =
-                fun(Node) ->
-                    elvis_result:new_item(
-                        "an unexpected spelling of 'behavio[u]r' was found; prefer ~p",
-                        [Spelling],
-                        #{node => Node}
-                    )
-                end,
-            lists:map(ResultFun, InconsistentBehaviorNodes)
-    end.
+    InconsistentBehaviorNodes = elvis_code:find(IsWronglySpelledBehaviour, Root),
+    ResultFun =
+        fun(Node) ->
+            elvis_result:new_item(
+                "an unexpected spelling of 'behavio[u]r' was found; prefer ~p",
+                [Spelling],
+                #{node => Node}
+            )
+        end,
+    lists:map(ResultFun, InconsistentBehaviorNodes).
 
 -type param_pattern_matching_config() :: #{ignore => [ignorable()], side => left | right}.
 
@@ -2005,13 +1947,11 @@ consistent_generic_type(Config, Target, RuleConfig) ->
     TypePreference = option(preferred_type, RuleConfig, consistent_generic_type),
     Root = get_root(Config, Target, RuleConfig),
     IsInconsistentGenType = consistent_generic_type_predicate(TypePreference),
-    case elvis_code:find(IsInconsistentGenType, Root, #{traverse => all, mode => node}) of
-        [] ->
-            [];
-        InconsistentTypeNodes ->
-            ResultFun = consistent_generic_type_result(TypePreference),
-            lists:map(ResultFun, InconsistentTypeNodes)
-    end.
+    InconsistentTypeNodes = elvis_code:find(IsInconsistentGenType, Root, #{
+        traverse => all, mode => node
+    }),
+    ResultFun = consistent_generic_type_result(TypePreference),
+    lists:map(ResultFun, InconsistentTypeNodes).
 
 -spec always_shortcircuit(
     elvis_config:config(),
@@ -2029,22 +1969,18 @@ always_shortcircuit(Config, Target, RuleConfig) ->
                     ktn_code:attr(operation, Node), maps:keys(Operators)
                 )
         end,
-    case elvis_code:find(IsBadOperator, Root, #{traverse => all}) of
-        [] ->
-            [];
-        BadOperators ->
-            ResultFun =
-                fun(Node) ->
-                    BadOperator = ktn_code:attr(operation, Node),
-                    GoodOperator = maps:get(BadOperator, Operators),
-                    elvis_result:new_item(
-                        "unexpected non-shortcircuiting operator '~p' was found; prefer ~p",
-                        [BadOperator, GoodOperator],
-                        #{node => Node}
-                    )
-                end,
-            lists:map(ResultFun, BadOperators)
-    end.
+    BadOperators = elvis_code:find(IsBadOperator, Root, #{traverse => all}),
+    ResultFun =
+        fun(Node) ->
+            BadOperator = ktn_code:attr(operation, Node),
+            GoodOperator = maps:get(BadOperator, Operators),
+            elvis_result:new_item(
+                "unexpected non-shortcircuiting operator '~p' was found; prefer ~p",
+                [BadOperator, GoodOperator],
+                #{node => Node}
+            )
+        end,
+    lists:map(ResultFun, BadOperators).
 
 -spec export_used_types(elvis_config:config(), elvis_file:file(), empty_rule_config()) ->
     [elvis_result:item()].
@@ -2542,19 +2478,15 @@ character_at_location(
 %% Nesting Level
 -spec check_nesting_level(ktn_code:tree_node(), [integer()]) -> [elvis_result:item()].
 check_nesting_level(ParentNode, [MaxLevel]) ->
-    case past_nesting_limit(ParentNode, MaxLevel) of
-        [] ->
-            [];
-        NestedNodes ->
-            Fun = fun(Node) ->
-                elvis_result:new_item(
-                    "an expression is nested beyond the configured limit",
-                    #{node => Node, limit => MaxLevel}
-                )
-            end,
+    NestedNodes = past_nesting_limit(ParentNode, MaxLevel),
+    Fun = fun(Node) ->
+        elvis_result:new_item(
+            "an expression is nested beyond the configured limit",
+            #{node => Node, limit => MaxLevel}
+        )
+    end,
 
-            lists:map(Fun, NestedNodes)
-    end.
+    lists:map(Fun, NestedNodes).
 
 %% @doc Takes a node and returns all nodes where the nesting limit is exceeded.
 -spec past_nesting_limit(ktn_code:tree_node(), integer()) ->
@@ -2592,19 +2524,15 @@ level_increment(#{type := Type}) ->
 
 -spec check_invalid_dynamic_calls(ktn_code:tree_node()) -> [elvis_result:item()].
 check_invalid_dynamic_calls(Root) ->
-    case elvis_code:find(fun is_dynamic_call/1, Root, #{traverse => all}) of
-        [] ->
-            [];
-        InvalidCalls ->
-            ResultFun = fun(Node) ->
-                elvis_result:new_item(
-                    "an unexpected dynamic function call was found; prefer "
-                    "making dynamic calls only in modules that define callbacks",
-                    #{node => Node}
-                )
-            end,
-            lists:map(ResultFun, InvalidCalls)
-    end.
+    InvalidCalls = elvis_code:find(fun is_dynamic_call/1, Root, #{traverse => all}),
+    ResultFun = fun(Node) ->
+        elvis_result:new_item(
+            "an unexpected dynamic function call was found; prefer "
+            "making dynamic calls only in modules that define callbacks",
+            #{node => Node}
+        )
+    end,
+    lists:map(ResultFun, InvalidCalls).
 
 -spec is_dynamic_call(ktn_code:tree_node()) -> boolean().
 is_dynamic_call(Node) ->
