@@ -117,7 +117,8 @@ check_atom_quotes([AtomNode | RemainingAtomNodes], AccIn) ->
             false ->
                 [
                     elvis_result:new_item(
-                        "unnecessarily quoted atom '~p' was found",
+                        "unnecessarily quoted atom '~p' was found; prefer removing the quotes when "
+                        "not syntactically required",
                         [AtomName],
                         #{node => AtomNode}
                     )
@@ -140,7 +141,7 @@ no_redundant_blank_lines(_Config, Target, RuleConfig) ->
             ({Line, BlankLinesLength}) when BlankLinesLength >= MaxLines ->
                 {true,
                     elvis_result:new_item(
-                        "there are too many blank lines",
+                        "there are too many blank lines; prefer respecting the configured limit",
                         #{line => Line, limit => BlankLinesLength}
                     )};
             (_) ->
@@ -222,7 +223,7 @@ check_line_length(Line0, Num, [Limit, Encoding, NoWhitespace]) ->
 
 line_length_res(Num, Len) ->
     elvis_result:new_item(
-        "there are too many characters",
+        "there are too many characters; prefer respecting the configured limit",
         #{line => Num, limit => Len}
     ).
 
@@ -236,7 +237,7 @@ check_no_tabs(Line, Num) ->
         {Index, _} ->
             {ok,
                 elvis_result:new_item(
-                    "there is an unexpected tab",
+                    "an unexpected tab character was found; prefer spaces",
                     #{line => Num, column => Index}
                 )}
     end.
@@ -261,7 +262,8 @@ check_no_trailing_whitespace(Line, Num, IgnoreEmptyLines) ->
         {match, [PosLen]} ->
             {ok,
                 elvis_result:new_item(
-                    "there are too many trailing whitespace characters",
+                    "there are too many trailing whitespace characters; "
+                    "prefer respecting the configured limit",
                     #{line => Num, limit => byte_size(binary:part(Line, PosLen))}
                 )}
     end.

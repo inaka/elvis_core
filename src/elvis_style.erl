@@ -509,7 +509,7 @@ no_macros(ElvisConfig, RuleTarget, RuleConfig) ->
                 false ->
                     [
                         elvis_result:new_item(
-                            "an avoidable macro '~p' was found",
+                            "an avoidable macro '~p' was found; prefer no macros",
                             [Macro],
                             #{node => MacroNode}
                         )
@@ -1797,7 +1797,7 @@ no_single_clause_case(Config, Target, RuleConfig) ->
     lists:map(
         fun(CaseNode) ->
             elvis_result:new_item(
-                "an avoidable single-clause 'case' expression was found",
+                "an avoidable single-clause 'case' statement was found",
                 #{node => CaseNode}
             )
         end,
