@@ -141,7 +141,6 @@ no_redundant_blank_lines(_Config, Target, RuleConfig) ->
                 {true,
                     elvis_result:new_item(
                         "there are too many blank lines",
-                        [],
                         #{line => Line, limit => BlankLinesLength}
                     )};
             (_) ->
@@ -224,7 +223,6 @@ check_line_length(Line0, Num, [Limit, Encoding, NoWhitespace]) ->
 line_length_res(Num, Len) ->
     elvis_result:new_item(
         "there are too many characters",
-        [],
         #{line => Num, limit => Len}
     ).
 
@@ -265,7 +263,6 @@ check_no_trailing_whitespace(Line, Num, IgnoreEmptyLines) ->
             {ok,
                 elvis_result:new_item(
                     "there are too trailing whitespace characters",
-                    [],
                     #{line => Num, limit => byte_size(binary:part(Line, PosLen))}
                 )}
     end.
