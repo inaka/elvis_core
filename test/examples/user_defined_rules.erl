@@ -3,4 +3,4 @@
 -export([rule/3]).
 
 rule(_Config, _Target, _) ->
-    [elvis_result:new(item, "This will always FAIL.", [], 1)].
+    [elvis_result:new_item("this will always FAIL", [], #{line => 10, column => 2})].
