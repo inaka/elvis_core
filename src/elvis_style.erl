@@ -1276,7 +1276,7 @@ max_function_length(Config, Target, RuleConfig) ->
     ResultFun =
         fun({Name, Arity, StartPos, L}) ->
             elvis_result:new_item(
-                "the code for function ~p/~p has an unexpected number of ~p lines",
+                "the code for function ~p/~p has ~p lines which exceeds the limit",
                 [Name, Arity, L],
                 #{line => StartPos, limit => MaxLength}
             )
@@ -2129,7 +2129,7 @@ private_data_types(Config, Target, RuleConfig) ->
         fun({Name, Arity} = Info) ->
             {Line, Column} = maps:get(Info, Locations, {-1, -1}),
             elvis_result:new_item(
-                "private data type ~p/~p is exported; either don't export it or make it opaque",
+                "private data type ~p/~p is exported; prefer not exporting it or making it opaque",
                 [Name, Arity],
                 #{line => Line, column => Column}
             )
@@ -2543,7 +2543,7 @@ check_nesting_level(ParentNode, [MaxLevel]) ->
         NestedNodes ->
             Fun = fun(Node) ->
                 elvis_result:new_item(
-                    "the expression is nested beyond limit",
+                    "the expression is nested beyond the configured limit",
                     #{node => Node, limit => MaxLevel}
                 )
             end,
@@ -2594,7 +2594,7 @@ check_invalid_dynamic_calls(Root) ->
             ResultFun = fun(Node) ->
                 elvis_result:new_item(
                     "there is an unexpected dynamic function call. "
-                    "Only modules that define callbacks should make dynamic calls.",
+                    "Only modules that define callbacks should make dynamic calls",
                     #{node => Node}
                 )
             end,

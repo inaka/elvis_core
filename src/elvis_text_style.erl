@@ -117,7 +117,7 @@ check_atom_quotes([AtomNode | RemainingAtomNodes], AccIn) ->
             false ->
                 [
                     elvis_result:new_item(
-                        "atom ~p is quoted but quotes are not needed",
+                        "atom ~p is unnecessarily quoted",
                         [AtomName],
                         #{node => AtomNode}
                     )
@@ -262,7 +262,7 @@ check_no_trailing_whitespace(Line, Num, IgnoreEmptyLines) ->
         {match, [PosLen]} ->
             {ok,
                 elvis_result:new_item(
-                    "there are too trailing whitespace characters",
+                    "there are too many trailing whitespace characters",
                     #{line => Num, limit => byte_size(binary:part(Line, PosLen))}
                 )}
     end.
