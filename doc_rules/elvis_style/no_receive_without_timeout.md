@@ -29,7 +29,7 @@ A `receive` block without a timeout will wait indefinitely if no matching messag
 your timeout explicit you:
 
 - avoid hanging processes.
-- improve testability (deterministic behaviour under test failure conditions).
+- improve testability (deterministic behavior under test failure conditions).
 - ease debug and recovery.
 - can implement retry and self-healing.
 - potentially avoid denial-of-service scenarios where waits are exploited.

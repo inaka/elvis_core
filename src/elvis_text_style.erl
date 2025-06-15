@@ -117,7 +117,7 @@ check_atom_quotes([AtomNode | RemainingAtomNodes], AccIn) ->
             false ->
                 [
                     elvis_result:new_item(
-                        "atom ~p is unnecessarily quoted",
+                        "unnecessarily quoted atom '~p' was found",
                         [AtomName],
                         #{node => AtomNode}
                     )
@@ -236,9 +236,8 @@ check_no_tabs(Line, Num) ->
         {Index, _} ->
             {ok,
                 elvis_result:new_item(
-                    "there is a tab at column ~p",
-                    [Index],
-                    #{line => Num}
+                    "there is an unexpected tab",
+                    #{line => Num, column => Index}
                 )}
     end.
 
