@@ -64,8 +64,8 @@ new_item(Format, Data, Attrs) ->
     (file, elvis_file:file(), [elvis_error() | rule()]) -> file();
     (error, string(), string()) -> elvis_error();
     (warn, string(), string()) -> elvis_warn().
+% new(item, ...) is kept for backward compatibility, but discouraged
 new(item, Msg, Info) ->
-    % Kept for backward compatibility, but discouraged
     new_item(Msg, Info);
 new(rule, {Scope, Name}, Results) ->
     #{
