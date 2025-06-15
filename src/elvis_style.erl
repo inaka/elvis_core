@@ -1007,7 +1007,7 @@ dont_repeat_yourself(Config, Target, RuleConfig) ->
             ({Line, Col}, "") ->
                 io_lib:format("(~p, ~p)", [Line, Col]);
             ({Line, Col}, Str) ->
-                io_lib:format("~p, (~p, ~p)", [Str, Line, Col])
+                io_lib:format("~s, (~p, ~p)", [Str, Line, Col])
         end,
     ResultFun =
         fun(Locations) ->
