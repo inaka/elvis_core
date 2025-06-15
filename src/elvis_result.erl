@@ -74,7 +74,7 @@ new_item(Format, Data0, Attrs0) ->
 
 extend_attrs_with_line_and_column(#{node := Node} = Attrs) ->
     {Line, Column} = ktn_code:attr(location, Node),
-    Attrs#{line => Line, columm => Column};
+    Attrs#{line => Line, column => Column};
 extend_attrs_with_line_and_column(Attrs) ->
     Attrs.
 
@@ -105,29 +105,32 @@ new(item, Msg, Info, LineNum) ->
     new_item(Msg, Info, #{line => LineNum}).
 
 new(item, Msg0, Info, {Line, Column}, Limit) ->
-    Msg1 =
-        case Line > 0 of
-            false ->
-                Msg0;
+    Prefix0 =
+        case Line of
+            -1 ->
+                "";
             _ ->
-                "At line " ++ integer_to_list(Line) ++ ", " ++ Msg0
+                "At line " ++ integer_to_list(Line) ++ ", "
         end,
-    Msg2 =
-        case Column > 0 of
-            false ->
-                Msg1;
+    Prefix1 =
+        case Column of
+            -1 ->
+                Prefix0;
+            _ when Line =:= -1 ->
+                "";
             _ ->
-                ", column " ++ integer_to_list(Column) ++ ", " ++ Msg1
+                Prefix0 ++ "column " ++ integer_to_list(Column) ++ ", "
         end,
-    Msg =
+    LimitSuffix =
         case Limit of
             -1 ->
-                Msg2;
+                "";
             _ ->
-                Msg2 ++ " (limit: " ++ integer_to_list(Limit) ++ ")"
+                " (limit: " ++ integer_to_list(Limit) ++ ")"
         end,
+
     #{
-        message => Msg ++ ".",
+        message => Prefix1 ++ Msg0 ++ LimitSuffix ++ ".",
         info => Info,
         line_num => Line
     }.
