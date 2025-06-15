@@ -1,6 +1,6 @@
 # No Single-Match Maybe Statements [![](https://img.shields.io/badge/since-4.1.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.1.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
-Single-match maybe expressions should be avoided.
+Single-match `maybe` statements should be avoided.
 
 > [!NOTE]  
 > This rule only works under Erlang/OTP 27+.
