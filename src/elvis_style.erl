@@ -610,7 +610,6 @@ no_block_expressions(Config, Target, RuleConfig) ->
             [
                 elvis_result:new_item(
                     "there is an unexpected block expression (begin-end)",
-                    [],
                     #{node => BeginNode}
                 )
                 | Acc
@@ -780,7 +779,6 @@ god_modules(Config, Target, RuleConfig) ->
             [
                 elvis_result:new_item(
                     "This module has too many functions. Consider breaking it into several modules",
-                    [],
                     #{limit => Limit}
                 )
             ];
@@ -799,7 +797,6 @@ no_if_expression(Config, Target, RuleConfig) ->
             ResultFun = fun(Node) ->
                 elvis_result:new_item(
                     "an unexpected 'if' expression was found",
-                    [],
                     #{node => Node}
                 )
             end,
@@ -833,7 +830,6 @@ used_ignored_variable(Config, Target, RuleConfig) ->
     ResultFun = fun(Node) ->
         elvis_result:new_item(
             "an unexpected use of an ignored variable was found",
-            [],
             #{node => Node}
         )
     end,
@@ -869,7 +865,6 @@ no_behavior_info(Config, Target, RuleConfig) ->
             ResultFun = fun(Node) ->
                 elvis_result:new_item(
                     "an unexpected behaviour 'behavior_info/1' was found",
-                    [],
                     #{node => Node}
                 )
             end,
@@ -985,7 +980,6 @@ no_spec_with_records(Config, Target, RuleConfig) ->
             ResultFun = fun(Node) ->
                 elvis_result:new_item(
                     "there is an unexpected record in the spec",
-                    [],
                     #{node => Node}
                 )
             end,
@@ -1071,7 +1065,6 @@ max_module_length(_Config, Target, RuleConfig) ->
             [
                 elvis_result:new_item(
                     "This module's lines-of-code count exceeds the allowed maximum",
-                    [],
                     #{limit => MaxLength}
                 )
             ];
@@ -1358,7 +1351,6 @@ no_nested_try_catch(Config, Target, RuleConfig) ->
     ResultFun = fun(Node) ->
         elvis_result:new_item(
             "there is an unexpected nested try...catch block",
-            [],
             #{node => Node}
         )
     end,
@@ -1376,7 +1368,6 @@ no_successive_maps(Config, Target, RuleConfig) ->
     ResultFun = fun(Node) ->
         elvis_result:new_item(
             "there is an unexpected map update after map construction/update",
-            [],
             #{node => Node}
         )
     end,
@@ -1464,7 +1455,6 @@ no_init_lists(Config, Target, RuleConfig) ->
         fun(Node) ->
             elvis_result:new_item(
                 "an unexpected 'init' callback list argument was found",
-                [],
                 #{node => Node}
             )
         end,
@@ -1519,7 +1509,6 @@ ms_transform_included(Config, Target, RuleConfig) ->
             elvis_result:new_item(
                 "`ets:fun2ms/1` is used but the module is missing "
                 "-include_lib(\"stdlib/include/ms_transform.hrl\")",
-                [],
                 #{node => Function}
             )
         end,
@@ -1576,7 +1565,6 @@ no_boolean_in_comparison(Config, Target, RuleConfig) ->
         fun(Node) ->
             elvis_result:new_item(
                 "comparison uses boolean, which should be avoided",
-                [],
                 #{node => Node}
             )
         end,
@@ -1600,7 +1588,6 @@ no_receive_without_timeout(Config, Target, RuleConfig) ->
         fun(Node) ->
             elvis_result:new_item(
                 "a receive block without an after clause was found",
-                [],
                 #{node => Node}
             )
         end,
@@ -1706,7 +1693,6 @@ no_throw(Config, Target, RuleConfig) ->
             [
                 elvis_result:new_item(
                     "usage of throw/1 is not recommended",
-                    [],
                     #{node => ThrowNode}
                 )
                 | AccIn
@@ -1728,7 +1714,6 @@ no_dollar_space(Config, Target, RuleConfig) ->
         fun(ThrowNode) ->
             elvis_result:new_item(
                 "an unexpected '$ ' was found. Use $\\s, instead",
-                [],
                 #{node => ThrowNode}
             )
         end,
@@ -1746,7 +1731,6 @@ no_author(Config, Target, RuleConfig) ->
         fun(Node) ->
             elvis_result:new_item(
                 "an unexpected -author attribute was found",
-                [],
                 #{node => Node}
             )
         end,
@@ -1764,7 +1748,6 @@ no_import(Config, Target, RuleConfig) ->
         fun(Node) ->
             elvis_result:new_item(
                 "an unexpected -import attribute was found",
-                [],
                 #{node => Node}
             )
         end,
@@ -1787,7 +1770,6 @@ no_catch_expressions(Config, Target, RuleConfig) ->
             [
                 elvis_result:new_item(
                     "an unexpected catch expression was found",
-                    [],
                     #{node => CatchNode}
                 )
                 | Acc
@@ -1815,7 +1797,6 @@ no_single_clause_case(Config, Target, RuleConfig) ->
         fun(CaseNode) ->
             elvis_result:new_item(
                 "an unexpected single-clause case expression was found",
-                [],
                 #{node => CaseNode}
             )
         end,
@@ -1848,7 +1829,6 @@ no_single_match_maybe(Config, Target, RuleConfig) ->
         fun(CaseNode) ->
             elvis_result:new_item(
                 "an unexpected single-match maybe statement was found",
-                [],
                 #{node => CaseNode}
             )
         end,
@@ -1870,7 +1850,6 @@ no_match_in_condition(Config, Target, RuleConfig) ->
         fun(CaseNode) ->
             elvis_result:new_item(
                 "an unexpected match condition was found in a case statement",
-                [],
                 #{node => CaseNode}
             )
         end,
@@ -2570,7 +2549,6 @@ check_nesting_level(ParentNode, [MaxLevel]) ->
             Fun = fun(Node) ->
                 elvis_result:new_item(
                     "the expression is nested beyond limit",
-                    [],
                     #{node => Node, limit => MaxLevel}
                 )
             end,
@@ -2622,7 +2600,6 @@ check_invalid_dynamic_calls(Root) ->
                 elvis_result:new_item(
                     "there is an unexpected dynamic function call. "
                     "Only modules that define callbacks should make dynamic calls.",
-                    [],
                     #{node => Node}
                 )
             end,
