@@ -49,13 +49,14 @@ new_item(Format) ->
 new_item(Format, Data) ->
     new_item(Format, Data, #{line => -1}).
 
-new_item(Format, Data, #{line := Line} = Attrs) ->
-    Limit = maps:get(limit, Attrs, -1),
-    Column = maps:get(column, Attrs, -1),
-    new(item, Format, Data, {Line, Column}, Limit);
 new_item(Format, Data, #{node := Node}) ->
     {Line, Column} = ktn_code:attr(location, Node),
-    new_item(Format, Data, Node#{line => Line, columm => Column}).
+    new_item(Format, Data, Node#{line => Line, columm => Column});
+new_item(Format, Data, Attrs) ->
+    Line = maps:get(line, Attrs, -1),
+    Limit = maps:get(limit, Attrs, -1),
+    Column = maps:get(column, Attrs, -1),
+    new(item, Format, Data, {Line, Column}, Limit).
 
 -spec new
     (item, string(), [term()]) -> item();
@@ -64,6 +65,7 @@ new_item(Format, Data, #{node := Node}) ->
     (error, string(), string()) -> elvis_error();
     (warn, string(), string()) -> elvis_warn().
 new(item, Msg, Info) ->
+    % Kept for backward compatibility, but discouraged
     new_item(Msg, Info);
 new(rule, {Scope, Name}, Results) ->
     #{

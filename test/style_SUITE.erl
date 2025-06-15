@@ -636,26 +636,26 @@ verify_no_space(Config) ->
 
     Path1 = "fail_no_space." ++ Ext,
     [
-        #{info := [right, "(", 3]},
-        #{info := [left, ",", 20]},
-        #{info := [right, "(", 36]},
-        #{info := [right, "(", 52]},
-        #{info := [left, ")", 52]},
-        #{info := [left, ",", 76]},
-        #{info := [left, ")", 79]},
-        #{info := [left, ";", 94]},
-        #{info := [right, "(", 109]},
-        #{info := [left, ")", 109]},
-        #{info := [left, ".", 118]},
-        #{info := [right, "#", 121]},
-        #{info := [right, "?", 121]},
-        #{info := [left, ".", 121]},
-        #{info := [left, ".", 125]},
-        #{info := [left, ".", 129]},
-        #{info := [left, ";", 133]},
-        #{info := [left, ";", 136]},
-        #{info := [left, ":", 142]},
-        #{info := [left, ":", 146]}
+        #{info := [right, "("], line_num := 3},
+        #{info := [left, ","], line_num := 20},
+        #{info := [right, "("], line_num := 36},
+        #{info := [right, "("], line_num := 52},
+        #{info := [left, ")"], line_num := 52},
+        #{info := [left, ","], line_num := 76},
+        #{info := [left, ")"], line_num := 79},
+        #{info := [left, ";"], line_num := 94},
+        #{info := [right, "("], line_num := 109},
+        #{info := [left, ")"], line_num := 109},
+        #{info := [left, "."], line_num := 118},
+        #{info := [right, "#"], line_num := 121},
+        #{info := [right, "?"], line_num := 121},
+        #{info := [left, "."], line_num := 121},
+        #{info := [left, "."], line_num := 125},
+        #{info := [left, "."], line_num := 129},
+        #{info := [left, ";"], line_num := 133},
+        #{info := [left, ";"], line_num := 136},
+        #{info := [left, ":"], line_num := 142},
+        #{info := [left, ":"], line_num := 146}
     ] =
         elvis_core_apply_rule(
             Config,
@@ -1556,7 +1556,7 @@ verify_max_function_clause_length(Config) ->
             PathClauseNumbers
         ),
 
-    Numbers = [Number || #{info := [Number, _, _, _, _]} <- Result],
+    Numbers = [Number || #{info := [Number, _, _, _]} <- Result],
 
     [
         "1st",
@@ -1586,30 +1586,30 @@ verify_no_debug_call(Config) ->
         case Group of
             beam_files ->
                 [
-                    #{info := [erlang, display, 1, 8]},
-                    #{info := [io, format, 1, 9]},
+                    #{info := [erlang, display, 1], line_num := 8},
+                    #{info := [io, format, 1], line_num := 9},
                     % ?DBG is preprocessed
-                    #{info := [io, format, 2, 10]},
-                    #{info := [ct, print, 1, 16]},
-                    #{info := [ct, print, 2, 17]},
-                    #{info := [io, put_chars, 1, 18]},
-                    #{info := [dbg, whatever_function, 0, 19]},
-                    #{info := [dyntrace, calls, 1, 20]},
-                    #{info := [instrument, this, 0, 21]}
+                    #{info := [io, format, 2], line_num := 10},
+                    #{info := [ct, print, 1], line_num := 16},
+                    #{info := [ct, print, 2], line_num := 17},
+                    #{info := [io, put_chars, 1], line_num := 18},
+                    #{info := [dbg, whatever_function, 0], line_num := 19},
+                    #{info := [dyntrace, calls, 1], line_num := 20},
+                    #{info := [instrument, this, 0], line_num := 21}
                 ] =
                     elvis_core_apply_rule(Config, elvis_style, no_debug_call, #{}, PathFail);
             erl_files ->
                 [
-                    #{info := [erlang, display, 1, 8]},
-                    #{info := [io, format, 1, 9]},
-                    #{info := [ct, pal, 1, 13]},
-                    #{info := [ct, pal, 2, 14]},
-                    #{info := [ct, print, 1, 15]},
-                    #{info := [ct, print, 2, 16]},
-                    #{info := [io, put_chars, 1, 17]},
-                    #{info := [dbg, whatever_function, 0, 18]},
-                    #{info := [dyntrace, calls, 1, 19]},
-                    #{info := [instrument, this, 0, 20]}
+                    #{info := [erlang, display, 1], line_num := 8},
+                    #{info := [io, format, 1], line_num := 9},
+                    #{info := [ct, pal, 1], line_num := 13},
+                    #{info := [ct, pal, 2], line_num := 14},
+                    #{info := [ct, print, 1], line_num := 15},
+                    #{info := [ct, print, 2], line_num := 16},
+                    #{info := [io, put_chars, 1], line_num := 17},
+                    #{info := [dbg, whatever_function, 0], line_num := 18},
+                    #{info := [dyntrace, calls, 1], line_num := 19},
+                    #{info := [instrument, this, 0], line_num := 20}
                 ] =
                     elvis_core_apply_rule(Config, elvis_style, no_debug_call, #{}, PathFail)
         end,
@@ -2227,9 +2227,9 @@ verify_no_catch_expressions(Config) ->
     _ =
         case Group of
             beam_files ->
-                [#{info := [10]}, #{info := [21]}, #{info := [21]}] = lists:sort(R);
+                [#{line_num := 10}, #{line_num := 21}, #{line_num := 21}] = lists:sort(R);
             erl_files ->
-                [#{info := [9]}, #{info := [24]}, #{info := [26]}] = lists:sort(R)
+                [#{line_num := 9}, #{line_num := 24}, #{line_num := 26}] = lists:sort(R)
         end.
 
 -spec verify_no_single_clause_case(config()) -> any().
