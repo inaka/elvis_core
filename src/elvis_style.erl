@@ -382,8 +382,7 @@ errors_for_function_names(Regex, ForbiddenRegex, [Function | RemainingFunctions]
         nomatch ->
             [
                 elvis_result:new_item(
-                    "the function ~p's name does not respect the format defined by the "
-                    "regular expression '~p'",
+                    "the name of function '~p' is not acceptable by regular expression '~p'",
                     [FunctionNameStr, Regex],
                     #{node => Function}
                 )
@@ -398,9 +397,9 @@ errors_for_function_names(Regex, ForbiddenRegex, [Function | RemainingFunctions]
                         {match, _} ->
                             [
                                 elvis_result:new_item(
-                                    "the function ~p's name is written in a forbidden format"
-                                    "defined by the regular expression '~p'",
-                                    [FunctionNameStr, Regex],
+                                    "the name of function '~p' is forbidden by "
+                                    "regular expression '~p'",
+                                    [FunctionNameStr, ForbiddenRegex],
                                     #{node => Function}
                                 )
                                 | errors_for_function_names(
@@ -458,7 +457,7 @@ check_variable_casing_consistency({_, [#{name := FirstName, var := FirstVar} | O
         OtherNames ->
             [
                 elvis_result:new_item(
-                    "variable ~p (first used in line ~p) is written in "
+                    "variable '~p' (first used in line ~p) is written in "
                     "different ways within the module: ~p",
                     [FirstName, line(FirstVar), OtherNames],
                     #{node => FirstVar}
@@ -510,7 +509,7 @@ no_macros(ElvisConfig, RuleTarget, RuleConfig) ->
                 false ->
                     [
                         elvis_result:new_item(
-                            "there is an unexpected macro (~p)",
+                            "an avoidable macro '~p' was found",
                             [Macro],
                             #{node => MacroNode}
                         )
@@ -535,7 +534,8 @@ no_types(ElvisConfig, RuleTarget, RuleConfig) ->
             Type = ktn_code:attr(name, TypeNode),
             [
                 elvis_result:new_item(
-                    "there is an unexpected type (~p)",
+                    "unexpected `-type` attribute '~p' was found; "
+                    "avoid specifying types in .hrl files",
                     [Type],
                     #{node => TypeNode}
                 )
@@ -559,7 +559,8 @@ no_nested_hrls(ElvisConfig, RuleTarget, RuleConfig) ->
             Filename = ktn_code:attr(value, IncludeNode),
             [
                 elvis_result:new_item(
-                    "a nested include (~p) was found",
+                    "unexpected nested '-include[_lib]' attribute ('~p') was found; "
+                    "avoid including .hrl files in .hrl files",
                     [Filename],
                     #{node => IncludeNode}
                 )
@@ -583,7 +584,7 @@ no_specs(ElvisConfig, RuleTarget, RuleConfig) ->
             FunctionName = ktn_code:attr(name, SpecNode),
             [
                 elvis_result:new_item(
-                    "there is an unexpected spec for function ~p",
+                    "an unexpected spec for was found function '~p'; avoid specs in .hrl files",
                     [FunctionName],
                     #{node => SpecNode}
                 )
@@ -609,7 +610,7 @@ no_block_expressions(Config, Target, RuleConfig) ->
         fun(BeginNode, Acc) ->
             [
                 elvis_result:new_item(
-                    "there is an unexpected block expression (begin-end)",
+                    "an avoidable block expression ('begin'...'end') was found",
                     #{node => BeginNode}
                 )
                 | Acc
@@ -778,7 +779,7 @@ god_modules(Config, Target, RuleConfig) ->
         Count when Count > Limit ->
             [
                 elvis_result:new_item(
-                    "This module has too many functions. Consider breaking it into several modules",
+                    "This module's function count is higher than the configured limit",
                     #{limit => Limit}
                 )
             ];
@@ -796,7 +797,7 @@ no_if_expression(Config, Target, RuleConfig) ->
         IfExprs ->
             ResultFun = fun(Node) ->
                 elvis_result:new_item(
-                    "an unexpected 'if' expression was found",
+                    "an unexpected 'if' expression was found; prefer 'case' expressions",
                     #{node => Node}
                 )
             end,
@@ -864,7 +865,8 @@ no_behavior_info(Config, Target, RuleConfig) ->
         BehaviorInfos ->
             ResultFun = fun(Node) ->
                 elvis_result:new_item(
-                    "an unexpected behaviour 'behavior_info/1' was found",
+                    "an avoidable 'behavio[u]r_info/1' declaration was found; prefer '-callback' "
+                    "attributes",
                     #{node => Node}
                 )
             end,
@@ -900,8 +902,7 @@ module_naming_convention(Config, Target, RuleConfig) ->
                 nomatch ->
                     [
                         elvis_result:new_item(
-                            "The module's name does not respect the format defined by the "
-                            "regular expression '~p'",
+                            "The name of this module is not acceptable by regular expression '~p'",
                             [Regex]
                         )
                     ];
@@ -925,8 +926,7 @@ is_forbidden_module_name(Target, Regex) ->
         {match, _} ->
             [
                 elvis_result:new_item(
-                    "The module's name is written in a forbidden format defined by the "
-                    "regular expression '~p'",
+                    "The name of this module name is forbidden by regular expression '~p'",
                     [Regex]
                 )
             ];
@@ -950,13 +950,14 @@ state_record_and_type(Config, Target, RuleConfig) ->
                 {false, _} ->
                     [
                         elvis_result:new_item(
-                            "This module implements an OTP behavior but is missing a 'state' record"
+                            "This module implements an OTP behavior but is missing a '#state{}' "
+                            "record"
                         )
                     ];
                 {true, false} ->
                     [
                         elvis_result:new_item(
-                            "This module implements an OTP behavior and has a 'state' record "
+                            "This module implements an OTP behavior and has a '#state{}' record "
                             "but is missing a 'state()' type"
                         )
                     ]
@@ -979,7 +980,8 @@ no_spec_with_records(Config, Target, RuleConfig) ->
         SpecNodes ->
             ResultFun = fun(Node) ->
                 elvis_result:new_item(
-                    "there is an unexpected record in the spec",
+                    "an unexpected record was found in a spec; prefer creating a type for it and "
+                    "using that",
                     #{node => Node}
                 )
             end,
@@ -1013,7 +1015,7 @@ dont_repeat_yourself(Config, Target, RuleConfig) ->
         fun(Locations) ->
             LocationsStr = lists:foldl(LocationCat, "", Locations),
             elvis_result:new_item(
-                "The code in the following (LINE, COL) locations has the same structure: ~p",
+                "The code in the following (<line>, <column>) locations has the same structure: ~p",
                 [LocationsStr]
             )
         end,
@@ -1064,7 +1066,7 @@ max_module_length(_Config, Target, RuleConfig) ->
         L when L > MaxLength ->
             [
                 elvis_result:new_item(
-                    "This module's lines-of-code count exceeds the allowed maximum",
+                    "This module's lines-of-code count is higher than the configured limit",
                     #{limit => MaxLength}
                 )
             ];
@@ -1096,11 +1098,11 @@ max_anonymous_function_arity(Config, Target, RuleConfig) ->
             case length(ktn_code:node_attr(pattern, FirstClause)) of
                 Arity when Arity =< MaxArity ->
                     false;
-                Arity ->
+                _Arity ->
                     {true,
                         elvis_result:new_item(
-                            "the arity (~p) of the anonymous function exceeds the limit",
-                            [Arity],
+                            "the arity of the anonymous function is higher than the configured "
+                            "limit",
                             #{node => Fun, limit => MaxArity}
                         )}
             end
@@ -1146,7 +1148,7 @@ max_function_arity(Config, Target, RuleConfig) ->
                     Name = ktn_code:attr(name, Function),
                     {true,
                         elvis_result:new_item(
-                            "the arity of function ~p/~p exceeds the limit",
+                            "the arity of function '~p/~p' is higher than the configured limit",
                             [Name, Arity],
                             #{node => Function, limit => MaxArity}
                         )}
@@ -1219,7 +1221,8 @@ max_function_clause_length(Config, Target, RuleConfig) ->
     ResultFun =
         fun({Name, Arity, StartPos, ClauseNumber, L}) ->
             elvis_result:new_item(
-                "the code for the ~p clause of function ~p/~p has ~p lines which exceeds the limit",
+                "the code for the ~p clause of function '~p/~p' has ~p lines, which is higher than "
+                "the configured limit",
                 [ClauseNumber, Name, Arity, L],
                 #{line => StartPos, limit => MaxLength}
             )
@@ -1276,7 +1279,8 @@ max_function_length(Config, Target, RuleConfig) ->
     ResultFun =
         fun({Name, Arity, StartPos, L}) ->
             elvis_result:new_item(
-                "the code for function ~p/~p has ~p lines which exceeds the limit",
+                "the code for function '~p/~p' has ~p lines, which is higher than the configured "
+                "limit",
                 [Name, Arity, L],
                 #{line => StartPos, limit => MaxLength}
             )
@@ -1291,7 +1295,7 @@ max_function_length(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 no_call(Config, Target, RuleConfig) ->
     DefaultFns = option(no_call_functions, RuleConfig, no_call),
-    Msg = "there is an unexpected call to ~p:~p/~p (check no_call list)",
+    Msg = "an unexpected call to '~p:~p/~p' was found (check no_call list)",
     no_call_common(Config, Target, DefaultFns, Msg, RuleConfig).
 
 -type no_debug_call_config() ::
@@ -1301,7 +1305,7 @@ no_call(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 no_debug_call(Config, Target, RuleConfig) ->
     DefaultFns = option(debug_functions, RuleConfig, no_debug_call),
-    Msg = "there is an unexpected debug call to ~p:~p/~p",
+    Msg = "an unexpected debug call to '~p:~p/~p' was found",
     no_call_common(Config, Target, DefaultFns, Msg, RuleConfig).
 
 -type no_common_caveats_call_config() ::
@@ -1315,7 +1319,7 @@ no_debug_call(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 no_common_caveats_call(Config, Target, RuleConfig) ->
     DefaultFns = option(caveat_functions, RuleConfig, no_common_caveats_call),
-    Msg = "the call to ~p:~p/~p might have performance drawbacks or implicit behavior",
+    Msg = "the call to '~p:~p/~p' might have performance drawbacks or implicit behavior",
     no_call_common(Config, Target, DefaultFns, Msg, RuleConfig).
 
 -spec node_line_limits(ktn_code:tree_node()) -> {Min :: integer(), Max :: integer()}.
@@ -1345,7 +1349,7 @@ no_nested_try_catch(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
     ResultFun = fun(Node) ->
         elvis_result:new_item(
-            "there is an unexpected nested try...catch block",
+            "an unexpected nested 'try...catch' expression was found",
             #{node => Node}
         )
     end,
@@ -1362,7 +1366,7 @@ no_successive_maps(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
     ResultFun = fun(Node) ->
         elvis_result:new_item(
-            "there is an unexpected map update after map construction/update",
+            "an unexpected map update after map construction/update was found",
             #{node => Node}
         )
     end,
@@ -1449,7 +1453,8 @@ no_init_lists(Config, Target, RuleConfig) ->
     ResultFun =
         fun(Node) ->
             elvis_result:new_item(
-                "an unexpected 'init' callback list argument was found",
+                "an avoidable list was found as argumeent to 'init' callback; prefer tuples, maps "
+                "or records",
                 #{node => Node}
             )
         end,
@@ -1502,8 +1507,8 @@ ms_transform_included(Config, Target, RuleConfig) ->
     ResultFun =
         fun(Function) ->
             elvis_result:new_item(
-                "`ets:fun2ms/1` is used but the module is missing "
-                "-include_lib(\"stdlib/include/ms_transform.hrl\")",
+                "'ets:fun2ms/1' is used but the module is missing "
+                "'-include_lib(\"stdlib/include/ms_transform.hrl\").'",
                 #{node => Function}
             )
         end,
@@ -1559,7 +1564,7 @@ no_boolean_in_comparison(Config, Target, RuleConfig) ->
     ResultFun =
         fun(Node) ->
             elvis_result:new_item(
-                "comparison uses boolean, which should be avoided",
+                "an avoidable comparison to boolean was found",
                 #{node => Node}
             )
         end,
@@ -1582,7 +1587,8 @@ no_receive_without_timeout(Config, Target, RuleConfig) ->
     ResultFun =
         fun(Node) ->
             elvis_result:new_item(
-                "a receive block without an after clause was found",
+                "a 'receive' expression was found without an 'after' clause; "
+                "prefer to include 'after' in 'receive' expressions",
                 #{node => Node}
             )
         end,
@@ -1620,7 +1626,7 @@ no_operation_on_same_value(Config, Target, RuleConfig) ->
     ResultFun =
         fun(Node) ->
             elvis_result:new_item(
-                "operation ~p has the same value on both sides, which is redundant",
+                "redundant operation '~p' has the same value on both sides",
                 [ktn_code:attr(operation, Node)],
                 #{node => Node}
             )
@@ -1687,7 +1693,7 @@ no_throw(Config, Target, RuleConfig) ->
         fun(ThrowNode, AccIn) ->
             [
                 elvis_result:new_item(
-                    "usage of throw/1 is not recommended",
+                    "an avoidable call to 'throw/1' was found",
                     #{node => ThrowNode}
                 )
                 | AccIn
@@ -1708,7 +1714,7 @@ no_dollar_space(Config, Target, RuleConfig) ->
     lists:map(
         fun(ThrowNode) ->
             elvis_result:new_item(
-                "an unexpected '$ ' was found. Use $\\s, instead",
+                "unexpected character '$ ' was found; prefer $\\s",
                 #{node => ThrowNode}
             )
         end,
@@ -1725,7 +1731,7 @@ no_author(Config, Target, RuleConfig) ->
     lists:map(
         fun(Node) ->
             elvis_result:new_item(
-                "an unexpected -author attribute was found",
+                "avoidable attribute '-author' was found",
                 #{node => Node}
             )
         end,
@@ -1742,7 +1748,7 @@ no_import(Config, Target, RuleConfig) ->
     lists:map(
         fun(Node) ->
             elvis_result:new_item(
-                "an unexpected -import attribute was found",
+                "unexpected attribute '-import' was found",
                 #{node => Node}
             )
         end,
@@ -1764,7 +1770,7 @@ no_catch_expressions(Config, Target, RuleConfig) ->
         fun(CatchNode, Acc) ->
             [
                 elvis_result:new_item(
-                    "an unexpected catch expression was found",
+                    "an unexpected 'catch' expression was found; prefer a 'try' expression",
                     #{node => CatchNode}
                 )
                 | Acc
@@ -1791,7 +1797,7 @@ no_single_clause_case(Config, Target, RuleConfig) ->
     lists:map(
         fun(CaseNode) ->
             elvis_result:new_item(
-                "an unexpected single-clause case expression was found",
+                "an avoidable single-clause 'case' expression was found",
                 #{node => CaseNode}
             )
         end,
@@ -1823,7 +1829,7 @@ no_single_match_maybe(Config, Target, RuleConfig) ->
     lists:map(
         fun(CaseNode) ->
             elvis_result:new_item(
-                "an unexpected single-match maybe statement was found",
+                "an avoidable single-match 'maybe' statement was found",
                 #{node => CaseNode}
             )
         end,
@@ -1844,7 +1850,8 @@ no_match_in_condition(Config, Target, RuleConfig) ->
     lists:map(
         fun(CaseNode) ->
             elvis_result:new_item(
-                "an unexpected match condition was found in a case statement",
+                "an avoidable match condition in a 'case' statement was found; prefer matching "
+                "in 'case' clauses",
                 #{node => CaseNode}
             )
         end,
@@ -1916,7 +1923,7 @@ behaviour_spelling(Config, Target, RuleConfig) ->
             ResultFun =
                 fun(Node) ->
                     elvis_result:new_item(
-                        "an unexpected spelling of behavior/behaviour was found; prefer ~p",
+                        "an unexpected spelling of 'behavio[u]r' was found; prefer ~p",
                         [Spelling],
                         #{node => Node}
                     )
@@ -1970,8 +1977,8 @@ param_pattern_matching(Config, Target, RuleConfig) ->
                 {true, {Side, Var}} ->
                     {true,
                         elvis_result:new_item(
-                            "variable ~p, used to match an argument, is placed on "
-                            "the wrong side of the match; prefer the ~p side",
+                            "variable '~p' is used to match an argument, but placed on "
+                            "the wrong side of it; prefer the ~p side",
                             [ktn_code:attr(name, Var), Side],
                             #{node => Match}
                         )}
@@ -2031,7 +2038,7 @@ always_shortcircuit(Config, Target, RuleConfig) ->
                     BadOperator = ktn_code:attr(operation, Node),
                     GoodOperator = maps:get(BadOperator, Operators),
                     elvis_result:new_item(
-                        "an unexpected non-shortcircuiting operator (~p) was found; prefer ~p",
+                        "unexpected non-shortcircuiting operator '~p' was found; prefer ~p",
                         [BadOperator, GoodOperator],
                         #{node => Node}
                     )
@@ -2091,7 +2098,7 @@ export_used_types_in(TreeRootNode) ->
         fun({Name, Arity} = Info) ->
             {Line, Column} = maps:get(Info, Locations, {-1, -1}),
             elvis_result:new_item(
-                "type ~p/~p is used by an exported function but it is not exported itself",
+                "type '~p/~p' is used by an exported function; prefer to also export the it",
                 [Name, Arity],
                 #{line => Line, column => Column}
             )
@@ -2129,7 +2136,8 @@ private_data_types(Config, Target, RuleConfig) ->
         fun({Name, Arity} = Info) ->
             {Line, Column} = maps:get(Info, Locations, {-1, -1}),
             elvis_result:new_item(
-                "private data type ~p/~p is exported; prefer not exporting it or making it opaque",
+                "private data type '~p/~p' is exported; prefer not exporting it or making it "
+                "opaque",
                 [Name, Arity],
                 #{line => Line, column => Column}
             )
@@ -2192,8 +2200,8 @@ check_numeric_format(Regex, [NumNode | RemainingNumNodes], AccIn) ->
                     nomatch ->
                         [
                             elvis_result:new_item(
-                                "number ~p does not respect the format "
-                                "defined by regular expression '~p'",
+                                "the format of number '~p' is not acceptable by regular expression "
+                                "'~p'",
                                 [Number, Regex],
                                 #{node => NumNode}
                             )
@@ -2240,8 +2248,7 @@ check_atom_names(
             nomatch when not IsEnclosed ->
                 [
                     elvis_result:new_item(
-                        "atom ~p's name does not respect the format defined by "
-                        "regular expression '~p'",
+                        "the name of atom '~p' is not acceptable by regular expression '~p'",
                         [AtomName0, Regex],
                         #{node => AtomNode}
                     )
@@ -2249,8 +2256,8 @@ check_atom_names(
             nomatch when IsEnclosed ->
                 [
                     elvis_result:new_item(
-                        "enclosed atom ~p's name does not respect the format defined by "
-                        "regular expression '~p'",
+                        "the name of enclosed atom '~p' is not acceptable by regular expression "
+                        "'~p'",
                         [AtomName0, RegexEnclosed],
                         #{node => AtomNode}
                     )
@@ -2264,8 +2271,7 @@ check_atom_names(
                     {match, _} when not IsEnclosed ->
                         [
                             elvis_result:new_item(
-                                "atom ~p's name is written in a forbidden format "
-                                "defined by the regular expression '~p'",
+                                "the name of atom '~p' is forbidden by regular expression '~p'",
                                 [AtomName, ForbiddenRegex],
                                 #{node => AtomNode}
                             )
@@ -2273,8 +2279,8 @@ check_atom_names(
                     {match, _} when IsEnclosed ->
                         [
                             elvis_result:new_item(
-                                "enclosed atom ~p's name is written in a forbidden format "
-                                "defined by the regular expression '~p'",
+                                "the name of enclosed atom '~p' is forbidden by regular "
+                                "expression '~p'",
                                 [AtomName, ForbiddenRegexEnclosed],
                                 #{node => AtomNode}
                             )
@@ -2325,8 +2331,7 @@ check_variables_name(Regex, ForbiddenRegex, [Variable | RemainingVars]) ->
         nomatch ->
             [
                 elvis_result:new_item(
-                    "variable ~p's name does not respect the format "
-                    "defined by the regular expression '~p'",
+                    "the name of variable '~p' is not acceptable by regular expression '~p'",
                     [VariableNameStr, Regex],
                     #{node => Variable}
                 )
@@ -2341,8 +2346,8 @@ check_variables_name(Regex, ForbiddenRegex, [Variable | RemainingVars]) ->
                         {match, _} ->
                             [
                                 elvis_result:new_item(
-                                    "variable ~p's name is written in a format forbidden by the "
-                                    "specified expression '~p'",
+                                    "the name of variable '~p' is forbidden by regular "
+                                    "expression '~p'",
                                     [VariableNameStr, Regex],
                                     #{node => Variable}
                                 )
@@ -2389,8 +2394,8 @@ check_macro_names(Regexp, [MacroNode | RemainingMacroNodes], ResultsIn) ->
             nomatch ->
                 [
                     elvis_result:new_item(
-                        "the macro named ~p does not respect the format "
-                        "defined by regular expression '~p'",
+                        "the name of macro '~p' is not acceptable by "
+                        "regular expression '~p'",
                         [MacroNameOriginal, Regexp],
                         #{node => MacroNode}
                     )
@@ -2452,7 +2457,7 @@ check_spaces(Lines, UnfilteredNodes, {Position, Text}, Encoding, {How0, _} = How
                 _ when How0 =:= should_have ->
                     [
                         elvis_result:new_item(
-                            "there is a missing space to the ~p of ~p",
+                            "there is a missing space to the ~p of '~p'",
                             [Position, Text],
                             #{node => Node}
                         )
@@ -2460,7 +2465,7 @@ check_spaces(Lines, UnfilteredNodes, {Position, Text}, Encoding, {How0, _} = How
                 _ when How0 =:= should_not_have ->
                     [
                         elvis_result:new_item(
-                            "there is an unexpected space to the ~p of ~p",
+                            "an unexpected space was found to the ~p of '~p'",
                             [Position, Text],
                             #{node => Node}
                         )
@@ -2543,7 +2548,7 @@ check_nesting_level(ParentNode, [MaxLevel]) ->
         NestedNodes ->
             Fun = fun(Node) ->
                 elvis_result:new_item(
-                    "the expression is nested beyond the configured limit",
+                    "an expression is nested beyond the configured limit",
                     #{node => Node, limit => MaxLevel}
                 )
             end,
@@ -2593,8 +2598,8 @@ check_invalid_dynamic_calls(Root) ->
         InvalidCalls ->
             ResultFun = fun(Node) ->
                 elvis_result:new_item(
-                    "there is an unexpected dynamic function call. "
-                    "Only modules that define callbacks should make dynamic calls",
+                    "an unexpected dynamic function call was found; prefer "
+                    "making dynamic calls only in modules that define callbacks",
                     #{node => Node}
                 )
             end,
@@ -2953,7 +2958,7 @@ consistent_generic_type_result(TypePreference) ->
     fun(Node) ->
         NodeName = ktn_code:attr(name, Node),
         elvis_result:new_item(
-            "an unexpected usage of type ~p/0 was found; prefer ~p/0",
+            "unexpected type '~p/0' was found; prefer ~p/0",
             [NodeName, TypePreference],
             #{node => Node}
         )
