@@ -50,8 +50,8 @@ protocol_for_deps(_Config, Target, RuleConfig) ->
                 false ->
                     [
                         elvis_result:new_item(
-                            "Dependency '~s' is not using appropriate protocol. "
-                            "Please change this to something like '~s'",
+                            "Dependency '~s' is not using appropriate protocol; prefer to "
+                            " respect regular expression '~s'",
                             [AppName, Regex]
                         )
                     ]
@@ -84,8 +84,7 @@ no_branch_deps(_Config, Target, RuleConfig) ->
                 false ->
                     [
                         elvis_result:new_item(
-                            "Dependency '~s' uses a branch. "
-                            "Please change this to a tag or specific commit",
+                            "Dependency '~s' uses a branch; prefer a tag or specific commit",
                             [AppName]
                         )
                     ]
