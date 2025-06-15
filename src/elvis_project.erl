@@ -35,30 +35,31 @@ protocol_for_deps(_Config, Target, RuleConfig) ->
     Deps = get_deps(Target),
     NoHexDeps = lists:filter(fun(Dep) -> not is_hex_dep(Dep) end, Deps),
     BadDeps = lists:filter(fun(Dep) -> is_not_git_dep(Dep, Regex) end, NoHexDeps),
-    lists:flatmap(
+    lists:filtermap(
         fun(Line) ->
-            AppName =
-                case Line of
-                    {AppName0, _} -> AppName0;
-                    {AppName0, _, _GitInfo} -> AppName0;
-                    {AppName0, _Vsn, _GitInfo, _Opts} -> AppName0
-                end,
+            AppName = appname_from_line(Line),
 
             case lists:member(AppName, IgnoreDeps) of
                 true ->
-                    [];
+                    false;
                 false ->
-                    [
+                    {true,
                         elvis_result:new_item(
                             "Dependency '~s' is not using appropriate protocol; prefer "
                             "respecting regular expression '~s'",
                             [AppName, Regex]
-                        )
-                    ]
+                        )}
             end
         end,
         BadDeps
     ).
+
+appname_from_line({AppName, _}) ->
+    AppName;
+appname_from_line({AppName, _, _GitInfo}) ->
+    AppName;
+appname_from_line({AppName, _Vsn, _GitInfo, _Opts}) ->
+    AppName.
 
 -spec no_branch_deps(
     elvis_config:config(),
@@ -70,24 +71,20 @@ no_branch_deps(_Config, Target, RuleConfig) ->
     IgnoreDeps = option(ignore, RuleConfig, no_branch_deps),
     Deps = get_deps(Target),
     BadDeps = lists:filter(fun is_branch_dep/1, Deps),
-    lists:flatmap(
+    lists:filtermap(
         fun(Line) ->
-            AppName =
-                case Line of
-                    {AppName0, _} -> AppName0;
-                    {AppName0, _, _GitInfo} -> AppName0;
-                    {AppName0, _Vsn, _GitInfo, _Opts} -> AppName0
-                end,
+            AppName = appname_from_line(Line),
+
             case lists:member(AppName, IgnoreDeps) of
                 true ->
-                    [];
+                    false;
                 false ->
-                    [
+                    {true, [
                         elvis_result:new_item(
                             "Dependency '~s' uses a branch; prefer a tag or a specific commit",
                             [AppName]
                         )
-                    ]
+                    ]}
             end
         end,
         BadDeps
