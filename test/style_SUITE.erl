@@ -8,8 +8,7 @@
     init_per_suite/1,
     end_per_suite/1,
     init_per_group/2,
-    end_per_group/2,
-    elvis_core_apply_rule/5
+    end_per_group/2
 ]).
 -export([
     verify_function_naming_convention/1,
@@ -123,8 +122,7 @@
     init_per_suite,
     end_per_suite,
     init_per_group,
-    end_per_group,
-    elvis_core_apply_rule
+    end_per_group
 ]).
 
 -type config() :: [{atom(), term()}].
@@ -224,7 +222,7 @@ verify_function_naming_convention(Config) ->
 
     RuleConfig = #{regex => DefaultRegex},
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             function_naming_convention,
@@ -234,7 +232,7 @@ verify_function_naming_convention(Config) ->
 
     RuleConfig2 = #{regex => DefaultRegex, ignore => [fail_function_naming_convention]},
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             function_naming_convention,
@@ -253,7 +251,7 @@ verify_function_naming_convention(Config) ->
         _EmailError,
         _BeforeAfter
     ] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             function_naming_convention,
@@ -274,7 +272,7 @@ verify_function_naming_convention(Config) ->
                 ]
         },
     [_EmailError2, _BeforeAfter2] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             function_naming_convention,
@@ -299,7 +297,7 @@ verify_function_naming_convention(Config) ->
                 ]
         },
     [_AnError] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             function_naming_convention,
@@ -310,7 +308,7 @@ verify_function_naming_convention(Config) ->
     % forbidden
     PathForbidden = "forbidden_function_naming_convention." ++ Ext,
     [_, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             function_naming_convention,
@@ -327,7 +325,7 @@ verify_variable_naming_convention(Config) ->
 
     PathPass = "pass_variable_naming_convention." ++ Ext,
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             variable_naming_convention,
@@ -343,7 +341,7 @@ verify_variable_naming_convention(Config) ->
         _AtSignAgain,
         _Underline_Word_SeparatorAgain
     ] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             variable_naming_convention,
@@ -354,7 +352,7 @@ verify_variable_naming_convention(Config) ->
     % forbidden
     PathForbidden = "forbidden_variable_naming_convention." ++ Ext,
     [_, _, _, _, _, _, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             variable_naming_convention,
@@ -367,7 +365,9 @@ verify_consistent_variable_casing(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
     PathPass = "pass_consistent_variable_casing." ++ Ext,
     [] =
-        elvis_core_apply_rule(Config, elvis_style, consistent_variable_casing, #{}, PathPass),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, consistent_variable_casing, #{}, PathPass
+        ),
 
     PathFail = "fail_consistent_variable_casing." ++ Ext,
     [
@@ -390,7 +390,9 @@ verify_consistent_variable_casing(Config) ->
         #{info := ["FunVar", _, ["FunVAR"]]},
         #{info := ["IgnVar", _, ["IGNVar"]]}
     ] =
-        elvis_core_apply_rule(Config, elvis_style, consistent_variable_casing, #{}, PathFail).
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, consistent_variable_casing, #{}, PathFail
+        ).
 
 -spec verify_macro_names_rule(config()) -> any().
 verify_macro_names_rule(Config) ->
@@ -398,10 +400,12 @@ verify_macro_names_rule(Config) ->
 
     Path = "fail_macro_names." ++ Ext,
 
-    [_, _, _, _, _, _] = elvis_core_apply_rule(Config, elvis_style, macro_names, #{}, Path),
+    [_, _, _, _, _, _] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, macro_names, #{}, Path
+    ),
 
     [_, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             macro_names,
@@ -410,7 +414,7 @@ verify_macro_names_rule(Config) ->
         ),
 
     [_] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             macro_names,
@@ -419,7 +423,7 @@ verify_macro_names_rule(Config) ->
         ),
 
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             macro_names,
@@ -428,7 +432,7 @@ verify_macro_names_rule(Config) ->
         ),
 
     [_, _, _, _, _, _, _, _, _, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             macro_names,
@@ -437,7 +441,7 @@ verify_macro_names_rule(Config) ->
         ),
 
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             macro_names,
@@ -450,7 +454,7 @@ verify_no_macros(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     PathFail = "fail_no_macros." ++ Ext,
-    FailRes = elvis_core_apply_rule(Config, elvis_style, no_macros, #{}, PathFail),
+    FailRes = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, no_macros, #{}, PathFail),
     case Ext of
         "beam" ->
             % no macros on BEAM files
@@ -461,7 +465,7 @@ verify_no_macros(Config) ->
 
     PathPass = "pass_no_macros." ++ Ext,
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             no_macros,
@@ -472,28 +476,32 @@ verify_no_macros(Config) ->
 -spec verify_no_types(config()) -> any().
 verify_no_types(Config) ->
     PathFail = "fail_no_types.hrl",
-    [#{line_num := 1}] = elvis_core_apply_rule(Config, elvis_style, no_types, #{}, PathFail),
+    [#{line_num := 1}] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_types, #{}, PathFail
+    ),
 
     PathPass = "pass_no_types.hrl",
-    [] = elvis_core_apply_rule(Config, elvis_style, no_types, #{}, PathPass).
+    [] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, no_types, #{}, PathPass).
 
 -spec verify_no_nested_hrls(config()) -> any().
 verify_no_nested_hrls(Config) ->
     PathFail = "fail_no_nested_hrls.hrl",
-    [#{line_num := 1}, #{line_num := 2}] = elvis_core_apply_rule(
+    [#{line_num := 1}, #{line_num := 2}] = elvis_test_utils:elvis_core_apply_rule(
         Config, elvis_style, no_nested_hrls, #{}, PathFail
     ),
 
     PathPass = "pass_no_nested_hrls.hrl",
-    [] = elvis_core_apply_rule(Config, elvis_style, no_nested_hrls, #{}, PathPass).
+    [] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, no_nested_hrls, #{}, PathPass).
 
 -spec verify_no_specs(config()) -> any().
 verify_no_specs(Config) ->
     PathFail = "fail_no_specs.hrl",
-    [#{line_num := 3}] = elvis_core_apply_rule(Config, elvis_style, no_specs, #{}, PathFail),
+    [#{line_num := 3}] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_specs, #{}, PathFail
+    ),
 
     PathPass = "pass_no_specs.hrl",
-    [] = elvis_core_apply_rule(Config, elvis_style, no_specs, #{}, PathPass).
+    [] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, no_specs, #{}, PathPass).
 
 -spec verify_no_block_expressions(config()) -> any().
 verify_no_block_expressions(Config) ->
@@ -502,7 +510,9 @@ verify_no_block_expressions(Config) ->
     Path = "fail_no_block_expressions." ++ Ext,
 
     [#{line_num := 9}] =
-        elvis_core_apply_rule(Config, elvis_style, no_block_expressions, #{}, Path).
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, no_block_expressions, #{}, Path
+        ).
 
 -spec verify_operator_spaces(config()) -> any().
 verify_operator_spaces(Config) ->
@@ -510,32 +520,48 @@ verify_operator_spaces(Config) ->
 
     Path = "fail_operator_spaces." ++ Ext,
 
-    [] = elvis_core_apply_rule(Config, elvis_style, operator_spaces, #{rules => []}, Path),
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, operator_spaces, #{rules => []}, Path
+    ),
 
     RuleConfig = #{rules => [{right, ","}]},
-    [_, _, _] = elvis_core_apply_rule(Config, elvis_style, operator_spaces, RuleConfig, Path),
+    [_, _, _] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, operator_spaces, RuleConfig, Path
+    ),
 
     AppendOptions = #{rules => [{right, "++"}, {left, "++"}]},
-    [_] = elvis_core_apply_rule(Config, elvis_style, operator_spaces, AppendOptions, Path),
+    [_] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, operator_spaces, AppendOptions, Path
+    ),
 
     SumOperation = #{rules => [{right, "+"}, {left, "+"}]},
     [_, _, _, _] =
-        elvis_core_apply_rule(Config, elvis_style, operator_spaces, SumOperation, Path),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, operator_spaces, SumOperation, Path
+        ),
 
     MinusOperation = #{rules => [{right, "-"}, {left, "-"}]},
     [_, _] =
-        elvis_core_apply_rule(Config, elvis_style, operator_spaces, MinusOperation, Path),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, operator_spaces, MinusOperation, Path
+        ),
 
     Arrow = #{rules => [{left, "->"}]},
-    [_, _] = elvis_core_apply_rule(Config, elvis_style, operator_spaces, Arrow, Path),
+    [_, _] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, operator_spaces, Arrow, Path
+    ),
 
     BarOptions = #{rules => [{right, "|"}, {left, "|"}]},
     [_, _, _, _] =
-        elvis_core_apply_rule(Config, elvis_style, operator_spaces, BarOptions, Path),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, operator_spaces, BarOptions, Path
+        ),
 
     ComprehensionOperation = #{rules => [{right, "||"}, {left, "||"}]},
     [_, _, _, _, _, _] =
-        elvis_core_apply_rule(Config, elvis_style, operator_spaces, ComprehensionOperation, Path),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, operator_spaces, ComprehensionOperation, Path
+        ),
 
     DefaultOptions = #{},
     [
@@ -611,7 +637,9 @@ verify_operator_spaces(Config) ->
         #{info := [right, "?=" | _]},
         #{info := [left, "?=" | _]}
     ] =
-        elvis_core_apply_rule(Config, elvis_style, operator_spaces, DefaultOptions, Path).
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, operator_spaces, DefaultOptions, Path
+        ).
 
 -if(?OTP_RELEASE >= 28).
 verify_operator_spaces_otp28(Config) ->
@@ -627,7 +655,9 @@ verify_operator_spaces_otp28(Config) ->
         #{info := [right, "&&" | _]},
         #{info := [left, "&&" | _]}
     ] =
-        elvis_core_apply_rule(Config, elvis_style, operator_spaces, DefaultOptions, Path).
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, operator_spaces, DefaultOptions, Path
+        ).
 -endif.
 
 -spec verify_no_space(config()) -> any().
@@ -657,7 +687,7 @@ verify_no_space(Config) ->
         #{info := [left, ":"], line_num := 142},
         #{info := [left, ":"], line_num := 146}
     ] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             no_space,
@@ -684,10 +714,14 @@ verify_no_space_after_pound(Config) ->
         #{line_num := 21},
         #{line_num := 22}
     ] =
-        elvis_core_apply_rule(Config, elvis_style, no_space_after_pound, #{}, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, no_space_after_pound, #{}, PathFail
+        ),
 
     PathPass = "pass_no_space_after_pound.erl",
-    [] = elvis_core_apply_rule(Config, elvis_style, no_space_after_pound, #{}, PathPass),
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_space_after_pound, #{}, PathPass
+    ),
     ok.
 
 -spec verify_operator_spaces_latin1(config()) -> any().
@@ -696,10 +730,14 @@ verify_operator_spaces_latin1(Config) ->
 
     Path = "fail_operator_spaces_latin1." ++ Ext,
 
-    [] = elvis_core_apply_rule(Config, elvis_style, operator_spaces, #{rules => []}, Path),
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, operator_spaces, #{rules => []}, Path
+    ),
 
     AppendOptions = #{rules => [{right, "++"}, {left, "++"}]},
-    [_, _] = elvis_core_apply_rule(Config, elvis_style, operator_spaces, AppendOptions, Path).
+    [_, _] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, operator_spaces, AppendOptions, Path
+    ).
 
 -spec verify_nesting_level(config()) -> any().
 verify_nesting_level(Config) ->
@@ -721,7 +759,9 @@ verify_nesting_level(Config) ->
                     #{line_num := 153},
                     #{line_num := 170}
                 ] =
-                    elvis_core_apply_rule(Config, elvis_style, nesting_level, #{level => 3}, Path);
+                    elvis_test_utils:elvis_core_apply_rule(
+                        Config, elvis_style, nesting_level, #{level => 3}, Path
+                    );
             erl_files ->
                 [
                     #{line_num := 11},
@@ -733,10 +773,12 @@ verify_nesting_level(Config) ->
                     #{line_num := 166},
                     #{line_num := 182}
                 ] =
-                    elvis_core_apply_rule(Config, elvis_style, nesting_level, #{level => 3}, Path)
+                    elvis_test_utils:elvis_core_apply_rule(
+                        Config, elvis_style, nesting_level, #{level => 3}, Path
+                    )
         end,
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             nesting_level,
@@ -749,10 +791,12 @@ verify_god_modules(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     Path = "fail_god_modules." ++ Ext,
-    [_] = elvis_core_apply_rule(Config, elvis_style, god_modules, #{limit => 25}, Path),
+    [_] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, god_modules, #{limit => 25}, Path
+    ),
 
     RuleConfig = #{limit => 25, ignore => [fail_god_modules]},
-    [] = elvis_core_apply_rule(Config, elvis_style, god_modules, RuleConfig, Path).
+    [] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, god_modules, RuleConfig, Path).
 
 -spec verify_no_if_expression(config()) -> any().
 verify_no_if_expression(Config) ->
@@ -764,10 +808,14 @@ verify_no_if_expression(Config) ->
         case Group of
             beam_files ->
                 [#{line_num := 8}, #{line_num := 18}, #{line_num := 26}] =
-                    elvis_core_apply_rule(Config, elvis_style, no_if_expression, #{}, Path);
+                    elvis_test_utils:elvis_core_apply_rule(
+                        Config, elvis_style, no_if_expression, #{}, Path
+                    );
             erl_files ->
                 [#{line_num := 11}, #{line_num := 22}, #{line_num := 31}] =
-                    elvis_core_apply_rule(Config, elvis_style, no_if_expression, #{}, Path)
+                    elvis_test_utils:elvis_core_apply_rule(
+                        Config, elvis_style, no_if_expression, #{}, Path
+                    )
         end.
 
 -spec verify_invalid_dynamic_call(config()) -> any().
@@ -776,10 +824,14 @@ verify_invalid_dynamic_call(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     PathPass = "pass_invalid_dynamic_call." ++ Ext,
-    [] = elvis_core_apply_rule(Config, elvis_style, invalid_dynamic_call, #{}, PathPass),
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, invalid_dynamic_call, #{}, PathPass
+    ),
 
     PathPass2 = "pass_invalid_dynamic_call_callback." ++ Ext,
-    [] = elvis_core_apply_rule(Config, elvis_style, invalid_dynamic_call, #{}, PathPass2),
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, invalid_dynamic_call, #{}, PathPass2
+    ),
 
     PathFail = "fail_invalid_dynamic_call." ++ Ext,
     _ =
@@ -799,7 +851,9 @@ verify_invalid_dynamic_call(Config) ->
                     % macro_call
                     #{line_num := _}
                 ] =
-                    elvis_core_apply_rule(Config, elvis_style, invalid_dynamic_call, #{}, PathFail);
+                    elvis_test_utils:elvis_core_apply_rule(
+                        Config, elvis_style, invalid_dynamic_call, #{}, PathFail
+                    );
             erl_files ->
                 [
                     % variable_module_name_call
@@ -818,12 +872,16 @@ verify_invalid_dynamic_call(Config) ->
                     #{line_num := 35},
                     #{line_num := 36}
                 ] =
-                    elvis_core_apply_rule(Config, elvis_style, invalid_dynamic_call, #{}, PathFail)
+                    elvis_test_utils:elvis_core_apply_rule(
+                        Config, elvis_style, invalid_dynamic_call, #{}, PathFail
+                    )
         end,
 
     RuleConfig = #{ignore => [fail_invalid_dynamic_call]},
     [] =
-        elvis_core_apply_rule(Config, elvis_style, invalid_dynamic_call, RuleConfig, PathFail).
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, invalid_dynamic_call, RuleConfig, PathFail
+        ).
 
 -spec verify_used_ignored_variable(config()) -> any().
 verify_used_ignored_variable(Config) ->
@@ -836,15 +894,21 @@ verify_used_ignored_variable(Config) ->
         case Group of
             beam_files ->
                 [#{line_num := _}, #{line_num := _}, #{line_num := _}, #{line_num := _}] =
-                    elvis_core_apply_rule(Config, elvis_style, used_ignored_variable, #{}, Path);
+                    elvis_test_utils:elvis_core_apply_rule(
+                        Config, elvis_style, used_ignored_variable, #{}, Path
+                    );
             erl_files ->
                 [#{line_num := 23}, #{line_num := 26}, #{line_num := 30}, #{line_num := 30}] =
-                    elvis_core_apply_rule(Config, elvis_style, used_ignored_variable, #{}, Path),
-                [] = elvis_core_apply_rule(Config, elvis_style, used_ignored_variable, #{}, Path2)
+                    elvis_test_utils:elvis_core_apply_rule(
+                        Config, elvis_style, used_ignored_variable, #{}, Path
+                    ),
+                [] = elvis_test_utils:elvis_core_apply_rule(
+                    Config, elvis_style, used_ignored_variable, #{}, Path2
+                )
         end,
 
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             used_ignored_variable,
@@ -862,10 +926,14 @@ verify_no_behavior_info(Config) ->
         case Group of
             beam_files ->
                 [#{line_num := 7}, #{line_num := 10}] =
-                    elvis_core_apply_rule(Config, elvis_style, no_behavior_info, #{}, Path);
+                    elvis_test_utils:elvis_core_apply_rule(
+                        Config, elvis_style, no_behavior_info, #{}, Path
+                    );
             erl_files ->
                 [#{line_num := 14}, #{line_num := 17}] =
-                    elvis_core_apply_rule(Config, elvis_style, no_behavior_info, #{}, Path)
+                    elvis_test_utils:elvis_core_apply_rule(
+                        Config, elvis_style, no_behavior_info, #{}, Path
+                    )
         end.
 
 -spec verify_module_naming_convention(config()) -> any().
@@ -877,7 +945,7 @@ verify_module_naming_convention(Config) ->
 
     PathPass = "pass_module_naming_convention." ++ Ext,
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             module_naming_convention,
@@ -887,7 +955,7 @@ verify_module_naming_convention(Config) ->
 
     PathFail = "fail_module_naming_1_convention_1_." ++ Ext,
     [_] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             module_naming_convention,
@@ -897,7 +965,7 @@ verify_module_naming_convention(Config) ->
 
     RuleConfigIgnore = RuleConfig#{ignore => [fail_module_naming_1_convention_1_]},
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             module_naming_convention,
@@ -908,7 +976,7 @@ verify_module_naming_convention(Config) ->
     % forbidden
     PathForbidden = "forbidden_module_naming_convention_12." ++ Ext,
     [_] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             module_naming_convention,
@@ -921,11 +989,13 @@ verify_state_record_and_type(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     PathPass = "pass_state_record_and_type." ++ Ext,
-    [] = elvis_core_apply_rule(Config, elvis_style, state_record_and_type, #{}, PathPass),
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, state_record_and_type, #{}, PathPass
+    ),
 
     PathPassWithOpaque = "pass_state_record_and_type_opaque." ++ Ext,
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             state_record_and_type,
@@ -935,21 +1005,29 @@ verify_state_record_and_type(Config) ->
 
     PathPassGenStateM = "pass_state_record_and_type_gen_statem." ++ Ext,
     [] =
-        elvis_core_apply_rule(Config, elvis_style, state_record_and_type, #{}, PathPassGenStateM),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, state_record_and_type, #{}, PathPassGenStateM
+        ),
 
     PathFail = "fail_state_record_and_type." ++ Ext,
-    [_] = elvis_core_apply_rule(Config, elvis_style, state_record_and_type, #{}, PathFail),
+    [_] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, state_record_and_type, #{}, PathFail
+    ),
 
     PathFail1 = "fail_state_type." ++ Ext,
-    [_] = elvis_core_apply_rule(Config, elvis_style, state_record_and_type, #{}, PathFail1),
+    [_] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, state_record_and_type, #{}, PathFail1
+    ),
 
     PathBehaviourFail = "fail_state_record_and_type_behaviour." ++ Ext,
     [_] =
-        elvis_core_apply_rule(Config, elvis_style, state_record_and_type, #{}, PathBehaviourFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, state_record_and_type, #{}, PathBehaviourFail
+        ),
 
     PathFailGenStateMType = "fail_state_record_and_type_gen_statem_type." ++ Ext,
     [_] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             state_record_and_type,
@@ -959,7 +1037,7 @@ verify_state_record_and_type(Config) ->
 
     PathPassGenStateMState = "fail_state_record_and_type_gen_statem_state." ++ Ext,
     [_] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             state_record_and_type,
@@ -972,19 +1050,31 @@ verify_state_record_and_type_plus_export_used_types(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     PathPass = "pass_state_record_and_type_plus_export_used_types." ++ Ext,
-    [] = elvis_core_apply_rule(Config, elvis_style, state_record_and_type, #{}, PathPass),
-    [] = elvis_core_apply_rule(Config, elvis_style, export_used_types, #{}, PathPass),
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, state_record_and_type, #{}, PathPass
+    ),
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, export_used_types, #{}, PathPass
+    ),
 
     PathPassGenStateM =
         "pass_state_record_and_type_plus_export_used_types_gen_statem." ++ Ext,
     [] =
-        elvis_core_apply_rule(Config, elvis_style, state_record_and_type, #{}, PathPassGenStateM),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, state_record_and_type, #{}, PathPassGenStateM
+        ),
     [] =
-        elvis_core_apply_rule(Config, elvis_style, export_used_types, #{}, PathPassGenStateM),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, export_used_types, #{}, PathPassGenStateM
+        ),
 
     PathFail = "fail_state_record_and_type_plus_export_used_types." ++ Ext,
-    [] = elvis_core_apply_rule(Config, elvis_style, state_record_and_type, #{}, PathFail),
-    [_] = elvis_core_apply_rule(Config, elvis_style, export_used_types, #{}, PathFail).
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, state_record_and_type, #{}, PathFail
+    ),
+    [_] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, export_used_types, #{}, PathFail
+    ).
 
 -spec verify_behaviour_spelling(config()) -> any().
 verify_behaviour_spelling(Config) ->
@@ -992,7 +1082,7 @@ verify_behaviour_spelling(Config) ->
 
     PathFail = "british_behaviour_spelling." ++ Ext,
     [_] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             behaviour_spelling,
@@ -1001,7 +1091,7 @@ verify_behaviour_spelling(Config) ->
         ),
     PathFail1 = "american_behavior_spelling." ++ Ext,
     [_] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             behaviour_spelling,
@@ -1011,7 +1101,7 @@ verify_behaviour_spelling(Config) ->
 
     PathPass = "british_behaviour_spelling." ++ Ext,
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             behaviour_spelling,
@@ -1020,7 +1110,7 @@ verify_behaviour_spelling(Config) ->
         ),
     PathPass1 = "american_behavior_spelling." ++ Ext,
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             behaviour_spelling,
@@ -1042,7 +1132,7 @@ verify_param_pattern_matching(Config) ->
         #{info := ['AsYoda' | _]},
         #{info := ['AsYodaToo' | _]}
     ] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             param_pattern_matching,
@@ -1059,7 +1149,7 @@ verify_param_pattern_matching(Config) ->
         #{info := ['But' | _]},
         #{info := ['ButToo' | _]}
     ] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             param_pattern_matching,
@@ -1068,7 +1158,7 @@ verify_param_pattern_matching(Config) ->
         ),
 
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             param_pattern_matching,
@@ -1077,7 +1167,7 @@ verify_param_pattern_matching(Config) ->
         ),
 
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             param_pattern_matching,
@@ -1091,7 +1181,7 @@ verify_consistent_generic_type(Config) ->
 
     PathFail = "consistent_generic_type_term." ++ Ext,
     [_, _, _, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             consistent_generic_type,
@@ -1100,7 +1190,7 @@ verify_consistent_generic_type(Config) ->
         ),
     PathFail1 = "consistent_generic_type_any." ++ Ext,
     [_, _, _, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             consistent_generic_type,
@@ -1109,7 +1199,7 @@ verify_consistent_generic_type(Config) ->
         ),
     PathFail2 = "consistent_generic_type_term_and_any." ++ Ext,
     [_, _, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             consistent_generic_type,
@@ -1118,7 +1208,7 @@ verify_consistent_generic_type(Config) ->
         ),
     PathFail3 = "consistent_generic_type_term_and_any." ++ Ext,
     [_, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             consistent_generic_type,
@@ -1128,7 +1218,7 @@ verify_consistent_generic_type(Config) ->
 
     PathPass = "consistent_generic_type_term." ++ Ext,
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             consistent_generic_type,
@@ -1137,7 +1227,7 @@ verify_consistent_generic_type(Config) ->
         ),
     PathPass1 = "consistent_generic_type_any." ++ Ext,
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             consistent_generic_type,
@@ -1146,7 +1236,7 @@ verify_consistent_generic_type(Config) ->
         ),
     PathPass2 = "consistent_generic_type_no_checks." ++ Ext,
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             consistent_generic_type,
@@ -1154,7 +1244,7 @@ verify_consistent_generic_type(Config) ->
             PathPass2
         ),
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             consistent_generic_type,
@@ -1168,10 +1258,14 @@ verify_always_shortcircuit(Config) ->
 
     PathFail = "fail_always_shortcircuit." ++ Ext,
     [_, _, _, _] =
-        elvis_core_apply_rule(Config, elvis_style, always_shortcircuit, #{}, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, always_shortcircuit, #{}, PathFail
+        ),
 
     PathPass = "pass_always_shortcircuit." ++ Ext,
-    [] = elvis_core_apply_rule(Config, elvis_style, always_shortcircuit, #{}, PathPass).
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, always_shortcircuit, #{}, PathPass
+    ).
 
 -spec verify_no_spec_with_records(config()) -> any().
 verify_no_spec_with_records(Config) ->
@@ -1179,10 +1273,14 @@ verify_no_spec_with_records(Config) ->
 
     PathFail = "fail_no_spec_with_records." ++ Ext,
     [_, _, _] =
-        elvis_core_apply_rule(Config, elvis_style, no_spec_with_records, #{}, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, no_spec_with_records, #{}, PathFail
+        ),
 
     PathPass = "pass_no_spec_with_records." ++ Ext,
-    [] = elvis_core_apply_rule(Config, elvis_style, no_spec_with_records, #{}, PathPass).
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_spec_with_records, #{}, PathPass
+    ).
 
 -spec verify_dont_repeat_yourself(config()) -> any().
 verify_dont_repeat_yourself(Config) ->
@@ -1191,21 +1289,29 @@ verify_dont_repeat_yourself(Config) ->
     PathFail = "fail_dont_repeat_yourself." ++ Ext,
     RuleConfig5 = #{min_complexity => 5},
     Res1 =
-        elvis_core_apply_rule(Config, elvis_style, dont_repeat_yourself, RuleConfig5, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, dont_repeat_yourself, RuleConfig5, PathFail
+        ),
     2 = length(Res1),
 
     RuleConfig9 = #{min_complexity => 9},
     Res2 =
-        elvis_core_apply_rule(Config, elvis_style, dont_repeat_yourself, RuleConfig9, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, dont_repeat_yourself, RuleConfig9, PathFail
+        ),
     1 = length(Res2),
 
     IgnoreRule = #{ignore => [fail_dont_repeat_yourself]},
     [] =
-        elvis_core_apply_rule(Config, elvis_style, dont_repeat_yourself, IgnoreRule, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, dont_repeat_yourself, IgnoreRule, PathFail
+        ),
 
     PathPass = "pass_dont_repeat_yourself." ++ Ext,
     [] =
-        elvis_core_apply_rule(Config, elvis_style, dont_repeat_yourself, RuleConfig5, PathPass).
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, dont_repeat_yourself, RuleConfig5, PathPass
+        ).
 
 -spec verify_max_module_length(config()) -> any().
 verify_max_module_length(Config) ->
@@ -1223,42 +1329,60 @@ verify_max_module_length(Config) ->
     ct:comment("Count whitespace, comment, and documentation lines"),
     RuleConfig = CountAllRuleConfig#{max_length => 18},
 
-    [_] = elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig, PathFail),
+    [_] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, max_module_length, RuleConfig, PathFail
+    ),
 
     RuleConfig1 = CountAllRuleConfig#{max_length => 22},
     [_] =
-        elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig1, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_module_length, RuleConfig1, PathFail
+        ),
 
     RuleConfig2 = CountAllRuleConfig#{max_length => 23},
-    [] = elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig2, PathFail),
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, max_module_length, RuleConfig2, PathFail
+    ),
 
     ct:comment("Don't count whitespace lines"),
     WhitespaceRuleConfig = CountAllRuleConfig#{count_whitespace => false},
 
     RuleConfig3 = WhitespaceRuleConfig#{max_length => 12},
     [_] =
-        elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig3, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_module_length, RuleConfig3, PathFail
+        ),
 
     RuleConfig4 = WhitespaceRuleConfig#{max_length => 13},
     [_] =
-        elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig4, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_module_length, RuleConfig4, PathFail
+        ),
 
     RuleConfig5 = WhitespaceRuleConfig#{max_length => 14},
-    [] = elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig5, PathFail),
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, max_module_length, RuleConfig5, PathFail
+    ),
 
     ct:comment("Don't count comment or whitespace lines"),
     NoCountRuleConfig = WhitespaceRuleConfig#{count_comments => false},
 
     RuleConfig6 = NoCountRuleConfig#{max_length => 10},
     [_] =
-        elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig6, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_module_length, RuleConfig6, PathFail
+        ),
 
     RuleConfig7 = NoCountRuleConfig#{max_length => 11},
     [_] =
-        elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig7, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_module_length, RuleConfig7, PathFail
+        ),
 
     RuleConfig8 = NoCountRuleConfig#{max_length => 12},
-    [] = elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig8, PathFail),
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, max_module_length, RuleConfig8, PathFail
+    ),
 
     ok = verify_max_module_length_docs(PathFail, CountAllRuleConfig, Config),
 
@@ -1275,15 +1399,21 @@ verify_max_module_length_docs(PathFail, CountAllRuleConfig, Config) ->
 
     RuleConfig9 = DocsRuleConfig#{max_length => 9},
     [_] =
-        elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig9, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_module_length, RuleConfig9, PathFail
+        ),
 
     RuleConfig10 = DocsRuleConfig#{max_length => 17},
     [_] =
-        elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig10, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_module_length, RuleConfig10, PathFail
+        ),
 
     RuleConfig11 = DocsRuleConfig#{max_length => 18},
     [] =
-        elvis_core_apply_rule(Config, elvis_style, max_module_length, RuleConfig11, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_module_length, RuleConfig11, PathFail
+        ),
 
     ok.
 
@@ -1301,13 +1431,17 @@ verify_max_function_arity(Config) ->
     PathPass = "pass_max_function_arity." ++ Ext,
     RuleConfig = #{max_arity => 8},
 
-    [] = elvis_core_apply_rule(Config, elvis_style, max_function_arity, RuleConfig, PathPass),
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, max_function_arity, RuleConfig, PathPass
+    ),
 
     %% This module has functions with 0, 1, 2, and 3 arguments
     PathFail = "fail_max_function_arity." ++ Ext,
-    [] = elvis_core_apply_rule(Config, elvis_style, max_function_arity, #{}, PathFail),
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, max_function_arity, #{}, PathFail
+    ),
     [_] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             max_function_arity,
@@ -1315,7 +1449,7 @@ verify_max_function_arity(Config) ->
             PathFail
         ),
     [_, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             max_function_arity,
@@ -1323,7 +1457,7 @@ verify_max_function_arity(Config) ->
             PathFail
         ),
     [_, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             max_function_arity,
@@ -1331,7 +1465,7 @@ verify_max_function_arity(Config) ->
             PathFail
         ),
     [_, _, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             max_function_arity,
@@ -1341,7 +1475,7 @@ verify_max_function_arity(Config) ->
 
     PathNonExportedPass = "pass_max_non_exported_function_arity." ++ Ext,
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             max_function_arity,
@@ -1351,7 +1485,7 @@ verify_max_function_arity(Config) ->
 
     PathNonExportedFail = "fail_max_non_exported_function_arity." ++ Ext,
     [_, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             max_function_arity,
@@ -1360,7 +1494,7 @@ verify_max_function_arity(Config) ->
         ),
 
     [_, _, _, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             max_function_arity,
@@ -1377,7 +1511,7 @@ verify_max_anonymous_function_arity(Config) ->
     RuleConfig = #{max_arity => 3},
 
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             max_anonymous_function_arity,
@@ -1388,9 +1522,11 @@ verify_max_anonymous_function_arity(Config) ->
     %% This module has funs with 0, 1, 2, and 3 arguments
     PathFail = "fail_max_anonymous_function_arity." ++ Ext,
     [] =
-        elvis_core_apply_rule(Config, elvis_style, max_anonymous_function_arity, #{}, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_anonymous_function_arity, #{}, PathFail
+        ),
     [_] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             max_anonymous_function_arity,
@@ -1398,7 +1534,7 @@ verify_max_anonymous_function_arity(Config) ->
             PathFail
         ),
     [_, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             max_anonymous_function_arity,
@@ -1406,7 +1542,7 @@ verify_max_anonymous_function_arity(Config) ->
             PathFail
         ),
     [_, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             max_anonymous_function_arity,
@@ -1414,7 +1550,7 @@ verify_max_anonymous_function_arity(Config) ->
             PathFail
         ),
     [_, _, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             max_anonymous_function_arity,
@@ -1436,58 +1572,82 @@ verify_max_function_length(Config) ->
     ct:comment("Count whitespace and comment lines"),
     RuleConfig = CountAllRuleConfig#{max_length => 4},
     [_, _, _] =
-        elvis_core_apply_rule(Config, elvis_style, max_function_length, RuleConfig, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_function_length, RuleConfig, PathFail
+        ),
 
     RuleConfig1 = CountAllRuleConfig#{max_length => 9},
     [_, _] =
-        elvis_core_apply_rule(Config, elvis_style, max_function_length, RuleConfig1, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_function_length, RuleConfig1, PathFail
+        ),
 
     RuleConfig2 = CountAllRuleConfig#{max_length => 14},
     [_] =
-        elvis_core_apply_rule(Config, elvis_style, max_function_length, RuleConfig2, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_function_length, RuleConfig2, PathFail
+        ),
 
     RuleConfig3 = CountAllRuleConfig#{max_length => 15},
     [] =
-        elvis_core_apply_rule(Config, elvis_style, max_function_length, RuleConfig3, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_function_length, RuleConfig3, PathFail
+        ),
 
     ct:comment("Don't count whitespace lines"),
     WhitespaceRuleConfig = CountAllRuleConfig#{count_whitespace => false},
 
     RuleConfig4 = WhitespaceRuleConfig#{max_length => 3},
     [_, _, _] =
-        elvis_core_apply_rule(Config, elvis_style, max_function_length, RuleConfig4, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_function_length, RuleConfig4, PathFail
+        ),
 
     RuleConfig5 = WhitespaceRuleConfig#{max_length => 7},
     [_, _] =
-        elvis_core_apply_rule(Config, elvis_style, max_function_length, RuleConfig5, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_function_length, RuleConfig5, PathFail
+        ),
 
     RuleConfig6 = WhitespaceRuleConfig#{max_length => 8},
     [_] =
-        elvis_core_apply_rule(Config, elvis_style, max_function_length, RuleConfig6, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_function_length, RuleConfig6, PathFail
+        ),
 
     RuleConfig7 = WhitespaceRuleConfig#{max_length => 11},
     [_] =
-        elvis_core_apply_rule(Config, elvis_style, max_function_length, RuleConfig7, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_function_length, RuleConfig7, PathFail
+        ),
 
     RuleConfig8 = WhitespaceRuleConfig#{max_length => 12},
     [] =
-        elvis_core_apply_rule(Config, elvis_style, max_function_length, RuleConfig8, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_function_length, RuleConfig8, PathFail
+        ),
 
     ct:comment("Don't count comment or whitespace lines"),
     NoCountRuleConfig = WhitespaceRuleConfig#{count_comments => false},
 
     RuleConfig9 = NoCountRuleConfig#{max_length => 1},
     [_, _, _] =
-        elvis_core_apply_rule(Config, elvis_style, max_function_length, RuleConfig9, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_function_length, RuleConfig9, PathFail
+        ),
 
     RuleConfig10 = NoCountRuleConfig#{max_length => 2},
     [] =
-        elvis_core_apply_rule(Config, elvis_style, max_function_length, RuleConfig10, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_function_length, RuleConfig10, PathFail
+        ),
 
     IgnoredFunctions = [{ModuleFail, f15}, {ModuleFail, f10, 1}],
     RuleConfig11 = RuleConfig5#{ignore => IgnoredFunctions},
     [] =
-        elvis_core_apply_rule(Config, elvis_style, max_function_length, RuleConfig11, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_function_length, RuleConfig11, PathFail
+        ),
 
     {comment, ""}.
 
@@ -1502,7 +1662,7 @@ verify_max_function_clause_length(Config) ->
 
     ct:comment("Count whitespace and comment lines"),
     [_, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             max_function_clause_length,
@@ -1513,7 +1673,7 @@ verify_max_function_clause_length(Config) ->
     PathSuccess = "pass_max_function_clause_length." ++ Ext,
 
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             max_function_clause_length,
@@ -1525,7 +1685,7 @@ verify_max_function_clause_length(Config) ->
     PathExtraSuccess = "fail_max_function_length." ++ Ext,
 
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             max_function_clause_length,
@@ -1536,7 +1696,7 @@ verify_max_function_clause_length(Config) ->
     RuleConfig3 = CountAllRuleConfig#{max_length => 1},
 
     [_, _, _, _, _, _, _, _, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             max_function_clause_length,
@@ -1548,7 +1708,7 @@ verify_max_function_clause_length(Config) ->
     PathClauseNumbers = "function_clause_numbers." ++ Ext,
 
     Result =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             max_function_clause_length,
@@ -1597,7 +1757,9 @@ verify_no_debug_call(Config) ->
                     #{info := [dyntrace, calls, 1], line_num := 20},
                     #{info := [instrument, this, 0], line_num := 21}
                 ] =
-                    elvis_core_apply_rule(Config, elvis_style, no_debug_call, #{}, PathFail);
+                    elvis_test_utils:elvis_core_apply_rule(
+                        Config, elvis_style, no_debug_call, #{}, PathFail
+                    );
             erl_files ->
                 [
                     #{info := [erlang, display, 1], line_num := 8},
@@ -1611,11 +1773,15 @@ verify_no_debug_call(Config) ->
                     #{info := [dyntrace, calls, 1], line_num := 19},
                     #{info := [instrument, this, 0], line_num := 20}
                 ] =
-                    elvis_core_apply_rule(Config, elvis_style, no_debug_call, #{}, PathFail)
+                    elvis_test_utils:elvis_core_apply_rule(
+                        Config, elvis_style, no_debug_call, #{}, PathFail
+                    )
         end,
 
     RuleConfig = #{ignore => [fail_no_debug_call]},
-    [] = elvis_core_apply_rule(Config, elvis_style, no_debug_call, RuleConfig, PathFail),
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_debug_call, RuleConfig, PathFail
+    ),
 
     RuleConfig2 = #{debug_functions => [{ct, pal, 2}]},
     _ =
@@ -1623,7 +1789,7 @@ verify_no_debug_call(Config) ->
             % ct:pal is preprocessed
             beam_files ->
                 [] =
-                    elvis_core_apply_rule(
+                    elvis_test_utils:elvis_core_apply_rule(
                         Config,
                         elvis_style,
                         no_debug_call,
@@ -1632,7 +1798,9 @@ verify_no_debug_call(Config) ->
                     );
             erl_files ->
                 [_] =
-                    elvis_core_apply_rule(Config, elvis_style, no_debug_call, RuleConfig2, PathFail)
+                    elvis_test_utils:elvis_core_apply_rule(
+                        Config, elvis_style, no_debug_call, RuleConfig2, PathFail
+                    )
         end,
 
     RuleConfig3 = #{debug_functions => [{ct, pal}]},
@@ -1641,7 +1809,7 @@ verify_no_debug_call(Config) ->
             % ct:pal is preprocessed
             beam_files ->
                 [] =
-                    elvis_core_apply_rule(
+                    elvis_test_utils:elvis_core_apply_rule(
                         Config,
                         elvis_style,
                         no_debug_call,
@@ -1650,7 +1818,9 @@ verify_no_debug_call(Config) ->
                     );
             erl_files ->
                 [_, _] =
-                    elvis_core_apply_rule(Config, elvis_style, no_debug_call, RuleConfig3, PathFail)
+                    elvis_test_utils:elvis_core_apply_rule(
+                        Config, elvis_style, no_debug_call, RuleConfig3, PathFail
+                    )
         end,
 
     RuleConfig4 = #{debug_functions => [{io, format}]},
@@ -1658,17 +1828,19 @@ verify_no_debug_call(Config) ->
         case Group of
             beam_files ->
                 % pre-processing surfaces further issues with no_debug_call
-                [_, _, _] = elvis_core_apply_rule(
+                [_, _, _] = elvis_test_utils:elvis_core_apply_rule(
                     Config, elvis_style, no_debug_call, RuleConfig4, PathFail
                 );
             erl_files ->
-                [_, _] = elvis_core_apply_rule(
+                [_, _] = elvis_test_utils:elvis_core_apply_rule(
                     Config, elvis_style, no_debug_call, RuleConfig4, PathFail
                 )
         end,
 
     RuleConfig5 = #{debug_functions => [{ct, print}]},
-    [_, _] = elvis_core_apply_rule(Config, elvis_style, no_debug_call, RuleConfig5, PathFail).
+    [_, _] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_debug_call, RuleConfig5, PathFail
+    ).
 
 %% We test no_call and no_common_caveats_call by building the equivalent config and make sure that
 %% other than defaults, they behave the same
@@ -1693,14 +1865,14 @@ verify_no_call_flavours(
 
     assert_length(
         ExpectedDefaultRuleMatchCount,
-        elvis_core_apply_rule(Config, elvis_style, RuleName, #{}, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, RuleName, #{}, PathFail),
         RuleName
     ),
 
     RuleConfig = #{ignore => [fail_no_call_classes]},
     assert_length(
         0,
-        elvis_core_apply_rule(Config, elvis_style, RuleName, RuleConfig, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, RuleName, RuleConfig, PathFail),
         RuleName
     ),
 
@@ -1726,7 +1898,7 @@ verify_no_call_flavours(
         fun({FunSpec, ExpectedCount}) ->
             ThisRuleConfig = maps:from_list([{RuleConfigMapKey, [FunSpec]}]),
             Result =
-                elvis_core_apply_rule(
+                elvis_test_utils:elvis_core_apply_rule(
                     Config,
                     elvis_style,
                     RuleName,
@@ -1749,14 +1921,18 @@ verify_no_nested_try_catch(Config) ->
         case Group of
             beam_files ->
                 [#{line_num := 9}, #{line_num := 18}, #{line_num := 21}] =
-                    elvis_core_apply_rule(Config, elvis_style, no_nested_try_catch, #{}, Path);
+                    elvis_test_utils:elvis_core_apply_rule(
+                        Config, elvis_style, no_nested_try_catch, #{}, Path
+                    );
             erl_files ->
                 [#{line_num := 15}, #{line_num := 30}, #{line_num := 37}] =
-                    elvis_core_apply_rule(Config, elvis_style, no_nested_try_catch, #{}, Path)
+                    elvis_test_utils:elvis_core_apply_rule(
+                        Config, elvis_style, no_nested_try_catch, #{}, Path
+                    )
         end,
 
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             no_nested_try_catch,
@@ -1766,7 +1942,9 @@ verify_no_nested_try_catch(Config) ->
 
     Module2 = pass_no_nested_try_catch,
     Path2 = atom_to_list(Module2) ++ "." ++ Ext,
-    [] = elvis_core_apply_rule(Config, elvis_style, no_nested_try_catch, #{}, Path2).
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_nested_try_catch, #{}, Path2
+    ).
 
 -spec verify_no_successive_maps(config()) -> any().
 -if(?OTP_RELEASE < 27).
@@ -1783,18 +1961,26 @@ verify_no_successive_maps(Config) ->
         case Group of
             beam_files ->
                 [_, _, _] =
-                    elvis_core_apply_rule(Config, elvis_style, no_successive_maps, #{}, Path),
+                    elvis_test_utils:elvis_core_apply_rule(
+                        Config, elvis_style, no_successive_maps, #{}, Path
+                    ),
                 [_, _, _] =
-                    elvis_core_apply_rule(Config, elvis_style, no_successive_maps, #{}, Path2);
+                    elvis_test_utils:elvis_core_apply_rule(
+                        Config, elvis_style, no_successive_maps, #{}, Path2
+                    );
             erl_files ->
                 [#{line_num := 7}, #{line_num := 8}, #{line_num := 9}] =
-                    elvis_core_apply_rule(Config, elvis_style, no_successive_maps, #{}, Path),
+                    elvis_test_utils:elvis_core_apply_rule(
+                        Config, elvis_style, no_successive_maps, #{}, Path
+                    ),
                 [#{line_num := 10}, #{line_num := 26}, #{line_num := 32}] =
-                    elvis_core_apply_rule(Config, elvis_style, no_successive_maps, #{}, Path2)
+                    elvis_test_utils:elvis_core_apply_rule(
+                        Config, elvis_style, no_successive_maps, #{}, Path2
+                    )
         end,
 
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             no_successive_maps,
@@ -1814,11 +2000,13 @@ verify_ms_transform_included(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     PassPath = "pass_ms_transform_included." ++ Ext,
-    [] = elvis_core_apply_rule(Config, elvis_style, ms_transform_included, #{}, PassPath),
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, ms_transform_included, #{}, PassPath
+    ),
 
     CustomFunctionPath = "custom_ms_transform_included." ++ Ext,
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             ms_transform_included,
@@ -1828,7 +2016,7 @@ verify_ms_transform_included(Config) ->
 
     IncludedButNotUsed = "included_but_not_used_ms_transform." ++ Ext,
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             ms_transform_included,
@@ -1838,10 +2026,14 @@ verify_ms_transform_included(Config) ->
 
     DoubleInclude = "double_include_ms_transform." ++ Ext,
     [] =
-        elvis_core_apply_rule(Config, elvis_style, ms_transform_included, #{}, DoubleInclude),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, ms_transform_included, #{}, DoubleInclude
+        ),
 
     FailPath = "fail_ms_transform_included." ++ Ext,
-    [_] = elvis_core_apply_rule(Config, elvis_style, ms_transform_included, #{}, FailPath),
+    [_] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, ms_transform_included, #{}, FailPath
+    ),
     ok.
 
 -spec verify_no_operation_on_same_value(config()) -> any().
@@ -1849,7 +2041,9 @@ verify_no_operation_on_same_value(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     PassPath = "pass_no_operation_on_same_value." ++ Ext,
-    [] = elvis_core_apply_rule(Config, elvis_style, no_operation_on_same_value, #{}, PassPath),
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_operation_on_same_value, #{}, PassPath
+    ),
 
     FailPath = "fail_no_operation_on_same_value." ++ Ext,
     [
@@ -1871,13 +2065,15 @@ verify_no_operation_on_same_value(Config) ->
         #{line_num := 34},
         #{line_num := 39}
     ] =
-        elvis_core_apply_rule(Config, elvis_style, no_operation_on_same_value, #{}, FailPath),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, no_operation_on_same_value, #{}, FailPath
+        ),
 
     [
         #{line_num := 27},
         #{line_num := 28}
     ] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config, elvis_style, no_operation_on_same_value, #{operations => ['--', '++']}, FailPath
         ).
 
@@ -1886,7 +2082,9 @@ verify_no_boolean_in_comparison(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     PassPath = "pass_no_boolean_in_comparison." ++ Ext,
-    [] = elvis_core_apply_rule(Config, elvis_style, no_boolean_in_comparison, #{}, PassPath),
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_boolean_in_comparison, #{}, PassPath
+    ),
 
     FailPath = "fail_no_boolean_in_comparison." ++ Ext,
     [
@@ -1904,14 +2102,18 @@ verify_no_boolean_in_comparison(Config) ->
         #{line_num := 32},
         #{line_num := 32}
     ] =
-        elvis_core_apply_rule(Config, elvis_style, no_boolean_in_comparison, #{}, FailPath).
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, no_boolean_in_comparison, #{}, FailPath
+        ).
 
 -spec verify_no_receive_without_timeout(config()) -> any().
 verify_no_receive_without_timeout(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     PassPath = "pass_no_receive_without_timeout." ++ Ext,
-    [] = elvis_core_apply_rule(Config, elvis_style, no_receive_without_timeout, #{}, PassPath),
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_receive_without_timeout, #{}, PassPath
+    ),
 
     FailPath = "fail_no_receive_without_timeout." ++ Ext,
     [
@@ -1919,7 +2121,9 @@ verify_no_receive_without_timeout(Config) ->
         #{line_num := 10},
         #{line_num := 20}
     ] =
-        elvis_core_apply_rule(Config, elvis_style, no_receive_without_timeout, #{}, FailPath).
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, no_receive_without_timeout, #{}, FailPath
+        ).
 
 -spec verify_atom_naming_convention(config()) -> any().
 verify_atom_naming_convention(Config) ->
@@ -1939,7 +2143,7 @@ verify_atom_naming_convention(Config) ->
     PassPath3 = atom_to_list(PassModule3) ++ "." ++ Ext,
 
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             atom_naming_convention,
@@ -1947,7 +2151,7 @@ verify_atom_naming_convention(Config) ->
             PassPath
         ),
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             atom_naming_convention,
@@ -1955,7 +2159,7 @@ verify_atom_naming_convention(Config) ->
             PassPath2
         ),
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             atom_naming_convention,
@@ -1970,7 +2174,7 @@ verify_atom_naming_convention(Config) ->
     FailPath2 = atom_to_list(FailModule2) ++ "." ++ Ext,
 
     [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             atom_naming_convention,
@@ -1978,7 +2182,7 @@ verify_atom_naming_convention(Config) ->
             FailPath
         ),
     [_, _, _, _, _, _, _, _, _, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             atom_naming_convention,
@@ -1986,7 +2190,7 @@ verify_atom_naming_convention(Config) ->
             FailPath
         ),
     [_, _, _, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             atom_naming_convention,
@@ -1994,7 +2198,7 @@ verify_atom_naming_convention(Config) ->
             FailPath
         ),
     [_, _, _, _, _, _, _, _, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             atom_naming_convention,
@@ -2002,7 +2206,7 @@ verify_atom_naming_convention(Config) ->
             FailPath
         ),
     [_, _, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             atom_naming_convention,
@@ -2010,7 +2214,7 @@ verify_atom_naming_convention(Config) ->
             FailPath
         ),
     [_] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             atom_naming_convention,
@@ -2018,7 +2222,7 @@ verify_atom_naming_convention(Config) ->
             FailPath
         ),
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             atom_naming_convention,
@@ -2027,7 +2231,7 @@ verify_atom_naming_convention(Config) ->
         ),
     KeepRegex = "^([a-zA-Z0-9_]+)$",
     [_, _, _, _, _, _, _, _, _, _, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             atom_naming_convention,
@@ -2035,7 +2239,7 @@ verify_atom_naming_convention(Config) ->
             FailPath
         ),
     [_, _, _, _, _, _, _, _, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             atom_naming_convention,
@@ -2046,7 +2250,7 @@ verify_atom_naming_convention(Config) ->
             FailPath
         ),
     [_, _, _, _, _, _, _, _, _, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             atom_naming_convention,
@@ -2054,7 +2258,7 @@ verify_atom_naming_convention(Config) ->
             FailPath
         ),
     [_, _, _, _, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             atom_naming_convention,
@@ -2065,7 +2269,7 @@ verify_atom_naming_convention(Config) ->
             FailPath
         ),
     [_] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             atom_naming_convention,
@@ -2077,7 +2281,7 @@ verify_atom_naming_convention(Config) ->
             % 'or_THIS' getting stripped of enclosing '
             beam_files ->
                 [_, _, _, _, _, _, _, _] =
-                    elvis_core_apply_rule(
+                    elvis_test_utils:elvis_core_apply_rule(
                         Config,
                         elvis_style,
                         atom_naming_convention,
@@ -2089,7 +2293,7 @@ verify_atom_naming_convention(Config) ->
                     );
             erl_files ->
                 [_, _, _, _, _, _, _, _, _] =
-                    elvis_core_apply_rule(
+                    elvis_test_utils:elvis_core_apply_rule(
                         Config,
                         elvis_style,
                         atom_naming_convention,
@@ -2108,7 +2312,7 @@ verify_atom_naming_convention(Config) ->
             % 'or_THIS' getting stripped of enclosing '
             beam_files ->
                 [_, _, _, _] =
-                    elvis_core_apply_rule(
+                    elvis_test_utils:elvis_core_apply_rule(
                         Config,
                         elvis_style,
                         atom_naming_convention,
@@ -2117,7 +2321,7 @@ verify_atom_naming_convention(Config) ->
                     );
             erl_files ->
                 [_, _, _] =
-                    elvis_core_apply_rule(
+                    elvis_test_utils:elvis_core_apply_rule(
                         Config,
                         elvis_style,
                         atom_naming_convention,
@@ -2127,7 +2331,7 @@ verify_atom_naming_convention(Config) ->
         end,
 
     [_, _, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             atom_naming_convention,
@@ -2153,14 +2357,28 @@ verify_no_init_lists(Config) ->
     FailPath7 = ExamplesDir ++ "fail_no_init_lists7." ++ Ext,
     FailPath8 = ExamplesDir ++ "fail_no_init_lists8." ++ Ext,
 
-    [_] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, FailPath),
-    [_] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, FailPath2),
-    [_, _, _] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, FailPath3),
-    [_] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, FailPath4),
-    [_] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, FailPath5),
-    [_] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, FailPath6),
-    [_] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, FailPath7),
-    [_] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, FailPath8),
+    [_] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, FailPath),
+    [_] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_init_lists, #{}, FailPath2
+    ),
+    [_, _, _] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_init_lists, #{}, FailPath3
+    ),
+    [_] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_init_lists, #{}, FailPath4
+    ),
+    [_] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_init_lists, #{}, FailPath5
+    ),
+    [_] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_init_lists, #{}, FailPath6
+    ),
+    [_] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_init_lists, #{}, FailPath7
+    ),
+    [_] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_init_lists, #{}, FailPath8
+    ),
 
     PassPath = ExamplesDir ++ "pass_no_init_lists." ++ Ext,
     PassPath2 = ExamplesDir ++ "pass_no_init_lists2." ++ Ext,
@@ -2168,11 +2386,11 @@ verify_no_init_lists(Config) ->
     PassPath4 = ExamplesDir ++ "pass_no_init_lists4." ++ Ext,
     PassPath5 = ExamplesDir ++ "pass_no_init_lists5." ++ Ext,
 
-    [] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, PassPath),
-    [] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, PassPath2),
-    [] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, PassPath3),
-    [] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, PassPath4),
-    [] = elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, PassPath5),
+    [] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, PassPath),
+    [] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, PassPath2),
+    [] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, PassPath3),
+    [] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, PassPath4),
+    [] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, PassPath5),
     ok.
 
 -spec verify_no_throw(config()) -> any().
@@ -2184,7 +2402,9 @@ verify_no_throw(Config) ->
     FailModule = fail_no_throw,
     FailPath = atom_to_list(FailModule) ++ "." ++ Ext,
 
-    [_, _, _, _] = elvis_core_apply_rule(Config, elvis_style, no_throw, #{}, FailPath).
+    [_, _, _, _] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_throw, #{}, FailPath
+    ).
 
 -spec verify_no_dollar_space(config()) -> any().
 verify_no_dollar_space(Config) ->
@@ -2195,7 +2415,9 @@ verify_no_dollar_space(Config) ->
     FailModule = fail_no_dollar_space,
     FailPath = atom_to_list(FailModule) ++ "." ++ Ext,
 
-    [_, _] = elvis_core_apply_rule(Config, elvis_style, no_dollar_space, #{}, FailPath).
+    [_, _] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_dollar_space, #{}, FailPath
+    ).
 
 -spec verify_no_author(config()) -> any().
 verify_no_author(Config) ->
@@ -2206,7 +2428,7 @@ verify_no_author(Config) ->
     FailModule = fail_no_author,
     FailPath = atom_to_list(FailModule) ++ "." ++ Ext,
 
-    [_, _] = elvis_core_apply_rule(Config, elvis_style, no_author, #{}, FailPath).
+    [_, _] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, no_author, #{}, FailPath).
 
 -spec verify_no_import(config()) -> any().
 verify_no_import(Config) ->
@@ -2214,7 +2436,7 @@ verify_no_import(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     FailPath = "fail_no_import." ++ Ext,
-    [_, _] = elvis_core_apply_rule(Config, elvis_style, no_import, #{}, FailPath).
+    [_, _] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, no_import, #{}, FailPath).
 
 -spec verify_no_catch_expressions(config()) -> any().
 verify_no_catch_expressions(Config) ->
@@ -2223,7 +2445,9 @@ verify_no_catch_expressions(Config) ->
 
     FailPath = "fail_no_catch_expressions." ++ Ext,
 
-    R = elvis_core_apply_rule(Config, elvis_style, no_catch_expressions, #{}, FailPath),
+    R = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_catch_expressions, #{}, FailPath
+    ),
     _ =
         case Group of
             beam_files ->
@@ -2238,11 +2462,15 @@ verify_no_single_clause_case(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     PassPath = "pass_no_single_clause_case." ++ Ext,
-    [] = elvis_core_apply_rule(Config, elvis_style, no_single_clause_case, #{}, PassPath),
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_single_clause_case, #{}, PassPath
+    ),
 
     FailPath = "fail_no_single_clause_case." ++ Ext,
 
-    R = elvis_core_apply_rule(Config, elvis_style, no_single_clause_case, #{}, FailPath),
+    R = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_single_clause_case, #{}, FailPath
+    ),
     _ =
         case Group of
             beam_files ->
@@ -2258,11 +2486,15 @@ verify_no_single_match_maybe(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     PassPath = "pass_no_single_match_maybe." ++ Ext,
-    [] = elvis_core_apply_rule(Config, elvis_style, no_single_match_maybe, #{}, PassPath),
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_single_match_maybe, #{}, PassPath
+    ),
 
     FailPath = "fail_no_single_match_maybe." ++ Ext,
 
-    R = elvis_core_apply_rule(Config, elvis_style, no_single_match_maybe, #{}, FailPath),
+    R = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_single_match_maybe, #{}, FailPath
+    ),
     _ =
         case Group of
             beam_files ->
@@ -2278,14 +2510,22 @@ verify_no_match_in_condition(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     PassPath = "pass_no_match_in_condition." ++ Ext,
-    [] = elvis_core_apply_rule(Config, elvis_style, no_match_in_condition, #{}, PassPath),
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_match_in_condition, #{}, PassPath
+    ),
     PassPath2 = "pass_no_match_in_condition2." ++ Ext,
-    [] = elvis_core_apply_rule(Config, elvis_style, no_match_in_condition, #{}, PassPath2),
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_match_in_condition, #{}, PassPath2
+    ),
     PassPath3 = "pass_no_match_in_condition3." ++ Ext,
-    [] = elvis_core_apply_rule(Config, elvis_style, no_match_in_condition, #{}, PassPath3),
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_match_in_condition, #{}, PassPath3
+    ),
 
     FailPath = "fail_no_match_in_condition." ++ Ext,
-    R = elvis_core_apply_rule(Config, elvis_style, no_match_in_condition, #{}, FailPath),
+    R = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_match_in_condition, #{}, FailPath
+    ),
     case Group of
         beam_files ->
             [_, _] = R;
@@ -2305,7 +2545,7 @@ verify_numeric_format(Config) ->
     PassPath = atom_to_list(PassModule) ++ "." ++ Ext,
 
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             numeric_format,
@@ -2319,7 +2559,7 @@ verify_numeric_format(Config) ->
 
     % no underscores
     [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             numeric_format,
@@ -2332,7 +2572,7 @@ verify_numeric_format(Config) ->
         ),
     % with at least 2 digits
     [_, _, _, _, _, _, _, _, _, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             numeric_format,
@@ -2345,7 +2585,7 @@ verify_numeric_format(Config) ->
         ),
     % only base 10
     [_, _, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             numeric_format,
@@ -2359,7 +2599,7 @@ verify_numeric_format(Config) ->
 
     % any float, nothing else - impossible to match base regex
     [_, _, _, _, _, _, _, _, _, _, _, _, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             numeric_format,
@@ -2373,7 +2613,7 @@ verify_numeric_format(Config) ->
 
     % any integer, nothing else - impossible to match base regex
     [_, _, _, _] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             numeric_format,
@@ -2387,7 +2627,7 @@ verify_numeric_format(Config) ->
 
     % base regex is ignored
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             numeric_format,
@@ -2401,7 +2641,7 @@ verify_numeric_format(Config) ->
 
     % ignored module
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             numeric_format,
@@ -2414,7 +2654,7 @@ verify_numeric_format(Config) ->
     UglyPath = atom_to_list(UglyModule) ++ "." ++ Ext,
 
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             numeric_format,
@@ -2428,18 +2668,22 @@ verify_numeric_format(Config) ->
 verify_export_used_types(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
     PathPass = "pass_export_used_types." ++ Ext,
-    [] = elvis_core_apply_rule(Config, elvis_style, export_used_types, #{}, PathPass),
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, export_used_types, #{}, PathPass
+    ),
 
     PathFail = "fail_export_used_types." ++ Ext,
     [#{line_num := 3}] =
-        elvis_core_apply_rule(Config, elvis_style, export_used_types, #{}, PathFail).
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, export_used_types, #{}, PathFail
+        ).
 
 -spec verify_private_data_types(config()) -> any().
 verify_private_data_types(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
     PathPass = "pass_private_data_types2." ++ Ext,
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             private_data_types,
@@ -2448,7 +2692,7 @@ verify_private_data_types(Config) ->
         ),
     PathPass2 = "pass_private_data_types2." ++ Ext,
     [] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             private_data_types,
@@ -2458,9 +2702,11 @@ verify_private_data_types(Config) ->
     % Default applies only to records
     PathFail = "fail_private_data_types." ++ Ext,
     [#{line_num := _}] =
-        elvis_core_apply_rule(Config, elvis_style, private_data_types, #{}, PathFail),
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, private_data_types, #{}, PathFail
+        ),
     [#{line_num := _}] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             private_data_types,
@@ -2468,7 +2714,7 @@ verify_private_data_types(Config) ->
             PathFail
         ),
     [#{line_num := _}] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             private_data_types,
@@ -2476,7 +2722,7 @@ verify_private_data_types(Config) ->
             PathFail
         ),
     [#{line_num := _}, #{line_num := _}, #{line_num := _}] =
-        elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
             private_data_types,
@@ -2627,22 +2873,6 @@ verify_elvis_attr_private_data_types(Config) ->
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-elvis_core_apply_rule(Config, Module, Function, RuleConfig, Filename) ->
-    ElvisConfig =
-        elvis_test_utils:config(
-            proplists:get_value(group, Config, erl_files)
-        ),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, Filename),
-    {[RulesResults], _, _} =
-        elvis_core:apply_rule({Module, Function, RuleConfig}, {[], ElvisConfig, File}),
-    case RulesResults of
-        #{error_msg := Msg, info := Info} ->
-            ct:fail(Msg, Info);
-        #{items := Items} ->
-            Items
-    end.
 
 verify_elvis_attr(Config, FilenameNoExt) ->
     ElvisConfig =
