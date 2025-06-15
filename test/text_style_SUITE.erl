@@ -53,7 +53,7 @@ verify_line_length_rule(Config) ->
     Path = "fail_line_length." ++ Ext,
 
     Result =
-        style_SUITE:elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config, elvis_text_style, line_length, #{limit => 100}, Path
         ),
     8 = length(Result),
@@ -61,7 +61,7 @@ verify_line_length_rule(Config) ->
     <<"At line 32, there are too many ", _/binary>> = list_to_binary(io_lib:format(Msg, Info)),
 
     WholeLineResult =
-        style_SUITE:elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_text_style,
             line_length,
@@ -71,7 +71,7 @@ verify_line_length_rule(Config) ->
     6 = length(WholeLineResult),
 
     AnyResult =
-        style_SUITE:elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_text_style,
             line_length,
@@ -81,7 +81,7 @@ verify_line_length_rule(Config) ->
     6 = length(AnyResult),
 
     WhistespaceResult =
-        style_SUITE:elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_text_style,
             line_length,
@@ -101,7 +101,7 @@ verify_line_length_rule_latin1(Config) ->
     Path = "fail_line_length_latin1." ++ Ext,
 
     Result =
-        style_SUITE:elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config, elvis_text_style, line_length, #{limit => 100}, Path
         ),
     1 = length(Result),
@@ -115,7 +115,7 @@ verify_unicode_line_length_rule(Config) ->
     Path = "pass_unicode_comments." ++ Ext,
 
     Result =
-        style_SUITE:elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config, elvis_text_style, line_length, #{limit => 100}, Path
         ),
     0 = length(Result).
@@ -126,7 +126,7 @@ verify_no_tabs_rule(Config) ->
 
     Path = "fail_no_tabs." ++ Ext,
 
-    [_, _] = style_SUITE:elvis_core_apply_rule(Config, elvis_text_style, no_tabs, #{}, Path).
+    [_, _] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_text_style, no_tabs, #{}, Path).
 
 -spec verify_no_trailing_whitespace_rule(config()) -> any().
 verify_no_trailing_whitespace_rule(Config) ->
@@ -150,7 +150,7 @@ verify_no_trailing_whitespace_rule_lf_crlf(Config) ->
 
 do_verify_no_trailing_whitespace(Path, Config, RuleConfig, ExpectedNumItems) ->
     Items =
-        style_SUITE:elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config, elvis_text_style, no_trailing_whitespace, RuleConfig, Path
         ),
     length(Items) == ExpectedNumItems orelse
@@ -160,13 +160,13 @@ do_verify_no_trailing_whitespace(Path, Config, RuleConfig, ExpectedNumItems) ->
 verify_unquoted_atoms(Config) ->
     PassPath = "pass_unquoted_atoms." ++ "erl",
     [] =
-        style_SUITE:elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config, elvis_text_style, prefer_unquoted_atoms, #{}, PassPath
         ),
 
     FailPath = "fail_quoted_atoms." ++ "erl",
     [_, _] =
-        style_SUITE:elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config, elvis_text_style, prefer_unquoted_atoms, #{}, FailPath
         ).
 
@@ -179,7 +179,7 @@ verify_redundant_blank_lines(Config) ->
     PassPath = atom_to_list(PassModule) ++ "." ++ Ext,
 
     [] =
-        style_SUITE:elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config, elvis_text_style, no_redundant_blank_lines, #{}, PassPath
         ),
 
@@ -188,6 +188,6 @@ verify_redundant_blank_lines(Config) ->
     FailPath = atom_to_list(FailModule) ++ "." ++ Ext,
 
     [_, _, _] =
-        style_SUITE:elvis_core_apply_rule(
+        elvis_test_utils:elvis_core_apply_rule(
             Config, elvis_text_style, no_redundant_blank_lines, #{}, FailPath
         ).
