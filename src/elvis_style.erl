@@ -1321,14 +1321,9 @@ no_common_caveats_call(Config, Target, RuleConfig) ->
 -spec node_line_limits(ktn_code:tree_node()) -> {Min :: integer(), Max :: integer()}.
 node_line_limits(FunctionNode) ->
     Zipper = elvis_code:code_zipper(FunctionNode),
-    LineFun =
-        fun(N) ->
-            {L, _} = ktn_code:attr(location, N),
-            L
-        end,
     % The first number in `lineNums' list is the location of the first
     % line of the function. That's why we use it for the `Min' value.
-    LineNums = zipper:map(LineFun, Zipper),
+    LineNums = zipper:map(fun line/1, Zipper),
     % Last function's line
     Max = lists:max(LineNums),
     % If you use `lists:min/1' here, you will get weird results when using
