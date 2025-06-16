@@ -592,7 +592,7 @@ no_block_expressions(Config, Target, RuleConfig) ->
     lists:map(
         fun(BeginNode) ->
             elvis_result:new_item(
-                "an avoidable block expression ('begin'...'end') was found",
+                "an avoidable block expression ('begin...end') was found",
                 #{node => BeginNode}
             )
         end,
