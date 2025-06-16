@@ -1646,7 +1646,7 @@ no_throw(Config, Target, RuleConfig) ->
     lists:map(
         fun(ThrowNode) ->
             elvis_result:new_item(
-                "an avoidable call to 'throw/1' was found",
+                "an avoidable call to 'throw/1' was found; prefer 'exit/1' or 'error/1'",
                 #{node => ThrowNode}
             )
         end,
