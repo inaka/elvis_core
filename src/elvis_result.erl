@@ -24,8 +24,9 @@
 -type item() ::
     #{
         message => string(),
-        info => iodata(),
-        line_num => integer()
+        info => [term()],
+        line_num => -1 | non_neg_integer(),
+        column_num => -1 | non_neg_integer()
     }.
 -type rule() ::
     #{
@@ -38,9 +39,9 @@
 -type elvis_warn() :: #{warn_msg => string(), info => list()}.
 -type attrs() :: #{
     node => ktn_code:tree_node(),
-    line => integer(),
-    column => integer(),
-    limit => integer()
+    line => -1 | non_neg_integer(),
+    column => -1 | non_neg_integer(),
+    limit => -1 | non_neg_integer()
 }.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
