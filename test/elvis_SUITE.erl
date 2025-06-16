@@ -34,25 +34,22 @@
     rock_with_invalid_rules/1
 ]).
 
--define(EXCLUDED_FUNS, [module_info, all, test, init_per_suite, end_per_suite, chunk_fold_task]).
-
--type config() :: [{atom(), term()}].
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Common test
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec all() -> [atom()].
 all() ->
-    Exports = elvis_SUITE:module_info(exports),
-    [F || {F, _} <- Exports, not lists:member(F, ?EXCLUDED_FUNS)].
+    Exports = ?MODULE:module_info(exports),
+    [
+        F
+     || {F, _} <- Exports,
+        not lists:member(F, [chunk_fold_task | elvis_test_utils:excluded_funs_all()])
+    ].
 
--spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
     {ok, _} = application:ensure_all_started(elvis_core),
     Config.
 
--spec end_per_suite(config()) -> config().
 end_per_suite(Config) ->
     ok = application:stop(elvis_core),
     Config.
@@ -64,7 +61,6 @@ end_per_suite(Config) ->
 %%%%%%%%%%%%%%%
 %%% Rocking
 
--spec rock_with_empty_map_config(config()) -> any().
 rock_with_empty_map_config(_Config) ->
     ok =
         try
@@ -83,7 +79,6 @@ rock_with_empty_map_config(_Config) ->
                 ok
         end.
 
--spec rock_with_empty_list_config(config()) -> any().
 rock_with_empty_list_config(_Config) ->
     ok =
         try
@@ -94,7 +89,6 @@ rock_with_empty_list_config(_Config) ->
                 ok
         end.
 
--spec rock_with_incomplete_config(config()) -> any().
 rock_with_incomplete_config(_Config) ->
     ElvisConfig = [#{src_dirs => ["src"]}],
     ok =
@@ -106,7 +100,6 @@ rock_with_incomplete_config(_Config) ->
                 ok
         end.
 
--spec rock_with_list_config(config()) -> any().
 rock_with_list_config(_Config) ->
     ElvisConfig = [#{src_dirs => ["src"], rules => []}],
     ok =
@@ -117,7 +110,6 @@ rock_with_list_config(_Config) ->
                 fail
         end.
 
--spec rock_with_file_config(config()) -> ok.
 rock_with_file_config(_Config) ->
     ConfigPath = "../../config/elvis.config",
     ElvisConfig = elvis_config:from_file(ConfigPath),
@@ -127,7 +119,6 @@ rock_with_file_config(_Config) ->
     [_ | _] = check_some_line_output(Fun, Expected, fun matches_regex/2),
     ok.
 
--spec rock_with_old_config(config()) -> ok.
 rock_with_old_config(_Config) ->
     ConfigPath = "../../config/old/elvis.config",
     ElvisConfig = elvis_config:from_file(ConfigPath),
@@ -159,7 +150,6 @@ rock_with_old_config(_Config) ->
                 fail
         end.
 
--spec rock_with_rebar_default_config(config()) -> ok.
 rock_with_rebar_default_config(_Config) ->
     {ok, _} = file:copy("../../config/rebar.config", "rebar.config"),
     ElvisConfig = elvis_config:from_rebar("rebar.config"),
@@ -172,7 +162,6 @@ rock_with_rebar_default_config(_Config) ->
         end,
     ok.
 
--spec rock_this(config()) -> ok.
 rock_this(_Config) ->
     ElvisConfig = elvis_test_utils:config(),
     ok = elvis_core:rock_this(elvis_core, ElvisConfig),
@@ -190,7 +179,6 @@ rock_this(_Config) ->
 
     ok.
 
--spec rock_without_colors(config()) -> ok.
 rock_without_colors(_Config) ->
     ElvisConfig = elvis_test_utils:config(),
     Fun = fun() -> elvis_core:rock(ElvisConfig) end,
@@ -204,7 +192,6 @@ rock_without_colors(_Config) ->
                 ok
         end.
 
--spec rock_with_parsable(config()) -> ok.
 rock_with_parsable(_Config) ->
     {ok, Default} = application:get_env(elvis_core, output_format),
     application:set_env(elvis_core, output_format, parsable),
@@ -233,7 +220,6 @@ rock_with_non_parsable_file(_Config) ->
             ok
     end.
 
--spec rock_with_no_output_has_no_output(config()) -> ok.
 rock_with_no_output_has_no_output(_Config) ->
     application:set_env(elvis_core, no_output, true),
     ElvisConfig = elvis_test_utils:config(),
@@ -242,7 +228,6 @@ rock_with_no_output_has_no_output(_Config) ->
     application:unset_env(elvis_core, no_output),
     ok.
 
--spec rock_with_errors_has_output(config()) -> ok.
 rock_with_errors_has_output(_Config) ->
     ElvisConfig = elvis_test_utils:config(),
     Fun = fun() -> elvis_core:rock(ElvisConfig) end,
@@ -250,7 +235,6 @@ rock_with_errors_has_output(_Config) ->
     [_ | _] = check_some_line_output(Fun, Expected, fun matches_regex/2),
     ok.
 
--spec rock_without_errors_has_no_output(config()) -> ok.
 rock_without_errors_has_no_output(_Config) ->
     ConfigPath = "../../config/test.pass.config",
     ElvisConfig = elvis_config:from_file(ConfigPath),
@@ -269,7 +253,6 @@ rock_without_errors_has_no_output(_Config) ->
         ),
     ok.
 
--spec rock_without_errors_and_with_verbose_has_output(config()) -> ok.
 rock_without_errors_and_with_verbose_has_output(_Config) ->
     application:set_env(elvis_core, verbose, true),
     ElvisConfig = elvis_test_utils:config(),
@@ -279,7 +262,6 @@ rock_without_errors_and_with_verbose_has_output(_Config) ->
     application:unset_env(elvis_core, verbose),
     ok.
 
--spec rock_with_rule_groups(Config :: config()) -> ok.
 rock_with_rule_groups(_Config) ->
     % elvis_config will load default elvis_core rules for every
     % rule_group in the config.
@@ -372,7 +354,6 @@ rock_with_rule_groups(_Config) ->
                 fail
         end.
 
--spec rock_this_skipping_files(Config :: config()) -> ok.
 rock_this_skipping_files(_Config) ->
     meck:new(elvis_file, [passthrough]),
     Dirs = ["../../_build/test/lib/elvis_core/test/examples"],
@@ -385,7 +366,6 @@ rock_this_skipping_files(_Config) ->
     meck:unload(elvis_file),
     ok.
 
--spec rock_this_not_skipping_files(Config :: config()) -> ok.
 rock_this_not_skipping_files(_Config) ->
     meck:new(elvis_file, [passthrough]),
     Dirs = ["../../_build/test/lib/elvis_core/test/examples"],
@@ -397,7 +377,6 @@ rock_this_not_skipping_files(_Config) ->
     meck:unload(elvis_file),
     ok.
 
--spec rock_with_umbrella_apps(config()) -> ok.
 rock_with_umbrella_apps(_Config) ->
     ElvisUmbrellaConfigFile = "../../config/elvis-umbrella.config",
     ElvisConfig = elvis_config:from_file(ElvisUmbrellaConfigFile),
@@ -424,7 +403,6 @@ rock_with_umbrella_apps(_Config) ->
         elvis_core:rock(ElvisConfig),
     ok.
 
--spec rock_with_invalid_rules(config()) -> any().
 rock_with_invalid_rules(_Config) ->
     ConfigPath = "../../test/examples/invalid_rules.elvis.config",
     ElvisConfig = elvis_config:from_file(ConfigPath),
@@ -446,7 +424,6 @@ rock_with_invalid_rules(_Config) ->
 %%%%%%%%%%%%%%%
 %%% Utils
 
--spec custom_ruleset(config()) -> any().
 custom_ruleset(_Config) ->
     ConfigPath = "../../config/elvis-test-custom-ruleset.config",
     ElvisConfig = elvis_config:from_file(ConfigPath),
@@ -459,7 +436,6 @@ custom_ruleset(_Config) ->
     [[]] = elvis_config:rules(ElvisConfigMissing),
     ok.
 
--spec hrl_ruleset(config()) -> any().
 hrl_ruleset(_Config) ->
     ConfigPath = "../../config/elvis-test-hrl-files.config",
     ElvisConfig = elvis_config:from_file(ConfigPath),
@@ -473,7 +449,6 @@ hrl_ruleset(_Config) ->
         elvis_core:rock(ElvisConfig),
     ok.
 
--spec throw_configuration(config()) -> any().
 throw_configuration(_Config) ->
     Filename = "./elvis.config",
     ok = file:write_file(Filename, <<"-">>),
@@ -488,7 +463,6 @@ throw_configuration(_Config) ->
             file:delete(Filename)
         end.
 
--spec find_file_and_check_src(config()) -> any().
 find_file_and_check_src(_Config) ->
     Dirs = ["../../test/examples"],
 
@@ -505,7 +479,6 @@ find_file_and_check_src(_Config) ->
         end,
     {error, enoent} = elvis_file:src(#{path => "doesnt_exist.erl"}).
 
--spec find_file_with_ignore(config()) -> any().
 find_file_with_ignore(_Config) ->
     Dirs = ["../../test/examples"],
     Filter = "find_test*.erl",
@@ -515,7 +488,6 @@ find_file_with_ignore(_Config) ->
     [#{path := "../../test/examples/find_test2.erl"}] =
         elvis_file:filter_files(Files, Dirs, Filter, Ignore).
 
--spec invalid_file(config()) -> any().
 invalid_file(_Config) ->
     ok =
         try
@@ -526,13 +498,11 @@ invalid_file(_Config) ->
                 ok
         end.
 
--spec to_string(config()) -> any().
 to_string(_Config) ->
     "1" = elvis_utils:to_str(1),
     "hello" = elvis_utils:to_str(<<"hello">>),
     "atom" = elvis_utils:to_str(atom).
 
--spec chunk_fold(config()) -> any().
 chunk_fold(_Config) ->
     Multiplier = 10,
     List = lists:seq(1, 10),
@@ -560,7 +530,6 @@ chunk_fold(_Config) ->
             10
         ).
 
--spec chunk_fold_task(integer(), integer()) -> {ok, integer()}.
 chunk_fold_task(Elem, Multiplier) ->
     {ok, Elem * Multiplier}.
 

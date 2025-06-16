@@ -19,34 +19,21 @@
     verify_redundant_blank_lines/1
 ]).
 
--define(EXCLUDED_FUNS, [
-    module_info,
-    all,
-    groups,
-    test,
-    init_per_suite,
-    end_per_suite,
-    init_per_group,
-    end_per_group
-]).
-
--type config() :: [{atom(), term()}].
-
--spec all() -> [atom()].
 all() ->
-    [F || {F, _} <- ?MODULE:module_info(exports), not lists:member(F, ?EXCLUDED_FUNS)].
+    [
+        F
+     || {F, _} <- ?MODULE:module_info(exports),
+        not lists:member(F, elvis_test_utils:excluded_funs_all())
+    ].
 
--spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
     _ = application:ensure_all_started(elvis_core),
     Config.
 
--spec end_per_suite(config()) -> config().
 end_per_suite(Config) ->
     ok = application:stop(elvis_core),
     Config.
 
--spec verify_line_length_rule(config()) -> any().
 verify_line_length_rule(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -94,7 +81,6 @@ verify_line_length_rule(Config) ->
         ),
     3 = length(WhistespaceResult).
 
--spec verify_line_length_rule_latin1(config()) -> any().
 verify_line_length_rule_latin1(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -108,7 +94,6 @@ verify_line_length_rule_latin1(Config) ->
     #{info := Info, message := Msg} = lists:nth(1, Result),
     <<"At line 13, there are too many ", _/binary>> = list_to_binary(io_lib:format(Msg, Info)).
 
--spec verify_unicode_line_length_rule(config()) -> any().
 verify_unicode_line_length_rule(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -120,7 +105,6 @@ verify_unicode_line_length_rule(Config) ->
         ),
     0 = length(Result).
 
--spec verify_no_tabs_rule(config()) -> any().
 verify_no_tabs_rule(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -128,7 +112,6 @@ verify_no_tabs_rule(Config) ->
 
     [_, _] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_text_style, no_tabs, #{}, Path).
 
--spec verify_no_trailing_whitespace_rule(config()) -> any().
 verify_no_trailing_whitespace_rule(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -138,7 +121,6 @@ verify_no_trailing_whitespace_rule(Config) ->
     do_verify_no_trailing_whitespace(Path, Config, #{ignore_empty_lines => false}, 4),
     do_verify_no_trailing_whitespace(Path, Config, #{}, 4).
 
--spec verify_no_trailing_whitespace_rule_lf_crlf(config()) -> any().
 verify_no_trailing_whitespace_rule_lf_crlf(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -156,7 +138,6 @@ do_verify_no_trailing_whitespace(Path, Config, RuleConfig, ExpectedNumItems) ->
     length(Items) == ExpectedNumItems orelse
         ct:fail("Expected ~b error items. Got: ~p", [ExpectedNumItems, Items]).
 
--spec verify_unquoted_atoms(config()) -> any().
 verify_unquoted_atoms(Config) ->
     PassPath = "pass_unquoted_atoms." ++ "erl",
     [] =
@@ -170,7 +151,6 @@ verify_unquoted_atoms(Config) ->
             Config, elvis_text_style, prefer_unquoted_atoms, #{}, FailPath
         ).
 
--spec verify_redundant_blank_lines(config()) -> true.
 verify_redundant_blank_lines(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 

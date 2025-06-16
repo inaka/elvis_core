@@ -1,18 +1,26 @@
 -module(elvis_test_utils).
 
--export([config/0, config/1, find_file/2, elvis_core_apply_rule/5]).
+-export([config/0, config/1, find_file/2, elvis_core_apply_rule/5, excluded_funs_all/0]).
 
--spec config() -> elvis_config:configs().
+excluded_funs_all() ->
+    [
+        module_info,
+        all,
+        groups,
+        init_per_suite,
+        end_per_suite,
+        init_per_group,
+        end_per_group
+    ].
+
 config() ->
     application:get_env(elvis_core, config, []).
 
--spec config(RuleSet :: atom()) -> elvis_config:config().
 config(RuleSet) ->
     RuleSetCfgs = application:get_env(elvis_core, config, []),
     [Config] = [Cfg || #{ruleset := R} = Cfg <- RuleSetCfgs, R =:= RuleSet],
     Config.
 
--spec find_file([string()], string()) -> {ok, elvis_file:file()} | {error, enoent}.
 find_file(Dirs, Pattern) ->
     case elvis_file:find_files(Dirs, Pattern) of
         [] ->

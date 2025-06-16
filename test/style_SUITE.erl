@@ -114,19 +114,6 @@
 %% Non-rule
 -export([results_are_ordered_by_line/1, oddities/1]).
 
--define(EXCLUDED_FUNS, [
-    module_info,
-    all,
-    groups,
-    test,
-    init_per_suite,
-    end_per_suite,
-    init_per_group,
-    end_per_group
-]).
-
--type config() :: [{atom(), term()}].
-
 -if(?OTP_RELEASE < 27).
 
 %% The `verify_max_module_length_docs/3` test only runs on OTP >= 27 because
@@ -139,12 +126,11 @@
 %% Common test
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec all() -> [atom()].
 all() ->
     Exports = ?MODULE:module_info(exports),
-    [F || {F, _} <- Exports, not lists:member(F, ?EXCLUDED_FUNS)] ++ [{group, beam_files}].
+    [F || {F, _} <- Exports, not lists:member(F, elvis_test_utils:excluded_funs_all())] ++
+        [{group, beam_files}].
 
--spec groups() -> [{beam_files, [sequence], [atom()]}].
 groups() ->
     [
         {beam_files, [sequence], [
@@ -185,23 +171,19 @@ groups() ->
         ]}
     ].
 
--spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
     _ = application:ensure_all_started(elvis_core),
     Config.
 
--spec end_per_suite(config()) -> config().
 end_per_suite(Config) ->
     ok = application:stop(elvis_core),
     Config.
 
--spec init_per_group(atom(), config()) -> config().
 init_per_group(beam_files = Group, Config) ->
     [{test_file_ext, "beam"}, {group, Group} | Config];
 init_per_group(_Group, Config) ->
     Config.
 
--spec end_per_group(atom(), config()) -> config().
 end_per_group(_Group, Config) ->
     proplists:delete(test_file_ext, proplists:delete(group, Config)).
 
@@ -212,7 +194,6 @@ end_per_group(_Group, Config) ->
 %%%%%%%%%%%%%%%
 %%% Rules
 
--spec verify_function_naming_convention(config()) -> any().
 verify_function_naming_convention(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -316,7 +297,6 @@ verify_function_naming_convention(Config) ->
             PathForbidden
         ).
 
--spec verify_variable_naming_convention(config()) -> any().
 verify_variable_naming_convention(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -360,7 +340,6 @@ verify_variable_naming_convention(Config) ->
             PathForbidden
         ).
 
--spec verify_consistent_variable_casing(config()) -> any().
 verify_consistent_variable_casing(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
     PathPass = "pass_consistent_variable_casing." ++ Ext,
@@ -394,7 +373,6 @@ verify_consistent_variable_casing(Config) ->
             Config, elvis_style, consistent_variable_casing, #{}, PathFail
         ).
 
--spec verify_macro_names_rule(config()) -> any().
 verify_macro_names_rule(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -449,7 +427,6 @@ verify_macro_names_rule(Config) ->
             Path
         ).
 
--spec verify_no_macros(config()) -> any().
 verify_no_macros(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -473,7 +450,6 @@ verify_no_macros(Config) ->
             PathPass
         ).
 
--spec verify_no_types(config()) -> any().
 verify_no_types(Config) ->
     PathFail = "fail_no_types.hrl",
     [#{line_num := 1}] = elvis_test_utils:elvis_core_apply_rule(
@@ -483,7 +459,6 @@ verify_no_types(Config) ->
     PathPass = "pass_no_types.hrl",
     [] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, no_types, #{}, PathPass).
 
--spec verify_no_nested_hrls(config()) -> any().
 verify_no_nested_hrls(Config) ->
     PathFail = "fail_no_nested_hrls.hrl",
     [#{line_num := 1}, #{line_num := 2}] = elvis_test_utils:elvis_core_apply_rule(
@@ -493,7 +468,6 @@ verify_no_nested_hrls(Config) ->
     PathPass = "pass_no_nested_hrls.hrl",
     [] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, no_nested_hrls, #{}, PathPass).
 
--spec verify_no_specs(config()) -> any().
 verify_no_specs(Config) ->
     PathFail = "fail_no_specs.hrl",
     [#{line_num := 3}] = elvis_test_utils:elvis_core_apply_rule(
@@ -503,7 +477,6 @@ verify_no_specs(Config) ->
     PathPass = "pass_no_specs.hrl",
     [] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, no_specs, #{}, PathPass).
 
--spec verify_no_block_expressions(config()) -> any().
 verify_no_block_expressions(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -514,7 +487,6 @@ verify_no_block_expressions(Config) ->
             Config, elvis_style, no_block_expressions, #{}, Path
         ).
 
--spec verify_operator_spaces(config()) -> any().
 verify_operator_spaces(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -660,7 +632,6 @@ verify_operator_spaces_otp28(Config) ->
         ).
 -endif.
 
--spec verify_no_space(config()) -> any().
 verify_no_space(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -695,7 +666,6 @@ verify_no_space(Config) ->
             Path1
         ).
 
--spec verify_no_space_after_pound(config()) -> any().
 verify_no_space_after_pound(Config) ->
     PathFail = "fail_no_space_after_pound.erl",
     [
@@ -724,7 +694,6 @@ verify_no_space_after_pound(Config) ->
     ),
     ok.
 
--spec verify_operator_spaces_latin1(config()) -> any().
 verify_operator_spaces_latin1(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -739,7 +708,6 @@ verify_operator_spaces_latin1(Config) ->
         Config, elvis_style, operator_spaces, AppendOptions, Path
     ).
 
--spec verify_nesting_level(config()) -> any().
 verify_nesting_level(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
@@ -786,7 +754,6 @@ verify_nesting_level(Config) ->
             Path
         ).
 
--spec verify_god_modules(config()) -> any().
 verify_god_modules(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -798,7 +765,6 @@ verify_god_modules(Config) ->
     RuleConfig = #{limit => 25, ignore => [fail_god_modules]},
     [] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, god_modules, RuleConfig, Path).
 
--spec verify_no_if_expression(config()) -> any().
 verify_no_if_expression(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
@@ -818,7 +784,6 @@ verify_no_if_expression(Config) ->
                     )
         end.
 
--spec verify_invalid_dynamic_call(config()) -> any().
 verify_invalid_dynamic_call(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
@@ -883,7 +848,6 @@ verify_invalid_dynamic_call(Config) ->
             Config, elvis_style, invalid_dynamic_call, RuleConfig, PathFail
         ).
 
--spec verify_used_ignored_variable(config()) -> any().
 verify_used_ignored_variable(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
@@ -916,7 +880,6 @@ verify_used_ignored_variable(Config) ->
             Path
         ).
 
--spec verify_no_behavior_info(config()) -> any().
 verify_no_behavior_info(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
@@ -936,7 +899,6 @@ verify_no_behavior_info(Config) ->
                     )
         end.
 
--spec verify_module_naming_convention(config()) -> any().
 verify_module_naming_convention(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -984,7 +946,6 @@ verify_module_naming_convention(Config) ->
             PathForbidden
         ).
 
--spec verify_state_record_and_type(config()) -> any().
 verify_state_record_and_type(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -1045,7 +1006,6 @@ verify_state_record_and_type(Config) ->
             PathPassGenStateMState
         ).
 
--spec verify_state_record_and_type_plus_export_used_types(config()) -> any().
 verify_state_record_and_type_plus_export_used_types(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -1076,7 +1036,6 @@ verify_state_record_and_type_plus_export_used_types(Config) ->
         Config, elvis_style, export_used_types, #{}, PathFail
     ).
 
--spec verify_behaviour_spelling(config()) -> any().
 verify_behaviour_spelling(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -1118,7 +1077,6 @@ verify_behaviour_spelling(Config) ->
             PathPass1
         ).
 
--spec verify_param_pattern_matching(config()) -> any().
 verify_param_pattern_matching(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -1175,7 +1133,6 @@ verify_param_pattern_matching(Config) ->
             PathLeft
         ).
 
--spec verify_consistent_generic_type(config()) -> any().
 verify_consistent_generic_type(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -1252,7 +1209,6 @@ verify_consistent_generic_type(Config) ->
             PathPass2
         ).
 
--spec verify_always_shortcircuit(config()) -> any().
 verify_always_shortcircuit(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -1267,7 +1223,6 @@ verify_always_shortcircuit(Config) ->
         Config, elvis_style, always_shortcircuit, #{}, PathPass
     ).
 
--spec verify_no_spec_with_records(config()) -> any().
 verify_no_spec_with_records(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -1282,7 +1237,6 @@ verify_no_spec_with_records(Config) ->
         Config, elvis_style, no_spec_with_records, #{}, PathPass
     ).
 
--spec verify_dont_repeat_yourself(config()) -> any().
 verify_dont_repeat_yourself(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -1313,7 +1267,6 @@ verify_dont_repeat_yourself(Config) ->
             Config, elvis_style, dont_repeat_yourself, RuleConfig5, PathPass
         ).
 
--spec verify_max_module_length(config()) -> any().
 verify_max_module_length(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -1390,7 +1343,6 @@ verify_max_module_length(Config) ->
 
 %% The `verify_max_module_length_docs/3` test only runs on OTP >= 27 because
 %% the `-moduledoc` and `-doc` attributes were introduced in OTP-27.
--spec verify_max_module_length_docs(file:filename(), map(), config()) -> ok.
 -if(?OTP_RELEASE >= 27).
 
 verify_max_module_length_docs(PathFail, CountAllRuleConfig, Config) ->
@@ -1424,7 +1376,6 @@ verify_max_module_length_docs(_PathFail, _CountAllRuleConfig, _Config) ->
 
 -endif.
 
--spec verify_max_function_arity(config()) -> any().
 verify_max_function_arity(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -1503,7 +1454,6 @@ verify_max_function_arity(Config) ->
         ),
     ok.
 
--spec verify_max_anonymous_function_arity(config()) -> any().
 verify_max_anonymous_function_arity(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -1560,7 +1510,6 @@ verify_max_anonymous_function_arity(Config) ->
 
     ok.
 
--spec verify_max_function_length(config()) -> any().
 verify_max_function_length(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -1651,7 +1600,6 @@ verify_max_function_length(Config) ->
 
     {comment, ""}.
 
--spec verify_max_function_clause_length(config()) -> any().
 verify_max_function_clause_length(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -1735,7 +1683,6 @@ verify_max_function_clause_length(Config) ->
     ] =
         Numbers.
 
--spec verify_no_debug_call(config()) -> any().
 verify_no_debug_call(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
@@ -1844,15 +1791,12 @@ verify_no_debug_call(Config) ->
 
 %% We test no_call and no_common_caveats_call by building the equivalent config and make sure that
 %% other than defaults, they behave the same
--spec verify_no_common_caveats_call(config()) -> any().
 verify_no_common_caveats_call(Config) ->
     verify_no_call_flavours(Config, no_common_caveats_call, caveat_functions, 12).
 
--spec verify_no_call(config()) -> any().
 verify_no_call(Config) ->
     verify_no_call_flavours(Config, no_call, no_call_functions, 0).
 
--spec verify_no_call_flavours(any(), atom(), atom(), non_neg_integer()) -> any().
 verify_no_call_flavours(
     Config,
     RuleName,
@@ -1910,7 +1854,6 @@ verify_no_call_flavours(
         RuleMatchTuples
     ).
 
--spec verify_no_nested_try_catch(config()) -> any().
 verify_no_nested_try_catch(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
@@ -1946,7 +1889,6 @@ verify_no_nested_try_catch(Config) ->
         Config, elvis_style, no_nested_try_catch, #{}, Path2
     ).
 
--spec verify_no_successive_maps(config()) -> any().
 -if(?OTP_RELEASE < 27).
 
 verify_no_successive_maps(Config) ->
@@ -1995,7 +1937,6 @@ verify_no_successive_maps(_Config) ->
 
 -endif.
 
--spec verify_ms_transform_included(config()) -> any().
 verify_ms_transform_included(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -2036,7 +1977,6 @@ verify_ms_transform_included(Config) ->
     ),
     ok.
 
--spec verify_no_operation_on_same_value(config()) -> any().
 verify_no_operation_on_same_value(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -2077,7 +2017,6 @@ verify_no_operation_on_same_value(Config) ->
             Config, elvis_style, no_operation_on_same_value, #{operations => ['--', '++']}, FailPath
         ).
 
--spec verify_no_boolean_in_comparison(config()) -> any().
 verify_no_boolean_in_comparison(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -2106,7 +2045,6 @@ verify_no_boolean_in_comparison(Config) ->
             Config, elvis_style, no_boolean_in_comparison, #{}, FailPath
         ).
 
--spec verify_no_receive_without_timeout(config()) -> any().
 verify_no_receive_without_timeout(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -2125,7 +2063,6 @@ verify_no_receive_without_timeout(Config) ->
             Config, elvis_style, no_receive_without_timeout, #{}, FailPath
         ).
 
--spec verify_atom_naming_convention(config()) -> any().
 verify_atom_naming_convention(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
@@ -2343,7 +2280,6 @@ verify_atom_naming_convention(Config) ->
             PathForbidden
         ).
 
--spec verify_no_init_lists(config()) -> any().
 verify_no_init_lists(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -2393,7 +2329,6 @@ verify_no_init_lists(Config) ->
     [] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, PassPath5),
     ok.
 
--spec verify_no_throw(config()) -> any().
 verify_no_throw(Config) ->
     _Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
@@ -2406,7 +2341,6 @@ verify_no_throw(Config) ->
         Config, elvis_style, no_throw, #{}, FailPath
     ).
 
--spec verify_no_dollar_space(config()) -> any().
 verify_no_dollar_space(Config) ->
     _Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
@@ -2419,7 +2353,6 @@ verify_no_dollar_space(Config) ->
         Config, elvis_style, no_dollar_space, #{}, FailPath
     ).
 
--spec verify_no_author(config()) -> any().
 verify_no_author(Config) ->
     _Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
@@ -2430,7 +2363,6 @@ verify_no_author(Config) ->
 
     [_, _] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, no_author, #{}, FailPath).
 
--spec verify_no_import(config()) -> any().
 verify_no_import(Config) ->
     _Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
@@ -2438,7 +2370,6 @@ verify_no_import(Config) ->
     FailPath = "fail_no_import." ++ Ext,
     [_, _] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, no_import, #{}, FailPath).
 
--spec verify_no_catch_expressions(config()) -> any().
 verify_no_catch_expressions(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
@@ -2456,7 +2387,6 @@ verify_no_catch_expressions(Config) ->
                 [#{line_num := 9}, #{line_num := 24}, #{line_num := 26}] = lists:sort(R)
         end.
 
--spec verify_no_single_clause_case(config()) -> any().
 verify_no_single_clause_case(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
@@ -2480,7 +2410,6 @@ verify_no_single_clause_case(Config) ->
         end.
 
 -if(?OTP_RELEASE >= 27).
--spec verify_no_single_match_maybe(config()) -> any().
 verify_no_single_match_maybe(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
@@ -2504,7 +2433,6 @@ verify_no_single_match_maybe(Config) ->
         end.
 -endif.
 
--spec verify_no_match_in_condition(config()) -> any().
 verify_no_match_in_condition(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
@@ -2534,7 +2462,6 @@ verify_no_match_in_condition(Config) ->
     end,
     ok.
 
--spec verify_numeric_format(config()) -> any().
 verify_numeric_format(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -2664,7 +2591,6 @@ verify_numeric_format(Config) ->
 
     true.
 
--spec verify_export_used_types(config()) -> any().
 verify_export_used_types(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
     PathPass = "pass_export_used_types." ++ Ext,
@@ -2678,7 +2604,6 @@ verify_export_used_types(Config) ->
             Config, elvis_style, export_used_types, #{}, PathFail
         ).
 
--spec verify_private_data_types(config()) -> any().
 verify_private_data_types(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
     PathPass = "pass_private_data_types2." ++ Ext,
@@ -2730,13 +2655,11 @@ verify_private_data_types(Config) ->
             PathFail
         ).
 
--spec results_are_ordered_by_line(config()) -> true.
 results_are_ordered_by_line(_Config) ->
     ElvisConfig = elvis_test_utils:config(),
     {fail, Results} = elvis_core:rock(ElvisConfig),
     true = lists:all(fun(X) -> X end, is_item_line_sort(Results)).
 
--spec oddities(config()) -> true.
 oddities(_Config) ->
     ElvisConfig =
         [
@@ -2750,123 +2673,93 @@ oddities(_Config) ->
     {fail, [#{rules := [_, _, _, _]}]} = elvis_core:rock(ElvisConfig),
     true.
 
--spec verify_elvis_attr_atom_naming_convention(config()) -> true.
 verify_elvis_attr_atom_naming_convention(Config) ->
     verify_elvis_attr(Config, "pass_atom_naming_convention_elvis_attr").
 
--spec verify_elvis_attr_numeric_format(config()) -> true.
 verify_elvis_attr_numeric_format(Config) ->
     verify_elvis_attr(Config, "pass_numeric_format_elvis_attr").
 
--spec verify_elvis_attr_dont_repeat_yourself(config()) -> true.
 verify_elvis_attr_dont_repeat_yourself(Config) ->
     verify_elvis_attr(Config, "pass_dont_repeat_yourself_elvis_attr").
 
--spec verify_elvis_attr_function_naming_convention(config()) -> true.
 verify_elvis_attr_function_naming_convention(Config) ->
     verify_elvis_attr(Config, "pass_function_naming_convention_elvis_attr").
 
--spec verify_elvis_attr_god_modules(config()) -> true.
 verify_elvis_attr_god_modules(Config) ->
     verify_elvis_attr(Config, "pass_god_modules_elvis_attr").
 
--spec verify_elvis_attr_invalid_dynamic_call(config()) -> true.
 verify_elvis_attr_invalid_dynamic_call(Config) ->
     verify_elvis_attr(Config, "pass_invalid_dynamic_call_elvis_attr").
 
--spec verify_elvis_attr_line_length(config()) -> true.
 verify_elvis_attr_line_length(Config) ->
     verify_elvis_attr(Config, "pass_line_length_elvis_attr").
 
--spec verify_elvis_attr_macro_names(config()) -> true.
 verify_elvis_attr_macro_names(Config) ->
     verify_elvis_attr(Config, "pass_macro_names_elvis_attr").
 
--spec verify_elvis_attr_max_function_arity(config()) -> true.
 verify_elvis_attr_max_function_arity(Config) ->
     verify_elvis_attr(Config, "pass_max_function_arity_elvis_attr").
 
--spec verify_elvis_attr_max_anonymous_function_arity(config()) -> true.
 verify_elvis_attr_max_anonymous_function_arity(Config) ->
     verify_elvis_attr(Config, "pass_max_anonymous_function_arity_elvis_attr").
 
--spec verify_elvis_attr_max_function_length(config()) -> true.
 verify_elvis_attr_max_function_length(Config) ->
     verify_elvis_attr(Config, "pass_max_function_length_elvis_attr").
 
--spec verify_elvis_attr_max_module_length(config()) -> true.
 verify_elvis_attr_max_module_length(Config) ->
     verify_elvis_attr(Config, "pass_max_module_length_elvis_attr").
 
--spec verify_elvis_attr_module_naming_convention(config()) -> true.
 verify_elvis_attr_module_naming_convention(Config) ->
     verify_elvis_attr(Config, "pass_module_naming-convention_elvis_attr").
 
--spec verify_elvis_attr_nesting_level(config()) -> true.
 verify_elvis_attr_nesting_level(Config) ->
     verify_elvis_attr(Config, "pass_nesting_level_elvis_attr").
 
--spec verify_elvis_attr_no_behavior_info(config()) -> true.
 verify_elvis_attr_no_behavior_info(Config) ->
     verify_elvis_attr(Config, "pass_no_behavior_info_elvis_attr").
 
--spec verify_elvis_attr_no_call(config()) -> true.
 verify_elvis_attr_no_call(Config) ->
     verify_elvis_attr(Config, "pass_no_call_elvis_attr").
 
--spec verify_elvis_attr_no_debug_call(config()) -> true.
 verify_elvis_attr_no_debug_call(Config) ->
     verify_elvis_attr(Config, "pass_no_debug_call_elvis_attr").
 
--spec verify_elvis_attr_no_if_expression(config()) -> true.
 verify_elvis_attr_no_if_expression(Config) ->
     verify_elvis_attr(Config, "pass_no_if_expression_elvis_attr").
 
--spec verify_elvis_attr_no_nested_try_catch(config()) -> true.
 verify_elvis_attr_no_nested_try_catch(Config) ->
     verify_elvis_attr(Config, "pass_no_nested_try_catch_elvis_attr").
 
--spec verify_elvis_attr_no_successive_maps(config()) -> true.
 verify_elvis_attr_no_successive_maps(Config) ->
     verify_elvis_attr(Config, "pass_no_successive_maps_elvis_attr").
 
--spec verify_elvis_attr_no_spec_with_records(config()) -> true.
 verify_elvis_attr_no_spec_with_records(Config) ->
     verify_elvis_attr(Config, "pass_no_spec_with_records_elvis_attr").
 
--spec verify_elvis_attr_no_tabs(config()) -> true.
 verify_elvis_attr_no_tabs(Config) ->
     verify_elvis_attr(Config, "pass_no_tabs_elvis_attr").
 
--spec verify_elvis_attr_no_trailing_whitespace(config()) -> true.
 verify_elvis_attr_no_trailing_whitespace(Config) ->
     verify_elvis_attr(Config, "pass_no_trailing_whitespace_elvis_attr").
 
--spec verify_elvis_attr_operator_spaces(config()) -> true.
 verify_elvis_attr_operator_spaces(Config) ->
     verify_elvis_attr(Config, "pass_operator_spaces_elvis_attr").
 
--spec verify_elvis_attr_state_record_and_type(config()) -> true.
 verify_elvis_attr_state_record_and_type(Config) ->
     verify_elvis_attr(Config, "pass_state_record_and_type_elvis_attr").
 
--spec verify_elvis_attr_used_ignored_variable(config()) -> true.
 verify_elvis_attr_used_ignored_variable(Config) ->
     verify_elvis_attr(Config, "pass_used_ignored_variable_elvis_attr").
 
--spec verify_elvis_attr_variable_naming_convention(config()) -> true.
 verify_elvis_attr_variable_naming_convention(Config) ->
     verify_elvis_attr(Config, "pass_variable_naming_convention_elvis_attr").
 
--spec verify_elvis_attr_behaviour_spelling(config()) -> true.
 verify_elvis_attr_behaviour_spelling(Config) ->
     verify_elvis_attr(Config, "pass_behaviour_spelling_elvis_attr").
 
--spec verify_elvis_attr_param_pattern_matching(config()) -> true.
 verify_elvis_attr_param_pattern_matching(Config) ->
     verify_elvis_attr(Config, "pass_param_pattern_matching_elvis_attr").
 
--spec verify_elvis_attr_private_data_types(config()) -> true.
 verify_elvis_attr_private_data_types(Config) ->
     verify_elvis_attr(Config, "pass_private_data_types_elvis_attr").
 
@@ -2890,12 +2783,10 @@ verify_elvis_attr(Config, FilenameNoExt) ->
     [[] = Items || #{items := Items} <- RuleResults],
     {comment, ""}.
 
--spec is_item_line_sort([elvis_result:file()]) -> [boolean()].
 is_item_line_sort(Result) ->
     Items = [Items || #{rules := Rules} <- Result, #{items := Items} <- Rules],
     lists:map(fun is_list_sort/1, Items).
 
--spec is_list_sort([any()]) -> boolean().
 is_list_sort([_]) ->
     true;
 is_list_sort([]) ->
@@ -2909,7 +2800,6 @@ is_list_sort([#{line_num := Line1} | T1]) ->
             false
     end.
 
--spec assert_length(non_neg_integer(), [any()], atom()) -> any().
 assert_length(Expected, List, RuleName) ->
     case length(List) of
         Expected ->
