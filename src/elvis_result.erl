@@ -132,7 +132,8 @@ new(item, Msg0, Info, {Line, Column}, Limit) ->
     #{
         message => Prefix1 ++ Msg0 ++ LimitSuffix ++ ".",
         info => Info,
-        line_num => Line
+        line_num => Line,
+        column_num => Column
     }.
 
 %% Getters
