@@ -127,19 +127,19 @@ is_invalid_rule({Module, RuleName, _}) ->
     is_invalid_rule({Module, RuleName});
 is_invalid_rule({Module, RuleName}) ->
     maybe
-        {file, _} ?= code:is_loaded(Module),
+        {module, Module} ?= code:ensure_loaded(Module),
         ExportedRules = erlang:get_module_info(Module, exports),
-        case lists:keyfind(RuleName, 1, ExportedRules) of
+        case lists:keymember(RuleName, 1, ExportedRules) of
             false -> {true, {invalid_rule, {Module, RuleName}}};
             _ -> false
         end
     else
-        false ->
+        {error, _} ->
             elvis_utils:warn_prn(
                 "Invalid module (~p) specified in elvis.config.~n",
                 [Module]
             ),
-            false
+            {true, {invalid_rule, {Module, RuleName}}}
     end.
 
 -spec normalize(configs()) -> configs().
