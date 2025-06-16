@@ -1736,14 +1736,14 @@ no_catch_expressions(Config, Target, RuleConfig) ->
     [elvis_result:item()].
 no_single_clause_case(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    IsSingleClauseCaseStatement = fun(Node) ->
+    IsSingleClauseCaseExpression = fun(Node) ->
         ktn_code:type(Node) =:= 'case' andalso length(case_clauses_in(Node)) =:= 1
     end,
-    CaseNodes = elvis_code:find(IsSingleClauseCaseStatement, Root),
+    CaseNodes = elvis_code:find(IsSingleClauseCaseExpression, Root),
     lists:map(
         fun(CaseNode) ->
             elvis_result:new_item(
-                "an avoidable single-clause 'case' statement was found",
+                "an avoidable single-clause 'case' expression was found",
                 #{node => CaseNode}
             )
         end,
@@ -1768,14 +1768,14 @@ case_clauses_in(Node) ->
     [elvis_result:item()].
 no_single_match_maybe(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    IsSingleMatchMaybeStatement = fun(Node) ->
+    IsSingleMatchMaybeBlock = fun(Node) ->
         ktn_code:type(Node) =:= 'maybe' andalso length(ktn_code:content(Node)) =:= 1
     end,
-    CaseNodes = elvis_code:find(IsSingleMatchMaybeStatement, Root),
+    CaseNodes = elvis_code:find(IsSingleMatchMaybeBlock, Root),
     lists:map(
         fun(CaseNode) ->
             elvis_result:new_item(
-                "an avoidable single-match 'maybe' statement was found",
+                "an avoidable single-match 'maybe' block was found",
                 #{node => CaseNode}
             )
         end,
@@ -1796,7 +1796,7 @@ no_match_in_condition(Config, Target, RuleConfig) ->
     lists:map(
         fun(CaseNode) ->
             elvis_result:new_item(
-                "an avoidable match condition in a 'case' statement was found; prefer matching "
+                "an avoidable match condition in a 'case' expression was found; prefer matching "
                 "in 'case' clauses",
                 #{node => CaseNode}
             )
