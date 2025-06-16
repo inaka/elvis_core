@@ -431,7 +431,9 @@ rock_with_invalid_rules(_Config) ->
     ExpectedErrorMessage =
         {invalid_rules, [
             {invalid_rule, {elvis_style, not_existing_rule}},
-            {invalid_rule, {elvis_style, what_is_this_rule}}
+            {invalid_rule, {elvis_style, what_is_this_rule}},
+            {invalid_rule, {not_existing_module, dont_repeat_yourself}},
+            {invalid_rule, {not_existing_module, dont_repeat_yourself}}
         ]},
     try
         ok = elvis_core:rock(ElvisConfig),
