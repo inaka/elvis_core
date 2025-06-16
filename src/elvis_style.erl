@@ -773,7 +773,7 @@ no_if_expression(Config, Target, RuleConfig) ->
     IfExprs = elvis_code:find_by_types(['if'], Root),
     ResultFun = fun(Node) ->
         elvis_result:new_item(
-            "an unexpected 'if' expression was found; prefer 'case' expressions",
+            "an unexpected 'if' expression was found",
             #{node => Node}
         )
     end,
