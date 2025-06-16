@@ -707,16 +707,16 @@ no_types(ElvisConfig, RuleTarget, RuleConfig) ->
     [elvis_result:item()].
 no_nested_hrls(ElvisConfig, RuleTarget, RuleConfig) ->
     TreeRootNode = get_root(ElvisConfig, RuleTarget, RuleConfig),
-    TypeNodes = elvis_code:find_by_types([include, include_lib], TreeRootNode),
+    IncludeNodes = elvis_code:find_by_types([include, include_lib], TreeRootNode),
 
     lists:foldl(
-        fun(TypeNode, Acc) ->
-            Type = ktn_code:attr(name, TypeNode),
-            {Line, _Col} = ktn_code:attr(location, TypeNode),
-            [elvis_result:new(item, ?NO_NESTED_HRLS_MSG, [Type, Line], Line) | Acc]
+        fun(IncludeNode, Acc) ->
+            Filename = ktn_code:attr(value, IncludeNode),
+            {Line, _Col} = ktn_code:attr(location, IncludeNode),
+            [elvis_result:new(item, ?NO_NESTED_HRLS_MSG, [Filename, Line], Line) | Acc]
         end,
         [],
-        TypeNodes
+        IncludeNodes
     ).
 
 -type no_specs_config() :: #{allow => [atom()], ignore => [ignorable()]}.
