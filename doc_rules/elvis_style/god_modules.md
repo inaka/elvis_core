@@ -1,6 +1,6 @@
 # God Modules ![](https://img.shields.io/badge/BEAM-yes-orange)
 
-The number of functions in a module should be limited to a maximum threshold.
+The number of exported functions in a module should be limited to a maximum threshold.
 
 ## Rationale
 
