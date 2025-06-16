@@ -2112,8 +2112,11 @@ export_used_types_in(TreeRootNode) ->
     SpecNodes = elvis_code:find_by_types([spec], TreeRootNode),
     ExportedSpecs =
         lists:filter(
-            fun(#{attrs := #{arity := Arity, name := Name}}) ->
-                lists:member({Name, Arity}, ExportedFunctions)
+            fun
+                (#{attrs := #{arity := Arity, name := Name}}) ->
+                    lists:member({Name, Arity}, ExportedFunctions);
+                (_) ->
+                    false
             end,
             SpecNodes
         ),
