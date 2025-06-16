@@ -1972,8 +1972,6 @@ verify_no_operation_on_same_value(Config) ->
 
     FailPath = "fail_no_operation_on_same_value." ++ Ext,
     [
-        #{line_num := 7},
-        #{line_num := 8},
         #{line_num := 9},
         #{line_num := 10},
         #{line_num := 11},
@@ -1985,15 +1983,18 @@ verify_no_operation_on_same_value(Config) ->
         #{line_num := 17},
         #{line_num := 18},
         #{line_num := 19},
-        #{line_num := 25},
-        #{line_num := 31},
-        #{line_num := 32}
+        #{line_num := 20},
+        #{line_num := 21},
+        #{line_num := 27},
+        #{line_num := 33},
+        #{line_num := 34},
+        #{line_num := 39}
     ] =
         elvis_core_apply_rule(Config, elvis_style, no_operation_on_same_value, #{}, FailPath),
 
     [
-        #{line_num := 25},
-        #{line_num := 26}
+        #{line_num := 27},
+        #{line_num := 28}
     ] =
         elvis_core_apply_rule(
             Config, elvis_style, no_operation_on_same_value, #{operations => ['--', '++']}, FailPath

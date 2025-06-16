@@ -1743,7 +1743,21 @@ same_except_location_attr(LeftNode, RightNode) ->
         ktn_code:type(LeftNode) =:= ktn_code:type(RightNode) andalso
         maps:remove(location, maps:get(attrs, LeftNode)) =:=
             maps:remove(location, maps:get(attrs, RightNode)) andalso
+        same_node_attrs_except_location(LeftNode, RightNode) andalso
         same_except_location_attr(ktn_code:content(LeftNode), ktn_code:content(RightNode)).
+
+same_node_attrs_except_location(#{node_attrs := LeftAttrs}, #{node_attrs := RightAttrs}) ->
+    maps:keys(LeftAttrs) =:= maps:keys(RightAttrs) andalso
+        lists:all(
+            fun(AttrKey) ->
+                same_except_location_attr(
+                    maps:get(AttrKey, LeftAttrs), maps:get(AttrKey, RightAttrs)
+                )
+            end,
+            maps:keys(LeftAttrs)
+        );
+same_node_attrs_except_location(LeftNode, RightNode) ->
+    not maps:is_key(node_attrs, LeftNode) andalso not maps:is_key(node_attrs, RightNode).
 
 -spec has_include_ms_transform(ktn_code:tree_node()) -> boolean().
 has_include_ms_transform(Root) ->
