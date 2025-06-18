@@ -111,7 +111,7 @@ default(no_init_lists) ->
             [gen_server, gen_statem, gen_fsm, supervisor, supervisor_bridge, gen_event]
     };
 default(macro_names) ->
-    #{regex => "^[A-Z](_?[A-Z0-9]+)*$", forbidden_regex => undefined};
+    #{regex => "^[A-Z](_?[A-Z0-9]+)*$"};
 default(operator_spaces) ->
     #{
         rules =>
@@ -357,7 +357,7 @@ default(RuleWithEmptyDefault) when
         max_length => integer()
     }.
 -type function_naming_convention_config() ::
-    #{ignore => [ignorable()], regex => string(), forbidden_regex => string()}.
+    #{ignore => [ignorable()], regex => string()}.
 -type binary_part() :: {Start :: non_neg_integer(), Length :: integer()}.
 
 -spec function_naming_convention(
@@ -466,7 +466,7 @@ check_variable_casing_consistency({_, [#{name := FirstName, var := FirstVar} | O
     end.
 
 -type variable_naming_convention_config() ::
-    #{ignore => [ignorable()], regex => string(), forbidden_regex => string()}.
+    #{ignore => [ignorable()], regex => string()}.
 
 -spec variable_naming_convention(
     elvis_config:config(),
@@ -481,18 +481,15 @@ variable_naming_convention(Config, Target, RuleConfig) ->
     Vars = elvis_code:find(fun is_var/1, Root, #{traverse => all, mode => zipper}),
     check_variables_name(Regex, ForbiddenRegex, Vars).
 
--type macro_names_config() :: #{
-    ignore => [ignorable()], regex => string(), forbidden_regex => string()
-}.
+-type macro_names_config() :: #{ignore => [ignorable()], regex => string()}.
 
 -spec macro_names(elvis_config:config(), elvis_file:file(), macro_names_config()) ->
     [elvis_result:item()].
 macro_names(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    Regex = option(regex, RuleConfig, macro_names),
-    ForbiddenRegex = option(forbidden_regex, RuleConfig, macro_names),
-    MacroNodes = elvis_code:find_by_types([define], Root, #{traverse => all, mode => node}),
-    check_macro_names(Regex, ForbiddenRegex, MacroNodes).
+    Regexp = option(regex, RuleConfig, macro_names),
+    MacroNodes = elvis_code:find_by_types([define], Root, #{traverse => all}),
+    check_macro_names(Regexp, MacroNodes, _ResultsIn = []).
 
 -type no_macros_config() :: #{allow => [atom()], ignore => [ignorable()]}.
 
@@ -843,9 +840,7 @@ no_behavior_info(Config, Target, RuleConfig) ->
     end,
     lists:map(ResultFun, BehaviorInfos).
 
--type module_naming_convention_config() :: #{
-    ignore => [ignorable()], regex => string(), forbidden_regex => string()
-}.
+-type module_naming_convention_config() :: #{ignore => [ignorable()], regex => string()}.
 
 -spec module_naming_convention(
     elvis_config:config(),
@@ -1334,17 +1329,14 @@ no_successive_maps(Config, Target, RuleConfig) ->
             #{node => Node}
         )
     end,
-    FindOpts = #{mode => node, traverse => all},
-    MapExprs = elvis_code:find_by_types([map], Root, FindOpts),
+    MapExprs = elvis_code:find_by_types([map], Root, #{traverse => all}),
     lists:flatmap(fun(MapExp) -> check_successive_maps(ResultFun, MapExp) end, MapExprs).
 
 -type atom_naming_convention_config() ::
     #{
         ignore => [ignorable()],
         regex => string(),
-        enclosed_atoms => same | string(),
-        forbidden_regex => string(),
-        forbidden_enclosed_regex => same | string()
+        enclosed_atoms => same | string()
     }.
 
 -spec atom_naming_convention(
@@ -1666,8 +1658,7 @@ no_dollar_space(Config, Target, RuleConfig) ->
     IsDollarSpace =
         fun(Node) -> ktn_code:type(Node) =:= char andalso ktn_code:attr(text, Node) =:= "$ " end,
     Root = get_root(Config, Target, RuleConfig),
-    Opts = #{mode => node, traverse => all},
-    DollarSpaceNodes = elvis_code:find(IsDollarSpace, Root, Opts),
+    DollarSpaceNodes = elvis_code:find(IsDollarSpace, Root, #{traverse => all}),
     lists:map(
         fun(ThrowNode) ->
             elvis_result:new_item(
@@ -1954,9 +1945,7 @@ consistent_generic_type(Config, Target, RuleConfig) ->
     TypePreference = option(preferred_type, RuleConfig, consistent_generic_type),
     Root = get_root(Config, Target, RuleConfig),
     IsInconsistentGenType = consistent_generic_type_predicate(TypePreference),
-    InconsistentTypeNodes = elvis_code:find(IsInconsistentGenType, Root, #{
-        traverse => all, mode => node
-    }),
+    InconsistentTypeNodes = elvis_code:find(IsInconsistentGenType, Root, #{traverse => all}),
     ResultFun = consistent_generic_type_result(TypePreference),
     lists:map(ResultFun, InconsistentTypeNodes).
 
@@ -2018,9 +2007,7 @@ export_used_types_in(TreeRootNode) ->
         lists:usort(
             lists:flatmap(
                 fun(Spec) ->
-                    Types = elvis_code:find_by_types([user_type], Spec, #{
-                        mode => node, traverse => all
-                    }),
+                    Types = elvis_code:find_by_types([user_type], Spec, #{traverse => all}),
                     % yes, on a -type line, the arity is based on `args`, but on
                     % a -spec line, it's based on `content`
                     [
@@ -2093,7 +2080,7 @@ public_data_types(TypesToCheck, TreeRootNode, ExportedTypes) ->
     Types =
         [
             name_arity_from_type_line(Node)
-         || Node <- elvis_code:find(Fun, TreeRootNode, #{traverse => all, mode => node})
+         || Node <- elvis_code:find(Fun, TreeRootNode, #{traverse => all})
         ],
     lists:filter(fun({Name, Arity}) -> lists:member({Name, Arity}, ExportedTypes) end, Types).
 
@@ -2326,13 +2313,10 @@ line_is_whitespace(Line) ->
 
 %% Macro Names
 
-check_macro_names(Regex, ForbiddenRegex, MacroNodes) ->
-    check_macro_names(Regex, ForbiddenRegex, MacroNodes, []).
-
-check_macro_names(_Regex, _ForbiddenRegex, [] = _MacroNodes, ResultsIn) ->
+check_macro_names(_Regexp, [] = _MacroNodes, ResultsIn) ->
     ResultsIn;
-check_macro_names(Regex, ForbiddenRegex, [MacroNode | RemainingMacroNodes], ResultsIn) ->
-    {ok, RE} = re:compile(Regex, [unicode]),
+check_macro_names(Regexp, [MacroNode | RemainingMacroNodes], ResultsIn) ->
+    {ok, RE} = re:compile(Regexp, [unicode]),
     {MacroNameStripped0, MacroNameOriginal} = macro_name_from_node(MacroNode),
     MacroNameStripped = unicode:characters_to_list(MacroNameStripped0, unicode),
     ResultsOut =
@@ -2342,30 +2326,15 @@ check_macro_names(Regex, ForbiddenRegex, [MacroNode | RemainingMacroNodes], Resu
                     elvis_result:new_item(
                         "the name of macro '~p' is not acceptable by "
                         "regular expression '~p'",
-                        [MacroNameOriginal, Regex],
+                        [MacroNameOriginal, Regexp],
                         #{node => MacroNode}
                     )
                     | ResultsIn
                 ];
-            {match, _Captured} when ForbiddenRegex == undefined ->
-                ResultsIn;
             {match, _Captured} ->
-                case re:run(MacroNameStripped, ForbiddenRegex, [unicode]) of
-                    nomatch ->
-                        ResultsIn;
-                    {match, _} ->
-                        [
-                            elvis_result:new_item(
-                                "the name of macro '~p' is forbidden by "
-                                "regular expression '~p'",
-                                [MacroNameOriginal, ForbiddenRegex],
-                                #{node => MacroNode}
-                            )
-                            | ResultsIn
-                        ]
-                end
+                ResultsIn
         end,
-    check_macro_names(Regex, ForbiddenRegex, RemainingMacroNodes, ResultsOut).
+    check_macro_names(Regexp, RemainingMacroNodes, ResultsOut).
 
 macro_name_from_node(MacroNode) ->
     MacroNodeValue = ktn_code:attr(value, MacroNode),
@@ -2702,8 +2671,8 @@ spec_includes_record(Node) ->
         fun(Child) ->
             (ktn_code:type(Child) =:= type) andalso (ktn_code:attr(name, Child) =:= record)
         end,
-    Opts = #{traverse => all},
-    (ktn_code:type(Node) =:= spec) andalso (elvis_code:find(IsTypeRecord, Node, Opts) =/= []).
+    (ktn_code:type(Node) =:= spec) andalso
+        (elvis_code:find(IsTypeRecord, Node, #{traverse => all}) =/= []).
 
 %% Don't repeat yourself
 
