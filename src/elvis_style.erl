@@ -2034,7 +2034,7 @@ export_used_types_in(TreeRootNode) ->
         fun({Name, Arity} = Info) ->
             {Line, Column} = maps:get(Info, Locations, {-1, -1}),
             elvis_result:new_item(
-                "type '~p/~p' is used by an exported function; prefer to also export the it",
+                "type '~p/~p' is used by an exported function; prefer to also export the type",
                 [Name, Arity],
                 #{line => Line, column => Column}
             )
