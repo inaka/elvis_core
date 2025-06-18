@@ -1,4 +1,4 @@
-# No Types [![](https://img.shields.io/badge/since-4.1.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.1.0) ![](https://img.shields.io/badge/HRL--only-yes-magenta)
+# No Nested Header Files [![](https://img.shields.io/badge/since-4.1.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.1.0) ![](https://img.shields.io/badge/HRL--only-yes-magenta)
 
 `-include` and `-include_lib` attributes **in header files** should be avoided.
 

@@ -1,7 +1,7 @@
 # No Init Lists [![](https://img.shields.io/badge/since-4.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Lists as the argument for the `init/1` callback should be avoided when implementing
-`gen_*` behaviours; use a tuple, a map, or a record instead.
+`gen_*` behaviors; use a tuple, a map, or a record instead.
 
 ## Avoid
 
@@ -35,7 +35,7 @@ init(#{ name := Name, timeout := Timeout }) ->
 
 ## Rationale
 
-When implementing `gen_server`, `gen_statem`, or other `gen_*` behaviours, using a list as the
+When implementing `gen_server`, `gen_statem`, or other `gen_*` behaviors, using a list as the
 argument to the `init/1` callback is discouraged. Tuples, maps, and records provide clearer
 structure, better pattern matching, and improved readability.
 Lists are typically used for variable-length collections and may lead to ambiguous or less
