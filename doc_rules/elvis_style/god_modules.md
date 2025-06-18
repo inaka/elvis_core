@@ -4,10 +4,10 @@ The number of exported functions in a module should be limited to a maximum thre
 
 ## Rationale
 
-Limiting the number of functions in a module helps maintain clarity, modularity, and readability
-in the codebase. A module with too many functions can become difficult to navigate, understand,
-and maintain. By restricting the number of functions, you encourage smaller, more focused modules
-that adhere to the [Single Responsibility Principle](https://en.wikipedia.org/wiki/Single-responsibility_principle)
+Limiting the number of functions exported from a module helps maintain clarity, modularity, and
+readability in the codebase. A module with too many exported functions can become difficult to
+consume and understand, from an API perspective. By restricting the number of exported functions,
+you encourage smaller, more focused modules that adhere to the [Single Responsibility Principle](https://en.wikipedia.org/wiki/Single-responsibility_principle)
 (SRP). This also makes the code easier to test, debug, and extend.
 
 ## Options
