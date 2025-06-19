@@ -3,13 +3,11 @@
 
 -export([default/1, no_branch_deps/3, protocol_for_deps/3, old_configuration_format/3]).
 
--export_type([protocol_for_deps_config/0]).
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec default(RuleName :: atom()) -> DefaultRuleConfig :: #{atom() := term()}.
+-spec default(RuleName :: atom()) -> elvis_core:rule_config().
 default(no_branch_deps) ->
     #{ignore => []};
 default(protocol_for_deps) ->
@@ -21,14 +19,6 @@ default(old_configuration_format) ->
 %% Rules
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--type protocol_for_deps_config() :: #{ignore => [module()], regex => string()}.
-
--spec protocol_for_deps(
-    elvis_config:config(),
-    elvis_file:file(),
-    protocol_for_deps_config()
-) ->
-    [elvis_result:item()].
 protocol_for_deps(_Config, Target, RuleConfig) ->
     IgnoreDeps = option(ignore, RuleConfig, protocol_for_deps),
     Regex = option(regex, RuleConfig, protocol_for_deps),
@@ -61,12 +51,6 @@ appname_from_line({AppName, _, _GitInfo}) ->
 appname_from_line({AppName, _Vsn, _GitInfo, _Opts}) ->
     AppName.
 
--spec no_branch_deps(
-    elvis_config:config(),
-    elvis_file:file(),
-    elvis_style:empty_rule_config()
-) ->
-    [elvis_result:item()].
 no_branch_deps(_Config, Target, RuleConfig) ->
     IgnoreDeps = option(ignore, RuleConfig, no_branch_deps),
     Deps = get_deps(Target),
@@ -90,12 +74,6 @@ no_branch_deps(_Config, Target, RuleConfig) ->
         BadDeps
     ).
 
--spec old_configuration_format(
-    elvis_config:config(),
-    elvis_file:file(),
-    elvis_style:empty_rule_config()
-) ->
-    [elvis_result:item()].
 old_configuration_format(_Config, Target, _RuleConfig) ->
     {Content, _} = elvis_file:src(Target),
     [AllConfig] = ktn_code:consult(Content),

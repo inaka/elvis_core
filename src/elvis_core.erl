@@ -23,8 +23,9 @@
 -type rule() ::
     {Module :: module(), Function :: atom(), RuleConfig :: rule_config()}
     | {Module :: module(), Function :: atom()}.
+-type rule_cfg_with(Rule) :: {elvis_config:config(), elvis_file:file(), Rule}.
 
--export_type([rule_config/0, rule/0]).
+-export_type([rule_config/0, rule/0, rule_cfg_with/1]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Public API

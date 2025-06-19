@@ -10,13 +10,11 @@
     no_redundant_blank_lines/3
 ]).
 
--export_type([line_length_config/0, no_trailing_whitespace_config/0]).
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec default(RuleName :: atom()) -> DefaultRuleConfig :: #{atom() := term()}.
+-spec default(RuleName :: atom()) -> elvis_core:rule_config().
 default(line_length) ->
     #{
         limit => 100,
@@ -36,17 +34,8 @@ default(prefer_unquoted_atoms) ->
 %% Rules
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--type line_length_config() ::
-    #{
-        ignore => [elvis_style:ignorable()],
-        limit => integer(),
-        skip_comments => false | any | whole_line
-    }.
-
 %% @doc Target can be either a filename or the
 %% name of a module.
--spec line_length(elvis_config:config(), elvis_file:file(), line_length_config()) ->
-    [elvis_result:item()].
 line_length(_Config, Target, RuleConfig) ->
     Limit = option(limit, RuleConfig, line_length),
     SkipComments = option(skip_comments, RuleConfig, line_length),
@@ -55,25 +44,10 @@ line_length(_Config, Target, RuleConfig) ->
     Args = [Limit, SkipComments, Encoding, NoWhitespace],
     elvis_utils:check_lines(Src, fun check_line_length/3, Args).
 
--spec no_tabs(
-    elvis_config:config(),
-    elvis_file:file(),
-    elvis_style:empty_rule_config()
-) ->
-    [elvis_result:item()].
 no_tabs(_Config, Target, _RuleConfig) ->
     {Src, _} = elvis_file:src(Target),
     elvis_utils:check_lines(Src, fun check_no_tabs/2, []).
 
--type no_trailing_whitespace_config() ::
-    #{ignore => [module()], ignore_empty_lines => boolean()}.
-
--spec no_trailing_whitespace(
-    Config :: elvis_config:config(),
-    Target :: elvis_file:file(),
-    no_trailing_whitespace_config()
-) ->
-    [elvis_result:item()].
 no_trailing_whitespace(_Config, Target, RuleConfig) ->
     {Src, _} = elvis_file:src(Target),
     IgnoreEmptyLines = option(ignore_empty_lines, RuleConfig, no_trailing_whitespace),
@@ -85,12 +59,6 @@ no_trailing_whitespace(_Config, Target, RuleConfig) ->
         RuleConfig
     ).
 
--spec prefer_unquoted_atoms(
-    elvis_config:config(),
-    elvis_file:file(),
-    elvis_style:empty_rule_config()
-) ->
-    [elvis_result:item()].
 prefer_unquoted_atoms(_Config, Target, _RuleConfig) ->
     {Content, #{encoding := _Encoding}} = elvis_file:src(Target),
     Tree = ktn_code:parse_tree(Content),

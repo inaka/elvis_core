@@ -7,7 +7,7 @@
 %% Default values
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec default(RuleName :: atom()) -> DefaultRuleConfig :: #{atom() := term()}.
+-spec default(RuleName :: atom()) -> elvis_core:rule_config().
 default(required_patterns) ->
     #{
         regexes =>
@@ -28,12 +28,6 @@ default(forbidden_patterns) ->
 %% Rules
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec required_patterns(
-    elvis_config:config(),
-    elvis_file:file(),
-    elvis_style:empty_rule_config()
-) ->
-    [elvis_result:item()].
 required_patterns(_Config, #{path := Path}, RuleConfig) ->
     Regexes = option(regexes, RuleConfig, required_patterns),
     case file:read_file(Path) of
@@ -44,12 +38,6 @@ required_patterns(_Config, #{path := Path}, RuleConfig) ->
             []
     end.
 
--spec forbidden_patterns(
-    elvis_config:config(),
-    elvis_file:file(),
-    elvis_style:empty_rule_config()
-) ->
-    [elvis_result:item()].
 forbidden_patterns(_Config, #{path := Path}, RuleConfig) ->
     Regexes = option(regexes, RuleConfig, forbidden_patterns),
     case file:read_file(Path) of
