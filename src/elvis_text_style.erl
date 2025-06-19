@@ -59,43 +59,33 @@ no_trailing_whitespace({_Config, Target, RuleConfig} = RuleCfg) ->
         RuleConfig
     ).
 
-prefer_unquoted_atoms({_Config, Target, _RuleConfig}) ->
-    {Content, #{encoding := _Encoding}} = elvis_file:src(Target),
-    Tree = ktn_code:parse_tree(Content),
-    AtomNodes = elvis_code:find_by_types([atom], Tree, undefined, #{traverse => all}),
-    check_atom_quotes(AtomNodes, []).
+prefer_unquoted_atoms(RuleCfg) ->
+    elvis_style:results(
+        elvis_code:find(#{
+            of_types => [atom],
+            inside => elvis_style:root(RuleCfg),
+            filtered_by => fun doesnt_need_quotes/1,
+            traverse => all
+        }),
+        fun(AtomNode) ->
+            io_lib:format(
+                "unnecessarily quoted atom '~p' was found; prefer removing the quotes when "
+                "not syntactically required",
+                [ktn_code:attr(text, AtomNode)]
+            )
+        end
+    ).
 
-needs_quoting(AtomName0) ->
+doesnt_need_quotes(AtomNode) ->
+    AtomName0 = ktn_code:attr(text, AtomNode),
     case re:run(AtomName0, "^'[a-z][a-zA-Z0-9_@]*'$", [{capture, none}]) of
         match ->
             AtomName = string:trim(AtomName0, both, "'"),
             Atom = list_to_atom(AtomName),
-            Atom =:= 'maybe' orelse erl_scan:f_reserved_word(Atom);
+            Atom =/= 'maybe' andalso not erl_scan:f_reserved_word(Atom);
         _ ->
-            true
+            false
     end.
-
-check_atom_quotes([] = _AtomNodes, Acc) ->
-    Acc;
-check_atom_quotes([AtomNode | RemainingAtomNodes], AccIn) ->
-    AtomName = ktn_code:attr(text, AtomNode),
-
-    AccOut =
-        case needs_quoting(AtomName) of
-            false ->
-                [
-                    elvis_result:new_item(
-                        "unnecessarily quoted atom '~p' was found; prefer removing the quotes when "
-                        "not syntactically required",
-                        [AtomName],
-                        #{node => AtomNode}
-                    )
-                    | AccIn
-                ];
-            _ ->
-                AccIn
-        end,
-    check_atom_quotes(RemainingAtomNodes, AccOut).
 
 no_redundant_blank_lines({_Config, Target, _RuleConfig} = RuleCfg) ->
     MaxLines = option(max_lines, RuleCfg, ?FUNCTION_NAME) + 1,

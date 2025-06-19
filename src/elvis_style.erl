@@ -56,7 +56,9 @@
     ms_transform_included/1,
     no_boolean_in_comparison/1,
     no_operation_on_same_value/1,
-    no_receive_without_timeout/1
+    no_receive_without_timeout/1,
+    root/1,
+    results/2
 ]).
 
 -export_type([ignorable/0]).
@@ -2576,3 +2578,19 @@ line(Node) ->
 re_compile(Regexp) ->
     {ok, MP} = re:compile(Regexp, [unicode]),
     MP.
+
+results(Nodes, MsgOrMsgFun) ->
+    lists:map(
+        fun(Node) ->
+            elvis_result:new_item(
+                message_from(Node, MsgOrMsgFun),
+                #{node => Node}
+            )
+        end,
+        Nodes
+    ).
+
+message_from(Node, MsgFun) when is_function(MsgFun) ->
+    MsgFun(Node);
+message_from(_Node, Msg) ->
+    Msg.

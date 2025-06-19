@@ -2,6 +2,7 @@
 
 %% General
 -export([
+    find/1,
     find/2,
     find/3,
     find_by_location/2,
@@ -26,6 +27,21 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 -type find_options() :: #{mode => node | zipper, traverse => content | all}.
+
+-spec find(Options) -> [Node] when
+    Options :: #{
+        of_types := [ktn_code:tree_node_type()],
+        inside := ktn_code:tree_node(),
+        filtered_by => fun((ktn_code:tree_node_type()) -> ktn_code:tree_node_type()),
+        traverse => content | all
+    },
+    Node :: ktn_code:tree_node().
+find(Options) ->
+    OfTypes = maps:get(of_types, Options),
+    Inside = maps:get(inside, Options),
+    FilteredBy = maps:get(filtered_by, Options, undefined),
+    FindOptions = #{traverse => maps:get(traverse, Options, undefined)},
+    find_by_types(OfTypes, Inside, FilteredBy, FindOptions).
 
 %% @doc Same as calling find/3 with `#{mode => node, traverse => content}' as
 %%      the options map.
