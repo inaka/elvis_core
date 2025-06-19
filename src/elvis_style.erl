@@ -712,7 +712,7 @@ no_space(Config, Target, RuleConfig) ->
     AllSpaceUntilText =
         [
             {Text,
-                re:compile(
+                re_compile(
                     "^[ ]+" ++
                         re:replace(
                             Text,
@@ -2246,11 +2246,9 @@ re_compile_for_atom_type(false = _IsEnclosed, undefined = _Regex, _RegexEnclosed
 re_compile_for_atom_type(true = _IsEnclosed, _Regex, undefined = _RegexEnclosed) ->
     undefined;
 re_compile_for_atom_type(false = _IsEnclosed, Regex, _RegexEnclosed) ->
-    {ok, RE} = re:compile(Regex, [unicode]),
-    RE;
+    re_compile(Regex);
 re_compile_for_atom_type(true = _IsEnclosed, _Regex, RegexEnclosed) ->
-    {ok, RE} = re:compile(RegexEnclosed, [unicode]),
-    RE.
+    re_compile(RegexEnclosed).
 
 %% Variables name
 check_variables_name(_Regex, _, []) ->
@@ -2318,9 +2316,8 @@ line_is_whitespace(Line) ->
 check_macro_names(_Regexp, [] = _MacroNodes, ResultsIn) ->
     ResultsIn;
 check_macro_names(Regexp, [MacroNode | RemainingMacroNodes], ResultsIn) ->
-    {ok, RE} = re:compile(Regexp, [unicode]),
-    {MacroNameStripped0, MacroNameOriginal} = macro_name_from_node(MacroNode),
-    MacroNameStripped = unicode:characters_to_list(MacroNameStripped0, unicode),
+    RE = re_compile(Regexp),
+    MacroNameStripped = macro_name_from(MacroNode, stripped),
     ResultsOut =
         case re:run(MacroNameStripped, RE) of
             nomatch ->
@@ -2328,7 +2325,7 @@ check_macro_names(Regexp, [MacroNode | RemainingMacroNodes], ResultsIn) ->
                     elvis_result:new_item(
                         "the name of macro '~p' is not acceptable by "
                         "regular expression '~p'",
-                        [MacroNameOriginal, Regexp],
+                        [macro_name_from(MacroNode, original), Regexp],
                         #{node => MacroNode}
                     )
                     | ResultsIn
@@ -2338,12 +2335,13 @@ check_macro_names(Regexp, [MacroNode | RemainingMacroNodes], ResultsIn) ->
         end,
     check_macro_names(Regexp, RemainingMacroNodes, ResultsOut).
 
-macro_name_from_node(MacroNode) ->
+macro_name_from(MacroNode, original) ->
     MacroNodeValue = ktn_code:attr(value, MacroNode),
     MacroAsAtom = macro_as_atom(false, [call, var, atom], MacroNodeValue),
-    MacroNameOriginal = atom_to_list(MacroAsAtom),
-    MacroNameStripped = string:strip(MacroNameOriginal, both, $'),
-    {MacroNameStripped, MacroNameOriginal}.
+    atom_to_list(MacroAsAtom);
+macro_name_from(MacroNode, stripped) ->
+    MacroNameOriginal = macro_name_from(MacroNode, original),
+    unicode:characters_to_list(string:strip(MacroNameOriginal, both, $')).
 
 macro_as_atom({var, _Text, MacroAsAtom}, _Types, _MacroNodeValue) ->
     MacroAsAtom;
@@ -2408,7 +2406,7 @@ check_spaces(Lines, UnfilteredNodes, {Position, Text}, Encoding, {How0, _} = How
 
 maybe_run_regex(undefined = _Regex, _Line) ->
     nomatch;
-maybe_run_regex({ok, Regex}, Line) ->
+maybe_run_regex(Regex, Line) ->
     re:run(Line, Regex).
 
 -spec character_at_location(
@@ -2957,3 +2955,7 @@ bin_parts_to_iolist(Src, Parts) when is_binary(Src), is_list(Parts) ->
 line(Node) ->
     {Line, _} = ktn_code:attr(location, Node),
     Line.
+
+re_compile(Regexp) ->
+    {ok, MP} = re:compile(Regexp, [unicode]),
+    MP.
