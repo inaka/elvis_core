@@ -7,6 +7,7 @@
     find_by_location/2,
     find_by_types/2,
     find_by_types/3,
+    find_by_types/4,
     find_by_types_in_tokens/2,
     find_token/2,
     code_zipper/1,
@@ -139,17 +140,44 @@ find_by_location(Root, Location) ->
             {ok, Node}
     end.
 
+-spec find_by_types(Types, Root) -> Found when
+    Types :: [ktn_code:tree_node_type()],
+    Node :: ktn_code:tree_node(),
+    Root :: Node,
+    Found :: [Node].
 find_by_types(Types, Root) ->
-    find_by_types(Types, Root, #{}).
+    find_by_types(Types, Root, _Pred = undefined).
 
-find_by_types(Types, Root, Opts) ->
-    find(
+-spec find_by_types(Types, Root, Filter) -> Found when
+    Types :: [ktn_code:tree_node_type()],
+    Node :: ktn_code:tree_node(),
+    Root :: Node,
+    Filter :: undefined | fun((Node) -> Node),
+    Found :: [Node].
+find_by_types(Types, Root, Filter) ->
+    find_by_types(Types, Root, Filter, #{}).
+
+-spec find_by_types(Types, Root, Filter, Opts) -> Found when
+    Types :: [ktn_code:tree_node_type()],
+    Node :: ktn_code:tree_node(),
+    Root :: Node,
+    Filter :: undefined | fun((Node) -> Node),
+    Opts :: find_options(),
+    Found :: [Node].
+find_by_types(Types, Root, Filter, Opts) ->
+    NonFilteredResults = find(
         fun(Node) ->
             lists:member(ktn_code:type(Node), Types)
         end,
         Root,
         Opts
-    ).
+    ),
+    case Filter of
+        undefined ->
+            NonFilteredResults;
+        _ ->
+            [Result || Result <- NonFilteredResults, Filter(Result)]
+    end.
 
 find_by_types_in_tokens(Types, Root) ->
     Tokens = ktn_code:attr(tokens, Root),

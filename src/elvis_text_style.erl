@@ -94,7 +94,7 @@ no_trailing_whitespace(_Config, Target, RuleConfig) ->
 prefer_unquoted_atoms(_Config, Target, _RuleConfig) ->
     {Content, #{encoding := _Encoding}} = elvis_file:src(Target),
     Tree = ktn_code:parse_tree(Content),
-    AtomNodes = elvis_code:find_by_types([atom], Tree, #{traverse => all, mode => node}),
+    AtomNodes = elvis_code:find_by_types([atom], Tree, undefined, #{traverse => all}),
     check_atom_quotes(AtomNodes, []).
 
 needs_quoting(AtomName0) ->

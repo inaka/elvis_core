@@ -488,7 +488,7 @@ variable_naming_convention(Config, Target, RuleConfig) ->
 macro_names(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
     Regexp = option(regex, RuleConfig, macro_names),
-    MacroNodes = elvis_code:find_by_types([define], Root, #{traverse => all}),
+    MacroNodes = elvis_code:find_by_types([define], Root, undefined, #{traverse => all}),
     check_macro_names(Regexp, MacroNodes, _ResultsIn = []).
 
 -type no_macros_config() :: #{allow => [atom()], ignore => [ignorable()]}.
@@ -1329,7 +1329,7 @@ no_successive_maps(Config, Target, RuleConfig) ->
             #{node => Node}
         )
     end,
-    MapExprs = elvis_code:find_by_types([map], Root, #{traverse => all}),
+    MapExprs = elvis_code:find_by_types([map], Root, undefined, #{traverse => all}),
     lists:flatmap(fun(MapExp) -> check_successive_maps(ResultFun, MapExp) end, MapExprs).
 
 -type atom_naming_convention_config() ::
@@ -2007,7 +2007,9 @@ export_used_types_in(TreeRootNode) ->
         lists:usort(
             lists:flatmap(
                 fun(Spec) ->
-                    Types = elvis_code:find_by_types([user_type], Spec, #{traverse => all}),
+                    Types = elvis_code:find_by_types([user_type], Spec, undefined, #{
+                        traverse => all
+                    }),
                     % yes, on a -type line, the arity is based on `args`, but on
                     % a -spec line, it's based on `content`
                     [
