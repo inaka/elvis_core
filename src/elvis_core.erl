@@ -217,7 +217,7 @@ apply_rule({Module, Function, ConfigArgs}, {Result, Config, File}) ->
                             ConfigMap#{ignore => lists:delete(AnalyzedModule, Ignores)},
                             ConfigArgs
                         ),
-                    Results = Module:Function(Config, File, FilteredConfigMap),
+                    Results = Module:Function({Config, File, FilteredConfigMap}),
                     SortFun = fun(#{line_num := L1}, #{line_num := L2}) -> L1 =< L2 end,
                     SortResults = lists:sort(SortFun, Results),
                     elvis_result:new(rule, {Module, Function}, SortResults);

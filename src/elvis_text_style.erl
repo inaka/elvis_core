@@ -3,11 +3,11 @@
 
 -export([
     default/1,
-    line_length/3,
-    no_tabs/3,
-    no_trailing_whitespace/3,
-    prefer_unquoted_atoms/3,
-    no_redundant_blank_lines/3
+    line_length/1,
+    no_tabs/1,
+    no_trailing_whitespace/1,
+    prefer_unquoted_atoms/1,
+    no_redundant_blank_lines/1
 ]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -36,21 +36,21 @@ default(prefer_unquoted_atoms) ->
 
 %% @doc Target can be either a filename or the
 %% name of a module.
-line_length(_Config, Target, RuleConfig) ->
-    Limit = option(limit, RuleConfig, line_length),
-    SkipComments = option(skip_comments, RuleConfig, line_length),
-    NoWhitespace = option(no_whitespace_after_limit, RuleConfig, line_length),
+line_length({_Config, Target, _RuleConfig} = RuleCfg) ->
+    Limit = option(limit, RuleCfg, line_length),
+    SkipComments = option(skip_comments, RuleCfg, line_length),
+    NoWhitespace = option(no_whitespace_after_limit, RuleCfg, line_length),
     {Src, #{encoding := Encoding}} = elvis_file:src(Target),
     Args = [Limit, SkipComments, Encoding, NoWhitespace],
     elvis_utils:check_lines(Src, fun check_line_length/3, Args).
 
-no_tabs(_Config, Target, _RuleConfig) ->
+no_tabs({_Config, Target, _RuleConfig}) ->
     {Src, _} = elvis_file:src(Target),
     elvis_utils:check_lines(Src, fun check_no_tabs/2, []).
 
-no_trailing_whitespace(_Config, Target, RuleConfig) ->
+no_trailing_whitespace({_Config, Target, RuleConfig} = RuleCfg) ->
     {Src, _} = elvis_file:src(Target),
-    IgnoreEmptyLines = option(ignore_empty_lines, RuleConfig, no_trailing_whitespace),
+    IgnoreEmptyLines = option(ignore_empty_lines, RuleCfg, no_trailing_whitespace),
     elvis_utils:check_lines(
         Src,
         fun(Src1, Fun, _Args) ->
@@ -59,7 +59,7 @@ no_trailing_whitespace(_Config, Target, RuleConfig) ->
         RuleConfig
     ).
 
-prefer_unquoted_atoms(_Config, Target, _RuleConfig) ->
+prefer_unquoted_atoms({_Config, Target, _RuleConfig}) ->
     {Content, #{encoding := _Encoding}} = elvis_file:src(Target),
     Tree = ktn_code:parse_tree(Content),
     AtomNodes = elvis_code:find_by_types([atom], Tree, undefined, #{traverse => all}),
@@ -97,8 +97,8 @@ check_atom_quotes([AtomNode | RemainingAtomNodes], AccIn) ->
         end,
     check_atom_quotes(RemainingAtomNodes, AccOut).
 
-no_redundant_blank_lines(_Config, Target, RuleConfig) ->
-    MaxLines = option(max_lines, RuleConfig, ?FUNCTION_NAME) + 1,
+no_redundant_blank_lines({_Config, Target, _RuleConfig} = RuleCfg) ->
+    MaxLines = option(max_lines, RuleCfg, ?FUNCTION_NAME) + 1,
     {Src, _} = elvis_file:src(Target),
     Lines = elvis_utils:split_all_lines(Src, [trim]),
 
@@ -240,12 +240,15 @@ check_no_trailing_whitespace(Line, Num, IgnoreEmptyLines) ->
 %% Internal Function Definitions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec option(OptionName, RuleConfig, Rule) -> OptionValue when
+-spec option(OptionName, RuleCfg, Rule) -> OptionValue when
     OptionName :: atom(),
-    RuleConfig :: elvis_core:rule_config(),
+    RuleCfg :: {Config, Target, RuleConfig},
+    Config :: elvis_config:config(),
+    Target :: elvis_file:file(),
+    RuleConfig :: (Options :: #{atom() => term()}),
     Rule :: atom(),
     OptionValue :: term().
-option(OptionName, RuleConfig, Rule) ->
+option(OptionName, {_Config, _Target, RuleConfig}, Rule) ->
     maybe_default_option(maps:get(OptionName, RuleConfig, undefined), OptionName, Rule).
 
 -spec maybe_default_option(UserDefinedOptionValue, OptionName, Rule) -> OptionValue when
