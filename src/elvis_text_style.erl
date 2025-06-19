@@ -60,20 +60,23 @@ no_trailing_whitespace({_Config, Target, RuleConfig} = RuleCfg) ->
     ).
 
 prefer_unquoted_atoms(RuleCfg) ->
-    elvis_style:results(
-        elvis_code:find(#{
-            of_types => [atom],
-            inside => elvis_style:root(RuleCfg),
-            filtered_by => fun doesnt_need_quotes/1,
-            traverse => all
-        }),
+    AtomNodes = elvis_code:find(#{
+        of_types => [atom],
+        inside => elvis_style:root(RuleCfg),
+        filtered_by => fun doesnt_need_quotes/1,
+        traverse => all
+    }),
+
+    lists:map(
         fun(AtomNode) ->
-            io_lib:format(
+            elvis_result:new_item(
                 "unnecessarily quoted atom '~p' was found; prefer removing the quotes when "
                 "not syntactically required",
-                [ktn_code:attr(text, AtomNode)]
+                [ktn_code:attr(text, AtomNode)],
+                #{node => AtomNode}
             )
-        end
+        end,
+        AtomNodes
     ).
 
 doesnt_need_quotes(AtomNode) ->
