@@ -321,7 +321,7 @@ errors_for_function_names(_Regex, _ForbiddenRegex, []) ->
     [];
 errors_for_function_names(Regex, ForbiddenRegex, [Function | RemainingFunctions]) ->
     FunctionName = ktn_code:attr(name, Function),
-    FunctionNameStr = unicode:characters_to_list(atom_to_list(FunctionName), unicode),
+    FunctionNameStr = unicode:characters_to_list(atom_to_list(FunctionName)),
     case re:run(FunctionNameStr, Regex, [unicode]) of
         nomatch ->
             [
@@ -412,7 +412,7 @@ macro_names(RuleCfg) ->
     Root = root(RuleCfg),
     Regexp = option(regex, RuleCfg, macro_names),
 
-    RE = re_compile(Regexp),
+    RE = re_compile(Regexp, [unicode]),
 
     Filter = fun(MacroNode) ->
         re:run(macro_name_from(MacroNode, stripped), RE) =:= nomatch
@@ -613,7 +613,8 @@ no_space({_Config, Target, _RuleConfig} = RuleCfg) ->
                             "(\\.|\\[|\\]|\\^|\\$|\\+|\\*|\\?|\\{|\\}|\\(|\\)|\\||\\\\)",
                             "\\\\\\1",
                             [{return, list}, global]
-                        )
+                        ),
+                    [unicode]
                 )}
          || {left, Text} <- Rules
         ],
@@ -1816,7 +1817,7 @@ check_atom_names(
     IsExceptionClass = is_exception_or_non_reversible(ValueAtomName),
     RE = re_compile_for_atom_type(IsEnclosed, Regex, RegexEnclosed),
     REF = re_compile_for_atom_type(IsEnclosed, ForbiddenRegex, ForbiddenRegexEnclosed),
-    AtomNameUnicode = unicode:characters_to_list(AtomName, unicode),
+    AtomNameUnicode = unicode:characters_to_list(AtomName),
     AccOut =
         case re:run(AtomNameUnicode, RE) of
             _ when IsExceptionClass, not IsEnclosed ->
@@ -1890,9 +1891,9 @@ re_compile_for_atom_type(false = _IsEnclosed, undefined = _Regex, _RegexEnclosed
 re_compile_for_atom_type(true = _IsEnclosed, _Regex, undefined = _RegexEnclosed) ->
     undefined;
 re_compile_for_atom_type(false = _IsEnclosed, Regex, _RegexEnclosed) ->
-    re_compile(Regex);
+    re_compile(Regex, [unicode]);
 re_compile_for_atom_type(true = _IsEnclosed, _Regex, RegexEnclosed) ->
-    re_compile(RegexEnclosed).
+    re_compile(RegexEnclosed, [unicode]).
 
 %% Variables name
 check_variables_name(_Regex, _, []) ->
@@ -2026,9 +2027,9 @@ check_spaces(Lines, UnfilteredNodes, {Position, Text}, Encoding, {How0, _} = How
         end,
     lists:flatmap(FlatFun, Nodes).
 
-maybe_run_regex(undefined = _Regex, _Line) ->
+maybe_re_run(_Line, undefined = _Regex) ->
     nomatch;
-maybe_run_regex(Regex, Line) ->
+maybe_re_run(Line, Regex) ->
     re:run(Line, Regex).
 
 -spec character_at_location(
@@ -2055,7 +2056,7 @@ character_at_location(
             [] ->
                 nomatch;
             _ ->
-                maybe_run_regex(proplists:get_value(Text, TextRegexes), Line)
+                maybe_re_run(Line, proplists:get_value(Text, TextRegexes))
         end,
     TextLineStr = unicode:characters_to_list(Line, Encoding),
     ColToCheck =
@@ -2575,8 +2576,8 @@ line(Node) ->
     {Line, _} = ktn_code:attr(location, Node),
     Line.
 
-re_compile(Regexp) ->
-    {ok, MP} = re:compile(Regexp, [unicode]),
+re_compile(Regexp, Options) ->
+    {ok, MP} = re:compile(Regexp, Options),
     MP.
 
 results(Nodes, MsgOrMsgFun) ->
