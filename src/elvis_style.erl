@@ -488,8 +488,25 @@ variable_naming_convention(Config, Target, RuleConfig) ->
 macro_names(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
     Regexp = option(regex, RuleConfig, macro_names),
-    MacroNodes = elvis_code:find_by_types([define], Root, undefined, #{traverse => all}),
-    check_macro_names(Regexp, MacroNodes, _ResultsIn = []).
+
+    RE = re_compile(Regexp),
+
+    Filter = fun(MacroNode) ->
+        re:run(macro_name_from(MacroNode, stripped), RE) =:= nomatch
+    end,
+    MacroNodes = elvis_code:find_by_types([define], Root, Filter, #{traverse => all}),
+
+    lists:map(
+        fun(MacroNode) ->
+            elvis_result:new_item(
+                "the name of macro '~p' is not acceptable by "
+                "regular expression '~p'",
+                [macro_name_from(MacroNode, original), Regexp],
+                #{node => MacroNode}
+            )
+        end,
+        MacroNodes
+    ).
 
 -type no_macros_config() :: #{allow => [atom()], ignore => [ignorable()]}.
 
@@ -2312,28 +2329,6 @@ line_is_whitespace(Line) ->
     end.
 
 %% Macro Names
-
-check_macro_names(_Regexp, [] = _MacroNodes, ResultsIn) ->
-    ResultsIn;
-check_macro_names(Regexp, [MacroNode | RemainingMacroNodes], ResultsIn) ->
-    RE = re_compile(Regexp),
-    MacroNameStripped = macro_name_from(MacroNode, stripped),
-    ResultsOut =
-        case re:run(MacroNameStripped, RE) of
-            nomatch ->
-                [
-                    elvis_result:new_item(
-                        "the name of macro '~p' is not acceptable by "
-                        "regular expression '~p'",
-                        [macro_name_from(MacroNode, original), Regexp],
-                        #{node => MacroNode}
-                    )
-                    | ResultsIn
-                ];
-            {match, _Captured} ->
-                ResultsIn
-        end,
-    check_macro_names(Regexp, RemainingMacroNodes, ResultsOut).
 
 macro_name_from(MacroNode, original) ->
     MacroNodeValue = ktn_code:attr(value, MacroNode),
