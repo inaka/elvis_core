@@ -456,20 +456,22 @@ no_macros(RuleCfg) ->
     ].
 
 no_types(RuleCfg) ->
-    TreeRootNode = root(RuleCfg),
-    TypeNodes = elvis_code:find_by_types([type_attr], TreeRootNode),
+    TypeAttrNodes = elvis_code:find(
+        #{
+            of_types => [type_attr],
+            inside => root(RuleCfg)
+        }
+    ),
 
-    lists:map(
-        fun(TypeNode) ->
-            elvis_result:new_item(
-                "unexpected `-type` attribute '~p' was found; "
-                "avoid specifying types in .hrl files",
-                [ktn_code:attr(name, TypeNode)],
-                #{node => TypeNode}
-            )
-        end,
-        TypeNodes
-    ).
+    [
+        elvis_result:new_item(
+            "unexpected `-type` attribute '~p' was found; "
+            "avoid specifying types in .hrl files",
+            [ktn_code:attr(name, TypeAttrNode)],
+            #{node => TypeAttrNode}
+        )
+     || TypeAttrNode <- TypeAttrNodes
+    ].
 
 no_nested_hrls(RuleCfg) ->
     IncludeNodes = elvis_code:find(
