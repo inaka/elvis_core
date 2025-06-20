@@ -664,15 +664,18 @@ god_modules(RuleCfg) ->
     end.
 
 no_if_expression(RuleCfg) ->
-    Root = root(RuleCfg),
-    IfExprs = elvis_code:find_by_types(['if'], Root),
-    ResultFun = fun(Node) ->
+    IfExprNodes = elvis_code:find(#{
+        of_types => ['if'],
+        inside => root(RuleCfg)
+    }),
+
+    [
         elvis_result:new_item(
             "an unexpected 'if' expression was found",
-            #{node => Node}
+            #{node => IfExprNode}
         )
-    end,
-    lists:map(ResultFun, IfExprs).
+     || IfExprNode <- IfExprNodes
+    ].
 
 invalid_dynamic_call(RuleCfg) ->
     Root = root(RuleCfg),
