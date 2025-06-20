@@ -31,8 +31,8 @@
 -spec find(Options) -> [Node] when
     Options :: #{
         of_types := [ktn_code:tree_node_type()],
-        inside := ktn_code:tree_node(),
-        filtered_by => fun((ktn_code:tree_node_type()) -> ktn_code:tree_node_type()),
+        inside := Node,
+        filtered_by => fun((Node | zipper:zipper(Node)) -> boolean()),
         traverse => content | all
     },
     Node :: ktn_code:tree_node().
@@ -73,8 +73,7 @@ find(Pred, Root, Opts) ->
     Mode = maps:get(mode, Opts, node),
     ZipperMode = maps:get(traverse, Opts, content),
     Zipper = code_zipper(Root, ZipperMode),
-    Results = find(Pred, Zipper, [], Mode),
-    lists:reverse(Results).
+    find(Pred, Zipper, [], Mode).
 
 -spec code_zipper(ktn_code:tree_node()) -> zipper:zipper(_).
 code_zipper(Root) ->
