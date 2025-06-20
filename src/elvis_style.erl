@@ -408,27 +408,29 @@ variable_naming_convention(RuleCfg) ->
     check_variables_name(Regex, ForbiddenRegex, Vars).
 
 macro_names(RuleCfg) ->
-    Root = root(RuleCfg),
     Regexp = option(regex, RuleCfg, macro_names),
-
     RE = re_compile(Regexp, [unicode]),
 
-    Filter = fun(MacroNode) ->
-        re:run(macro_name_from(MacroNode, stripped), RE) =:= nomatch
-    end,
-    MacroNodes = elvis_code:find_by_types([define], Root, Filter, #{traverse => all}),
+    MacroNodes = elvis_code:find(
+        #{
+            of_types => [define],
+            inside => root(RuleCfg),
+            filtered_by => fun(MacroNode) ->
+                re:run(macro_name_from(MacroNode, stripped), RE) =:= nomatch
+            end,
+            traverse => all
+        }
+    ),
 
-    lists:map(
-        fun(MacroNode) ->
-            elvis_result:new_item(
-                "the name of macro '~p' is not acceptable by "
-                "regular expression '~p'",
-                [macro_name_from(MacroNode, original), Regexp],
-                #{node => MacroNode}
-            )
-        end,
-        MacroNodes
-    ).
+    [
+        elvis_result:new_item(
+            "the name of macro '~p' is not acceptable by "
+            "regular expression '~p'",
+            [macro_name_from(MacroNode, original), Regexp],
+            #{node => MacroNode}
+        )
+     || MacroNode <- MacroNodes
+    ].
 
 no_macros(RuleCfg) ->
     AllowedMacros = option(allow, RuleCfg, no_macros) ++ eep_predef_macros() ++ logger_macros(),
