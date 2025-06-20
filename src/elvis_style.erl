@@ -470,21 +470,22 @@ no_types(RuleCfg) ->
     ).
 
 no_nested_hrls(RuleCfg) ->
-    TreeRootNode = root(RuleCfg),
-    IncludeNodes = elvis_code:find_by_types([include, include_lib], TreeRootNode),
+    IncludeNodes = elvis_code:find(
+        #{
+            of_types => [include, include_lib],
+            inside => root(RuleCfg)
+        }
+    ),
 
-    lists:map(
-        fun(IncludeNode) ->
-            Filename = ktn_code:attr(value, IncludeNode),
-            elvis_result:new_item(
-                "unexpected nested '-include[_lib]' attribute ('~p') was found; "
-                "avoid including .hrl files in .hrl files",
-                [Filename],
-                #{node => IncludeNode}
-            )
-        end,
-        IncludeNodes
-    ).
+    [
+        elvis_result:new_item(
+            "unexpected nested '-include[_lib]' attribute ('~p') was found; "
+            "avoid including .hrl files in .hrl files",
+            [ktn_code:attr(value, IncludeNode)],
+            #{node => IncludeNode}
+        )
+     || IncludeNode <- IncludeNodes
+    ].
 
 no_specs(RuleCfg) ->
     TreeRootNode = root(RuleCfg),

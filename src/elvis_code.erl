@@ -40,7 +40,7 @@ find(Options) ->
     OfTypes = maps:get(of_types, Options),
     Inside = maps:get(inside, Options),
     FilteredBy = maps:get(filtered_by, Options, undefined),
-    FindOptions = #{traverse => maps:get(traverse, Options, undefined)},
+    FindOptions = #{traverse => maps:get(traverse, Options, content)},
     find_by_types(OfTypes, Inside, FilteredBy, FindOptions).
 
 %% @doc Same as calling find/3 with `#{mode => node, traverse => content}' as
