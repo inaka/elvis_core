@@ -488,19 +488,21 @@ no_nested_hrls(RuleCfg) ->
     ].
 
 no_specs(RuleCfg) ->
-    TreeRootNode = root(RuleCfg),
-    SpecNodes = elvis_code:find_by_types([spec], TreeRootNode),
+    SpecNodes = elvis_code:find(
+        #{
+            of_types => [spec],
+            inside => root(RuleCfg)
+        }
+    ),
 
-    lists:map(
-        fun(SpecNode) ->
-            elvis_result:new_item(
-                "an unexpected spec for was found function '~p'; avoid specs in .hrl files",
-                [ktn_code:attr(name, SpecNode)],
-                #{node => SpecNode}
-            )
-        end,
-        SpecNodes
-    ).
+    [
+        elvis_result:new_item(
+            "an unexpected spec for was found function '~p'; avoid specs in .hrl files",
+            [ktn_code:attr(name, SpecNode)],
+            #{node => SpecNode}
+        )
+     || SpecNode <- SpecNodes
+    ].
 
 no_block_expressions(RuleCfg) ->
     Root = root(RuleCfg),
