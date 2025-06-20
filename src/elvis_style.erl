@@ -505,17 +505,21 @@ no_specs(RuleCfg) ->
     ].
 
 no_block_expressions(RuleCfg) ->
-    Root = root(RuleCfg),
-    BeginNodes = elvis_code:find_by_types_in_tokens(['begin'], Root),
-    lists:map(
-        fun(BeginNode) ->
-            elvis_result:new_item(
-                "an avoidable block expression ('begin...end') was found",
-                #{node => BeginNode}
-            )
-        end,
-        BeginNodes
-    ).
+    BlockExprs = elvis_code:find(
+        #{
+            of_types => ['begin'],
+            inside => tokens_as_content(root(RuleCfg)),
+            traverse => all
+        }
+    ),
+
+    [
+        elvis_result:new_item(
+            "an avoidable block expression ('begin...end') was found",
+            #{node => BlockExpr}
+        )
+     || BlockExpr <- BlockExprs
+    ].
 
 eep_predef_macros() ->
     % From unexported epp:predef_macros/1
@@ -2543,6 +2547,10 @@ root({Config, Target, RuleConfig}) ->
         _ ->
             Root0
     end.
+
+tokens_as_content(Root) ->
+    % Minor trick to have elvis_code assume searches the way it usually does
+    #{type => root, content => ktn_code:attr(tokens, Root)}.
 
 -spec doc_bin_parts(Src) -> [Part] when
     Src :: binary(),
