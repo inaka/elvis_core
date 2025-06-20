@@ -431,27 +431,27 @@ macro_names(RuleCfg) ->
     ).
 
 no_macros(RuleCfg) ->
-    TreeRootNode = root(RuleCfg),
     AllowedMacros = option(allow, RuleCfg, no_macros) ++ eep_predef_macros() ++ logger_macros(),
-    MacroNodes = elvis_code:find_by_types([macro], TreeRootNode),
 
-    lists:filtermap(
-        fun(MacroNode) ->
-            Macro = list_to_atom(ktn_code:attr(name, MacroNode)),
-            case lists:member(Macro, AllowedMacros) of
-                true ->
-                    false;
-                false ->
-                    {true,
-                        elvis_result:new_item(
-                            "an avoidable macro '~p' was found; prefer no macros",
-                            [Macro],
-                            #{node => MacroNode}
-                        )}
+    MacroNodes = elvis_code:find(
+        #{
+            of_types => [macro],
+            inside => root(RuleCfg),
+            filtered_by => fun(MacroNode) ->
+                Macro = list_to_atom(ktn_code:attr(name, MacroNode)),
+                not lists:member(Macro, AllowedMacros)
             end
-        end,
-        MacroNodes
-    ).
+        }
+    ),
+
+    [
+        elvis_result:new_item(
+            "an avoidable macro '~s' was found; prefer no macros",
+            [ktn_code:attr(name, MacroNode)],
+            #{node => MacroNode}
+        )
+     || MacroNode <- MacroNodes
+    ].
 
 no_types(RuleCfg) ->
     TreeRootNode = root(RuleCfg),
