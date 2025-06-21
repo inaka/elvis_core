@@ -1509,20 +1509,21 @@ no_catch_expressions(RuleCfg) ->
     ].
 
 no_single_clause_case(RuleCfg) ->
-    Root = root(RuleCfg),
-    IsSingleClauseCaseExpression = fun(Node) ->
-        ktn_code:type(Node) =:= 'case' andalso length(case_clauses_in(Node)) =:= 1
-    end,
-    CaseNodes = elvis_code:find(IsSingleClauseCaseExpression, Root),
-    lists:map(
-        fun(CaseNode) ->
-            elvis_result:new_item(
-                "an avoidable single-clause 'case' expression was found",
-                #{node => CaseNode}
-            )
-        end,
-        CaseNodes
-    ).
+    CaseExprs = elvis_code:find(#{
+        of_types => ['case'],
+        inside => root(RuleCfg),
+        filtered_by => fun(CaseExpr) ->
+            length(case_clauses_in(CaseExpr)) =:= 1
+        end
+    }),
+
+    [
+        elvis_result:new_item(
+            "an avoidable single-clause 'case' expression was found",
+            #{node => CaseExpr}
+        )
+     || CaseExpr <- CaseExprs
+    ].
 
 case_clauses_in(Node) ->
     [
