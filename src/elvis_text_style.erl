@@ -102,7 +102,9 @@ no_redundant_blank_lines({_Config, Target, _RuleConfig} = RuleCfg) ->
             ({Line, BlankLinesLength}) when BlankLinesLength >= MaxLines ->
                 {true,
                     elvis_result:new_item(
-                        "there are too many blank lines; prefer respecting the configured limit",
+                        "there are too many (~p) blank lines; prefer respecting the configured "
+                        "limit",
+                        [BlankLinesLength],
                         #{line => Line, limit => BlankLinesLength}
                     )};
             (_) ->
@@ -172,20 +174,21 @@ check_line_length(Line0, Num, [Limit, Encoding, NoWhitespace]) ->
         Len when Len =< Limit ->
             no_result;
         Len when NoWhitespace ->
-            {ok, line_length_res(Num, Len)};
+            {ok, line_length_res(Num, Len, Limit)};
         Len ->
             case binary:match(Line, <<"\s">>, [{scope, {Limit, Len - Limit}}]) of
                 {_, _} ->
-                    {ok, line_length_res(Num, Len)};
+                    {ok, line_length_res(Num, Len, Limit)};
                 nomatch ->
                     no_result
             end
     end.
 
-line_length_res(Num, Len) ->
+line_length_res(Num, Len, Limit) ->
     elvis_result:new_item(
-        "there are too many characters; prefer respecting the configured limit",
-        #{line => Num, limit => Len}
+        "there are too many (~p) characters; prefer respecting the configured limit",
+        [Len],
+        #{line => Num, limit => Limit}
     ).
 
 %% No Tabs
@@ -220,12 +223,11 @@ check_no_trailing_whitespace(Line, Num, IgnoreEmptyLines) ->
     case re:run(Line, Regex) of
         nomatch ->
             no_result;
-        {match, [PosLen]} ->
+        {match, _} ->
             {ok,
                 elvis_result:new_item(
-                    "there are too many trailing whitespace characters; "
-                    "prefer respecting the configured limit",
-                    #{line => Num, limit => byte_size(binary:part(Line, PosLen))}
+                    "unexpected trailing whitespace was found",
+                    #{line => Num}
                 )}
     end.
 

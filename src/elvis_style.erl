@@ -644,7 +644,8 @@ god_modules(RuleCfg) ->
         Count when Count > Limit ->
             [
                 elvis_result:new_item(
-                    "This module's function count is higher than the configured limit",
+                    "This module's function count (~p) is higher than the configured limit",
+                    [Count],
                     #{limit => Limit}
                 )
             ];
@@ -902,7 +903,8 @@ max_module_length({_Config, Target, _RuleConfig} = RuleCfg) ->
         L when L > MaxLength ->
             [
                 elvis_result:new_item(
-                    "This module's lines-of-code count is higher than the configured limit",
+                    "This module's lines-of-code count (~p) is higher than the configured limit",
+                    [L],
                     #{limit => MaxLength}
                 )
             ];
@@ -926,11 +928,12 @@ max_anonymous_function_arity(RuleCfg) ->
             case length(ktn_code:node_attr(pattern, FirstClause)) of
                 Arity when Arity =< MaxArity ->
                     false;
-                _Arity ->
+                Arity ->
                     {true,
                         elvis_result:new_item(
-                            "the arity of the anonymous function is higher than the configured "
-                            "limit",
+                            "the arity (~p) of the anonymous function is higher than the "
+                            "configured limit",
+                            [Arity],
                             #{node => Fun, limit => MaxArity}
                         )}
             end
@@ -2156,9 +2159,10 @@ character_at_location(
 -spec check_nesting_level(ktn_code:tree_node(), [integer()]) -> [elvis_result:item()].
 check_nesting_level(ParentNode, [MaxLevel]) ->
     NestedNodes = past_nesting_limit(ParentNode, MaxLevel),
-    Fun = fun(Node) ->
+    Fun = fun({Node, Level}) ->
         elvis_result:new_item(
-            "an expression is nested beyond the configured limit",
+            "an expression is nested (level = ~p) beyond the configured limit",
+            [Level],
             #{node => Node, limit => MaxLevel}
         )
     end,
@@ -2173,7 +2177,7 @@ past_nesting_limit(Node, MaxLevel) ->
     lists:reverse(ResultNodes).
 
 past_nesting_limit(Node, CurrentLevel, MaxLevel) when CurrentLevel > MaxLevel ->
-    [Node];
+    [{Node, CurrentLevel}];
 past_nesting_limit(#{content := Content}, CurrentLevel, MaxLevel) ->
     Fun = fun(ChildNode) ->
         Increment = level_increment(ChildNode),
