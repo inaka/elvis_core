@@ -1316,34 +1316,28 @@ is_ets_fun2ms(Node) ->
     ktn_code:attr(value, Module) =:= ets andalso ktn_code:attr(value, Fun2) =:= fun2ms.
 
 no_boolean_in_comparison(RuleCfg) ->
-    Root = root(RuleCfg),
-
-    IsBoolean =
-        fun(Node) ->
-            is_boolean(ktn_code:attr(value, Node))
+    OpNodes = elvis_code:find(#{
+        of_types => [op],
+        inside => root(RuleCfg),
+        filtered_by => fun(OpNode) ->
+            lists:member(ktn_code:attr(operation, OpNode), ['==', '=:=', '/=', '=/=']) andalso
+                lists:any(
+                    fun(OpContentNode) ->
+                        is_boolean(ktn_code:attr(value, OpContentNode))
+                    end,
+                    ktn_code:content(OpNode)
+                )
         end,
+        traverse => all
+    }),
 
-    IsComparisonWithBoolean =
-        fun(Node) ->
-            Content = ktn_code:content(Node),
-            ktn_code:type(Node) =:= op andalso
-                lists:member(ktn_code:attr(operation, Node), ['==', '=:=', '/=', '=/=']) andalso
-                lists:any(IsBoolean, Content)
-        end,
-    ComparisonsWithBoolean =
-        lists:uniq(
-            elvis_code:find(IsComparisonWithBoolean, Root, #{traverse => all})
-        ),
-
-    ResultFun =
-        fun(Node) ->
-            elvis_result:new_item(
-                "an avoidable comparison to boolean was found",
-                #{node => Node}
-            )
-        end,
-
-    lists:map(ResultFun, ComparisonsWithBoolean).
+    [
+        elvis_result:new_item(
+            "an avoidable comparison to boolean was found",
+            #{node => OpNode}
+        )
+     || OpNode <- lists:uniq(OpNodes)
+    ].
 
 no_receive_without_timeout(RuleCfg) ->
     Root = root(RuleCfg),
