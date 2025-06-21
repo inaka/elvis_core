@@ -1495,17 +1495,18 @@ no_import(RuleCfg) ->
     ].
 
 no_catch_expressions(RuleCfg) ->
-    Root = root(RuleCfg),
-    CatchNodes = elvis_code:find_by_types(['catch'], Root),
-    lists:map(
-        fun(CatchNode) ->
-            elvis_result:new_item(
-                "an unexpected 'catch' expression was found; prefer a 'try' expression",
-                #{node => CatchNode}
-            )
-        end,
-        CatchNodes
-    ).
+    CatchExprNodes = elvis_code:find(#{
+        of_types => ['catch'],
+        inside => root(RuleCfg)
+    }),
+
+    [
+        elvis_result:new_item(
+            "an unexpected 'catch' expression was found; prefer a 'try' expression",
+            #{node => CatchExprNode}
+        )
+     || CatchExprNode <- CatchExprNodes
+    ].
 
 no_single_clause_case(RuleCfg) ->
     Root = root(RuleCfg),
