@@ -1467,17 +1467,18 @@ no_dollar_space(RuleCfg) ->
     ].
 
 no_author(RuleCfg) ->
-    Root = root(RuleCfg),
-    Nodes = elvis_code:find_by_types([author], Root),
-    lists:map(
-        fun(Node) ->
-            elvis_result:new_item(
-                "avoidable attribute '-author' was found",
-                #{node => Node}
-            )
-        end,
-        Nodes
-    ).
+    AuthorNodes = elvis_code:find(#{
+        of_types => [author],
+        inside => root(RuleCfg)
+    }),
+
+    [
+        elvis_result:new_item(
+            "avoidable attribute '-author' was found",
+            #{node => AuthorNode}
+        )
+     || AuthorNode <- AuthorNodes
+    ].
 
 no_import(RuleCfg) ->
     Root = root(RuleCfg),
