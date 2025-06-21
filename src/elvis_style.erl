@@ -678,9 +678,7 @@ invalid_dynamic_call(RuleCfg) ->
                 elvis_code:find(#{
                     of_types => [call],
                     inside => Root,
-                    filtered_by => fun(CallNode) ->
-                        not HasCallbacks andalso is_dynamic_call(CallNode)
-                    end,
+                    filtered_by => fun is_dynamic_call/1,
                     traverse => all
                 })
         end,
