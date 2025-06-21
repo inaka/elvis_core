@@ -1172,15 +1172,23 @@ no_nested_try_catch(RuleCfg) ->
     ].
 
 no_successive_maps(RuleCfg) ->
-    Root = root(RuleCfg),
-    ResultFun = fun(Node) ->
+    MapExprNodes = elvis_code:find(#{
+        of_types => [map],
+        inside => root(RuleCfg),
+        filtered_by => fun(MapExprNode) ->
+            InnerVar = ktn_code:node_attr(var, MapExprNode),
+            ktn_code:type(InnerVar) =:= map
+        end,
+        traverse => content
+    }),
+
+    [
         elvis_result:new_item(
             "an unexpected map update after map construction/update was found",
-            #{node => Node}
+            #{node => MapExprNode}
         )
-    end,
-    MapExprs = elvis_code:find_by_types([map], Root, undefined, #{traverse => all}),
-    lists:flatmap(fun(MapExp) -> check_successive_maps(ResultFun, MapExp) end, MapExprs).
+     || MapExprNode <- MapExprNodes
+    ].
 
 atom_naming_convention(RuleCfg) ->
     Root = root(RuleCfg),
@@ -2506,20 +2514,6 @@ wildcard_match('_', _) ->
     true;
 wildcard_match(X, Y) ->
     X =:= Y.
-
-%% @doc No #{...}#{...}
-check_successive_maps(ResultFun, MapExp) ->
-    case ktn_code:node_attr(var, MapExp) of
-        undefined ->
-            [];
-        InnerVar ->
-            case ktn_code:type(InnerVar) of
-                map ->
-                    [ResultFun(InnerVar)];
-                _ ->
-                    []
-            end
-    end.
 
 %% Consistent Generic Type
 consistent_generic_type_predicate(TypePreference) ->
