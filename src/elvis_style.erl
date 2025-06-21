@@ -1449,19 +1449,22 @@ no_throw(RuleCfg) ->
     ].
 
 no_dollar_space(RuleCfg) ->
-    IsDollarSpace =
-        fun(Node) -> ktn_code:type(Node) =:= char andalso ktn_code:attr(text, Node) =:= "$ " end,
-    Root = root(RuleCfg),
-    DollarSpaceNodes = elvis_code:find(IsDollarSpace, Root, #{traverse => all}),
-    lists:map(
-        fun(ThrowNode) ->
-            elvis_result:new_item(
-                "unexpected character '$ ' was found; prefer $\\s",
-                #{node => ThrowNode}
-            )
+    CharNodes = elvis_code:find(#{
+        of_types => [char],
+        inside => root(RuleCfg),
+        filtered_by => fun(CharNode) ->
+            ktn_code:attr(text, CharNode) =:= "$ "
         end,
-        DollarSpaceNodes
-    ).
+        traverse => all
+    }),
+
+    [
+        elvis_result:new_item(
+            "unexpected character '$ ' was found; prefer $\\s",
+            #{node => CharNode}
+        )
+     || CharNode <- CharNodes
+    ].
 
 no_author(RuleCfg) ->
     Root = root(RuleCfg),
