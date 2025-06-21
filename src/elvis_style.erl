@@ -1151,15 +1151,25 @@ node_line_limits(FunctionNode) ->
     {Min, Max}.
 
 no_nested_try_catch(RuleCfg) ->
-    Root = root(RuleCfg),
-    ResultFun = fun(Node) ->
+    TryExprNodes = elvis_code:find(#{
+        of_types => ['try'],
+        inside => root(RuleCfg)
+    }),
+
+    InnerTryExprNodes = [
+        TryExprContentNode
+     || TryExprNode <- TryExprNodes,
+        TryExprContentNode <- ktn_code:content(TryExprNode),
+        ktn_code:type(TryExprContentNode) =:= 'try'
+    ],
+
+    [
         elvis_result:new_item(
             "an unexpected nested 'try...catch' expression was found",
-            #{node => Node}
+            #{node => InnerTryExprNode}
         )
-    end,
-    TryExprs = elvis_code:find_by_types(['try'], Root),
-    lists:flatmap(fun(TryExp) -> check_nested_try_catchs(ResultFun, TryExp) end, TryExprs).
+     || InnerTryExprNode <- InnerTryExprNodes
+    ].
 
 no_successive_maps(RuleCfg) ->
     Root = root(RuleCfg),
@@ -2496,20 +2506,6 @@ wildcard_match('_', _) ->
     true;
 wildcard_match(X, Y) ->
     X =:= Y.
-
-%% @doc No nested try...catch blocks
-check_nested_try_catchs(ResultFun, TryExp) ->
-    lists:filtermap(
-        fun(Node) ->
-            case ktn_code:type(Node) of
-                'try' ->
-                    {true, ResultFun(Node)};
-                _ ->
-                    false
-            end
-        end,
-        ktn_code:content(TryExp)
-    ).
 
 %% @doc No #{...}#{...}
 check_successive_maps(ResultFun, MapExp) ->
