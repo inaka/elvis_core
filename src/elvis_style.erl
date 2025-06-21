@@ -981,66 +981,72 @@ max_function_clause_length({_Config, Target, _RuleConfig} = RuleCfg) ->
     CountComments = option(count_comments, RuleCfg, max_function_length),
     CountWhitespace = option(count_whitespace, RuleCfg, max_function_length),
 
-    Root = root(RuleCfg),
     {Src, _} = elvis_file:src(Target),
     Lines = elvis_utils:split_all_lines(Src, [trim]),
 
-    Functions0 = elvis_code:find_by_types([function], Root),
+    ClauseZippers = elvis_code:find(#{
+        of_types => [clause],
+        inside => root(RuleCfg),
+        filtered_by => fun(ClauseZipper) ->
+            ktn_code:type(zipper:node(zipper:up(ClauseZipper))) =:= function
+        end,
+        filtered_from => zipper
+    }),
 
-    % clause
-    FilterClause =
+    % We do this to recover the clause number and apply the configured filters
+    {BigClauses, _} = lists:foldl(
+        fun(ClauseZipper, {BigClauses0, ClauseNum}) ->
+            FilteredLines = filtered_lines_in_clause(
+                ClauseZipper,
+                Lines,
+                CountComments,
+                CountWhitespace
+            ),
+            LineLen = length(FilteredLines),
+            {
+                case LineLen > MaxLength of
+                    true ->
+                        [{ClauseZipper, ClauseNum, LineLen} | BigClauses0];
+                    false ->
+                        BigClauses0
+                end,
+                ClauseNum + 1
+            }
+        end,
+        {[], 1},
+        ClauseZippers
+    ),
+
+    lists:map(
+        fun({ClauseZipper, ClauseNum, LineLen}) ->
+            FunctionNode = zipper:node(zipper:up(ClauseZipper)),
+
+            elvis_result:new_item(
+                "the code for the ~p clause of function '~p/~p' has ~p lines, which is higher than "
+                "the configured limit",
+                [
+                    parse_clause_num(ClauseNum),
+                    ktn_code:attr(name, FunctionNode),
+                    ktn_code:attr(arity, FunctionNode),
+                    LineLen
+                ],
+                #{node => FunctionNode, limit => MaxLength}
+            )
+        end,
+        lists:reverse(BigClauses)
+    ).
+
+filtered_lines_in_clause(ClauseZipper, Lines, CountComments, CountWhitespace) ->
+    ClauseNode = zipper:node(ClauseZipper),
+    {Min, Max} = node_line_limits(ClauseNode),
+    FunLines = lists:sublist(Lines, Min, Max - Min + 1),
+    lists:filter(
         fun(Line) ->
             (CountComments orelse not line_is_comment(Line)) andalso
                 (CountWhitespace orelse not line_is_whitespace(Line))
         end,
-
-    PairClause =
-        fun(ClauseNode, {Result, PrevAccNum}) ->
-            {Min, Max} = node_line_limits(ClauseNode),
-            FunLines = lists:sublist(Lines, Min, Max - Min + 1),
-            FilteredLines = lists:filter(FilterClause, FunLines),
-            L = length(FilteredLines),
-            AccNum = PrevAccNum + 1,
-            ClauseNumber = parse_clause_num(AccNum),
-            {[{Min, ClauseNumber, L} | Result], AccNum}
-        end,
-
-    % fun
-    PairFun =
-        fun(FunctionNode) ->
-            Name = ktn_code:attr(name, FunctionNode),
-            Arity = ktn_code:attr(arity, FunctionNode),
-
-            Clauses = elvis_code:find_by_types([clause], FunctionNode),
-
-            {ClauseLenInfos, _} = lists:foldl(PairClause, {[], 0}, Clauses),
-
-            [
-                {Name, Arity, Min, StringClauseNumber, L}
-             || {Min, StringClauseNumber, L} <- ClauseLenInfos
-            ]
-        end,
-
-    ClauseLenInfos =
-        lists:reverse(
-            lists:append(
-                lists:map(PairFun, Functions0)
-            )
-        ),
-
-    MaxLengthPred = fun({_, _, _, _, L}) -> L > MaxLength end,
-    ClauseLenMaxPairs = lists:filter(MaxLengthPred, ClauseLenInfos),
-
-    ResultFun =
-        fun({Name, Arity, StartPos, ClauseNumber, L}) ->
-            elvis_result:new_item(
-                "the code for the ~p clause of function '~p/~p' has ~p lines, which is higher than "
-                "the configured limit",
-                [ClauseNumber, Name, Arity, L],
-                #{line => StartPos, limit => MaxLength}
-            )
-        end,
-    lists:map(ResultFun, ClauseLenMaxPairs).
+        FunLines
+    ).
 
 parse_clause_num(Num) when Num rem 100 >= 11, Num rem 100 =< 13 ->
     integer_to_list(Num) ++ "th";
