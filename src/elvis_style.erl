@@ -1218,23 +1218,31 @@ atom_naming_convention(RuleCfg) ->
 no_init_lists(RuleCfg) ->
     Root = root(RuleCfg),
 
-    ListInitClauses =
+    InitClauseNodes =
         case is_relevant_behaviour(Root, RuleCfg) of
             true ->
-                IsInit1Function =
-                    fun(Node) ->
-                        ktn_code:type(Node) =:= function andalso
-                            ktn_code:attr(name, Node) =:= init andalso
-                            ktn_code:attr(arity, Node) =:= 1
-                    end,
+                FunctionNodes = elvis_code:find(#{
+                    of_types => [function],
+                    inside => Root,
+                    filtered_by => fun(FunctionNode) ->
+                        ktn_code:attr(name, FunctionNode) =:= init andalso
+                            ktn_code:attr(arity, FunctionNode) =:= 1
+                    end
+                }),
 
-                case elvis_code:find(IsInit1Function, Root) of
+                case FunctionNodes of
                     [] ->
                         [];
                     [Init1Fun] ->
                         Content = ktn_code:content(Init1Fun),
                         ListAttrClauses =
-                            lists:filtermap(fun filter_list_clause/1, Content),
+                            lists:filter(
+                                fun(Clause) ->
+                                    [Attribute] = ktn_code:node_attr(pattern, Clause),
+                                    is_list_node(Attribute)
+                                end,
+                                Content
+                            ),
                         case length(ListAttrClauses) =:= length(Content) of
                             true ->
                                 ListAttrClauses;
@@ -1246,16 +1254,14 @@ no_init_lists(RuleCfg) ->
                 []
         end,
 
-    ResultFun =
-        fun(Node) ->
-            elvis_result:new_item(
-                "an avoidable list was found as argumeent to 'init' callback; prefer tuples, maps "
-                "or records",
-                #{node => Node}
-            )
-        end,
-
-    lists:map(ResultFun, ListInitClauses).
+    [
+        elvis_result:new_item(
+            "an avoidable list was found as argumeent to 'init' callback; prefer tuples, maps "
+            "or records",
+            #{node => InitClauseNode}
+        )
+     || InitClauseNode <- InitClauseNodes
+    ].
 
 is_relevant_behaviour(Root, RuleCfg) ->
     ConfigBehaviors = option(behaviours, RuleCfg, no_init_lists),
@@ -1268,15 +1274,6 @@ is_relevant_behaviour(Root, RuleCfg) ->
         end,
         Behaviours
     ).
-
-filter_list_clause(Clause) ->
-    [Attribute] = ktn_code:node_attr(pattern, Clause),
-    case is_list_node(Attribute) of
-        true ->
-            {true, Clause};
-        false ->
-            false
-    end.
 
 is_list_node(#{type := cons}) ->
     true;
