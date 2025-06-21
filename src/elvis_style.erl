@@ -977,9 +977,9 @@ max_function_arity(RuleCfg) ->
     ).
 
 max_function_clause_length({_Config, Target, _RuleConfig} = RuleCfg) ->
-    MaxLength = option(max_length, RuleCfg, max_function_length),
-    CountComments = option(count_comments, RuleCfg, max_function_length),
-    CountWhitespace = option(count_whitespace, RuleCfg, max_function_length),
+    MaxLength = option(max_length, RuleCfg, ?FUNCTION_NAME),
+    CountComments = option(count_comments, RuleCfg, ?FUNCTION_NAME),
+    CountWhitespace = option(count_whitespace, RuleCfg, ?FUNCTION_NAME),
 
     {Src, _} = elvis_file:src(Target),
     Lines = elvis_utils:split_all_lines(Src, [trim]),
