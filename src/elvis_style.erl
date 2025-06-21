@@ -1287,31 +1287,25 @@ is_list_node(_) ->
 ms_transform_included(RuleCfg) ->
     Root = root(RuleCfg),
 
-    Functions = get_fun_2_ms_calls(Root),
-
-    IsIncluded = Functions =/= [] andalso has_include_ms_transform(Root),
-
-    case IsIncluded of
+    case has_include_ms_transform(Root) of
         true ->
             [];
         false ->
-            ResultFun =
-                fun(Function) ->
-                    elvis_result:new_item(
-                        "'ets:fun2ms/1' is used but the module is missing "
-                        "'-include_lib(\"stdlib/include/ms_transform.hrl\").'",
-                        #{node => Function}
-                    )
-                end,
-            lists:map(ResultFun, Functions)
+            FunctionNodes = elvis_code:find(#{
+                of_types => [call],
+                inside => Root,
+                filtered_by => fun is_ets_fun2ms/1
+            }),
+
+            [
+                elvis_result:new_item(
+                    "'ets:fun2ms/1' is used but the module is missing "
+                    "'-include_lib(\"stdlib/include/ms_transform.hrl\").'",
+                    #{node => FunctionNode}
+                )
+             || FunctionNode <- FunctionNodes
+            ]
     end.
-
--spec get_fun_2_ms_calls(ktn_code:tree_node()) -> [term()].
-get_fun_2_ms_calls(Root) ->
-    IsFun2MsFunctionCall =
-        fun(Node) -> is_call(Node) andalso is_ets_fun2ms(Node) end,
-
-    elvis_code:find(IsFun2MsFunctionCall, Root).
 
 -spec is_ets_fun2ms(ktn_code:tree_node()) -> boolean().
 is_ets_fun2ms(Node) ->
