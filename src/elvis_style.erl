@@ -358,11 +358,12 @@ errors_for_function_names(Regex, ForbiddenRegex, [Function | RemainingFunctions]
 %% @todo Use maps:groups_from_list/2 when we specify OTP25 as the minimum OTP version
 consistent_variable_casing(RuleCfg) ->
     Root = root(RuleCfg),
-    Vars = elvis_code:find(fun is_var/1, Root, #{traverse => all, mode => zipper}),
+    Vars = elvis_code:find(fun is_var/1, Root, #{traverse => all, filtered_from => zipper}),
     Grouped =
         maps:to_list(
             lists:foldr(
-                fun(Var, Acc) ->
+                fun(Var0, Acc) ->
+                    Var = zipper:node(Var0),
                     VarName = canonical_variable_name(Var),
                     maps:update_with(
                         string:uppercase(VarName),
@@ -404,7 +405,7 @@ variable_naming_convention(RuleCfg) ->
     Regex = option(regex, RuleCfg, variable_naming_convention),
     ForbiddenRegex = option(forbidden_regex, RuleCfg, variable_naming_convention),
     Root = root(RuleCfg),
-    Vars = elvis_code:find(fun is_var/1, Root, #{traverse => all, mode => zipper}),
+    Vars = elvis_code:find(fun is_var/1, Root, #{traverse => all, filtered_from => zipper}),
     check_variables_name(Regex, ForbiddenRegex, Vars).
 
 macro_names(RuleCfg) ->
@@ -1141,13 +1142,13 @@ atom_naming_convention(RuleCfg) ->
     IsAtomNode = fun(Node) ->
         ktn_code:type(zipper:node(Node)) =:= atom andalso not check_parent_remote(Node)
     end,
-    AtomNodes = elvis_code:find(IsAtomNode, Root, #{traverse => all, mode => zipper}),
+    AtomZippers = elvis_code:find(IsAtomNode, Root, #{traverse => all, filtered_from => zipper}),
     check_atom_names(
         Regex,
         ForbiddenRegex,
         RegexEnclosed,
         ForbiddenEnclosedRegex,
-        AtomNodes,
+        AtomZippers,
         []
     ).
 
@@ -1566,11 +1567,11 @@ param_pattern_matching(RuleCfg) ->
 
     FunctionClausePatterns =
         lists:flatmap(
-            fun(Clause) -> ktn_code:node_attr(pattern, Clause) end,
+            fun(Clause) -> ktn_code:node_attr(pattern, zipper:node(Clause)) end,
             elvis_code:find(
                 fun is_function_clause/1,
                 Root,
-                #{mode => zipper, traverse => all}
+                #{filtered_from => zipper, traverse => all}
             )
         ),
 
@@ -1814,16 +1815,17 @@ is_exception_or_non_reversible(non_reversible_form) ->
 is_exception_or_non_reversible(_) ->
     false.
 
-check_atom_names(_Regex, _, _RegexEnclosed, _, [] = _AtomNodes, Acc) ->
+check_atom_names(_Regex, _, _RegexEnclosed, _, [] = _AtomZippers, Acc) ->
     Acc;
 check_atom_names(
     Regex,
     ForbiddenRegex,
     RegexEnclosed,
     ForbiddenRegexEnclosed,
-    [AtomNode | RemainingAtomNodes],
+    [AtomZipper | RemainingAtomZippers],
     AccIn
 ) ->
+    AtomNode = zipper:node(AtomZipper),
     AtomName0 = ktn_code:attr(text, AtomNode),
     ValueAtomName = ktn_code:attr(value, AtomNode),
     {IsEnclosed, AtomName} = string_strip_enclosed(AtomName0),
@@ -1886,7 +1888,7 @@ check_atom_names(
         ForbiddenRegex,
         RegexEnclosed,
         ForbiddenRegexEnclosed,
-        RemainingAtomNodes,
+        RemainingAtomZippers,
         AccOut ++ AccIn
     ).
 
@@ -1911,7 +1913,8 @@ re_compile_for_atom_type(true = _IsEnclosed, _Regex, RegexEnclosed) ->
 %% Variables name
 check_variables_name(_Regex, _, []) ->
     [];
-check_variables_name(Regex, ForbiddenRegex, [Variable | RemainingVars]) ->
+check_variables_name(Regex, ForbiddenRegex, [VariableZipper | RemainingVars]) ->
+    Variable = zipper:node(VariableZipper),
     VariableNameStr = atom_to_list(ktn_code:attr(name, Variable)),
     case re:run(VariableNameStr, Regex) of
         nomatch when VariableNameStr =:= "_" ->

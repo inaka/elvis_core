@@ -176,7 +176,9 @@ apply_rules(Config, File) ->
 
 merge_rules({file, ParseTree}, ElvisConfigRules) ->
     ElvisAttrs =
-        elvis_code:find(fun is_elvis_attr/1, ParseTree, #{traverse => content, mode => node}),
+        elvis_code:find(fun is_elvis_attr/1, ParseTree, #{
+            traverse => content, filtered_from => node
+        }),
     ElvisAttrRules = elvis_attr_rules(ElvisAttrs),
     elvis_config:merge_rules(ElvisAttrRules, ElvisConfigRules).
 
