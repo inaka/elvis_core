@@ -425,6 +425,17 @@ verify_macro_names_rule(Config) ->
             macro_names,
             #{ignore => [fail_macro_names]},
             Path
+        ),
+
+    % forbidden
+    PathForbidden = "forbidden_macro_names." ++ Ext,
+    [_, _, _] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config,
+            elvis_style,
+            macro_names,
+            #{regex => "^[A-Za-z_, \-]+$", forbidden_regex => "FORBIDDEN"},
+            PathForbidden
         ).
 
 verify_no_macros(Config) ->

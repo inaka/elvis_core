@@ -111,7 +111,7 @@ default(no_init_lists) ->
             [gen_server, gen_statem, gen_fsm, supervisor, supervisor_bridge, gen_event]
     };
 default(macro_names) ->
-    #{regex => "^[A-Z](_?[A-Z0-9]+)*$"};
+    #{regex => "^[A-Z](_?[A-Z0-9]+)*$", forbidden_regex => undefined};
 default(operator_spaces) ->
     #{
         rules =>
@@ -357,7 +357,7 @@ default(RuleWithEmptyDefault) when
         max_length => integer()
     }.
 -type function_naming_convention_config() ::
-    #{ignore => [ignorable()], regex => string()}.
+    #{ignore => [ignorable()], regex => string(), forbidden_regex => string()}.
 -type binary_part() :: {Start :: non_neg_integer(), Length :: integer()}.
 
 -spec function_naming_convention(
@@ -466,7 +466,7 @@ check_variable_casing_consistency({_, [#{name := FirstName, var := FirstVar} | O
     end.
 
 -type variable_naming_convention_config() ::
-    #{ignore => [ignorable()], regex => string()}.
+    #{ignore => [ignorable()], regex => string(), forbidden_regex => string()}.
 
 -spec variable_naming_convention(
     elvis_config:config(),
@@ -481,15 +481,18 @@ variable_naming_convention(Config, Target, RuleConfig) ->
     Vars = elvis_code:find(fun is_var/1, Root, #{traverse => all, mode => zipper}),
     check_variables_name(Regex, ForbiddenRegex, Vars).
 
--type macro_names_config() :: #{ignore => [ignorable()], regex => string()}.
+-type macro_names_config() :: #{
+    ignore => [ignorable()], regex => string(), forbidden_regex => string()
+}.
 
 -spec macro_names(elvis_config:config(), elvis_file:file(), macro_names_config()) ->
     [elvis_result:item()].
 macro_names(Config, Target, RuleConfig) ->
     Root = get_root(Config, Target, RuleConfig),
-    Regexp = option(regex, RuleConfig, macro_names),
+    Regex = option(regex, RuleConfig, macro_names),
+    ForbiddenRegex = option(forbidden_regex, RuleConfig, macro_names),
     MacroNodes = elvis_code:find_by_types([define], Root, #{traverse => all, mode => node}),
-    check_macro_names(Regexp, MacroNodes, _ResultsIn = []).
+    check_macro_names(Regex, ForbiddenRegex, MacroNodes).
 
 -type no_macros_config() :: #{allow => [atom()], ignore => [ignorable()]}.
 
@@ -840,7 +843,9 @@ no_behavior_info(Config, Target, RuleConfig) ->
     end,
     lists:map(ResultFun, BehaviorInfos).
 
--type module_naming_convention_config() :: #{ignore => [ignorable()], regex => string()}.
+-type module_naming_convention_config() :: #{
+    ignore => [ignorable()], regex => string(), forbidden_regex => string()
+}.
 
 -spec module_naming_convention(
     elvis_config:config(),
@@ -1337,7 +1342,9 @@ no_successive_maps(Config, Target, RuleConfig) ->
     #{
         ignore => [ignorable()],
         regex => string(),
-        enclosed_atoms => same | string()
+        enclosed_atoms => same | string(),
+        forbidden_regex => string(),
+        forbidden_enclosed_regex => same | string()
     }.
 
 -spec atom_naming_convention(
@@ -2319,10 +2326,13 @@ line_is_whitespace(Line) ->
 
 %% Macro Names
 
-check_macro_names(_Regexp, [] = _MacroNodes, ResultsIn) ->
+check_macro_names(Regex, ForbiddenRegex, MacroNodes) ->
+    check_macro_names(Regex, ForbiddenRegex, MacroNodes, []).
+
+check_macro_names(_Regex, _ForbiddenRegex, [] = _MacroNodes, ResultsIn) ->
     ResultsIn;
-check_macro_names(Regexp, [MacroNode | RemainingMacroNodes], ResultsIn) ->
-    {ok, RE} = re:compile(Regexp, [unicode]),
+check_macro_names(Regex, ForbiddenRegex, [MacroNode | RemainingMacroNodes], ResultsIn) ->
+    {ok, RE} = re:compile(Regex, [unicode]),
     {MacroNameStripped0, MacroNameOriginal} = macro_name_from_node(MacroNode),
     MacroNameStripped = unicode:characters_to_list(MacroNameStripped0, unicode),
     ResultsOut =
@@ -2332,15 +2342,30 @@ check_macro_names(Regexp, [MacroNode | RemainingMacroNodes], ResultsIn) ->
                     elvis_result:new_item(
                         "the name of macro '~p' is not acceptable by "
                         "regular expression '~p'",
-                        [MacroNameOriginal, Regexp],
+                        [MacroNameOriginal, Regex],
                         #{node => MacroNode}
                     )
                     | ResultsIn
                 ];
+            {match, _Captured} when ForbiddenRegex == undefined ->
+                ResultsIn;
             {match, _Captured} ->
-                ResultsIn
+                case re:run(MacroNameStripped, ForbiddenRegex, [unicode]) of
+                    nomatch ->
+                        ResultsIn;
+                    {match, _} ->
+                        [
+                            elvis_result:new_item(
+                                "the name of macro '~p' is forbidden by "
+                                "regular expression '~p'",
+                                [MacroNameOriginal, ForbiddenRegex],
+                                #{node => MacroNode}
+                            )
+                            | ResultsIn
+                        ]
+                end
         end,
-    check_macro_names(Regexp, RemainingMacroNodes, ResultsOut).
+    check_macro_names(Regex, ForbiddenRegex, RemainingMacroNodes, ResultsOut).
 
 macro_name_from_node(MacroNode) ->
     MacroNodeValue = ktn_code:attr(value, MacroNode),
