@@ -707,29 +707,23 @@ used_ignored_variable(RuleCfg) ->
     ].
 
 no_behavior_info(RuleCfg) ->
-    Root = root(RuleCfg),
-    Children = ktn_code:content(Root),
+    BehaviourInfoNodes = elvis_code:find(#{
+        of_types => [function],
+        inside => root(RuleCfg),
+        filtered_by => fun(FunctionNode) ->
+            FunctionName = ktn_code:attr(name, FunctionNode),
+            lists:member(FunctionName, [behavior_info, behaviour_info])
+        end
+    }),
 
-    FilterFun =
-        fun(Node) ->
-            case ktn_code:type(Node) of
-                function ->
-                    Name = ktn_code:attr(name, Node),
-                    lists:member(Name, [behavior_info, behaviour_info]);
-                _ ->
-                    false
-            end
-        end,
-
-    BehaviorInfos = lists:filter(FilterFun, Children),
-    ResultFun = fun(Node) ->
+    [
         elvis_result:new_item(
             "an avoidable 'behavio[u]r_info/1' declaration was found; prefer '-callback' "
             "attributes",
-            #{node => Node}
+            #{node => BehaviourInfoNode}
         )
-    end,
-    lists:map(ResultFun, BehaviorInfos).
+     || BehaviourInfoNode <- BehaviourInfoNodes
+    ].
 
 module_naming_convention({_Config, Target, _RuleConfig} = RuleCfg) ->
     Regex = option(regex, RuleCfg, module_naming_convention),
