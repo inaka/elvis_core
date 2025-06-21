@@ -1427,21 +1427,26 @@ has_include_ms_transform(Root) ->
     elvis_code:find(Fun, Root) =/= [].
 
 no_throw(RuleCfg) ->
-    Zipper =
-        fun(Node) ->
-            lists:any(fun(T) -> is_call(Node, T) end, [{throw, 1}, {erlang, throw, 1}])
-        end,
-    Root = root(RuleCfg),
-    ThrowNodes = elvis_code:find(Zipper, Root),
-    lists:map(
-        fun(ThrowNode) ->
-            elvis_result:new_item(
-                "an avoidable call to 'throw/1' was found; prefer 'exit/1' or 'error/1'",
-                #{node => ThrowNode}
+    ThrowNodes = elvis_code:find(#{
+        of_types => [call],
+        inside => root(RuleCfg),
+        filtered_by => fun(OpNode) ->
+            lists:any(
+                fun(MFA) ->
+                    is_call(OpNode, MFA)
+                end,
+                [{throw, 1}, {erlang, throw, 1}]
             )
-        end,
-        ThrowNodes
-    ).
+        end
+    }),
+
+    [
+        elvis_result:new_item(
+            "an avoidable call to 'throw/1' was found; prefer 'exit/1' or 'error/1'",
+            #{node => ThrowNode}
+        )
+     || ThrowNode <- ThrowNodes
+    ].
 
 no_dollar_space(RuleCfg) ->
     IsDollarSpace =
@@ -2471,8 +2476,7 @@ call_mfa(Call) ->
     {M, F, A}.
 
 is_call(Node, {F, A}) ->
-    is_call(Node) andalso
-        list_to_atom(ktn_code:attr(text, Node)) =:= F andalso
+    list_to_atom(ktn_code:attr(text, Node)) =:= F andalso
         length(ktn_code:content(Node)) =:= A;
 is_call(Node, {M, F, A}) ->
     call_mfa(Node) =:= {M, F, A}.
