@@ -989,7 +989,7 @@ max_function_clause_length({_Config, Target, _RuleConfig} = RuleCfg) ->
         of_types => [clause],
         inside => root(RuleCfg),
         filtered_by => fun(ClauseZipper) ->
-            ktn_code:type(zipper:node(zipper:up(ClauseZipper))) =:= function
+            is_function_clause(ClauseZipper, [function])
         end,
         filtered_from => zipper
     }),
@@ -1616,59 +1616,67 @@ behaviour_spelling(RuleCfg) ->
 
 param_pattern_matching(RuleCfg) ->
     Side = option(side, RuleCfg, param_pattern_matching),
-    Root = root(RuleCfg),
 
-    FunctionClausePatterns =
-        lists:flatmap(
-            fun(Clause) -> ktn_code:node_attr(pattern, zipper:node(Clause)) end,
-            elvis_code:find(
-                fun is_function_clause/1,
-                Root,
-                #{filtered_from => zipper, traverse => all}
+    ClauseZippers = elvis_code:find(#{
+        of_types => [clause],
+        inside => root(RuleCfg),
+        filtered_by => fun(ClauseZipper) ->
+            is_function_clause(ClauseZipper, [function, 'fun'])
+        end,
+        filtered_from => zipper,
+        traverse => all
+    }),
+
+    MatchesInFunctionClauses =
+        lists:append(
+            lists:map(
+                fun(ClauseZipper) ->
+                    ClauseNode = zipper:node(ClauseZipper),
+                    ClausePatterns = ktn_code:node_attr(pattern, ClauseNode),
+                    lists:filter(
+                        fun(ClausePattern) ->
+                            ktn_code:type(ClausePattern) =:= match
+                        end,
+                        ClausePatterns
+                    )
+                end,
+                ClauseZippers
             )
         ),
 
-    IsMatch = fun(Node) -> ktn_code:type(Node) =:= match end,
-    MatchesInFunctionClauses = lists:filter(IsMatch, FunctionClausePatterns),
-
-    lists:filtermap(
+    MatchVars = lists:filtermap(
         fun(Match) ->
-            R =
-                case lists:map(fun ktn_code:type/1, ktn_code:content(Match)) of
-                    [var, var] ->
-                        false;
-                    [var, _] when Side =:= right ->
-                        [Var0, _] = ktn_code:content(Match),
-                        {true, {Side, Var0}};
-                    [_, var] when Side =:= left ->
-                        [_, Var0] = ktn_code:content(Match),
-                        {true, {Side, Var0}};
-                    _ ->
-                        false
-                end,
-            case R of
-                false ->
+            case lists:map(fun ktn_code:type/1, ktn_code:content(Match)) of
+                [var, var] ->
                     false;
-                {true, {Side, Var}} ->
-                    {true,
-                        elvis_result:new_item(
-                            "variable '~p' is used to match an argument, but placed on "
-                            "the wrong side of it; prefer the ~p side",
-                            [ktn_code:attr(name, Var), Side],
-                            #{node => Match}
-                        )}
+                [var, _] when Side =:= right ->
+                    [Var, _] = ktn_code:content(Match),
+                    {true, {Match, Var}};
+                [_, var] when Side =:= left ->
+                    [_, Var] = ktn_code:content(Match),
+                    {true, {Match, Var}};
+                _ ->
+                    false
             end
         end,
         MatchesInFunctionClauses
-    ).
+    ),
 
-is_function_clause(Zipper) ->
-    Node = zipper:node(Zipper),
-    ktn_code:type(Node) =:= clause andalso is_function_or_fun(zipper:up(Zipper)).
+    [
+        elvis_result:new_item(
+            "variable '~p' is used to match an argument, but placed on "
+            "the wrong side of it; prefer the ~p side",
+            [ktn_code:attr(name, Var), Side],
+            #{node => Match}
+        )
+     || {Match, Var} <- MatchVars
+    ].
 
-is_function_or_fun(Zipper) ->
-    Node = zipper:node(Zipper),
-    ktn_code:type(Node) =:= function orelse ktn_code:type(Node) =:= 'fun'.
+is_function_clause(ClauseZipper, ParentNodeTypes) ->
+    ClauseParent = zipper:up(ClauseZipper),
+    ParentNode = zipper:node(ClauseParent),
+    ParentNodeType = ktn_code:type(ParentNode),
+    lists:member(ParentNodeType, ParentNodeTypes).
 
 consistent_generic_type(RuleCfg) ->
     TypePreference = option(preferred_type, RuleCfg, consistent_generic_type),
