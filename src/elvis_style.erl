@@ -1340,22 +1340,20 @@ no_boolean_in_comparison(RuleCfg) ->
     ].
 
 no_receive_without_timeout(RuleCfg) ->
-    Root = root(RuleCfg),
+    ReceiveExprNodes = elvis_code:find(#{
+        of_types => ['receive'],
+        inside => root(RuleCfg),
+        filtered_by => fun is_receive_without_timeout/1
+    }),
 
-    Receives = elvis_code:find_by_types(['receive'], Root),
-
-    ReceivesWithoutTimeout = lists:filter(fun is_receive_without_timeout/1, Receives),
-
-    ResultFun =
-        fun(Node) ->
-            elvis_result:new_item(
-                "a 'receive' expression was found without an 'after' clause; "
-                "prefer to include 'after' in 'receive' expressions",
-                #{node => Node}
-            )
-        end,
-
-    lists:map(ResultFun, ReceivesWithoutTimeout).
+    [
+        elvis_result:new_item(
+            "a 'receive' expression was found without an 'after' clause; "
+            "prefer to include 'after' in 'receive' expressions",
+            #{node => ReceiveExprNode}
+        )
+     || ReceiveExprNode <- ReceiveExprNodes
+    ].
 
 is_receive_without_timeout(Receive) ->
     [] == elvis_code:find_by_types([receive_after], Receive).
