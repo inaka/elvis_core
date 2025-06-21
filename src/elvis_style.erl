@@ -680,13 +680,38 @@ no_if_expression(RuleCfg) ->
 
 invalid_dynamic_call(RuleCfg) ->
     Root = root(RuleCfg),
+    HasCallbacks = has_callbacks(Root),
+    InvalidCallNodes =
+        case HasCallbacks of
+            true ->
+                [];
+            false ->
+                elvis_code:find(#{
+                    of_types => [call],
+                    inside => Root,
+                    filtered_by => fun(CallNode) ->
+                        not HasCallbacks andalso is_dynamic_call(CallNode)
+                    end,
+                    traverse => all
+                })
+        end,
 
-    case elvis_code:find_by_types([callback], Root) of
-        [] ->
-            check_invalid_dynamic_calls(Root);
-        _Callbacks ->
-            []
-    end.
+    [
+        elvis_result:new_item(
+            "an unexpected dynamic function call was found; prefer "
+            "making dynamic calls only in modules that define callbacks",
+            #{node => InvalidCallNode}
+        )
+     || InvalidCallNode <- InvalidCallNodes
+    ].
+
+has_callbacks(Root) ->
+    elvis_code:find(
+        #{
+            of_types => [callback],
+            inside => Root
+        }
+    ) =/= [].
 
 used_ignored_variable(RuleCfg) ->
     IgnoredVarZippers = elvis_code:find(
@@ -2154,18 +2179,6 @@ level_increment(#{type := Type}) ->
     end.
 
 %% Invalid Dynamic Calls
-
--spec check_invalid_dynamic_calls(ktn_code:tree_node()) -> [elvis_result:item()].
-check_invalid_dynamic_calls(Root) ->
-    InvalidCalls = elvis_code:find(fun is_dynamic_call/1, Root, #{traverse => all}),
-    ResultFun = fun(Node) ->
-        elvis_result:new_item(
-            "an unexpected dynamic function call was found; prefer "
-            "making dynamic calls only in modules that define callbacks",
-            #{node => Node}
-        )
-    end,
-    lists:map(ResultFun, InvalidCalls).
 
 -spec is_dynamic_call(ktn_code:tree_node()) -> boolean().
 is_dynamic_call(Node) ->
