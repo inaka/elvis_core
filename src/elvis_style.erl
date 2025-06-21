@@ -412,16 +412,14 @@ macro_names(RuleCfg) ->
     Regexp = option(regex, RuleCfg, macro_names),
     RE = re_compile(Regexp, [unicode]),
 
-    MacroNodes = elvis_code:find(
-        #{
-            of_types => [define],
-            inside => root(RuleCfg),
-            filtered_by => fun(MacroNode) ->
-                re:run(macro_name_from(MacroNode, stripped), RE) =:= nomatch
-            end,
-            traverse => all
-        }
-    ),
+    MacroNodes = elvis_code:find(#{
+        of_types => [define],
+        inside => root(RuleCfg),
+        filtered_by => fun(MacroNode) ->
+            re:run(macro_name_from(MacroNode, stripped), RE) =:= nomatch
+        end,
+        traverse => all
+    }),
 
     [
         elvis_result:new_item(
@@ -436,16 +434,14 @@ macro_names(RuleCfg) ->
 no_macros(RuleCfg) ->
     AllowedMacros = option(allow, RuleCfg, no_macros) ++ eep_predef_macros() ++ logger_macros(),
 
-    MacroNodes = elvis_code:find(
-        #{
-            of_types => [macro],
-            inside => root(RuleCfg),
-            filtered_by => fun(MacroNode) ->
-                Macro = list_to_atom(ktn_code:attr(name, MacroNode)),
-                not lists:member(Macro, AllowedMacros)
-            end
-        }
-    ),
+    MacroNodes = elvis_code:find(#{
+        of_types => [macro],
+        inside => root(RuleCfg),
+        filtered_by => fun(MacroNode) ->
+            Macro = list_to_atom(ktn_code:attr(name, MacroNode)),
+            not lists:member(Macro, AllowedMacros)
+        end
+    }),
 
     [
         elvis_result:new_item(
@@ -457,12 +453,10 @@ no_macros(RuleCfg) ->
     ].
 
 no_types(RuleCfg) ->
-    TypeAttrNodes = elvis_code:find(
-        #{
-            of_types => [type_attr],
-            inside => root(RuleCfg)
-        }
-    ),
+    TypeAttrNodes = elvis_code:find(#{
+        of_types => [type_attr],
+        inside => root(RuleCfg)
+    }),
 
     [
         elvis_result:new_item(
@@ -475,12 +469,10 @@ no_types(RuleCfg) ->
     ].
 
 no_nested_hrls(RuleCfg) ->
-    IncludeNodes = elvis_code:find(
-        #{
-            of_types => [include, include_lib],
-            inside => root(RuleCfg)
-        }
-    ),
+    IncludeNodes = elvis_code:find(#{
+        of_types => [include, include_lib],
+        inside => root(RuleCfg)
+    }),
 
     [
         elvis_result:new_item(
@@ -493,12 +485,10 @@ no_nested_hrls(RuleCfg) ->
     ].
 
 no_specs(RuleCfg) ->
-    SpecNodes = elvis_code:find(
-        #{
-            of_types => [spec],
-            inside => root(RuleCfg)
-        }
-    ),
+    SpecNodes = elvis_code:find(#{
+        of_types => [spec],
+        inside => root(RuleCfg)
+    }),
 
     [
         elvis_result:new_item(
@@ -510,13 +500,11 @@ no_specs(RuleCfg) ->
     ].
 
 no_block_expressions(RuleCfg) ->
-    BlockExprs = elvis_code:find(
-        #{
-            of_types => ['begin'],
-            inside => tokens_as_content(root(RuleCfg)),
-            traverse => all
-        }
-    ),
+    BlockExprs = elvis_code:find(#{
+        of_types => ['begin'],
+        inside => tokens_as_content(root(RuleCfg)),
+        traverse => all
+    }),
 
     [
         elvis_result:new_item(
@@ -706,22 +694,18 @@ invalid_dynamic_call(RuleCfg) ->
     ].
 
 has_callbacks(Root) ->
-    elvis_code:find(
-        #{
-            of_types => [callback],
-            inside => Root
-        }
-    ) =/= [].
+    elvis_code:find(#{
+        of_types => [callback],
+        inside => Root
+    }) =/= [].
 
 used_ignored_variable(RuleCfg) ->
-    IgnoredVarZippers = elvis_code:find(
-        #{
-            of_types => [var],
-            inside => root(RuleCfg),
-            filtered_by => fun is_ignored_var/1,
-            filtered_from => zipper
-        }
-    ),
+    IgnoredVarZippers = elvis_code:find(#{
+        of_types => [var],
+        inside => root(RuleCfg),
+        filtered_by => fun is_ignored_var/1,
+        filtered_from => zipper
+    }),
 
     [
         elvis_result:new_item(
@@ -833,16 +817,7 @@ no_spec_with_records(RuleCfg) ->
     SpecWithRecordNodes = elvis_code:find(#{
         of_types => [spec],
         inside => root(RuleCfg),
-        filtered_by => fun(SpecNode) ->
-            elvis_code:find(#{
-                of_types => [type],
-                inside => SpecNode,
-                filtered_by => fun(TypeInSpecNode) ->
-                    ktn_code:attr(name, TypeInSpecNode) =:= record
-                end,
-                traverse => all
-            }) =/= []
-        end
+        filtered_by => fun spec_has_records/1
     }),
 
     [
@@ -853,6 +828,16 @@ no_spec_with_records(RuleCfg) ->
         )
      || SpecWithRecordNode <- SpecWithRecordNodes
     ].
+
+spec_has_records(SpecNode) ->
+    elvis_code:find(#{
+        of_types => [type],
+        inside => SpecNode,
+        filtered_by => fun(TypeInSpecNode) ->
+            ktn_code:attr(name, TypeInSpecNode) =:= record
+        end,
+        traverse => all
+    }) =/= [].
 
 dont_repeat_yourself(RuleCfg) ->
     MinComplexity = option(min_complexity, RuleCfg, dont_repeat_yourself),
