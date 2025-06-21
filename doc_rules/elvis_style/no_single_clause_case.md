@@ -1,6 +1,6 @@
-# No Single-Clause Case Statements [![](https://img.shields.io/badge/since-3.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/3.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
+# No Single-Clause Case Expressions [![](https://img.shields.io/badge/since-3.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/3.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
-Single-clause case statements should be avoided.
+Single-clause case expressions should be avoided.
 
 ## Avoid
 
@@ -22,7 +22,7 @@ do:something("else")
 Using a `case` expression with only one clause is unnecessary and reduces code clarity. It adds
 syntactic overhead without providing meaningful branching logic. In such cases, a let-style
 assignment or direct pattern matching is typically more appropriate and idiomatic. Removing
-single-clause case statements also improves readability and simplifies the control flow.
+single-clause case expressions also improves readability and simplifies the control flow.
 
 ## Options
 

@@ -12,18 +12,6 @@
 
 -export_type([line_length_config/0, no_trailing_whitespace_config/0]).
 
--define(LINE_LENGTH_MSG, "Line ~p is too long. It has ~p characters.").
--define(NO_TABS_MSG, "Line ~p has a tab at column ~p.").
--define(NO_TRAILING_WHITESPACE_MSG, "Line ~b has ~b trailing whitespace characters.").
--define(ATOM_PREFERRED_QUOTES_MSG,
-    "Atom ~p on line ~p is quoted "
-    "but quotes are not needed."
-).
--define(NO_REDUNDANT_BLANK_LINES_MSG,
-    "Too many blank lines at line ~p. ~p sequential blank lines found,"
-    "when the maximum is set to ~p."
-).
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -127,11 +115,15 @@ check_atom_quotes([AtomNode | RemainingAtomNodes], AccIn) ->
     AccOut =
         case needs_quoting(AtomName) of
             false ->
-                Msg = ?ATOM_PREFERRED_QUOTES_MSG,
-                {Line, _} = ktn_code:attr(location, AtomNode),
-                Info = [AtomName, Line],
-                Result = elvis_result:new(item, Msg, Info, Line),
-                AccIn ++ [Result];
+                [
+                    elvis_result:new_item(
+                        "unnecessarily quoted atom '~p' was found; prefer removing the quotes when "
+                        "not syntactically required",
+                        [AtomName],
+                        #{node => AtomNode}
+                    )
+                    | AccIn
+                ];
             _ ->
                 AccIn
         end,
@@ -147,8 +139,11 @@ no_redundant_blank_lines(_Config, Target, RuleConfig) ->
     ResultFun =
         fun
             ({Line, BlankLinesLength}) when BlankLinesLength >= MaxLines ->
-                Info = [Line, BlankLinesLength, MaxLines],
-                {true, elvis_result:new(item, ?NO_REDUNDANT_BLANK_LINES_MSG, Info, Line)};
+                {true,
+                    elvis_result:new_item(
+                        "there are too many blank lines; prefer respecting the configured limit",
+                        #{line => Line, limit => BlankLinesLength}
+                    )};
             (_) ->
                 false
         end,
@@ -216,21 +211,21 @@ check_line_length(Line0, Num, [Limit, Encoding, NoWhitespace]) ->
         Len when Len =< Limit ->
             no_result;
         Len when NoWhitespace ->
-            Msg = ?LINE_LENGTH_MSG,
-            Info = [Num, Len],
-            Result = elvis_result:new(item, Msg, Info, Num),
-            {ok, Result};
+            {ok, line_length_res(Num, Len)};
         Len ->
             case binary:match(Line, <<"\s">>, [{scope, {Limit, Len - Limit}}]) of
                 {_, _} ->
-                    Msg = ?LINE_LENGTH_MSG,
-                    Info = [Num, Len],
-                    Result = elvis_result:new(item, Msg, Info, Num),
-                    {ok, Result};
+                    {ok, line_length_res(Num, Len)};
                 nomatch ->
                     no_result
             end
     end.
+
+line_length_res(Num, Len) ->
+    elvis_result:new_item(
+        "there are too many characters; prefer respecting the configured limit",
+        #{line => Num, limit => Len}
+    ).
 
 %% No Tabs
 
@@ -240,10 +235,11 @@ check_no_tabs(Line, Num) ->
         nomatch ->
             no_result;
         {Index, _} ->
-            Msg = ?NO_TABS_MSG,
-            Info = [Num, Index],
-            Result = elvis_result:new(item, Msg, Info, Num),
-            {ok, Result}
+            {ok,
+                elvis_result:new_item(
+                    "an unexpected tab character was found; prefer spaces",
+                    #{line => Num, column => Index}
+                )}
     end.
 
 %% No Trailing Whitespace
@@ -264,10 +260,12 @@ check_no_trailing_whitespace(Line, Num, IgnoreEmptyLines) ->
         nomatch ->
             no_result;
         {match, [PosLen]} ->
-            Msg = ?NO_TRAILING_WHITESPACE_MSG,
-            Info = [Num, size(binary:part(Line, PosLen))],
-            Result = elvis_result:new(item, Msg, Info, Num),
-            {ok, Result}
+            {ok,
+                elvis_result:new_item(
+                    "there are too many trailing whitespace characters; "
+                    "prefer respecting the configured limit",
+                    #{line => Num, limit => byte_size(binary:part(Line, PosLen))}
+                )}
     end.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -22,8 +22,6 @@
 -type config() :: map().
 -type configs() :: [config()].
 
--define(DEFAULT_FILTER, "*.erl").
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Public
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -127,19 +125,19 @@ is_invalid_rule({Module, RuleName, _}) ->
     is_invalid_rule({Module, RuleName});
 is_invalid_rule({Module, RuleName}) ->
     maybe
-        {file, _} ?= code:is_loaded(Module),
+        {module, Module} ?= code:ensure_loaded(Module),
         ExportedRules = erlang:get_module_info(Module, exports),
-        case lists:keyfind(RuleName, 1, ExportedRules) of
+        case lists:keymember(RuleName, 1, ExportedRules) of
             false -> {true, {invalid_rule, {Module, RuleName}}};
             _ -> false
         end
     else
-        false ->
+        {error, _} ->
             elvis_utils:warn_prn(
                 "Invalid module (~p) specified in elvis.config.~n",
                 [Module]
             ),
-            false
+            {true, {invalid_rule, {Module, RuleName}}}
     end.
 
 -spec normalize(configs()) -> configs().
@@ -176,7 +174,7 @@ filter(Config) when is_list(Config) ->
 filter(#{filter := Filter}) ->
     Filter;
 filter(#{}) ->
-    ?DEFAULT_FILTER.
+    "*.erl".
 
 -spec files(RuleGroup :: configs() | config()) -> [elvis_file:file()].
 files(RuleGroup) when is_list(RuleGroup) ->
@@ -225,7 +223,7 @@ resolve_files(RuleGroup, Files) ->
                         warn,
                         "Searching for files in ~p, for ruleset ~p, "
                         "with filter ~p, yielded none. "
-                        "Update your configuration.",
+                        "Update your configuration",
                         [Dirs, RuleSet, Filter]
                     ),
                 ok = elvis_result:print_results([Error]);

@@ -10,25 +10,18 @@
     verify_old_config_format/1
 ]).
 
--define(EXCLUDED_FUNS, [module_info, all, test, init_per_suite, end_per_suite]).
-
--type config() :: [{atom(), term()}].
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Common test
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec all() -> [atom()].
 all() ->
     Exports = ?MODULE:module_info(exports),
-    [F || {F, _} <- Exports, not lists:member(F, ?EXCLUDED_FUNS)].
+    [F || {F, _} <- Exports, not lists:member(F, elvis_test_utils:excluded_funs_all())].
 
--spec init_per_suite(config()) -> config().
 init_per_suite(Config) ->
     {ok, _} = application:ensure_all_started(elvis_core),
     Config.
 
--spec end_per_suite(config()) -> config().
 end_per_suite(Config) ->
     ok = application:stop(elvis_core),
     Config.
@@ -37,7 +30,6 @@ end_per_suite(Config) ->
 %% Test Cases
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec verify_no_branch_deps(config()) -> any().
 verify_no_branch_deps(_Config) ->
     ElvisConfig = elvis_test_utils:config(rebar_config),
     SrcDirs = elvis_config:dirs(ElvisConfig),
@@ -56,7 +48,6 @@ verify_no_branch_deps(_Config) ->
     RuleConfig2 = #{ignore => [getopt]},
     [_, _, _] = elvis_project:no_branch_deps(ElvisConfig, File, RuleConfig2).
 
--spec verify_protocol_for_deps(config()) -> any().
 verify_protocol_for_deps(_Config) ->
     ElvisConfig = elvis_test_utils:config(rebar_config),
     SrcDirs = elvis_config:dirs(ElvisConfig),
@@ -86,7 +77,6 @@ verify_protocol_for_deps(_Config) ->
     [_, _, _, _, _, _, _, _, _, _] =
         elvis_project:protocol_for_deps(ElvisConfig, File, RuleConfig2).
 
--spec verify_hex_dep(config()) -> any().
 verify_hex_dep(_Config) ->
     ElvisConfig = elvis_test_utils:config(rebar_config),
     SrcDirs = elvis_config:dirs(ElvisConfig),
@@ -101,7 +91,6 @@ verify_hex_dep(_Config) ->
 
     [] = elvis_project:protocol_for_deps(ElvisConfig, File2, #{}).
 
--spec verify_old_config_format(config()) -> any().
 verify_old_config_format(_Config) ->
     ElvisConfig = elvis_test_utils:config(elvis_config),
     SrcDirs = elvis_config:dirs(ElvisConfig),

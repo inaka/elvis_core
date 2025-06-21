@@ -17,8 +17,8 @@
         , unicode_characters/0
         , windows_newlines/0
         , this/0
-        , this/2
-        , use_record/0
+, this/2
+        , use_record/0, dot_alone_1/0, dot_alone_2/0, dot_alone/1, colon_hurrah/0, colon_hurrah_2/0
         ]).
 
 -define(MACRO, "Brujo loves these").
@@ -91,7 +91,7 @@ tag_filters(DocName, #{conn := Conn} = State ) ->
   Values = [],
   case {Conn, Sql, Values} of
     {ok, Maps, _} ->
-      {ok, {raw, Maps}, State};
+      {ok, {raw, Maps}, State} ;
     {error, Error, _} ->
       {error, Error, State}
   end.
@@ -118,4 +118,29 @@ this(shouldnt_either, _A)
 - 2, A, $ . 
 
 use_record() ->
-    # a{one = 1, two = ? MACRO}.
+    # a{one = 1, two = ? MACRO} .
+
+dot_alone_1() ->
+    "The dot is in the next line"
+.
+
+dot_alone_2() ->
+    "The dot is in the next line"
+    .
+
+dot_alone(a) ->
+    "The ; is in the next line"
+;
+dot_alone(b) ->
+    "The ; is in the next line"
+    ;
+dot_alone(c) ->
+    ok.
+
+colon_hurrah() ->
+    m
+:a().
+
+colon_hurrah_2() ->
+    m
+  :a().

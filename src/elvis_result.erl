@@ -3,7 +3,7 @@
 -compile({no_auto_import, [error/2]}).
 
 %% API
--export([new/3, new/4, status/1, clean/1, print_results/1]).
+-export([new_item/1, new_item/2, new_item/3, new/3, new/4, status/1, clean/1, print_results/1]).
 -export([
     get_path/1,
     get_rules/1,
@@ -15,7 +15,7 @@
 ]).
 
 %% Types
--export_type([item/0, rule/0, file/0, elvis_error/0, elvis_warn/0]).
+-export_type([item/0, rule/0, file/0, elvis_error/0, elvis_warn/0, attrs/0]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Records
@@ -24,8 +24,9 @@
 -type item() ::
     #{
         message => string(),
-        info => iodata(),
-        line_num => integer()
+        info => [term()],
+        line_num => -1 | non_neg_integer(),
+        column_num => -1 | non_neg_integer()
     }.
 -type rule() ::
     #{
@@ -36,6 +37,12 @@
 -type file() :: #{file => string(), rules => [rule()]}.
 -type elvis_error() :: #{error_msg => string(), info => list()}.
 -type elvis_warn() :: #{warn_msg => string(), info => list()}.
+-type attrs() :: #{
+    node => ktn_code:tree_node(),
+    line => -1 | non_neg_integer(),
+    column => -1 | non_neg_integer(),
+    limit => -1 | non_neg_integer()
+}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Public
@@ -43,14 +50,44 @@
 
 %% New
 
+-spec new_item(Format :: string()) -> item().
+new_item(Format) ->
+    new_item(Format, []).
+
+-spec new_item(Format :: string(), DataOrAttrs :: [term()] | attrs()) -> item().
+new_item(Format, Data) ->
+    new_item(Format, Data, #{}).
+
+-spec new_item(Format :: string(), DataOrAttrs :: [term()] | attrs(), Attrs :: attrs()) -> item().
+new_item(Format, Data0, Attrs0) ->
+    {Data, Attrs} =
+        case is_map(Data0) of
+            true ->
+                {[], maps:merge(Data0, Attrs0)};
+            _ ->
+                {Data0, Attrs0}
+        end,
+    Attrs1 = extend_attrs_with_line_and_column(Attrs),
+    Line = maps:get(line, Attrs1, -1),
+    Limit = maps:get(limit, Attrs1, -1),
+    Column = maps:get(column, Attrs1, -1),
+    new(item, Format, Data, {Line, Column}, Limit).
+
+extend_attrs_with_line_and_column(#{node := Node} = Attrs) ->
+    {Line, Column} = ktn_code:attr(location, Node),
+    Attrs#{line => Line, column => Column};
+extend_attrs_with_line_and_column(Attrs) ->
+    Attrs.
+
 -spec new
     (item, string(), [term()]) -> item();
     (rule, {atom(), atom()}, [item()]) -> rule();
     (file, elvis_file:file(), [elvis_error() | rule()]) -> file();
     (error, string(), string()) -> elvis_error();
     (warn, string(), string()) -> elvis_warn().
+% new(item, ...) is kept for backward compatibility, but discouraged
 new(item, Msg, Info) ->
-    new(item, Msg, Info, 0);
+    new_item(Msg, Info);
 new(rule, {Scope, Name}, Results) ->
     #{
         scope => Scope,
@@ -66,10 +103,38 @@ new(warn, Msg, Info) ->
 
 -spec new(item, string(), [term()], integer()) -> item().
 new(item, Msg, Info, LineNum) ->
+    new_item(Msg, Info, #{line => LineNum}).
+
+new(item, Msg0, Info, {Line, Column}, Limit) ->
+    Prefix0 =
+        case Line of
+            -1 ->
+                "";
+            _ ->
+                "At line " ++ integer_to_list(Line) ++ ", "
+        end,
+    Prefix1 =
+        case Column of
+            -1 ->
+                Prefix0;
+            _ when Line =:= -1 ->
+                "";
+            _ ->
+                Prefix0 ++ "column " ++ integer_to_list(Column) ++ ", "
+        end,
+    LimitSuffix =
+        case Limit of
+            -1 ->
+                "";
+            _ ->
+                " (limit: " ++ integer_to_list(Limit) ++ ")"
+        end,
+
     #{
-        message => Msg,
+        message => Prefix1 ++ Msg0 ++ LimitSuffix ++ ".",
         info => Info,
-        line_num => LineNum
+        line_num => Line,
+        column_num => Column
     }.
 
 %% Getters

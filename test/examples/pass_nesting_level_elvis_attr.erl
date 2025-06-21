@@ -134,6 +134,7 @@ exceed_with_receive() ->
                          false -> false
                      end;
                  4 -> ok
+             after 1000 -> ok
              end;
         3 -> 3
     end.
@@ -181,6 +182,7 @@ exceed_with_list_compr() ->
                        end
                        || X <- [1, 2, 3]];
                  4 -> ok
+             after 1000 -> ok
              end;
         3 -> 3
     end.
@@ -193,6 +195,7 @@ exceed_with_fun() ->
                  2 -> ok;
                  3 -> fun() -> ok end;
                  4 -> ok
+             after 1000 -> ok
              end;
         3 -> 3
     end.
@@ -205,6 +208,7 @@ dont_exceed_with_fun() ->
                  2 -> ok;
                  3 -> fun erlang:display/1;
                  4 -> ok
+             after 1000 -> ok
              end;
         3 -> 3
     end.

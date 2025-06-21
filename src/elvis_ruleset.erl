@@ -119,7 +119,6 @@ elvis_style_rules() ->
         {elvis_style, function_naming_convention},
         {elvis_style, god_modules},
         {elvis_style, invalid_dynamic_call},
-        {elvis_style, macro_module_names},
         {elvis_style, macro_names},
         {elvis_style, max_anonymous_function_arity},
         {elvis_style, max_function_arity},
@@ -137,6 +136,7 @@ elvis_style_rules() ->
         {elvis_style, no_match_in_condition},
         {elvis_style, no_nested_try_catch},
         {elvis_style, no_operation_on_same_value},
+        {elvis_style, no_receive_without_timeout},
         {elvis_style, no_single_clause_case},
         {elvis_style, no_single_match_maybe},
         {elvis_style, no_space_after_pound},
@@ -197,7 +197,6 @@ doesnt_work_on_beam_files() ->
 
 not_on_beam() ->
     [
-        {elvis_style, macro_module_names},
         {elvis_style, macro_names},
         {elvis_style, max_function_clause_length},
         {elvis_style, max_function_length},

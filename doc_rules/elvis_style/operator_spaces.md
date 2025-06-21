@@ -22,43 +22,50 @@ compromised without adequate spacing.
   - default:
 
 ```erlang
-          [{left, "!"}, {right, "!"}, {left, "*"}, {right, "*"}
-         , {left, "+"}, {right, "+"}, {left, "++"}, {right, "++"}
-         , {left, "-"}, {right, "-"}, {left, "--"}, {right, "--"}
-         , {left, "->"}, {right, "->"}, {left, "/"}, {right, "/"}
-         , {left, "/="}, {right, "/="}, {left, "::"}, {right, "::"}
-         , {left, ":="}, {right, ":="}, {left, "<"}, {right, "<"}
-         , {left, "<-"}, {right, "<-"}, {left, "<="}, {right, "<="}
-         , {left, "="}, {right, "="}, {left, "=/="}, {right, "=/="}
-         , {left, "=:="}, {right, "=:="}, {left, "=<"}, {right, "=<"}
-         , {left, "=="}, {right, "=="}, {left, "=>"}, {right, "=>"}
-         , {left, ">"}, {right, ">"}, {left, ">="}, {right, ">="}
-         , {left, "|"}, {right, "|"}, {left, "||"}, {right, "||"}
-         , {right, ","}]
+          [{right, "++"}, {left, "++"}, {right, "="}, {left, "="}
+         , {right, "+"}, {left, "+"}, {right, "-"}, {left, "-"}
+         , {right, "*"}, {left, "*"}, {right, "/"}, {left, "/"}
+         , {right, "=<"}, {left, "=<"}, {right, "<"}, {left, "<"}
+         , {right, ">"}, {left, ">"}, {right, ">="}, {left, ">="}
+         , {right, "=="}, {left, "=="}, {right, "=:="}, {left, "=:="}
+         , {right, "/="}, {left, "/="}, {right, "=/="}, {left, "=/="}
+         , {right, "--"}, {left, "--"}, {right, "=>"}, {left, "=>"}
+         , {right, ":="}, {left, ":="}, {right, "<-"}, {left, "<-"}
+         , {right, "<="}, {left, "<="}, {right, "||"}, {left, "||"}
+         , {right, "|"}, {left, "|"}, {right, "::"}, {left, "::"}
+         , {right, "->"}, {left, "->"}, {right, ","}, {right, "!"}
+         , {left, "!"}, {right, "?="}, {left, "?="}, {right, ";"},
+         , {right, "<:="}, {left, "<:="}, {right, "<:-"}, {left, "<:-"}
+         , {right, "&&"}, {left, "&&"}
+          ]
 ```
 
 `rules` was `[{right, ","}, {right, "++"}, {left, "++"}]` until [1.5.0](https://github.com/inaka/elvis_core/releases/tag/1.5.0).
 
-`{left, "!"}, {right, "!"}` was added in [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0)).
+`{right, "!"}, {left, "!"}` was added in [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0).
 
-`{left, "?="}, {right, "?="}` was added in [4.1.0](https://github.com/inaka/elvis_core/releases/tag/4.1.0)).
+<!-- markdownlint-disable MD013 -->
+`{right, "?="}, {left, "?="}, {right, ";"}, {right, "<:="}, {left, "<:="}, {right, "<:-"}, {left, "<:-"}, {right, "&&"}, {left, "&&"}` was added in [4.1.0](https://github.com/inaka/elvis_core/releases/tag/4.1.0).
+<!-- markdownlint-enable MD013 -->
 
 ## Example configuration
 
 ```erlang
-{elvis_style, operator_spaces, #{ rules => [{left, "!"}, {right, "!"}, {left, "*"}, {right, "*"}
-                                          , {left, "+"}, {right, "+"}, {left, "++"}, {right, "++"}
-                                          , {left, "-"}, {right, "-"}, {left, "--"}, {right, "--"}
-                                          , {left, "->"}, {right, "->"}, {left, "/"}, {right, "/"}
-                                          , {left, "/="}, {right, "/="}, {left, "::"}, {right, "::"}
-                                          , {left, ":="}, {right, ":="}, {left, "<"}, {right, "<"}
-                                          , {left, "<-"}, {right, "<-"}, {left, "<="}, {right, "<="}
-                                          , {left, "="}, {right, "="}, {left, "=/="}, {right, "=/="}
-                                          , {left, "=:="}, {right, "=:="}, {left, "=<"}, {right, "=<"}
-                                          , {left, "=="}, {right, "=="}, {left, "=>"}, {right, "=>"}
-                                          , {left, ">"}, {right, ">"}, {left, ">="}, {right, ">="}
-                                          , {left, "|"}, {right, "|"}, {left, "||"}, {right, "||"}
-                                          , {right, ","}
+{elvis_style, operator_spaces, #{ rules => [{right, "++"}, {left, "++"}, {right, "="}, {left, "="}
+                                          , {right, "+"}, {left, "+"}, {right, "-"}, {left, "-"}
+                                          , {right, "*"}, {left, "*"}, {right, "/"}, {left, "/"}
+                                          , {right, "=<"}, {left, "=<"}, {right, "<"}, {left, "<"}
+                                          , {right, ">"}, {left, ">"}, {right, ">="}, {left, ">="}
+                                          , {right, "=="}, {left, "=="}, {right, "=:="}, {left, "=:="}
+                                          , {right, "/="}, {left, "/="}, {right, "=/="}, {left, "=/="}
+                                          , {right, "--"}, {left, "--"}, {right, "=>"}, {left, "=>"}
+                                          , {right, ":="}, {left, ":="}, {right, "<-"}, {left, "<-"}
+                                          , {right, "<="}, {left, "<="}, {right, "||"}, {left, "||"}
+                                          , {right, "|"}, {left, "|"}, {right, "::"}, {left, "::"}
+                                          , {right, "->"}, {left, "->"}, {right, ","}, {right, "!"}
+                                          , {left, "!"}, {right, "?="}, {left, "?="}, {right, ";"},
+                                          , {right, "<:="}, {left, "<:="}, {right, "<:-"}, {left, "<:-"}
+                                          , {right, "&&"}, {left, "&&"}
                                            ]
                                 }}
 ```

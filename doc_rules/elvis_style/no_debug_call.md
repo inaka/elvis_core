@@ -15,11 +15,13 @@ lead to performance degradation, unwanted output, or inconsistent logging behavi
 
 - `debug_functions :: [{module(), function(), arity()} | {module(), function()}]`
   - default: `[{ct, pal}, {ct, print}, {io, format, 1}, {io, format, 2}, {erlang, display, 1},
-    {io, put_chars, 1}, {io, put_chars, 2}]`
+    {io, put_chars, 1}, {io, put_chars, 2}, {dbg, '_'}, {dyntrace, '_'}, {instrument, '_'}]`
 
-`{erlang, display, 1}` was added in [1.5.0](https://github.com/inaka/elvis_core/releases/tag/1.5.0)).
+`{erlang, display, 1}` was added in [1.5.0](https://github.com/inaka/elvis_core/releases/tag/1.5.0).
 
-`{io, put_chars, 1}, {io, put_chars, 2}` was added in [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0)).
+`{io, put_chars, 1}, {io, put_chars, 2}` was added in [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0).
+
+`{dbg, '_'}, {dyntrace, '_'}, {instrument, '_'}` was added in [4.1.0](https://github.com/inaka/elvis_core/releases/tag/4.1.0).
 
 ## Example configuration
 
@@ -30,7 +32,10 @@ lead to performance degradation, unwanted output, or inconsistent logging behavi
                                                   , {io, format, 2}
                                                   , {erlang, display, 1}
                                                   , {io, put_chars, 1}
-                                                  , {io, put_chars, 2}
+                                                  , {io, put_chars, 2},
+                                                  , {dbg, '_'},
+                                                  , {dyntrace, '_'}
+                                                  , {instrument, '_'}
                                                    ]
                               }}
 ```

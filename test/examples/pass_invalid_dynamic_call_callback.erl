@@ -1,4 +1,7 @@
--module(fail_invalid_dynamic_call).
+-module(pass_invalid_dynamic_call_callback).
+
+-callback call() -> _.
+-callback macro_function_name_call() -> _.
 
 -define(MACRO_CALL(M, F, A), M:F(A)).
 
