@@ -1596,22 +1596,23 @@ numeric_format(RuleCfg) ->
 
 behaviour_spelling(RuleCfg) ->
     Spelling = option(spelling, RuleCfg, behaviour_spelling),
-    Root = root(RuleCfg),
-    IsWronglySpelledBehaviour =
-        fun(Node) ->
-            (ktn_code:type(Node) =:= behaviour orelse ktn_code:type(Node) =:= behavior) andalso
-                ktn_code:type(Node) =/= Spelling
-        end,
-    InconsistentBehaviorNodes = elvis_code:find(IsWronglySpelledBehaviour, Root),
-    ResultFun =
-        fun(Node) ->
-            elvis_result:new_item(
-                "an unexpected spelling of 'behavio[u]r' was found; prefer ~p",
-                [Spelling],
-                #{node => Node}
-            )
-        end,
-    lists:map(ResultFun, InconsistentBehaviorNodes).
+
+    BehaviourNodes = elvis_code:find(#{
+        of_types => [behaviour, behavior],
+        inside => root(RuleCfg),
+        filtered_by => fun(BehaviourNode) ->
+            ktn_code:type(BehaviourNode) =/= Spelling
+        end
+    }),
+
+    [
+        elvis_result:new_item(
+            "an unexpected spelling of 'behavio[u]r' was found; prefer ~p",
+            [Spelling],
+            #{node => BehaviourNode}
+        )
+     || BehaviourNode <- BehaviourNodes
+    ].
 
 param_pattern_matching(RuleCfg) ->
     Side = option(side, RuleCfg, param_pattern_matching),
