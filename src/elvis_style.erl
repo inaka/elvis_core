@@ -689,16 +689,22 @@ invalid_dynamic_call(RuleCfg) ->
     end.
 
 used_ignored_variable(RuleCfg) ->
-    Root = root(RuleCfg),
+    IgnoredVarZippers = elvis_code:find(
+        #{
+            of_types => [var],
+            inside => root(RuleCfg),
+            filtered_by => fun is_ignored_var/1,
+            filtered_from => zipper
+        }
+    ),
 
-    UsedIgnoredVars = elvis_code:find(fun is_ignored_var/1, Root, #{mode => zipper}),
-    ResultFun = fun(Node) ->
+    [
         elvis_result:new_item(
             "an unexpected use of an ignored variable was found",
-            #{node => Node}
+            #{zipper => IgnoredVarZipper}
         )
-    end,
-    lists:map(ResultFun, UsedIgnoredVars).
+     || IgnoredVarZipper <- IgnoredVarZippers
+    ].
 
 no_behavior_info(RuleCfg) ->
     Root = root(RuleCfg),
