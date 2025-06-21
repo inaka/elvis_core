@@ -1481,17 +1481,18 @@ no_author(RuleCfg) ->
     ].
 
 no_import(RuleCfg) ->
-    Root = root(RuleCfg),
-    Nodes = elvis_code:find_by_types([import], Root),
-    lists:map(
-        fun(Node) ->
-            elvis_result:new_item(
-                "unexpected attribute '-import' was found",
-                #{node => Node}
-            )
-        end,
-        Nodes
-    ).
+    ImportNodes = elvis_code:find(#{
+        of_types => [import],
+        inside => root(RuleCfg)
+    }),
+
+    [
+        elvis_result:new_item(
+            "unexpected attribute '-import' was found",
+            #{node => ImportNode}
+        )
+     || ImportNode <- ImportNodes
+    ].
 
 no_catch_expressions(RuleCfg) ->
     Root = root(RuleCfg),
