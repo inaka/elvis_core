@@ -1359,32 +1359,26 @@ is_receive_without_timeout(Receive) ->
     [] == elvis_code:find_by_types([receive_after], Receive).
 
 no_operation_on_same_value(RuleCfg) ->
-    Root = root(RuleCfg),
     InterestingOps = option(operations, RuleCfg, no_operation_on_same_value),
 
-    IsInterestingOp =
-        fun(Node) ->
-            ktn_code:type(Node) =:= op andalso
-                lists:member(ktn_code:attr(operation, Node), InterestingOps)
+    OpNodes = elvis_code:find(#{
+        of_types => [op],
+        inside => root(RuleCfg),
+        filtered_by => fun(OpNode) ->
+            lists:member(ktn_code:attr(operation, OpNode), InterestingOps) andalso
+                same_value_on_both_sides(OpNode)
         end,
+        traverse => all
+    }),
 
-    OpNodes =
-        lists:uniq(
-            elvis_code:find(IsInterestingOp, Root, #{traverse => all})
-        ),
-
-    BadOpNodes = lists:filter(fun same_value_on_both_sides/1, OpNodes),
-
-    ResultFun =
-        fun(Node) ->
-            elvis_result:new_item(
-                "redundant operation '~p' has the same value on both sides",
-                [ktn_code:attr(operation, Node)],
-                #{node => Node}
-            )
-        end,
-
-    lists:map(ResultFun, BadOpNodes).
+    [
+        elvis_result:new_item(
+            "redundant operation '~p' has the same value on both sides",
+            [ktn_code:attr(operation, OpNode)],
+            #{node => OpNode}
+        )
+     || OpNode <- lists:uniq(OpNodes)
+    ].
 
 same_value_on_both_sides(Node) ->
     case ktn_code:content(Node) of
