@@ -830,16 +830,29 @@ state_record_and_type(RuleCfg) ->
     end.
 
 no_spec_with_records(RuleCfg) ->
-    Root = root(RuleCfg),
-    SpecNodes = elvis_code:find(fun spec_includes_record/1, Root),
-    ResultFun = fun(Node) ->
+    SpecWithRecordNodes = elvis_code:find(#{
+        of_types => [spec],
+        inside => root(RuleCfg),
+        filtered_by => fun(SpecNode) ->
+            elvis_code:find(#{
+                of_types => [type],
+                inside => SpecNode,
+                filtered_by => fun(TypeInSpecNode) ->
+                    ktn_code:attr(name, TypeInSpecNode) =:= record
+                end,
+                traverse => all
+            }) =/= []
+        end
+    }),
+
+    [
         elvis_result:new_item(
             "an unexpected record was found in a spec; prefer creating a type for it and "
             "using that",
-            #{node => Node}
+            #{node => SpecWithRecordNode}
         )
-    end,
-    lists:map(ResultFun, SpecNodes).
+     || SpecWithRecordNode <- SpecWithRecordNodes
+    ].
 
 dont_repeat_yourself(RuleCfg) ->
     MinComplexity = option(min_complexity, RuleCfg, dont_repeat_yourself),
@@ -2314,17 +2327,6 @@ has_state_type(Root) ->
             end
         end,
     elvis_code:find(IsStateType, Root) =/= [].
-
-%% Spec includes records
-
--spec spec_includes_record(ktn_code:tree_node()) -> boolean().
-spec_includes_record(Node) ->
-    IsTypeRecord =
-        fun(Child) ->
-            (ktn_code:type(Child) =:= type) andalso (ktn_code:attr(name, Child) =:= record)
-        end,
-    (ktn_code:type(Node) =:= spec) andalso
-        (elvis_code:find(IsTypeRecord, Node, #{traverse => all}) =/= []).
 
 %% Don't repeat yourself
 
