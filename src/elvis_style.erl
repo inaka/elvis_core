@@ -1048,6 +1048,17 @@ filtered_lines_in_clause(ClauseZipper, Lines, CountComments, CountWhitespace) ->
         FunLines
     ).
 
+filtered_lines_in_function(FunctionNode, Lines, CountComments, CountWhitespace) ->
+    {Min, Max} = node_line_limits(FunctionNode),
+    FunLines = lists:sublist(Lines, Min, Max - Min + 1),
+    lists:filter(
+        fun(Line) ->
+            (CountComments orelse not line_is_comment(Line)) andalso
+                (CountWhitespace orelse not line_is_whitespace(Line))
+        end,
+        FunLines
+    ).
+
 parse_clause_num(Num) when Num rem 100 >= 11, Num rem 100 =< 13 ->
     integer_to_list(Num) ++ "th";
 parse_clause_num(Num) when Num rem 10 =:= 1 ->
@@ -1064,41 +1075,45 @@ max_function_length({_Config, Target, _RuleConfig} = RuleCfg) ->
     CountComments = option(count_comments, RuleCfg, max_function_length),
     CountWhitespace = option(count_whitespace, RuleCfg, max_function_length),
 
-    Root = root(RuleCfg),
     {Src, _} = elvis_file:src(Target),
     Lines = elvis_utils:split_all_lines(Src, [trim]),
 
-    Functions0 = elvis_code:find_by_types([function], Root),
-    FilterFun =
-        fun(Line) ->
-            (CountComments orelse not line_is_comment(Line)) andalso
-                (CountWhitespace orelse not line_is_whitespace(Line))
-        end,
+    FunctionNodes = elvis_code:find(#{
+        of_types => [function],
+        inside => root(RuleCfg)
+    }),
 
-    PairFun =
+    % We do this to apply the configured filters
+    BigFunctions = lists:filtermap(
         fun(FunctionNode) ->
-            Name = ktn_code:attr(name, FunctionNode),
-            Arity = ktn_code:attr(arity, FunctionNode),
-            {Min, Max} = node_line_limits(FunctionNode),
-            FunLines = lists:sublist(Lines, Min, Max - Min + 1),
-            FilteredLines = lists:filter(FilterFun, FunLines),
-            L = length(FilteredLines),
-            {Name, Arity, Min, L}
+            FilteredLines = filtered_lines_in_function(
+                FunctionNode,
+                Lines,
+                CountComments,
+                CountWhitespace
+            ),
+            LineLen = length(FilteredLines),
+            case LineLen > MaxLength of
+                true ->
+                    {true, {FunctionNode, LineLen}};
+                false ->
+                    false
+            end
         end,
-    FunLenInfos = lists:map(PairFun, Functions0),
-    MaxLengthPred = fun({_, _, _, L}) -> L > MaxLength end,
-    FunLenMaxPairs = lists:filter(MaxLengthPred, FunLenInfos),
+        FunctionNodes
+    ),
 
-    ResultFun =
-        fun({Name, Arity, StartPos, L}) ->
+    lists:map(
+        fun({FunctionNode, LineLen}) ->
             elvis_result:new_item(
                 "the code for function '~p/~p' has ~p lines, which is higher than the configured "
                 "limit",
-                [Name, Arity, L],
-                #{line => StartPos, limit => MaxLength}
+                [ktn_code:attr(name, FunctionNode), ktn_code:attr(arity, FunctionNode), LineLen],
+                #{node => FunctionNode, limit => MaxLength}
             )
         end,
-    lists:map(ResultFun, FunLenMaxPairs).
+        BigFunctions
+    ).
 
 no_call(RuleCfg) ->
     DefaultFns = option(no_call_functions, RuleCfg, no_call),
