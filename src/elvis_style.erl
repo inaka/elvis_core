@@ -1679,12 +1679,27 @@ is_function_clause(ClauseZipper, ParentNodeTypes) ->
     lists:member(ParentNodeType, ParentNodeTypes).
 
 consistent_generic_type(RuleCfg) ->
-    TypePreference = option(preferred_type, RuleCfg, consistent_generic_type),
-    Root = root(RuleCfg),
-    IsInconsistentGenType = consistent_generic_type_predicate(TypePreference),
-    InconsistentTypeNodes = elvis_code:find(IsInconsistentGenType, Root, #{traverse => all}),
-    ResultFun = consistent_generic_type_result(TypePreference),
-    lists:map(ResultFun, InconsistentTypeNodes).
+    PreferredType = option(preferred_type, RuleCfg, consistent_generic_type),
+
+    TypeNodes = elvis_code:find(#{
+        of_types => [type, callback],
+        inside => root(RuleCfg),
+        filtered_by =>
+            fun(TypeNode) ->
+                TypeNodeName = ktn_code:attr(name, TypeNode),
+                lists:member(TypeNodeName, [term, any]) andalso TypeNodeName =/= PreferredType
+            end,
+        traverse => all
+    }),
+
+    [
+        elvis_result:new_item(
+            "unexpected type '~p/0' was found; prefer ~p/0",
+            [ktn_code:attr(name, TypeNode), PreferredType],
+            #{node => TypeNode}
+        )
+     || TypeNode <- TypeNodes
+    ].
 
 always_shortcircuit(RuleCfg) ->
     Operators = #{'and' => 'andalso', 'or' => 'orelse'},
@@ -2509,25 +2524,6 @@ wildcard_match('_', _) ->
     true;
 wildcard_match(X, Y) ->
     X =:= Y.
-
-%% Consistent Generic Type
-consistent_generic_type_predicate(TypePreference) ->
-    fun(Node) ->
-        NodeName = ktn_code:attr(name, Node),
-        (ktn_code:type(Node) =:= type orelse ktn_code:type(Node) =:= callback) andalso
-            lists:member(NodeName, [term, any]) andalso
-            NodeName =/= TypePreference
-    end.
-
-consistent_generic_type_result(TypePreference) ->
-    fun(Node) ->
-        NodeName = ktn_code:attr(name, Node),
-        elvis_result:new_item(
-            "unexpected type '~p/0' was found; prefer ~p/0",
-            [NodeName, TypePreference],
-            #{node => Node}
-        )
-    end.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Internal Function Definitions
