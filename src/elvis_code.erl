@@ -15,7 +15,7 @@
 %%% Public API
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--type find_options() :: #{filtered_from => node | zipper, traverse => content | all, _ => _}.
+-type find_options() :: #{filtered_from => node | zipper, traverse => content | all}.
 
 -type tree_node() :: ktn_code:tree_node().
 -type tree_node_type() :: ktn_code:tree_node_type().
