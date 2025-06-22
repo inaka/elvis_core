@@ -313,7 +313,7 @@ function_naming_convention(RuleCfg) ->
     Regex = option(regex, RuleCfg, ?FUNCTION_NAME),
     ForbiddenRegex = option(forbidden_regex, RuleCfg, ?FUNCTION_NAME),
     Root = root(RuleCfg),
-    Functions = elvis_code:find_by_types([function], Root),
+    Functions = elvis_code:find(#{of_types => [function], inside => Root}),
     errors_for_function_names(Regex, ForbiddenRegex, Functions).
 
 errors_for_function_names(_Regex, _ForbiddenRegex, []) ->
@@ -358,7 +358,13 @@ errors_for_function_names(Regex, ForbiddenRegex, [Function | RemainingFunctions]
 %% @todo Use maps:groups_from_list/2 when we specify OTP25 as the minimum OTP version
 consistent_variable_casing(RuleCfg) ->
     Root = root(RuleCfg),
-    Vars = elvis_code:find(fun is_var/1, Root, #{traverse => all, filtered_from => zipper}),
+    Vars = elvis_code:find(#{
+        of_types => [var],
+        inside => Root,
+        filtered_by => fun is_var/1,
+        filtered_from => zipper,
+        traverse => all
+    }),
     Grouped =
         maps:to_list(
             lists:foldr(
@@ -405,7 +411,13 @@ variable_naming_convention(RuleCfg) ->
     Regex = option(regex, RuleCfg, ?FUNCTION_NAME),
     ForbiddenRegex = option(forbidden_regex, RuleCfg, ?FUNCTION_NAME),
     Root = root(RuleCfg),
-    Vars = elvis_code:find(fun is_var/1, Root, #{traverse => all, filtered_from => zipper}),
+    Vars = elvis_code:find(#{
+        of_types => [var],
+        inside => Root,
+        filtered_by => fun is_var/1,
+        filtered_from => zipper,
+        traverse => all
+    }),
     check_variables_name(Regex, ForbiddenRegex, Vars).
 
 macro_names(RuleCfg) ->
@@ -415,9 +427,10 @@ macro_names(RuleCfg) ->
     MacroNodes = elvis_code:find(#{
         of_types => [define],
         inside => root(RuleCfg),
-        filtered_by => fun(MacroNode) ->
-            re:run(macro_name_from(MacroNode, stripped), RE) =:= nomatch
-        end,
+        filtered_by =>
+            fun(MacroNode) ->
+                re:run(macro_name_from(MacroNode, stripped), RE) =:= nomatch
+            end,
         traverse => all
     }),
 
@@ -438,10 +451,11 @@ no_macros(RuleCfg) ->
     MacroNodes = elvis_code:find(#{
         of_types => [macro],
         inside => root(RuleCfg),
-        filtered_by => fun(MacroNode) ->
-            Macro = list_to_atom(ktn_code:attr(name, MacroNode)),
-            not lists:member(Macro, AllowedMacros)
-        end
+        filtered_by =>
+            fun(MacroNode) ->
+                Macro = list_to_atom(ktn_code:attr(name, MacroNode)),
+                not lists:member(Macro, AllowedMacros)
+            end
     }),
 
     [
@@ -566,7 +580,10 @@ operator_spaces({_Config, Target, _RuleConfig} = RuleCfg) ->
     OpNodes = zipper:filter(fun is_operator_node/1, Zipper),
 
     OperatorsInTokens = ['=', '&&' | punctuation_symbols()],
-    PunctuationTokens = elvis_code:find_by_types_in_tokens(OperatorsInTokens, Root),
+    PunctuationTokens = elvis_code:find(#{
+        of_types => OperatorsInTokens,
+        inside => tokens_as_content(Root)
+    }),
 
     Lines = elvis_utils:split_all_lines(Src),
     AllNodes = OpNodes ++ PunctuationTokens,
@@ -742,10 +759,11 @@ no_behavior_info(RuleCfg) ->
     BehaviourInfoNodes = elvis_code:find(#{
         of_types => [function],
         inside => root(RuleCfg),
-        filtered_by => fun(FunctionNode) ->
-            FunctionName = ktn_code:attr(name, FunctionNode),
-            lists:member(FunctionName, [behavior_info, behaviour_info])
-        end
+        filtered_by =>
+            fun(FunctionNode) ->
+                FunctionName = ktn_code:attr(name, FunctionNode),
+                lists:member(FunctionName, [behavior_info, behaviour_info])
+            end
     }),
 
     [
@@ -845,9 +863,10 @@ spec_has_records(SpecNode) ->
     elvis_code:find(#{
         of_types => [type],
         inside => SpecNode,
-        filtered_by => fun(TypeInSpecNode) ->
-            ktn_code:attr(name, TypeInSpecNode) =:= record
-        end,
+        filtered_by =>
+            fun(TypeInSpecNode) ->
+                ktn_code:attr(name, TypeInSpecNode) =:= record
+            end,
         traverse => all
     }) =/= [].
 
@@ -1023,9 +1042,10 @@ max_function_clause_length({_Config, Target, _RuleConfig} = RuleCfg) ->
     ClauseZippers = elvis_code:find(#{
         of_types => [clause],
         inside => root(RuleCfg),
-        filtered_by => fun(ClauseZipper) ->
-            is_function_clause(ClauseZipper, [function])
-        end,
+        filtered_by =>
+            fun(ClauseZipper) ->
+                is_function_clause(ClauseZipper, [function])
+            end,
         filtered_from => zipper
     }),
 
@@ -1190,10 +1210,11 @@ no_successive_maps(RuleCfg) ->
     MapExprNodes = elvis_code:find(#{
         of_types => [map],
         inside => root(RuleCfg),
-        filtered_by => fun(MapExprNode) ->
-            InnerVar = ktn_code:node_attr(var, MapExprNode),
-            ktn_code:type(InnerVar) =:= map
-        end,
+        filtered_by =>
+            fun(MapExprNode) ->
+                InnerVar = ktn_code:node_attr(var, MapExprNode),
+                ktn_code:type(InnerVar) =:= map
+            end,
         traverse => content
     }),
 
@@ -1213,10 +1234,17 @@ atom_naming_convention(RuleCfg) ->
     RegexEnclosed = specific_or_default(RegexEnclosed0, Regex),
     ForbiddenEnclosedRegex0 = option(forbidden_enclosed_regex, RuleCfg, ?FUNCTION_NAME),
     ForbiddenEnclosedRegex = specific_or_default(ForbiddenEnclosedRegex0, ForbiddenRegex),
-    IsAtomNode = fun(Node) ->
-        ktn_code:type(zipper:node(Node)) =:= atom andalso not check_parent_remote(Node)
-    end,
-    AtomZippers = elvis_code:find(IsAtomNode, Root, #{traverse => all, filtered_from => zipper}),
+    AtomZippers = elvis_code:find(#{
+        of_types => [atom],
+        inside => Root,
+        filtered_by =>
+            fun(AtomZipper) ->
+                not check_parent_remote(AtomZipper)
+            end,
+        filtered_from => zipper,
+        traverse => all
+    }),
+
     check_atom_names(
         Regex,
         ForbiddenRegex,
@@ -1237,10 +1265,11 @@ no_init_lists(RuleCfg) ->
                 FunctionNodes = elvis_code:find(#{
                     of_types => [function],
                     inside => Root,
-                    filtered_by => fun(FunctionNode) ->
-                        ktn_code:attr(name, FunctionNode) =:= init andalso
-                            ktn_code:attr(arity, FunctionNode) =:= 1
-                    end
+                    filtered_by =>
+                        fun(FunctionNode) ->
+                            ktn_code:attr(name, FunctionNode) =:= init andalso
+                                ktn_code:attr(arity, FunctionNode) =:= 1
+                        end
                 }),
 
                 case FunctionNodes of
@@ -1277,7 +1306,7 @@ no_init_lists(RuleCfg) ->
     ].
 
 is_relevant_behaviour(Root, ConfigBehaviors) ->
-    Behaviours = elvis_code:find_by_types([behaviour, behavior], Root),
+    Behaviours = elvis_code:find(#{of_types => [behaviour, behavior], inside => Root}),
     lists:any(
         fun(BehaviourNode) ->
             lists:member(
@@ -1331,15 +1360,16 @@ no_boolean_in_comparison(RuleCfg) ->
     OpNodes = elvis_code:find(#{
         of_types => [op],
         inside => root(RuleCfg),
-        filtered_by => fun(OpNode) ->
-            lists:member(ktn_code:attr(operation, OpNode), ['==', '=:=', '/=', '=/=']) andalso
-                lists:any(
-                    fun(OpContentNode) ->
-                        is_boolean(ktn_code:attr(value, OpContentNode))
-                    end,
-                    ktn_code:content(OpNode)
-                )
-        end,
+        filtered_by =>
+            fun(OpNode) ->
+                lists:member(ktn_code:attr(operation, OpNode), ['==', '=:=', '/=', '=/=']) andalso
+                    lists:any(
+                        fun(OpContentNode) ->
+                            is_boolean(ktn_code:attr(value, OpContentNode))
+                        end,
+                        ktn_code:content(OpNode)
+                    )
+            end,
         traverse => all
     }),
 
@@ -1368,7 +1398,7 @@ no_receive_without_timeout(RuleCfg) ->
     ].
 
 is_receive_without_timeout(Receive) ->
-    [] == elvis_code:find_by_types([receive_after], Receive).
+    elvis_code:find(#{of_types => [receive_after], inside => Receive}) =:= [].
 
 no_operation_on_same_value(RuleCfg) ->
     InterestingOps = option(operations, RuleCfg, ?FUNCTION_NAME),
@@ -1376,10 +1406,11 @@ no_operation_on_same_value(RuleCfg) ->
     OpNodes = elvis_code:find(#{
         of_types => [op],
         inside => root(RuleCfg),
-        filtered_by => fun(OpNode) ->
-            lists:member(ktn_code:attr(operation, OpNode), InterestingOps) andalso
-                same_value_on_both_sides(OpNode)
-        end,
+        filtered_by =>
+            fun(OpNode) ->
+                lists:member(ktn_code:attr(operation, OpNode), InterestingOps) andalso
+                    same_value_on_both_sides(OpNode)
+            end,
         traverse => all
     }),
 
@@ -1431,25 +1462,28 @@ same_node_attrs_except_location(LeftNode, RightNode) ->
 
 -spec has_include_ms_transform(ktn_code:tree_node()) -> boolean().
 has_include_ms_transform(Root) ->
-    Fun = fun(Node) ->
-        ktn_code:type(Node) =:= include_lib andalso
-            ktn_code:attr(value, Node) =:= "stdlib/include/ms_transform.hrl"
-    end,
-
-    elvis_code:find(Fun, Root) =/= [].
+    elvis_code:find(#{
+        of_types => [include_lib],
+        inside => Root,
+        filtered_by =>
+            fun(IncludeLibNode) ->
+                ktn_code:attr(value, IncludeLibNode) =:= "stdlib/include/ms_transform.hrl"
+            end
+    }) =/= [].
 
 no_throw(RuleCfg) ->
     ThrowNodes = elvis_code:find(#{
         of_types => [call],
         inside => root(RuleCfg),
-        filtered_by => fun(OpNode) ->
-            lists:any(
-                fun(MFA) ->
-                    is_call(OpNode, MFA)
-                end,
-                [{throw, 1}, {erlang, throw, 1}]
-            )
-        end
+        filtered_by =>
+            fun(OpNode) ->
+                lists:any(
+                    fun(MFA) ->
+                        is_call(OpNode, MFA)
+                    end,
+                    [{throw, 1}, {erlang, throw, 1}]
+                )
+            end
     }),
 
     [
@@ -1464,9 +1498,10 @@ no_dollar_space(RuleCfg) ->
     CharNodes = elvis_code:find(#{
         of_types => [char],
         inside => root(RuleCfg),
-        filtered_by => fun(CharNode) ->
-            ktn_code:attr(text, CharNode) =:= "$ "
-        end,
+        filtered_by =>
+            fun(CharNode) ->
+                ktn_code:attr(text, CharNode) =:= "$ "
+            end,
         traverse => all
     }),
 
@@ -1524,9 +1559,10 @@ no_single_clause_case(RuleCfg) ->
     CaseExprs = elvis_code:find(#{
         of_types => ['case'],
         inside => root(RuleCfg),
-        filtered_by => fun(CaseExpr) ->
-            length(case_clauses_in(CaseExpr)) =:= 1
-        end
+        filtered_by =>
+            fun(CaseExpr) ->
+                length(case_clauses_in(CaseExpr)) =:= 1
+            end
     }),
 
     [
@@ -1567,18 +1603,19 @@ no_match_in_condition(RuleCfg) ->
     CaseExprNodes = elvis_code:find(#{
         of_types => [case_expr],
         inside => root(RuleCfg),
-        filtered_by => fun(CaseExprNode) ->
-            %% case_expr followed by a match
-            has_match_child(CaseExprNode) orelse
-                %% or case_expr followed by a block which contains a match in the first layer
-                lists:any(
-                    fun(CaseExprContent) ->
-                        ktn_code:type(CaseExprContent) =:= block andalso
-                            has_match_child(CaseExprContent)
-                    end,
-                    ktn_code:content(CaseExprNode)
-                )
-        end
+        filtered_by =>
+            fun(CaseExprNode) ->
+                %% case_expr followed by a match
+                has_match_child(CaseExprNode) orelse
+                    %% or case_expr followed by a block which contains a match in the first layer
+                    lists:any(
+                        fun(CaseExprContent) ->
+                            ktn_code:type(CaseExprContent) =:= block andalso
+                                has_match_child(CaseExprContent)
+                        end,
+                        ktn_code:content(CaseExprNode)
+                    )
+            end
     }),
 
     [
@@ -1603,8 +1640,8 @@ numeric_format(RuleCfg) ->
     IntRegex = specific_or_default(IntRegex0, Regex),
     FloatRegex0 = option(float_regex, RuleCfg, ?FUNCTION_NAME),
     FloatRegex = specific_or_default(FloatRegex0, Regex),
-    IntNodes = elvis_code:find_by_types([integer], Root),
-    FloatNodes = elvis_code:find_by_types([float], Root),
+    IntNodes = elvis_code:find(#{of_types => [integer], inside => Root}),
+    FloatNodes = elvis_code:find(#{of_types => [float], inside => Root}),
     check_numeric_format(
         IntRegex,
         IntNodes,
@@ -1617,9 +1654,10 @@ behaviour_spelling(RuleCfg) ->
     BehaviourNodes = elvis_code:find(#{
         of_types => [behaviour, behavior],
         inside => root(RuleCfg),
-        filtered_by => fun(BehaviourNode) ->
-            ktn_code:type(BehaviourNode) =/= Spelling
-        end
+        filtered_by =>
+            fun(BehaviourNode) ->
+                ktn_code:type(BehaviourNode) =/= Spelling
+            end
     }),
 
     [
@@ -1637,9 +1675,10 @@ param_pattern_matching(RuleCfg) ->
     ClauseZippers = elvis_code:find(#{
         of_types => [clause],
         inside => root(RuleCfg),
-        filtered_by => fun(ClauseZipper) ->
-            is_function_clause(ClauseZipper, [function, 'fun'])
-        end,
+        filtered_by =>
+            fun(ClauseZipper) ->
+                is_function_clause(ClauseZipper, [function, 'fun'])
+            end,
         filtered_from => zipper,
         traverse => all
     }),
@@ -1724,10 +1763,11 @@ always_shortcircuit(RuleCfg) ->
     OpNodes = elvis_code:find(#{
         of_types => [op],
         inside => root(RuleCfg),
-        filtered_by => fun(OpNode) ->
-            NodeOperation = ktn_code:attr(operation, OpNode),
-            lists:member(NodeOperation, maps:keys(Operators))
-        end,
+        filtered_by =>
+            fun(OpNode) ->
+                NodeOperation = ktn_code:attr(operation, OpNode),
+                lists:member(NodeOperation, maps:keys(Operators))
+            end,
         traverse => all
     }),
 
@@ -1862,7 +1902,7 @@ public_data_types(TypesToCheck, Root, ExportedTypes) ->
 -spec map_type_declarations_to_location(ktn_code:tree_node()) ->
     #{{atom(), number()} => number()}.
 map_type_declarations_to_location(Root) ->
-    AllTypes = elvis_code:find_by_types([type_attr], Root),
+    AllTypes = elvis_code:find(#{of_types => [type_attr], inside => Root}),
     lists:foldl(
         fun
             (
@@ -2286,32 +2326,40 @@ is_the_module_macro(Module) ->
 %% Plain Variable
 -spec is_var(zipper:zipper(_)) -> boolean().
 is_var(Zipper) ->
+    PrevLocation =
+        case ktn_code:attr(location, zipper:node(Zipper)) of
+            {L, 1} ->
+                {L - 1, 9999};
+            {L, C} ->
+                {L, C - 1}
+        end,
     case
-        ktn_code:type(
-            zipper:node(Zipper)
+        find_token(
+            zipper:root(Zipper), PrevLocation
         )
     of
-        var ->
-            PrevLocation =
-                case ktn_code:attr(location, zipper:node(Zipper)) of
-                    {L, 1} ->
-                        {L - 1, 9999};
-                    {L, C} ->
-                        {L, C - 1}
-                end,
-            case
-                elvis_code:find_token(
-                    zipper:root(Zipper), PrevLocation
-                )
-            of
-                not_found ->
-                    true;
-                {ok, PrevToken} ->
-                    ktn_code:type(PrevToken) =/= '?'
-            end;
-        _NotVar ->
-            false
+        not_found ->
+            true;
+        {ok, PrevToken} ->
+            ktn_code:type(PrevToken) =/= '?'
     end.
+
+find_token(Root, Location) ->
+    Fun = fun(Token) -> is_at_location(Token, Location) end,
+    Tokens = ktn_code:attr(tokens, Root),
+    case lists:filter(Fun, Tokens) of
+        [] ->
+            not_found;
+        [Token | _] ->
+            {ok, Token}
+    end.
+
+is_at_location(#{attrs := #{location := {Line, NodeCol}}} = Node, {Line, Column}) ->
+    Text = ktn_code:attr(text, Node),
+    Length = length(Text),
+    NodeCol =< Column andalso Column < NodeCol + Length;
+is_at_location(_, _) ->
+    false.
 
 %% Ignored Variable
 
@@ -2357,7 +2405,7 @@ check_parent_remote(Zipper) ->
 -spec is_otp_behaviour(ktn_code:tree_node()) -> boolean().
 is_otp_behaviour(Root) ->
     OtpSet = sets:from_list([gen_server, gen_event, gen_fsm, gen_statem, supervisor_bridge]),
-    case elvis_code:find_by_types([behaviour, behavior], Root) of
+    case elvis_code:find(#{of_types => [behaviour, behavior], inside => Root}) of
         [] ->
             false;
         Behaviors ->
@@ -2371,31 +2419,35 @@ is_otp_behaviour(Root) ->
 
 -spec has_state_record(ktn_code:tree_node()) -> boolean().
 has_state_record(Root) ->
-    IsStateRecord =
-        fun(Node) ->
-            (ktn_code:type(Node) =:= record_attr) andalso (ktn_code:attr(name, Node) =:= state)
-        end,
-    elvis_code:find(IsStateRecord, Root) =/= [].
+    elvis_code:find(#{
+        of_types => [record_attr],
+        inside => Root,
+        filtered_by =>
+            fun(RecordAttrNode) ->
+                ktn_code:attr(name, RecordAttrNode) =:= state
+            end
+    }) =/= [].
 
 -spec has_state_type(ktn_code:tree_node()) -> boolean().
 has_state_type(Root) ->
-    IsStateType =
-        fun(Node) ->
-            case ktn_code:type(Node) of
-                type_attr ->
-                    ktn_code:attr(name, Node) =:= state;
-                opaque ->
-                    case ktn_code:attr(value, Node) of
-                        {state, _, _} ->
-                            true;
-                        _ ->
-                            false
-                    end;
-                _ ->
-                    false
+    elvis_code:find(#{
+        of_types => [type_attr, opaque],
+        inside => Root,
+        filtered_by =>
+            fun(TypeAttrOrOpaqueNode) ->
+                case ktn_code:type(TypeAttrOrOpaqueNode) of
+                    type_attr ->
+                        ktn_code:attr(name, TypeAttrOrOpaqueNode) =:= state;
+                    opaque ->
+                        case ktn_code:attr(value, TypeAttrOrOpaqueNode) of
+                            {state, _, _} ->
+                                true;
+                            _ ->
+                                false
+                        end
+                end
             end
-        end,
-    elvis_code:find(IsStateType, Root) =/= [].
+    }) =/= [].
 
 %% Don't repeat yourself
 
@@ -2488,7 +2540,7 @@ is_children(Parent, Node) ->
 no_call_common(RuleCfg, NoCallFuns, Msg) ->
     Root = root(RuleCfg),
 
-    Calls = elvis_code:find_by_types([call], Root),
+    Calls = elvis_code:find(#{of_types => [call], inside => Root}),
     check_no_call(Calls, Msg, NoCallFuns).
 
 -spec check_no_call([ktn_code:tree_node()], string(), [

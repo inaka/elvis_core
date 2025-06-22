@@ -3,16 +3,7 @@
 %% General
 -export([
     find/1,
-    find/2,
-    find/3,
-    find_by_location/2,
-    find_by_types/2,
-    find_by_types/3,
-    find_by_types/4,
-    find_by_types_in_tokens/2,
-    find_token/2,
-    code_zipper/1,
-    code_zipper/2
+    code_zipper/1
 ]).
 %% Specific
 -export([
@@ -46,14 +37,32 @@ find(Options) ->
     OfTypes = maps:get(of_types, Options),
     Inside = maps:get(inside, Options),
     FilteredBy = maps:get(filtered_by, Options, undefined),
-    find_by_types(OfTypes, Inside, FilteredBy, Options).
+    FilteredFrom = maps:get(filtered_from, Options, node),
+    Traverse = maps:get(traverse, Options, content),
 
-%% @doc Same as calling find/3 with `#{filtered_from => node, traverse => content}' as
-%%      the options map.
-%% @end
--spec find(fun((tree_node_zipper()) -> boolean()), tree_node()) -> [tree_node()].
-find(Pred, Root) ->
-    find(Pred, Root, #{}).
+    NonFilteredResults = find(
+        fun(NodeOrZipper) ->
+            Node =
+                case FilteredFrom of
+                    node ->
+                        NodeOrZipper;
+                    zipper ->
+                        Zipper = NodeOrZipper,
+                        zipper:node(Zipper)
+                end,
+            lists:member(ktn_code:type(Node), OfTypes)
+        end,
+        Inside,
+        FilteredFrom,
+        Traverse
+    ),
+
+    case FilteredBy of
+        undefined ->
+            NonFilteredResults;
+        _ ->
+            [Result || Result <- NonFilteredResults, FilteredBy(Result)]
+    end.
 
 %% @doc Find all nodes in the tree for which the predicate function returns
 %%      `true'. The options map has two keys:
@@ -71,13 +80,11 @@ find(Pred, Root) ->
 %%        </li>
 %%      </ul>
 %% @end
--spec find(fun((tree_node_zipper()) -> boolean()), tree_node(), find_options()) ->
+-spec find(fun((tree_node_zipper()) -> boolean()), tree_node(), node | zipper, content | all) ->
     [tree_node() | tree_node_zipper()].
-find(Pred, Root, Opts) ->
-    Mode = maps:get(filtered_from, Opts, node),
-    ZipperMode = maps:get(traverse, Opts, content),
-    Zipper = code_zipper(Root, ZipperMode),
-    Results = find(Pred, Zipper, [], Mode),
+find(Pred, Root, FilteredFrom, Traverse) ->
+    Zipper = code_zipper(Root, Traverse),
+    Results = find_with_zipper(Pred, Zipper, [], FilteredFrom),
     lists:reverse(Results).
 
 -spec code_zipper(tree_node()) -> tree_node_zipper().
@@ -127,7 +134,7 @@ all_zipper(Root) ->
     MakeNode = fun(Node, _) -> Node end,
     zipper:new(IsBranch, Children, MakeNode, Root).
 
-find(Pred, Zipper, Results, Mode) ->
+find_with_zipper(Pred, Zipper, Results, Mode) ->
     case zipper:is_end(Zipper) of
         true ->
             Results;
@@ -146,94 +153,7 @@ find(Pred, Zipper, Results, Mode) ->
                     false ->
                         Results
                 end,
-            find(Pred, zipper:next(Zipper), NewResults, Mode)
-    end.
-
--spec find_by_location(tree_node(), {integer(), integer()}) -> not_found | {ok, tree_node()}.
-find_by_location(Root, Location) ->
-    Fun = fun(Node) -> is_at_location(Node, Location) end,
-    case find(Fun, Root, #{traverse => all}) of
-        [] ->
-            not_found;
-        [Node | _] ->
-            {ok, Node}
-    end.
-
--spec find_by_types(Types, Root) -> Found when
-    Types :: [tree_node_type()],
-    Root :: Node,
-    Found :: [Node],
-    Node :: tree_node().
-find_by_types(Types, Root) ->
-    find_by_types(Types, Root, _Pred = undefined).
-
--spec find_by_types(Types, Root, Filter) -> Found when
-    Types :: [tree_node_type()],
-    Root :: Node,
-    Filter :: undefined | fun((NodeOrZipper) -> boolean()),
-    NodeOrZipper :: Node | tree_node_zipper(),
-    Found :: [Node],
-    Node :: tree_node().
-find_by_types(Types, Root, Filter) ->
-    find_by_types(Types, Root, Filter, #{}).
-
--spec find_by_types(Types, Root, Filter, Opts) -> Found when
-    Types :: [tree_node_type()],
-    Root :: Node,
-    Filter :: undefined | fun((NodeOrZipper) -> boolean()),
-    NodeOrZipper :: Node | tree_node_zipper(),
-    Opts :: find_options(),
-    Found :: [Node],
-    Node :: tree_node().
-find_by_types(Types, Root, Filter, Opts) ->
-    FilteredFrom = maps:get(filtered_from, Opts, node),
-    NonFilteredResults = find(
-        fun(NodeOrZipper) ->
-            Node =
-                case FilteredFrom of
-                    node ->
-                        NodeOrZipper;
-                    zipper ->
-                        Zipper = NodeOrZipper,
-                        zipper:node(Zipper)
-                end,
-            lists:member(ktn_code:type(Node), Types)
-        end,
-        Root,
-        Opts
-    ),
-    case Filter of
-        undefined ->
-            NonFilteredResults;
-        _ ->
-            [Result || Result <- NonFilteredResults, Filter(Result)]
-    end.
-
-find_by_types_in_tokens(Types, Root) ->
-    Tokens = ktn_code:attr(tokens, Root),
-    lists:filter(
-        fun(Node) ->
-            lists:member(ktn_code:type(Node), Types)
-        end,
-        Tokens
-    ).
-
-is_at_location(#{attrs := #{location := {Line, NodeCol}}} = Node, {Line, Column}) ->
-    Text = ktn_code:attr(text, Node),
-    Length = length(Text),
-    NodeCol =< Column andalso Column < NodeCol + Length;
-is_at_location(_, _) ->
-    false.
-
--spec find_token(tree_node(), {Line :: integer(), Column :: integer()}) -> not_found | {ok, map()}.
-find_token(Root, Location) ->
-    Fun = fun(Token) -> is_at_location(Token, Location) end,
-    Tokens = ktn_code:attr(tokens, Root),
-    case lists:filter(Fun, Tokens) of
-        [] ->
-            not_found;
-        [Token | _] ->
-            {ok, Token}
+            find_with_zipper(Pred, zipper:next(Zipper), NewResults, Mode)
     end.
 
 %% @doc Debugging utility function.
