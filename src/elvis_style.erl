@@ -139,7 +139,7 @@ default(operator_spaces) ->
             ]
     };
 default(no_space) ->
-    % ) one can happen at the start of lines; all others can't
+    % ) can happen at the start of lines; all others can't
     #{
         rules =>
             [
@@ -231,9 +231,9 @@ default(atom_naming_convention) ->
         forbidden_regex => undefined,
         forbidden_enclosed_regex => undefined
     };
-%% Not restrictive. Those who want more restrictions can set it like "^[^_]*$"
 default(numeric_format) ->
     #{
+        % Not restrictive. Those who want more restrictions can set it like "^[^_]*$"
         regex => ".*",
         int_regex => same,
         float_regex => same
@@ -2070,10 +2070,6 @@ re_compile_for_atom_type(false = _IsEnclosed, Regex, _RegexEnclosed) ->
 re_compile_for_atom_type(true = _IsEnclosed, _Regex, RegexEnclosed) ->
     re_compile(RegexEnclosed, [unicode]).
 
-%%% Rule checking
-
-%% Line Length
-
 -spec line_is_comment(binary()) -> boolean().
 line_is_comment(Line) ->
     case re:run(Line, "^[ \t]*%") of
@@ -2091,8 +2087,6 @@ line_is_whitespace(Line) ->
         {match, _} ->
             true
     end.
-
-%% Macro Names
 
 macro_name_from(MacroNode, original) ->
     MacroNodeValue = ktn_code:attr(value, MacroNode),
@@ -2117,16 +2111,14 @@ macro_as_atom(
 macro_as_atom(false, [Type | OtherTypes], MacroNodeValue) ->
     macro_as_atom(lists:keyfind(Type, _N = 1, MacroNodeValue), OtherTypes, MacroNodeValue).
 
-%% Operator (and Text) Spaces
 -spec check_spaces(
     Lines :: [binary()],
     Nodes :: [ktn_code:tree_node()],
     Rule :: {right | left, string()},
     Encoding :: latin1 | utf8,
-    How :: {should_have, []} | {should_not_have, [{string(), {ok, _}}]}
+    How :: {should_have, []} | {should_not_have, [{string(), {ok, re:mp()}}]}
 ) ->
     [elvis_result:item()].
-% _ is re:mp()
 
 check_spaces(Lines, UnfilteredNodes, {Position, Text}, Encoding, {How0, _} = How) ->
     FilterFun = fun(Node) ->
@@ -2174,10 +2166,9 @@ maybe_re_run(Line, Regex) ->
     Text :: string(),
     Location :: {integer(), integer()},
     Encoding :: latin1 | utf8,
-    How :: {should_have, []} | {should_not_have, [{string(), {ok, _}}]}
+    How :: {should_have, []} | {should_not_have, [{string(), {ok, re:mp()}}]}
 ) ->
     char().
-% _ is re:mp()
 character_at_location(
     Position,
     Lines,
@@ -2228,7 +2219,6 @@ character_at_location(
             ""
     end.
 
-%% Nesting Level
 -spec check_nesting_level(ktn_code:tree_node(), [integer()]) -> [elvis_result:item()].
 check_nesting_level(ParentNode, [MaxLevel]) ->
     NestedNodes = past_nesting_limit(ParentNode, MaxLevel),
@@ -2274,8 +2264,6 @@ level_increment(#{type := Type}) ->
             0
     end.
 
-%% Invalid Dynamic Calls
-
 -spec is_dynamic_call(ktn_code:tree_node()) -> boolean().
 is_dynamic_call(Node) ->
     case ktn_code:type(Node) of
@@ -2297,7 +2285,6 @@ is_dynamic_call(Node) ->
 is_the_module_macro(Module) ->
     ktn_code:type(Module) =:= macro andalso ktn_code:attr(name, Module) =:= "MODULE".
 
-%% Plain Variable
 -spec is_var(zipper:zipper(_)) -> boolean().
 is_var(Zipper) ->
     PrevLocation =
@@ -2335,8 +2322,6 @@ is_at_location(#{attrs := #{location := {Line, NodeCol}}} = Node, {Line, Column}
 is_at_location(_, _) ->
     false.
 
-%% Ignored Variable
-
 -spec is_ignored_var(zipper:zipper(_)) -> boolean().
 is_ignored_var(Zipper) ->
     Node = zipper:node(Zipper),
@@ -2373,8 +2358,6 @@ check_parent_remote(Zipper) ->
             Parent = zipper:node(ParentZipper),
             ktn_code:type(Parent) =:= remote
     end.
-
-%% State record in OTP module
 
 -spec is_otp_behaviour(ktn_code:tree_node()) -> boolean().
 is_otp_behaviour(Root) ->
@@ -2422,8 +2405,6 @@ has_state_type(Root) ->
                 end
             end
     }) =/= [].
-
-%% Don't repeat yourself
 
 -spec find_repeated_nodes(ktn_code:tree_node(), non_neg_integer()) ->
     [ktn_code:tree_node()].
@@ -2510,7 +2491,6 @@ is_children(Parent, Node) ->
     Zipper = elvis_code:code_zipper(Parent),
     zipper:filter(fun(Child) -> Child =:= Node end, Zipper) =/= [].
 
-%% No call
 no_call_common(RuleCfg, NoCallFuns, Msg) ->
     Root = root(RuleCfg),
 
