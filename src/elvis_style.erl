@@ -312,48 +312,46 @@ default(RuleWithEmptyDefault) when
 function_naming_convention(RuleCfg) ->
     Regex = option(regex, RuleCfg, ?FUNCTION_NAME),
     ForbiddenRegex = option(forbidden_regex, RuleCfg, ?FUNCTION_NAME),
-    Root = root(RuleCfg),
-    Functions = elvis_code:find(#{of_types => [function], inside => Root}),
-    errors_for_function_names(Regex, ForbiddenRegex, Functions).
 
-errors_for_function_names(_Regex, _ForbiddenRegex, []) ->
-    [];
-errors_for_function_names(Regex, ForbiddenRegex, [Function | RemainingFunctions]) ->
-    FunctionName = ktn_code:attr(name, Function),
-    FunctionNameStr = unicode:characters_to_list(atom_to_list(FunctionName)),
-    case re:run(FunctionNameStr, Regex, [unicode]) of
-        nomatch ->
-            [
-                elvis_result:new_item(
-                    "the name of function '~p' is not acceptable by regular expression '~p'",
-                    [FunctionNameStr, Regex],
-                    #{node => Function}
-                )
-                | errors_for_function_names(Regex, ForbiddenRegex, RemainingFunctions)
-            ];
-        {match, _} ->
-            case ForbiddenRegex of
-                undefined ->
-                    errors_for_function_names(Regex, ForbiddenRegex, RemainingFunctions);
-                ForbiddenRegex ->
-                    case re:run(FunctionNameStr, ForbiddenRegex, [unicode]) of
+    FunctionNodes = elvis_code:find(#{
+        of_types => [function],
+        inside => root(RuleCfg)
+    }),
+
+    lists:filtermap(
+        fun(FunctionNode) ->
+            FunctionName = ktn_code:attr(name, FunctionNode),
+            FunctionNameStr = unicode:characters_to_list(atom_to_list(FunctionName)),
+
+            case re:run(FunctionNameStr, Regex) of
+                nomatch ->
+                    {true,
+                        elvis_result:new_item(
+                            "the name of function '~p' is not acceptable by regular "
+                            "expression '~p'",
+                            [FunctionNameStr, Regex],
+                            #{node => FunctionNode}
+                        )};
+                {match, _} when ForbiddenRegex =/= undefined ->
+                    % We check for forbidden names only after accepted names
+                    case re:run(FunctionNameStr, ForbiddenRegex) of
                         {match, _} ->
-                            [
+                            {true,
                                 elvis_result:new_item(
-                                    "the name of function '~p' is forbidden by "
-                                    "regular expression '~p'",
+                                    "the name of function '~p' is forbidden by regular "
+                                    "expression '~p'",
                                     [FunctionNameStr, ForbiddenRegex],
-                                    #{node => Function}
-                                )
-                                | errors_for_function_names(
-                                    Regex, ForbiddenRegex, RemainingFunctions
-                                )
-                            ];
-                        nomatch ->
-                            errors_for_function_names(Regex, ForbiddenRegex, RemainingFunctions)
-                    end
+                                    #{node => FunctionNode}
+                                )};
+                        _ ->
+                            false
+                    end;
+                _ ->
+                    false
             end
-    end.
+        end,
+        FunctionNodes
+    ).
 
 %% @todo Use maps:groups_from_list/2 when we specify OTP25 as the minimum OTP version
 consistent_variable_casing(RuleCfg) ->
@@ -2079,7 +2077,7 @@ check_variables_name(Regex, ForbiddenRegex, [VariableZipper | RemainingVars]) ->
                 undefined ->
                     check_variables_name(Regex, ForbiddenRegex, RemainingVars);
                 ForbiddenRegex ->
-                    case re:run(VariableNameStr, ForbiddenRegex, [unicode]) of
+                    case re:run(VariableNameStr, ForbiddenRegex) of
                         {match, _} ->
                             [
                                 elvis_result:new_item(
