@@ -829,7 +829,8 @@ module_naming_convention({_Config, Target, _RuleConfig} = RuleCfg) ->
         nomatch ->
             [
                 elvis_result:new_item(
-                    "The name of this module is not acceptable by regular expression '~p'",
+                    "The name of this module is not acceptable by regular "
+                    "expression '~p'",
                     [Regex]
                 )
             ];
@@ -839,7 +840,8 @@ module_naming_convention({_Config, Target, _RuleConfig} = RuleCfg) ->
                 {match, _} ->
                     [
                         elvis_result:new_item(
-                            "The name of this module name is forbidden by regular expression '~p'",
+                            "The name of this module name is forbidden by regular "
+                            "expression '~p'",
                             [ForbiddenRegex]
                         )
                     ];
@@ -1260,16 +1262,16 @@ no_successive_maps(RuleCfg) ->
     ].
 
 atom_naming_convention(RuleCfg) ->
-    Root = root(RuleCfg),
     Regex = option(regex, RuleCfg, ?FUNCTION_NAME),
     ForbiddenRegex = option(forbidden_regex, RuleCfg, ?FUNCTION_NAME),
     RegexEnclosed0 = option(enclosed_atoms, RuleCfg, ?FUNCTION_NAME),
     RegexEnclosed = specific_or_default(RegexEnclosed0, Regex),
     ForbiddenEnclosedRegex0 = option(forbidden_enclosed_regex, RuleCfg, ?FUNCTION_NAME),
     ForbiddenEnclosedRegex = specific_or_default(ForbiddenEnclosedRegex0, ForbiddenRegex),
+
     AtomZippers = elvis_code:find(#{
         of_types => [atom],
-        inside => Root,
+        inside => root(RuleCfg),
         filtered_by =>
             fun(AtomZipper) ->
                 not check_parent_remote(AtomZipper)
@@ -1278,13 +1280,69 @@ atom_naming_convention(RuleCfg) ->
         traverse => all
     }),
 
-    check_atom_names(
-        Regex,
-        ForbiddenRegex,
-        RegexEnclosed,
-        ForbiddenEnclosedRegex,
-        AtomZippers,
-        []
+    lists:filtermap(
+        fun(AtomZipper) ->
+            AtomNode = zipper:node(AtomZipper),
+            AtomName0 = ktn_code:attr(text, AtomNode),
+            ValueAtomName = ktn_code:attr(value, AtomNode),
+            {IsEnclosed, AtomName} = string_strip_enclosed(AtomName0),
+            IsExceptionClass = is_exception_or_non_reversible(ValueAtomName),
+            RegexAllow = re_compile_for_atom_type(IsEnclosed, Regex, RegexEnclosed),
+            RegexBlock = re_compile_for_atom_type(
+                IsEnclosed,
+                ForbiddenRegex,
+                ForbiddenEnclosedRegex
+            ),
+            AtomNameUnicode = unicode:characters_to_list(AtomName),
+
+            case re:run(AtomNameUnicode, RegexAllow) of
+                _ when IsExceptionClass, not IsEnclosed ->
+                    false;
+                nomatch when not IsEnclosed ->
+                    {true,
+                        elvis_result:new_item(
+                            "the name of atom '~p' is not acceptable by regular "
+                            "expression '~p'",
+                            [AtomName0, Regex],
+                            #{node => AtomNode}
+                        )};
+                nomatch when IsEnclosed ->
+                    {true,
+                        elvis_result:new_item(
+                            "the name of enclosed atom '~p' is not acceptable by regular "
+                            "expression '~p'",
+                            [AtomName0, RegexEnclosed],
+                            #{node => AtomNode}
+                        )};
+                {match, _Captured} when RegexBlock =/= undefined ->
+                    % We check for forbidden names only after accepted names
+                    case re:run(AtomNameUnicode, RegexBlock) of
+                        _ when IsExceptionClass, not IsEnclosed ->
+                            false;
+                        {match, _} when not IsEnclosed ->
+                            {true,
+                                elvis_result:new_item(
+                                    "the name of atom '~p' is forbidden by regular "
+                                    "expression '~p'",
+                                    [AtomName, ForbiddenRegex],
+                                    #{node => AtomNode}
+                                )};
+                        {match, _} when IsEnclosed ->
+                            {true,
+                                elvis_result:new_item(
+                                    "the name of enclosed atom '~p' is forbidden by regular "
+                                    "expression '~p'",
+                                    [AtomName, ForbiddenEnclosedRegex],
+                                    #{node => AtomNode}
+                                )};
+                        _ ->
+                            false
+                    end;
+                _ ->
+                    false
+            end
+        end,
+        AtomZippers
     ).
 
 no_init_lists(RuleCfg) ->
@@ -1970,8 +2028,8 @@ check_numeric_format(Regex, [NumNode | RemainingNumNodes], AccIn) ->
                     nomatch ->
                         [
                             elvis_result:new_item(
-                                "the format of number '~p' is not acceptable by regular expression "
-                                "'~p'",
+                                "the format of number '~p' is not acceptable by regular "
+                                "expression '~p'",
                                 [Number, Regex],
                                 #{node => NumNode}
                             )
@@ -1993,83 +2051,6 @@ is_exception_or_non_reversible(non_reversible_form) ->
     true;
 is_exception_or_non_reversible(_) ->
     false.
-
-check_atom_names(_Regex, _, _RegexEnclosed, _, [] = _AtomZippers, Acc) ->
-    Acc;
-check_atom_names(
-    Regex,
-    ForbiddenRegex,
-    RegexEnclosed,
-    ForbiddenRegexEnclosed,
-    [AtomZipper | RemainingAtomZippers],
-    AccIn
-) ->
-    AtomNode = zipper:node(AtomZipper),
-    AtomName0 = ktn_code:attr(text, AtomNode),
-    ValueAtomName = ktn_code:attr(value, AtomNode),
-    {IsEnclosed, AtomName} = string_strip_enclosed(AtomName0),
-    IsExceptionClass = is_exception_or_non_reversible(ValueAtomName),
-    RE = re_compile_for_atom_type(IsEnclosed, Regex, RegexEnclosed),
-    REF = re_compile_for_atom_type(IsEnclosed, ForbiddenRegex, ForbiddenRegexEnclosed),
-    AtomNameUnicode = unicode:characters_to_list(AtomName),
-    AccOut =
-        case re:run(AtomNameUnicode, RE) of
-            _ when IsExceptionClass, not IsEnclosed ->
-                [];
-            nomatch when not IsEnclosed ->
-                [
-                    elvis_result:new_item(
-                        "the name of atom '~p' is not acceptable by regular expression '~p'",
-                        [AtomName0, Regex],
-                        #{node => AtomNode}
-                    )
-                ];
-            nomatch when IsEnclosed ->
-                [
-                    elvis_result:new_item(
-                        "the name of enclosed atom '~p' is not acceptable by regular expression "
-                        "'~p'",
-                        [AtomName0, RegexEnclosed],
-                        #{node => AtomNode}
-                    )
-                ];
-            {match, _Captured} when REF =:= undefined ->
-                [];
-            {match, _Captured} when REF =/= undefined ->
-                case re:run(AtomNameUnicode, REF) of
-                    _ when IsExceptionClass, not IsEnclosed ->
-                        [];
-                    {match, _} when not IsEnclosed ->
-                        [
-                            elvis_result:new_item(
-                                "the name of atom '~p' is forbidden by regular expression '~p'",
-                                [AtomName, ForbiddenRegex],
-                                #{node => AtomNode}
-                            )
-                        ];
-                    {match, _} when IsEnclosed ->
-                        [
-                            elvis_result:new_item(
-                                "the name of enclosed atom '~p' is forbidden by regular "
-                                "expression '~p'",
-                                [AtomName, ForbiddenRegexEnclosed],
-                                #{node => AtomNode}
-                            )
-                        ];
-                    nomatch ->
-                        []
-                end;
-            _ ->
-                []
-        end,
-    check_atom_names(
-        Regex,
-        ForbiddenRegex,
-        RegexEnclosed,
-        ForbiddenRegexEnclosed,
-        RemainingAtomZippers,
-        AccOut ++ AccIn
-    ).
 
 string_strip_enclosed([$' | Rest]) ->
     [$' | Reversed] = lists:reverse(Rest),
