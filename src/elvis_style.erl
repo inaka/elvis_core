@@ -594,35 +594,45 @@ logger_macros() ->
     ].
 
 no_space_after_pound({_Config, Target, _RuleConfig} = RuleCfg) ->
-    Root = root(RuleCfg),
-    Tokens = ktn_code:attr(tokens, Root),
-    TextNodes = lists:filter(fun is_text_node/1, Tokens),
-    {Src, #{encoding := Encoding}} = elvis_file:src(Target),
-    Lines = elvis_utils:split_all_lines(Src),
-    check_spaces(Lines, TextNodes, {right, "#"}, Encoding, {should_not_have, []}).
+    TextNodes = elvis_code:find(#{
+        of_types => undefined,
+        inside => tokens_as_content(root(RuleCfg)),
+        filtered_by => fun is_text_node/1
+    }),
 
-punctuation_symbols() -> [',', ';', dot, '->', ':', '::', '|', '||'].
+    {Lines, Encoding} = lines_in(Target),
+    generate_space_check_results({Lines, Encoding}, TextNodes, {right, "#"}, {should_not_have, []}).
+
+lines_in(Target) ->
+    {Src, #{encoding := Encoding}} = elvis_file:src(Target),
+    {elvis_utils:split_all_lines(Src), Encoding}.
 
 operator_spaces({_Config, Target, _RuleConfig} = RuleCfg) ->
     Rules = option(rules, RuleCfg, ?FUNCTION_NAME),
-    {Src, #{encoding := Encoding}} = elvis_file:src(Target),
+
     Root = root(RuleCfg),
 
-    Zipper = elvis_code:code_zipper(Root),
-    OpNodes = zipper:filter(fun is_operator_node/1, Zipper),
+    OpNodes = elvis_code:find(#{
+        of_types => undefined,
+        inside => Root,
+        filtered_by => fun is_operator_node/1
+    }),
 
-    OperatorsInTokens = ['=', '&&' | punctuation_symbols()],
     PunctuationTokens = elvis_code:find(#{
-        of_types => OperatorsInTokens,
+        of_types => ['=', '&&', ',', ';', dot, '->', ':', '::', '|', '||'],
         inside => tokens_as_content(Root)
     }),
 
-    Lines = elvis_utils:split_all_lines(Src),
     AllNodes = OpNodes ++ PunctuationTokens,
 
-    FlatMap =
-        fun(Rule) -> check_spaces(Lines, AllNodes, Rule, Encoding, {should_have, []}) end,
-    lists:flatmap(FlatMap, Rules).
+    {Lines, Encoding} = lines_in(Target),
+
+    lists:flatmap(
+        fun(Rule) ->
+            generate_space_check_results({Lines, Encoding}, AllNodes, Rule, {should_have, []})
+        end,
+        Rules
+    ).
 
 %% @doc Returns true when the node is an operator with more than one operand
 -spec is_operator_node(ktn_code:tree_node()) -> boolean().
@@ -647,31 +657,32 @@ match_operators() ->
 
 no_space({_Config, Target, _RuleConfig} = RuleCfg) ->
     Rules = option(rules, RuleCfg, ?FUNCTION_NAME),
-    Root = root(RuleCfg),
-    Tokens = ktn_code:attr(tokens, Root),
-    TextNodes = lists:filter(fun is_text_node/1, Tokens),
-    {Src, #{encoding := Encoding}} = elvis_file:src(Target),
-    Lines = elvis_utils:split_all_lines(Src),
-    AllSpaceUntilText =
-        [
-            {Text,
-                re_compile(
-                    "^[ ]+" ++
-                        re:replace(
-                            Text,
-                            "(\\.|\\[|\\]|\\^|\\$|\\+|\\*|\\?|\\{|\\}|\\(|\\)|\\||\\\\)",
-                            "\\\\\\1",
-                            [{return, list}, global]
-                        ),
-                    [unicode]
-                )}
-         || {left, Text} <- Rules
-        ],
-    FlatMap =
+
+    TextNodes = elvis_code:find(#{
+        of_types => undefined,
+        inside => tokens_as_content(root(RuleCfg)),
+        filtered_by => fun is_text_node/1
+    }),
+
+    AllSpaceUntilText = [
+        {Text, re_compile("^[ ]+" ++ escape_regex(Text), [unicode])}
+     || {left, Text} <- Rules
+    ],
+
+    {Lines, Encoding} = lines_in(Target),
+
+    lists:flatmap(
         fun(Rule) ->
-            check_spaces(Lines, TextNodes, Rule, Encoding, {should_not_have, AllSpaceUntilText})
+            generate_space_check_results(
+                {Lines, Encoding}, TextNodes, Rule, {should_not_have, AllSpaceUntilText}
+            )
         end,
-    lists:flatmap(FlatMap, Rules).
+        Rules
+    ).
+
+escape_regex(Text) ->
+    EscapePattern = "(\\.|\\[|\\]|\\^|\\$|\\+|\\*|\\?|\\{|\\}|\\(|\\)|\\||\\\\)",
+    re:replace(Text, EscapePattern, "\\\\\\1", [{return, list}, global]).
 
 is_text_node(Node) ->
     ktn_code:attr(text, Node) =/= "".
@@ -2111,16 +2122,19 @@ macro_as_atom(
 macro_as_atom(false, [Type | OtherTypes], MacroNodeValue) ->
     macro_as_atom(lists:keyfind(Type, _N = 1, MacroNodeValue), OtherTypes, MacroNodeValue).
 
--spec check_spaces(
-    Lines :: [binary()],
+-spec generate_space_check_results(
+    {Lines :: [binary()], Encoding :: latin1 | utf8},
     Nodes :: [ktn_code:tree_node()],
     Rule :: {right | left, string()},
-    Encoding :: latin1 | utf8,
     How :: {should_have, []} | {should_not_have, [{string(), {ok, re:mp()}}]}
 ) ->
     [elvis_result:item()].
-
-check_spaces(Lines, UnfilteredNodes, {Position, Text}, Encoding, {How0, _} = How) ->
+generate_space_check_results(
+    {Lines, Encoding},
+    UnfilteredNodes,
+    {Position, Text},
+    {How0, _} = How
+) ->
     Nodes = lists:filter(
         fun(Node) ->
             ktn_code:attr(text, Node) =:= Text orelse
@@ -2129,30 +2143,28 @@ check_spaces(Lines, UnfilteredNodes, {Position, Text}, Encoding, {How0, _} = How
         UnfilteredNodes
     ),
 
-    lists:flatmap(
+    lists:filtermap(
         fun(Node) ->
             Location = ktn_code:attr(location, Node),
             case character_at_location(Position, Lines, Text, Location, Encoding, How) of
                 Char when Char =:= $\s, How0 =:= should_have ->
-                    [];
+                    false;
                 Char when Char =/= $\s, How0 =:= should_not_have ->
-                    [];
+                    false;
                 _ when How0 =:= should_have ->
-                    [
+                    {true,
                         elvis_result:new_item(
                             "there is a missing space to the ~p of '~p'",
                             [Position, Text],
                             #{node => Node}
-                        )
-                    ];
+                        )};
                 _ when How0 =:= should_not_have ->
-                    [
+                    {true,
                         elvis_result:new_item(
                             "an unexpected space was found to the ~p of '~p'",
                             [Position, Text],
                             #{node => Node}
-                        )
-                    ]
+                        )}
             end
         end,
         Nodes

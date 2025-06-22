@@ -25,8 +25,10 @@
 
 -spec find(Options) -> [NodeOrZipper] when
     Options :: #{
-        of_types := [tree_node_type()],
+        % undefined means "all types"
+        of_types := [tree_node_type()] | undefined,
         inside := Node,
+        % undefined means "don't filter"
         filtered_by => fun((NodeOrZipper) -> boolean()),
         filtered_from => node | zipper,
         traverse => content | all
@@ -44,13 +46,15 @@ find(Options) ->
         fun(NodeOrZipper) ->
             Node =
                 case FilteredFrom of
+                    _ when OfTypes =:= undefined ->
+                        undefined;
                     node ->
                         NodeOrZipper;
                     zipper ->
                         Zipper = NodeOrZipper,
                         zipper:node(Zipper)
                 end,
-            lists:member(ktn_code:type(Node), OfTypes)
+            OfTypes =:= undefined orelse lists:member(ktn_code:type(Node), OfTypes)
         end,
         Inside,
         FilteredFrom,
