@@ -637,10 +637,9 @@ god_modules(RuleCfg) ->
     Limit = option(limit, RuleCfg, god_modules),
 
     Root = root(RuleCfg),
+    ExportedFunctions = exported_functions(Root),
 
-    Exports = elvis_code:find_by_types([export], Root),
-    Exported = lists:flatmap(fun(Node) -> ktn_code:attr(value, Node) end, Exports),
-    case length(Exported) of
+    case length(ExportedFunctions) of
         Count when Count > Limit ->
             [
                 elvis_result:new_item(
@@ -652,6 +651,30 @@ god_modules(RuleCfg) ->
         _ ->
             []
     end.
+
+exported_functions(Root) ->
+    ExportNodes = elvis_code:find(#{
+        of_types => [export],
+        inside => Root
+    }),
+    lists:flatmap(
+        fun(Node) ->
+            ktn_code:attr(value, Node)
+        end,
+        ExportNodes
+    ).
+
+exported_types(Root) ->
+    ExportNodes = elvis_code:find(#{
+        of_types => [export_type],
+        inside => Root
+    }),
+    lists:flatmap(
+        fun(Node) ->
+            ktn_code:attr(value, Node)
+        end,
+        ExportNodes
+    ).
 
 no_if_expression(RuleCfg) ->
     IfExprNodes = elvis_code:find(#{
@@ -669,7 +692,13 @@ no_if_expression(RuleCfg) ->
 
 invalid_dynamic_call(RuleCfg) ->
     Root = root(RuleCfg),
-    HasCallbacks = has_callbacks(Root),
+
+    HasCallbacks =
+        elvis_code:find(#{
+            of_types => [callback],
+            inside => Root
+        }) =/= [],
+
     InvalidCallNodes =
         case HasCallbacks of
             true ->
@@ -691,12 +720,6 @@ invalid_dynamic_call(RuleCfg) ->
         )
      || InvalidCallNode <- InvalidCallNodes
     ].
-
-has_callbacks(Root) ->
-    elvis_code:find(#{
-        of_types => [callback],
-        inside => Root
-    }) =/= [].
 
 used_ignored_variable(RuleCfg) ->
     IgnoredVarZippers = elvis_code:find(#{
@@ -947,11 +970,7 @@ max_function_arity(RuleCfg) ->
     NonExportedMaxArity = specific_or_default(NonExportedMaxArity0, ExportedMaxArity),
 
     Root = root(RuleCfg),
-
-    ExportNodes = elvis_code:find(#{
-        of_types => [export],
-        inside => Root
-    }),
+    ExportedFunctions = exported_functions(Root),
 
     FunctionNodes0 = elvis_code:find(#{
         of_types => [function],
@@ -961,24 +980,14 @@ max_function_arity(RuleCfg) ->
     % We do this to recover the max arity (because it depends on "exported or not")
     FunctionNodeMaxArities = lists:filtermap(
         fun(FunctionNode) ->
-            Name = ktn_code:attr(name, FunctionNode),
-            Arity = ktn_code:attr(arity, FunctionNode),
-            ExportedFunctions =
-                lists:flatmap(
-                    fun(Node) ->
-                        ktn_code:attr(value, Node)
-                    end,
-                    ExportNodes
-                ),
-            IsExported = lists:member({Name, Arity}, ExportedFunctions),
             MaxArity =
-                case IsExported of
+                case is_exported_function(FunctionNode, ExportedFunctions) of
                     true ->
                         ExportedMaxArity;
                     false ->
                         NonExportedMaxArity
                 end,
-            case Arity > MaxArity of
+            case ktn_code:attr(arity, FunctionNode) > MaxArity of
                 true ->
                     {true, {FunctionNode, MaxArity}};
                 false ->
@@ -996,6 +1005,11 @@ max_function_arity(RuleCfg) ->
         )
      || {FunctionNode, MaxArity} <- FunctionNodeMaxArities
     ].
+
+is_exported_function(FunctionNode, ExportedFunctions) ->
+    Name = ktn_code:attr(name, FunctionNode),
+    Arity = ktn_code:attr(arity, FunctionNode),
+    lists:member({Name, Arity}, ExportedFunctions).
 
 max_function_clause_length({_Config, Target, _RuleConfig} = RuleCfg) ->
     MaxLength = option(max_length, RuleCfg, ?FUNCTION_NAME),
@@ -1729,61 +1743,59 @@ always_shortcircuit(RuleCfg) ->
 
 export_used_types(RuleCfg) ->
     Root = root(RuleCfg),
+
     case is_otp_behaviour(Root) of
         false ->
-            export_used_types_in(Root);
+            ExportedFunctions = exported_functions(Root),
+            ExportedTypes = exported_types(Root),
+
+            SpecNodes = elvis_code:find(#{
+                of_types => [spec],
+                inside => Root,
+                filtered_by =>
+                    fun(SpecNode) ->
+                        is_exported_function(SpecNode, ExportedFunctions)
+                    end
+            }),
+
+            UsedTypes =
+                lists:usort(
+                    lists:flatmap(
+                        fun(SpecNode) ->
+                            UserTypeNodes = elvis_code:find(#{
+                                of_types => [user_type],
+                                inside => SpecNode,
+                                traverse => all
+                            }),
+                            % yes, on a -type line, the arity is based on `args`, but on
+                            % a -spec line, it's based on `content`
+                            [
+                                {Name, length(Vars)}
+                             || #{attrs := #{name := Name}, content := Vars} <- UserTypeNodes
+                            ]
+                        end,
+                        SpecNodes
+                    )
+                ),
+            UnexportedUsedTypes = lists:subtract(UsedTypes, ExportedTypes),
+
+            Locations = map_type_declarations_to_location(Root),
+
+            lists:map(
+                fun({Name, Arity}) ->
+                    {Line, Column} = maps:get({Name, Arity}, Locations, {-1, -1}),
+                    elvis_result:new_item(
+                        "type '~p/~p' is used by an exported function; prefer to also export the "
+                        "type",
+                        [Name, Arity],
+                        #{line => Line, column => Column}
+                    )
+                end,
+                UnexportedUsedTypes
+            );
         true ->
             []
     end.
-
-export_used_types_in(TreeRootNode) ->
-    FunctionExports = elvis_code:find_by_types([export], TreeRootNode),
-    ExportedFunctions = lists:flatmap(fun(Node) -> ktn_code:attr(value, Node) end, FunctionExports),
-    SpecNodes = elvis_code:find_by_types([spec], TreeRootNode),
-    ExportedSpecs =
-        lists:filter(
-            fun
-                (#{attrs := #{arity := Arity, name := Name}}) ->
-                    lists:member({Name, Arity}, ExportedFunctions);
-                (_) ->
-                    false
-            end,
-            SpecNodes
-        ),
-    UsedTypes =
-        lists:usort(
-            lists:flatmap(
-                fun(Spec) ->
-                    Types = elvis_code:find_by_types([user_type], Spec, undefined, #{
-                        traverse => all
-                    }),
-                    % yes, on a -type line, the arity is based on `args`, but on
-                    % a -spec line, it's based on `content`
-                    [
-                        {Name, length(Vars)}
-                     || #{attrs := #{name := Name}, content := Vars} <- Types
-                    ]
-                end,
-                ExportedSpecs
-            )
-        ),
-    TypeExports = elvis_code:find_by_types([export_type], TreeRootNode),
-    ExportedTypes = lists:flatmap(fun(Node) -> ktn_code:attr(value, Node) end, TypeExports),
-    UnexportedUsedTypes = lists:subtract(UsedTypes, ExportedTypes),
-    Locations = map_type_declarations_to_location(TreeRootNode),
-
-    % Report
-    lists:map(
-        fun({Name, Arity} = Info) ->
-            {Line, Column} = maps:get(Info, Locations, {-1, -1}),
-            elvis_result:new_item(
-                "type '~p/~p' is used by an exported function; prefer to also export the type",
-                [Name, Arity],
-                #{line => Line, column => Column}
-            )
-        end,
-        UnexportedUsedTypes
-    ).
 
 get_type_of_type(#{
     type := type_attr,
@@ -1795,12 +1807,12 @@ get_type_of_type(_) ->
 
 private_data_types(RuleCfg) ->
     TypesToCheck = option(apply_to, RuleCfg, private_data_types),
-    TreeRootNode = root(RuleCfg),
-    TypeExports = elvis_code:find_by_types([export_type], TreeRootNode),
+    Root = root(RuleCfg),
+    TypeExports = elvis_code:find_by_types([export_type], Root),
     ExportedTypes = lists:flatmap(fun(Node) -> ktn_code:attr(value, Node) end, TypeExports),
-    Locations = map_type_declarations_to_location(TreeRootNode),
+    Locations = map_type_declarations_to_location(Root),
 
-    PublicDataTypes = public_data_types(TypesToCheck, TreeRootNode, ExportedTypes),
+    PublicDataTypes = public_data_types(TypesToCheck, Root, ExportedTypes),
 
     lists:map(
         fun({Name, Arity} = Info) ->
@@ -1815,12 +1827,12 @@ private_data_types(RuleCfg) ->
         PublicDataTypes
     ).
 
-public_data_types(TypesToCheck, TreeRootNode, ExportedTypes) ->
+public_data_types(TypesToCheck, Root, ExportedTypes) ->
     Fun = fun(Node) -> lists:member(get_type_of_type(Node), TypesToCheck) end,
     Types =
         [
             name_arity_from_type_line(Node)
-         || Node <- elvis_code:find(Fun, TreeRootNode, #{traverse => all})
+         || Node <- elvis_code:find(Fun, Root, #{traverse => all})
         ],
     lists:filter(fun({Name, Arity}) -> lists:member({Name, Arity}, ExportedTypes) end, Types).
 
@@ -1834,8 +1846,8 @@ name_arity_from_type_line(#{attrs := #{name := Name}, node_attrs := #{args := Ar
 
 -spec map_type_declarations_to_location(ktn_code:tree_node()) ->
     #{{atom(), number()} => number()}.
-map_type_declarations_to_location(TreeRootNode) ->
-    AllTypes = elvis_code:find_by_types([type_attr], TreeRootNode),
+map_type_declarations_to_location(Root) ->
+    AllTypes = elvis_code:find_by_types([type_attr], Root),
     lists:foldl(
         fun
             (
