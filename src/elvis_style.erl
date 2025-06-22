@@ -897,32 +897,49 @@ max_module_length({_Config, Target, _RuleConfig} = RuleCfg) ->
 
 max_anonymous_function_arity(RuleCfg) ->
     MaxArity = option(max_arity, RuleCfg, max_anonymous_function_arity),
-    Root = root(RuleCfg),
-    IsFun =
-        fun(Node) ->
-            %% Not having clauses means it's something like fun mod:f/10 and we don't want
-            %% this rule to raise warnings for those. max_function_arity should take care of them.
-            ktn_code:type(Node) =:= 'fun' andalso [] =/= elvis_code:find_by_types([clause], Node)
-        end,
-    Funs = elvis_code:find(IsFun, Root),
-    lists:filtermap(
+
+    Funs = elvis_code:find(#{
+        of_types => ['fun'],
+        inside => root(RuleCfg),
+        filtered_by =>
+            fun(FunNode) ->
+                %% Not having clauses means it's something like fun mod:f/10 and we don't want
+                %% this rule to raise warnings for those. max_function_arity should take care of
+                %% them.
+                elvis_code:find(#{
+                    of_types => [clause],
+                    inside => FunNode
+                }) =/= []
+            end
+    }),
+
+    % We do this to recover the fun and arity
+    FunArities = lists:filtermap(
         fun(Fun) ->
-            [FirstClause | _] = elvis_code:find_by_types([clause], Fun),
-            case length(ktn_code:node_attr(pattern, FirstClause)) of
-                Arity when Arity =< MaxArity ->
-                    false;
-                Arity ->
-                    {true,
-                        elvis_result:new_item(
-                            "the arity (~p) of the anonymous function is higher than the "
-                            "configured limit",
-                            [Arity],
-                            #{node => Fun, limit => MaxArity}
-                        )}
+            [FirstClause | _] = elvis_code:find(#{
+                of_types => [clause],
+                inside => Fun
+            }),
+            Arity = length(ktn_code:node_attr(pattern, FirstClause)),
+            case Arity > MaxArity of
+                true ->
+                    {true, {Fun, Arity}};
+                false ->
+                    false
             end
         end,
         Funs
-    ).
+    ),
+
+    [
+        elvis_result:new_item(
+            "the arity (~p) of the anonymous function is higher than the "
+            "configured limit",
+            [Arity],
+            #{node => Fun, limit => MaxArity}
+        )
+     || {Fun, Arity} <- FunArities
+    ].
 
 max_function_arity(RuleCfg) ->
     ExportedMaxArity = option(max_arity, RuleCfg, max_function_arity),
