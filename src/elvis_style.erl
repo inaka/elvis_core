@@ -853,30 +853,24 @@ dont_repeat_yourself(RuleCfg) ->
     lists:map(ResultFun, Nodes).
 
 max_module_length({_Config, Target, _RuleConfig} = RuleCfg) ->
-    MaxLength = option(max_length, RuleCfg, max_module_length),
-    CountComments = option(count_comments, RuleCfg, max_module_length),
-    CountWhitespace = option(count_whitespace, RuleCfg, max_module_length),
-    CountDocs = option(count_docs, RuleCfg, max_module_length),
+    MaxLength = option(max_length, RuleCfg, ?FUNCTION_NAME),
+    CountComments = option(count_comments, RuleCfg, ?FUNCTION_NAME),
+    CountWhitespace = option(count_whitespace, RuleCfg, ?FUNCTION_NAME),
+    CountDocs = option(count_docs, RuleCfg, ?FUNCTION_NAME),
 
     {Src0, _} = elvis_file:src(Target),
-
     DocParts = doc_bin_parts(Src0),
     Docs = iolist_to_binary(bin_parts_to_iolist(Src0, DocParts)),
     SrcParts = ignore_bin_parts(Src0, DocParts),
     Src = iolist_to_binary(bin_parts_to_iolist(Src0, SrcParts)),
+    Lines0 = elvis_utils:split_all_lines(Src, [trim]),
 
-    FilterFun =
+    Lines = lists:filter(
         fun(Line) ->
-            (CountComments orelse not line_is_comment(Line)) andalso
-                (CountWhitespace orelse not line_is_whitespace(Line))
+            filter_comments_and_whitespace(Line, CountComments, CountWhitespace)
         end,
-    Lines =
-        case elvis_utils:split_all_lines(Src, [trim]) of
-            Ls when CountComments, CountWhitespace ->
-                Ls;
-            Ls ->
-                lists:filter(FilterFun, Ls)
-        end,
+        Lines0
+    ),
 
     DocLines =
         case CountDocs of
@@ -886,12 +880,14 @@ max_module_length({_Config, Target, _RuleConfig} = RuleCfg) ->
                 []
         end,
 
-    case length(Lines) + length(DocLines) of
-        L when L > MaxLength ->
+    ModLength = length(Lines) + length(DocLines),
+
+    case ModLength > MaxLength of
+        true ->
             [
                 elvis_result:new_item(
                     "This module's lines-of-code count (~p) is higher than the configured limit",
-                    [L],
+                    [ModLength],
                     #{limit => MaxLength}
                 )
             ];
@@ -986,12 +982,8 @@ max_function_clause_length({_Config, Target, _RuleConfig} = RuleCfg) ->
     % We do this to recover the clause number and apply the configured filters
     {BigClauses, _} = lists:foldl(
         fun(ClauseZipper, {BigClauses0, ClauseNum}) ->
-            FilteredLines = filtered_lines_in_clause(
-                ClauseZipper,
-                Lines,
-                CountComments,
-                CountWhitespace
-            ),
+            ClauseNode = zipper:node(ClauseZipper),
+            FilteredLines = filtered_lines_in(ClauseNode, Lines, CountComments, CountWhitespace),
             LineLen = length(FilteredLines),
             {
                 case LineLen > MaxLength of
@@ -1026,28 +1018,19 @@ max_function_clause_length({_Config, Target, _RuleConfig} = RuleCfg) ->
         lists:reverse(BigClauses)
     ).
 
-filtered_lines_in_clause(ClauseZipper, Lines, CountComments, CountWhitespace) ->
-    ClauseNode = zipper:node(ClauseZipper),
-    {Min, Max} = node_line_limits(ClauseNode),
-    FunLines = lists:sublist(Lines, Min, Max - Min + 1),
+filtered_lines_in(Node, Lines, CountComments, CountWhitespace) ->
+    {Min, Max} = node_line_limits(Node),
+    NodeLines = lists:sublist(Lines, Min, Max - Min + 1),
     lists:filter(
-        fun(Line) ->
-            (CountComments orelse not line_is_comment(Line)) andalso
-                (CountWhitespace orelse not line_is_whitespace(Line))
+        fun(NodeLine) ->
+            filter_comments_and_whitespace(NodeLine, CountComments, CountWhitespace)
         end,
-        FunLines
+        NodeLines
     ).
 
-filtered_lines_in_function(FunctionNode, Lines, CountComments, CountWhitespace) ->
-    {Min, Max} = node_line_limits(FunctionNode),
-    FunLines = lists:sublist(Lines, Min, Max - Min + 1),
-    lists:filter(
-        fun(Line) ->
-            (CountComments orelse not line_is_comment(Line)) andalso
-                (CountWhitespace orelse not line_is_whitespace(Line))
-        end,
-        FunLines
-    ).
+filter_comments_and_whitespace(NodeLine, CountComments, CountWhitespace) ->
+    (CountComments orelse not line_is_comment(NodeLine)) andalso
+        (CountWhitespace orelse not line_is_whitespace(NodeLine)).
 
 parse_clause_num(Num) when Num rem 100 >= 11, Num rem 100 =< 13 ->
     integer_to_list(Num) ++ "th";
@@ -1076,12 +1059,7 @@ max_function_length({_Config, Target, _RuleConfig} = RuleCfg) ->
     % We do this to apply the configured filters
     BigFunctions = lists:filtermap(
         fun(FunctionNode) ->
-            FilteredLines = filtered_lines_in_function(
-                FunctionNode,
-                Lines,
-                CountComments,
-                CountWhitespace
-            ),
+            FilteredLines = filtered_lines_in(FunctionNode, Lines, CountComments, CountWhitespace),
             LineLen = length(FilteredLines),
             case LineLen > MaxLength of
                 true ->
