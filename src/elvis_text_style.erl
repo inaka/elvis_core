@@ -37,9 +37,9 @@ default(prefer_unquoted_atoms) ->
 %% @doc Target can be either a filename or the
 %% name of a module.
 line_length({_Config, Target, _RuleConfig} = RuleCfg) ->
-    Limit = option(limit, RuleCfg, line_length),
-    SkipComments = option(skip_comments, RuleCfg, line_length),
-    NoWhitespace = option(no_whitespace_after_limit, RuleCfg, line_length),
+    Limit = option(limit, RuleCfg, ?FUNCTION_NAME),
+    SkipComments = option(skip_comments, RuleCfg, ?FUNCTION_NAME),
+    NoWhitespace = option(no_whitespace_after_limit, RuleCfg, ?FUNCTION_NAME),
     {Src, #{encoding := Encoding}} = elvis_file:src(Target),
     Args = [Limit, SkipComments, Encoding, NoWhitespace],
     elvis_utils:check_lines(Src, fun check_line_length/3, Args).
@@ -50,7 +50,7 @@ no_tabs({_Config, Target, _RuleConfig}) ->
 
 no_trailing_whitespace({_Config, Target, RuleConfig} = RuleCfg) ->
     {Src, _} = elvis_file:src(Target),
-    IgnoreEmptyLines = option(ignore_empty_lines, RuleCfg, no_trailing_whitespace),
+    IgnoreEmptyLines = option(ignore_empty_lines, RuleCfg, ?FUNCTION_NAME),
     elvis_utils:check_lines(
         Src,
         fun(Src1, Fun, _Args) ->

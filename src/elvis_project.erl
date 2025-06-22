@@ -20,8 +20,8 @@ default(old_configuration_format) ->
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 protocol_for_deps({_Config, Target, _RuleConfig} = RuleCfg) ->
-    IgnoreDeps = option(ignore, RuleCfg, protocol_for_deps),
-    Regex = option(regex, RuleCfg, protocol_for_deps),
+    IgnoreDeps = option(ignore, RuleCfg, ?FUNCTION_NAME),
+    Regex = option(regex, RuleCfg, ?FUNCTION_NAME),
     Deps = get_deps(Target),
     NoHexDeps = lists:filter(fun(Dep) -> not is_hex_dep(Dep) end, Deps),
     BadDeps = lists:filter(fun(Dep) -> is_not_git_dep(Dep, Regex) end, NoHexDeps),
@@ -52,7 +52,7 @@ appname_from_line({AppName, _Vsn, _GitInfo, _Opts}) ->
     AppName.
 
 no_branch_deps({_Config, Target, _RuleConfig} = RuleCfg) ->
-    IgnoreDeps = option(ignore, RuleCfg, no_branch_deps),
+    IgnoreDeps = option(ignore, RuleCfg, ?FUNCTION_NAME),
     Deps = get_deps(Target),
     BadDeps = lists:filter(fun is_branch_dep/1, Deps),
     lists:filtermap(
