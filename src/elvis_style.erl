@@ -1797,22 +1797,13 @@ export_used_types(RuleCfg) ->
             []
     end.
 
-get_type_of_type(#{
-    type := type_attr,
-    node_attrs := #{type := #{attrs := #{name := TypeOfType}}}
-}) ->
-    TypeOfType;
-get_type_of_type(_) ->
-    undefined.
-
 private_data_types(RuleCfg) ->
     TypesToCheck = option(apply_to, RuleCfg, private_data_types),
-    Root = root(RuleCfg),
-    TypeExports = elvis_code:find_by_types([export_type], Root),
-    ExportedTypes = lists:flatmap(fun(Node) -> ktn_code:attr(value, Node) end, TypeExports),
-    Locations = map_type_declarations_to_location(Root),
 
+    Root = root(RuleCfg),
+    ExportedTypes = exported_types(Root),
     PublicDataTypes = public_data_types(TypesToCheck, Root, ExportedTypes),
+    Locations = map_type_declarations_to_location(Root),
 
     lists:map(
         fun({Name, Arity} = Info) ->
@@ -1828,21 +1819,43 @@ private_data_types(RuleCfg) ->
     ).
 
 public_data_types(TypesToCheck, Root, ExportedTypes) ->
-    Fun = fun(Node) -> lists:member(get_type_of_type(Node), TypesToCheck) end,
-    Types =
-        [
-            name_arity_from_type_line(Node)
-         || Node <- elvis_code:find(Fun, Root, #{traverse => all})
-        ],
-    lists:filter(fun({Name, Arity}) -> lists:member({Name, Arity}, ExportedTypes) end, Types).
+    TypeAttrNodes = elvis_code:find(#{
+        of_types => [type_attr],
+        inside => Root,
+        filtered_by =>
+            fun(TypeAttrNode) ->
+                TypeAttrNodeType = ktn_code:node_attr(type, TypeAttrNode),
+                TypeAttrNodeType =/= undefined andalso
+                    lists:member(ktn_code:attr(name, TypeAttrNodeType), TypesToCheck)
+            end,
+        traverse => all
+    }),
+
+    NameArities = lists:map(
+        fun(TypeAttrNode) ->
+            #{
+                attrs := #{
+                    name := Name
+                },
+                node_attrs := #{
+                    args := Args
+                }
+            } = TypeAttrNode,
+            {Name, length(Args)}
+        end,
+        TypeAttrNodes
+    ),
+
+    lists:filter(
+        fun({Name, Arity}) ->
+            lists:member({Name, Arity}, ExportedTypes)
+        end,
+        NameArities
+    ).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
--spec name_arity_from_type_line(ktn_code:tree_node()) -> {atom(), integer()}.
-name_arity_from_type_line(#{attrs := #{name := Name}, node_attrs := #{args := Args}}) ->
-    {Name, length(Args)}.
 
 -spec map_type_declarations_to_location(ktn_code:tree_node()) ->
     #{{atom(), number()} => number()}.
