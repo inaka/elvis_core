@@ -735,55 +735,44 @@ no_behavior_info(RuleCfg) ->
 
 module_naming_convention({_Config, Target, _RuleConfig} = RuleCfg) ->
     Regex = option(regex, RuleCfg, module_naming_convention),
-    IgnoreModules = option(ignore, RuleCfg, module_naming_convention),
+    ForbiddenRegex = option(forbidden_regex, RuleCfg, module_naming_convention),
 
-    Root = root(RuleCfg),
+    ModuleNode = elvis_code:find(#{
+        of_types => [module],
+        inside => root(RuleCfg)
+    }),
+
     ModuleName =
-        case elvis_code:find_by_types([module], Root) of
+        case ModuleNode of
             [Module] ->
                 ktn_code:attr(value, Module);
             _ ->
                 elvis_file:module(Target)
         end,
+    ModuleNameStr = atom_to_list(ModuleName),
 
-    case lists:member(ModuleName, IgnoreModules) of
-        false ->
-            ModuleNameStr = atom_to_list(ModuleName),
-            case re:run(ModuleNameStr, Regex) of
-                nomatch ->
-                    [
-                        elvis_result:new_item(
-                            "The name of this module is not acceptable by regular expression '~p'",
-                            [Regex]
-                        )
-                    ];
-                {match, _} ->
-                    ForbiddenRegex = option(forbidden_regex, RuleCfg, module_naming_convention),
-                    case ForbiddenRegex of
-                        undefined ->
-                            [];
-                        ForbiddenRegex ->
-                            is_forbidden_module_name(
-                                ModuleNameStr,
-                                ForbiddenRegex
-                            )
-                    end
-            end;
-        true ->
-            []
-    end.
-
-is_forbidden_module_name(Target, Regex) ->
-    case re:run(Target, Regex, [unicode]) of
-        {match, _} ->
+    case re:run(ModuleNameStr, Regex) of
+        nomatch ->
             [
                 elvis_result:new_item(
-                    "The name of this module name is forbidden by regular expression '~p'",
+                    "The name of this module is not acceptable by regular expression '~p'",
                     [Regex]
                 )
             ];
-        nomatch ->
-            []
+        {match, _} when ForbiddenRegex =:= undefined ->
+            [];
+        _ ->
+            case re:run(ModuleNameStr, ForbiddenRegex) of
+                {match, _} ->
+                    [
+                        elvis_result:new_item(
+                            "The name of this module name is forbidden by regular expression '~p'",
+                            [ForbiddenRegex]
+                        )
+                    ];
+                nomatch ->
+                    []
+            end
     end.
 
 state_record_and_type(RuleCfg) ->
