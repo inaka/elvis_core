@@ -2121,19 +2121,21 @@ macro_as_atom(false, [Type | OtherTypes], MacroNodeValue) ->
     [elvis_result:item()].
 
 check_spaces(Lines, UnfilteredNodes, {Position, Text}, Encoding, {How0, _} = How) ->
-    FilterFun = fun(Node) ->
-        ktn_code:attr(text, Node) =:= Text orelse
-            (ktn_code:type(Node) =:= dot andalso Text =:= ".")
-    end,
-    Nodes = lists:filter(FilterFun, UnfilteredNodes),
-    SpaceChar = $\s,
-    FlatFun =
+    Nodes = lists:filter(
+        fun(Node) ->
+            ktn_code:attr(text, Node) =:= Text orelse
+                (ktn_code:type(Node) =:= dot andalso Text =:= ".")
+        end,
+        UnfilteredNodes
+    ),
+
+    lists:flatmap(
         fun(Node) ->
             Location = ktn_code:attr(location, Node),
             case character_at_location(Position, Lines, Text, Location, Encoding, How) of
-                Char when Char =:= SpaceChar, How0 =:= should_have ->
+                Char when Char =:= $\s, How0 =:= should_have ->
                     [];
-                Char when Char =/= SpaceChar, How0 =:= should_not_have ->
+                Char when Char =/= $\s, How0 =:= should_not_have ->
                     [];
                 _ when How0 =:= should_have ->
                     [
@@ -2153,7 +2155,8 @@ check_spaces(Lines, UnfilteredNodes, {Position, Text}, Encoding, {How0, _} = How
                     ]
             end
         end,
-    lists:flatmap(FlatFun, Nodes).
+        Nodes
+    ).
 
 maybe_re_run(_Line, undefined = _Regex) ->
     nomatch;
