@@ -1548,30 +1548,31 @@ no_single_match_maybe(RuleCfg) ->
     ].
 
 no_match_in_condition(RuleCfg) ->
-    Root = root(RuleCfg),
-    CaseNodes = elvis_code:find(fun is_match_in_condition/1, Root),
-    lists:map(
-        fun(CaseNode) ->
-            elvis_result:new_item(
-                "an avoidable match condition in a 'case' expression was found; prefer matching "
-                "in 'case' clauses",
-                #{node => CaseNode}
-            )
-        end,
-        CaseNodes
-    ).
+    CaseExprNodes = elvis_code:find(#{
+        of_types => [case_expr],
+        inside => root(RuleCfg),
+        filtered_by => fun(CaseExprNode) ->
+            %% case_expr followed by a match
+            has_match_child(CaseExprNode) orelse
+                %% or case_expr followed by a block which contains a match in the first layer
+                lists:any(
+                    fun(CaseExprContent) ->
+                        ktn_code:type(CaseExprContent) =:= block andalso
+                            has_match_child(CaseExprContent)
+                    end,
+                    ktn_code:content(CaseExprNode)
+                )
+        end
+    }),
 
-is_match_in_condition(Node) ->
-    ktn_code:type(Node) =:= case_expr andalso
-        %% case_expr followed by a match
-        (has_match_child(Node) orelse
-            %% or case_expr followed by a block which contains a match in the first layer
-            lists:any(
-                fun(Node1) ->
-                    ktn_code:type(Node1) =:= block andalso has_match_child(Node1)
-                end,
-                ktn_code:content(Node)
-            )).
+    [
+        elvis_result:new_item(
+            "an avoidable match condition in a 'case' expression was found; prefer matching "
+            "in 'case' clauses",
+            #{node => CaseExprNode}
+        )
+     || CaseExprNode <- CaseExprNodes
+    ].
 
 is_match(Node) ->
     lists:member(ktn_code:type(Node), match_operators()).
