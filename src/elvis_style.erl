@@ -1703,26 +1703,28 @@ consistent_generic_type(RuleCfg) ->
 
 always_shortcircuit(RuleCfg) ->
     Operators = #{'and' => 'andalso', 'or' => 'orelse'},
-    Root = root(RuleCfg),
-    IsBadOperator =
-        fun(Node) ->
-            is_operator_node(Node) andalso
-                lists:member(
-                    ktn_code:attr(operation, Node), maps:keys(Operators)
-                )
+
+    OpNodes = elvis_code:find(#{
+        of_types => [op],
+        inside => root(RuleCfg),
+        filtered_by => fun(OpNode) ->
+            NodeOperation = ktn_code:attr(operation, OpNode),
+            lists:member(NodeOperation, maps:keys(Operators))
         end,
-    BadOperators = elvis_code:find(IsBadOperator, Root, #{traverse => all}),
-    ResultFun =
-        fun(Node) ->
-            BadOperator = ktn_code:attr(operation, Node),
-            GoodOperator = maps:get(BadOperator, Operators),
-            elvis_result:new_item(
-                "unexpected non-shortcircuiting operator '~p' was found; prefer ~p",
-                [BadOperator, GoodOperator],
-                #{node => Node}
-            )
-        end,
-    lists:map(ResultFun, BadOperators).
+        traverse => all
+    }),
+
+    [
+        elvis_result:new_item(
+            "unexpected non-shortcircuiting operator '~p' was found; prefer ~p",
+            [
+                ktn_code:attr(operation, OpNode),
+                maps:get(ktn_code:attr(operation, OpNode), Operators)
+            ],
+            #{node => OpNode}
+        )
+     || OpNode <- OpNodes
+    ].
 
 export_used_types(RuleCfg) ->
     Root = root(RuleCfg),
