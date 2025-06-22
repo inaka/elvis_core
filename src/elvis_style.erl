@@ -943,19 +943,34 @@ max_anonymous_function_arity(RuleCfg) ->
 
 max_function_arity(RuleCfg) ->
     ExportedMaxArity = option(max_arity, RuleCfg, max_function_arity),
-    NonExportedMaxArity =
-        specific_or_default(
-            option(non_exported_max_arity, RuleCfg, max_function_arity),
-            ExportedMaxArity
-        ),
+    NonExportedMaxArity0 = option(non_exported_max_arity, RuleCfg, max_function_arity),
+    NonExportedMaxArity = specific_or_default(NonExportedMaxArity0, ExportedMaxArity),
+
     Root = root(RuleCfg),
-    Functions = elvis_code:find_by_types([function], Root),
-    lists:filtermap(
-        fun(#{attrs := #{arity := Arity, name := Name}} = Function) ->
-            Exports = elvis_code:find_by_types([export], Root),
-            ExportedFunctions = lists:flatmap(fun(Node) -> ktn_code:attr(value, Node) end, Exports),
-            IsExported =
-                lists:member({Name, Arity}, ExportedFunctions),
+
+    ExportNodes = elvis_code:find(#{
+        of_types => [export],
+        inside => Root
+    }),
+
+    FunctionNodes0 = elvis_code:find(#{
+        of_types => [function],
+        inside => Root
+    }),
+
+    % We do this to recover the max arity (because it depends on "exported or not")
+    FunctionNodeMaxArities = lists:filtermap(
+        fun(FunctionNode) ->
+            Name = ktn_code:attr(name, FunctionNode),
+            Arity = ktn_code:attr(arity, FunctionNode),
+            ExportedFunctions =
+                lists:flatmap(
+                    fun(Node) ->
+                        ktn_code:attr(value, Node)
+                    end,
+                    ExportNodes
+                ),
+            IsExported = lists:member({Name, Arity}, ExportedFunctions),
             MaxArity =
                 case IsExported of
                     true ->
@@ -963,21 +978,24 @@ max_function_arity(RuleCfg) ->
                     false ->
                         NonExportedMaxArity
                 end,
-            case ktn_code:attr(arity, Function) of
-                Arity when Arity =< MaxArity ->
-                    false;
-                Arity ->
-                    Name = ktn_code:attr(name, Function),
-                    {true,
-                        elvis_result:new_item(
-                            "the arity of function '~p/~p' is higher than the configured limit",
-                            [Name, Arity],
-                            #{node => Function, limit => MaxArity}
-                        )}
+            case Arity > MaxArity of
+                true ->
+                    {true, {FunctionNode, MaxArity}};
+                false ->
+                    false
             end
         end,
-        Functions
-    ).
+        FunctionNodes0
+    ),
+
+    [
+        elvis_result:new_item(
+            "the arity of function '~p/~p' is higher than the configured limit",
+            [ktn_code:attr(name, FunctionNode), ktn_code:attr(arity, FunctionNode)],
+            #{node => FunctionNode, limit => MaxArity}
+        )
+     || {FunctionNode, MaxArity} <- FunctionNodeMaxArities
+    ].
 
 max_function_clause_length({_Config, Target, _RuleConfig} = RuleCfg) ->
     MaxLength = option(max_length, RuleCfg, ?FUNCTION_NAME),
@@ -1176,16 +1194,10 @@ atom_naming_convention(RuleCfg) ->
     Root = root(RuleCfg),
     Regex = option(regex, RuleCfg, atom_naming_convention),
     ForbiddenRegex = option(forbidden_regex, RuleCfg, atom_naming_convention),
-    RegexEnclosed =
-        specific_or_default(
-            option(enclosed_atoms, RuleCfg, atom_naming_convention),
-            Regex
-        ),
-    ForbiddenEnclosedRegex =
-        specific_or_default(
-            option(forbidden_enclosed_regex, RuleCfg, atom_naming_convention),
-            ForbiddenRegex
-        ),
+    RegexEnclosed0 = option(enclosed_atoms, RuleCfg, atom_naming_convention),
+    RegexEnclosed = specific_or_default(RegexEnclosed0, Regex),
+    ForbiddenEnclosedRegex0 = option(forbidden_enclosed_regex, RuleCfg, atom_naming_convention),
+    ForbiddenEnclosedRegex = specific_or_default(ForbiddenEnclosedRegex0, ForbiddenRegex),
     IsAtomNode = fun(Node) ->
         ktn_code:type(zipper:node(Node)) =:= atom andalso not check_parent_remote(Node)
     end,
@@ -1568,8 +1580,10 @@ has_match_child(Node) ->
 numeric_format(RuleCfg) ->
     Root = root(RuleCfg),
     Regex = option(regex, RuleCfg, numeric_format),
-    IntRegex = specific_or_default(option(int_regex, RuleCfg, numeric_format), Regex),
-    FloatRegex = specific_or_default(option(float_regex, RuleCfg, numeric_format), Regex),
+    IntRegex0 = option(int_regex, RuleCfg, numeric_format),
+    IntRegex = specific_or_default(IntRegex0, Regex),
+    FloatRegex0 = option(float_regex, RuleCfg, numeric_format),
+    FloatRegex = specific_or_default(FloatRegex0, Regex),
     IntNodes = elvis_code:find_by_types([integer], Root),
     FloatNodes = elvis_code:find_by_types([float], Root),
     check_numeric_format(
