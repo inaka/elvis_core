@@ -1530,20 +1530,22 @@ case_clauses_in(Node) ->
     ].
 
 no_single_match_maybe(RuleCfg) ->
-    Root = root(RuleCfg),
-    IsSingleMatchMaybeBlock = fun(Node) ->
-        ktn_code:type(Node) =:= 'maybe' andalso length(ktn_code:content(Node)) =:= 1
-    end,
-    CaseNodes = elvis_code:find(IsSingleMatchMaybeBlock, Root),
-    lists:map(
-        fun(CaseNode) ->
-            elvis_result:new_item(
-                "an avoidable single-match 'maybe' block was found",
-                #{node => CaseNode}
-            )
-        end,
-        CaseNodes
-    ).
+    MaybeNodes = elvis_code:find(#{
+        of_types => ['maybe'],
+        inside => root(RuleCfg),
+        filtered_by =>
+            fun(MaybeNode) ->
+                length(ktn_code:content(MaybeNode)) =:= 1
+            end
+    }),
+
+    [
+        elvis_result:new_item(
+            "an avoidable single-match 'maybe' block was found",
+            #{node => MaybeNode}
+        )
+     || MaybeNode <- MaybeNodes
+    ].
 
 no_match_in_condition(RuleCfg) ->
     Root = root(RuleCfg),
