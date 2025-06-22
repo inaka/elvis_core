@@ -408,15 +408,49 @@ check_variable_casing_consistency({_, [#{name := FirstName, var := FirstVar} | O
 variable_naming_convention(RuleCfg) ->
     Regex = option(regex, RuleCfg, ?FUNCTION_NAME),
     ForbiddenRegex = option(forbidden_regex, RuleCfg, ?FUNCTION_NAME),
-    Root = root(RuleCfg),
-    Vars = elvis_code:find(#{
+
+    VarZippers = elvis_code:find(#{
         of_types => [var],
-        inside => Root,
+        inside => root(RuleCfg),
         filtered_by => fun is_var/1,
         filtered_from => zipper,
         traverse => all
     }),
-    check_variables_name(Regex, ForbiddenRegex, Vars).
+
+    lists:filtermap(
+        fun(VarZipper) ->
+            VarNode = zipper:node(VarZipper),
+            VariableNameStr = atom_to_list(ktn_code:attr(name, VarNode)),
+
+            case re:run(VariableNameStr, Regex) of
+                nomatch when VariableNameStr =/= "_" ->
+                    {true,
+                        elvis_result:new_item(
+                            "the name of variable '~p' is not acceptable by regular "
+                            "expression '~p'",
+                            [VariableNameStr, Regex],
+                            #{node => VarNode}
+                        )};
+                {match, _} when ForbiddenRegex =/= undefined ->
+                    % We check for forbidden names only after accepted names
+                    case re:run(VariableNameStr, ForbiddenRegex) of
+                        {match, _} ->
+                            {true,
+                                elvis_result:new_item(
+                                    "the name of variable '~p' is forbidden by regular "
+                                    "expression '~p'",
+                                    [VariableNameStr, Regex],
+                                    #{node => VarNode}
+                                )};
+                        _ ->
+                            false
+                    end;
+                _ ->
+                    false
+            end
+        end,
+        VarZippers
+    ).
 
 macro_names(RuleCfg) ->
     Regexp = option(regex, RuleCfg, ?FUNCTION_NAME),
@@ -799,10 +833,9 @@ module_naming_convention({_Config, Target, _RuleConfig} = RuleCfg) ->
                     [Regex]
                 )
             ];
-        {match, _} when ForbiddenRegex =:= undefined ->
-            [];
-        _ ->
+        {match, _} when ForbiddenRegex =/= undefined ->
             case re:run(ModuleNameStr, ForbiddenRegex) of
+                % We check for forbidden names only after accepted names
                 {match, _} ->
                     [
                         elvis_result:new_item(
@@ -812,7 +845,9 @@ module_naming_convention({_Config, Target, _RuleConfig} = RuleCfg) ->
                     ];
                 nomatch ->
                     []
-            end
+            end;
+        _ ->
+            []
     end.
 
 state_record_and_type(RuleCfg) ->
@@ -2053,46 +2088,6 @@ re_compile_for_atom_type(false = _IsEnclosed, Regex, _RegexEnclosed) ->
     re_compile(Regex, [unicode]);
 re_compile_for_atom_type(true = _IsEnclosed, _Regex, RegexEnclosed) ->
     re_compile(RegexEnclosed, [unicode]).
-
-%% Variables name
-check_variables_name(_Regex, _, []) ->
-    [];
-check_variables_name(Regex, ForbiddenRegex, [VariableZipper | RemainingVars]) ->
-    Variable = zipper:node(VariableZipper),
-    VariableNameStr = atom_to_list(ktn_code:attr(name, Variable)),
-    case re:run(VariableNameStr, Regex) of
-        nomatch when VariableNameStr =:= "_" ->
-            check_variables_name(Regex, ForbiddenRegex, RemainingVars);
-        nomatch ->
-            [
-                elvis_result:new_item(
-                    "the name of variable '~p' is not acceptable by regular expression '~p'",
-                    [VariableNameStr, Regex],
-                    #{node => Variable}
-                )
-                | check_variables_name(Regex, ForbiddenRegex, RemainingVars)
-            ];
-        {match, _} ->
-            case ForbiddenRegex of
-                undefined ->
-                    check_variables_name(Regex, ForbiddenRegex, RemainingVars);
-                ForbiddenRegex ->
-                    case re:run(VariableNameStr, ForbiddenRegex) of
-                        {match, _} ->
-                            [
-                                elvis_result:new_item(
-                                    "the name of variable '~p' is forbidden by regular "
-                                    "expression '~p'",
-                                    [VariableNameStr, Regex],
-                                    #{node => Variable}
-                                )
-                                | check_variables_name(Regex, ForbiddenRegex, RemainingVars)
-                            ];
-                        nomatch ->
-                            check_variables_name(Regex, ForbiddenRegex, RemainingVars)
-                    end
-            end
-    end.
 
 %%% Rule checking
 
