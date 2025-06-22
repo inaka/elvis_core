@@ -688,11 +688,29 @@ is_text_node(Node) ->
     ktn_code:attr(text, Node) =/= "".
 
 nesting_level(RuleCfg) ->
-    Level = option(level, RuleCfg, ?FUNCTION_NAME),
+    MaxLevel = option(level, RuleCfg, ?FUNCTION_NAME),
 
-    Root = root(RuleCfg),
+    ParentNodes = elvis_code:find(#{
+        of_types => undefined,
+        inside => root(RuleCfg)
+    }),
 
-    elvis_utils:check_nodes(Root, fun check_nesting_level/2, [Level]).
+    lists:flatmap(
+        fun(ParentNode) ->
+            NestedNodes = past_nesting_limit(ParentNode, MaxLevel),
+            lists:map(
+                fun({Node, Level}) ->
+                    elvis_result:new_item(
+                        "an expression is nested (level = ~p) beyond the configured limit",
+                        [Level],
+                        #{node => Node, limit => MaxLevel}
+                    )
+                end,
+                NestedNodes
+            )
+        end,
+        ParentNodes
+    ).
 
 god_modules(RuleCfg) ->
     Limit = option(limit, RuleCfg, ?FUNCTION_NAME),
@@ -2234,25 +2252,11 @@ character_at_location(
             ""
     end.
 
--spec check_nesting_level(ktn_code:tree_node(), [integer()]) -> [elvis_result:item()].
-check_nesting_level(ParentNode, [MaxLevel]) ->
-    NestedNodes = past_nesting_limit(ParentNode, MaxLevel),
-    Fun = fun({Node, Level}) ->
-        elvis_result:new_item(
-            "an expression is nested (level = ~p) beyond the configured limit",
-            [Level],
-            #{node => Node, limit => MaxLevel}
-        )
-    end,
-
-    lists:map(Fun, NestedNodes).
-
 %% @doc Takes a node and returns all nodes where the nesting limit is exceeded.
 -spec past_nesting_limit(ktn_code:tree_node(), integer()) ->
     [{ktn_code:tree_node(), integer()}].
 past_nesting_limit(Node, MaxLevel) ->
-    ResultNodes = past_nesting_limit(Node, 1, MaxLevel),
-    lists:reverse(ResultNodes).
+    past_nesting_limit(Node, 0, MaxLevel).
 
 past_nesting_limit(Node, CurrentLevel, MaxLevel) when CurrentLevel > MaxLevel ->
     [{Node, CurrentLevel}];
