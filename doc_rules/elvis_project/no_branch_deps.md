@@ -29,7 +29,7 @@ branch heads.
 
 ## Options
 
-- `ignore :: [string()]`
+- `ignore :: [atom()]`
   - default: `[]`
 
 ## Example configuration
