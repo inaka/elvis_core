@@ -39,7 +39,7 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [Module Naming Convention](doc_rules/elvis_style/module_naming_convention.md)
 - [Nesting Level](doc_rules/elvis_style/nesting_level.md)
 <!-- markdownlint-disable MD033 -->
-- [No <code>&&nbsp;</code>](doc_rules/elvis_style/no_dollar_space.md)
+- [No <code>$&nbsp;</code>](doc_rules/elvis_style/no_dollar_space.md)
 <!-- markdownlint-enable MD033 -->
 - [No Author](doc_rules/elvis_style/no_author.md)
 - [No Behavior Info](doc_rules/elvis_style/no_behavior_info.md)
