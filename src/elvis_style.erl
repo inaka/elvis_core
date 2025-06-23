@@ -740,9 +740,10 @@ god_modules(RuleCfg) ->
 
     Root = root(RuleCfg),
     ExportedFunctions = exported_functions(Root),
+    Count = length(ExportedFunctions),
 
-    case length(ExportedFunctions) of
-        Count when Count > Limit ->
+    case Count > Limit of
+        true ->
             [
                 elvis_result:new_item(
                     "This module's function count (~p) is higher than the configured limit",
