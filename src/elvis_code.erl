@@ -35,9 +35,7 @@
     },
     Node :: tree_node(),
     Zipper :: tree_node_zipper().
-find(Options) ->
-    OfTypes = maps:get(of_types, Options),
-    Inside = maps:get(inside, Options),
+find(#{of_types := OfTypes, inside := Inside} = Options) ->
     FilteredBy = maps:get(filtered_by, Options, undefined),
     FilteredFrom = maps:get(filtered_from, Options, node),
     Traverse = maps:get(traverse, Options, content),
