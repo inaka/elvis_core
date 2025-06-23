@@ -1810,19 +1810,45 @@ has_match_child(Node) ->
     lists:any(fun is_match/1, ktn_code:content(Node)).
 
 numeric_format(RuleCfg) ->
-    Root = root(RuleCfg),
     Regex = option(regex, RuleCfg, ?FUNCTION_NAME),
     IntRegex0 = option(int_regex, RuleCfg, ?FUNCTION_NAME),
     IntRegex = specific_or_default(IntRegex0, Regex),
     FloatRegex0 = option(float_regex, RuleCfg, ?FUNCTION_NAME),
     FloatRegex = specific_or_default(FloatRegex0, Regex),
-    IntNodes = elvis_code:find(#{of_types => [integer], inside => Root}),
-    FloatNodes = elvis_code:find(#{of_types => [float], inside => Root}),
-    check_numeric_format(
-        IntRegex,
-        IntNodes,
-        check_numeric_format(FloatRegex, FloatNodes, [])
-    ).
+
+    Root = root(RuleCfg),
+
+    IntegerNodes = elvis_code:find(#{
+        of_types => [integer],
+        inside => Root,
+        filtered_by =>
+            fun(NumberNode) ->
+                Number = ktn_code:attr(text, NumberNode),
+                Number =/= undefined andalso
+                    re_run(Number, IntRegex) =:= nomatch
+            end
+    }),
+
+    FloatNodes = elvis_code:find(#{
+        of_types => [float],
+        inside => Root,
+        filtered_by =>
+            fun(NumberNode) ->
+                Number = ktn_code:attr(text, NumberNode),
+                Number =/= undefined andalso
+                    re_run(Number, FloatRegex) =:= nomatch
+            end
+    }),
+
+    [
+        elvis_result:new_item(
+            "the format of number '~s' is not acceptable by regular "
+            "expression '~s'",
+            [ktn_code:attr(text, NumberNode), Regex],
+            #{node => NumberNode}
+        )
+     || NumberNode <- IntegerNodes ++ FloatNodes
+    ].
 
 behaviour_spelling(RuleCfg) ->
     Spelling = option(spelling, RuleCfg, ?FUNCTION_NAME),
@@ -2100,31 +2126,6 @@ specific_or_default(same, Regex) ->
     Regex;
 specific_or_default(RegexEnclosed, _Regex) ->
     RegexEnclosed.
-
-check_numeric_format(_Regex, [], Acc) ->
-    lists:reverse(Acc);
-check_numeric_format(Regex, [NumNode | RemainingNumNodes], AccIn) ->
-    AccOut =
-        case ktn_code:attr(text, NumNode) of
-            undefined ->
-                AccIn;
-            Number ->
-                case re_run(Number, Regex) of
-                    nomatch ->
-                        [
-                            elvis_result:new_item(
-                                "the format of number '~s' is not acceptable by regular "
-                                "expression '~s'",
-                                [Number, Regex],
-                                #{node => NumNode}
-                            )
-                            | AccIn
-                        ];
-                    {match, _} ->
-                        AccIn
-                end
-        end,
-    check_numeric_format(Regex, RemainingNumNodes, AccOut).
 
 is_exception_or_non_reversible(error) ->
     true;
