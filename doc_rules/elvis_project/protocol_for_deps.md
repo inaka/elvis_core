@@ -28,7 +28,7 @@ obscure errors during fetching or compilation. It also increases consistency acr
 
 - `regex :: string()`
   - default: `"^(https://|git://|\\d+(\\.\\d+)*)"`
-- `ignore :: [string()]`
+- `ignore :: [atom()]`
   - default: `[]`
 
 `regex` was
