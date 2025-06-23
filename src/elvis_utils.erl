@@ -3,7 +3,7 @@
 -compile({no_auto_import, [error/2]}).
 
 %% Rules
--export([check_lines/3, check_lines_with_context/4, indentation/3]).
+-export([check_lines/3, check_lines_with_context/4, indentation/3, check_nodes/3]).
 %% General
 -export([erlang_halt/1, to_str/1, split_all_lines/1, split_all_lines/2]).
 %% Output
@@ -72,6 +72,26 @@ context([Current | Future], Past, {PrevCount, NextCount} = CtxCount, Results) ->
     Next = lists:sublist(Future, NextCount),
     Item = {Current, lists:reverse(Prev), Next},
     context(Future, [Current | Past], CtxCount, [Item | Results]).
+
+%% @doc Takes a binary that holds source code and applies
+%% Fun to each line. Fun takes 3 arguments (the line
+%% as a binary, the line number and the supplied Args) and
+%% returns 'no_result' or {'ok', Result}.
+-spec check_nodes(ktn_code:tree_node(), fun(), [term()]) -> [elvis_result:item()].
+check_nodes(RootNode, Fun, Args) ->
+    ChildNodes = ktn_code:content(RootNode),
+    check_nodes(ChildNodes, Fun, Args, []).
+
+check_nodes([], _Fun, _Args, Results) ->
+    FlatResults = lists:flatten(Results),
+    lists:reverse(FlatResults);
+check_nodes([Node | Nodes], Fun, Args, Results) ->
+    case Fun(Node, Args) of
+        [] ->
+            check_nodes(Nodes, Fun, Args, Results);
+        Result ->
+            check_nodes(Nodes, Fun, Args, [Result | Results])
+    end.
 
 %% @doc This is defined so that it can be mocked for tests.
 -spec erlang_halt(integer()) -> no_return().
