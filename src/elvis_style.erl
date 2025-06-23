@@ -2535,27 +2535,27 @@ is_children(Parent, Node) ->
     zipper:filter(fun(Child) -> Child =:= Node end, Zipper) =/= [].
 
 no_call_common(RuleCfg, NoCallFuns, Msg) ->
-    Root = root(RuleCfg),
+    CallNodes = elvis_code:find(#{
+        of_types => [call],
+        inside => root(RuleCfg),
+        filtered_by =>
+            fun(CallNode) ->
+                is_in_call_list(CallNode, NoCallFuns)
+            end
+    }),
 
-    Calls = elvis_code:find(#{of_types => [call], inside => Root}),
-    check_no_call(Calls, Msg, NoCallFuns).
+    lists:map(
+        fun(CallNode) ->
+            {M, F, A} = call_mfa(CallNode),
 
--spec check_no_call([ktn_code:tree_node()], string(), [
-    {module() | '_', atom() | '_', arity() | '_'} | {module() | '_', atom() | '_'}
-]) ->
-    [elvis_result:item()].
-check_no_call(Calls, Msg, NoCallFuns) ->
-    BadCalls = [Call || Call <- Calls, is_in_call_list(Call, NoCallFuns)],
-    ResultFun =
-        fun(Call) ->
-            {M, F, A} = call_mfa(Call),
             elvis_result:new_item(
                 Msg,
                 [M, F, A],
-                #{node => Call}
+                #{node => CallNode}
             )
         end,
-    lists:map(ResultFun, BadCalls).
+        CallNodes
+    ).
 
 is_in_call_list(Call, DisallowedFuns) ->
     MFA = call_mfa(Call),
