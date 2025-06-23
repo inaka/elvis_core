@@ -1365,7 +1365,7 @@ no_successive_maps(RuleCfg) ->
         of_types => [map],
         inside => root(RuleCfg),
         filtered_by => fun is_successive_map/1,
-        traverse => content
+        traverse => all
     }),
 
     [
@@ -2316,9 +2316,12 @@ maybe_re_run(Line, Regex) ->
     Text :: string(),
     Location :: {integer(), integer()},
     Encoding :: latin1 | utf8,
-    How :: {should_have, []} | {should_not_have, [{string(), {ok, re:mp()}}]}
+    How :: {should_have, []} | {should_not_have, [{string(), {ok, MP}}]}
 ) ->
-    char().
+    char()
+when
+    % MP is re:mp/0
+    MP :: _.
 character_at_location(
     Position,
     Lines,

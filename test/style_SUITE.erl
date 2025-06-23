@@ -1926,7 +1926,7 @@ verify_no_successive_maps(Config) ->
                     elvis_test_utils:elvis_core_apply_rule(
                         Config, elvis_style, no_successive_maps, #{}, Path
                     ),
-                [#{line_num := 10}, #{line_num := 26}, #{line_num := 32}] =
+                [#{line_num := 11}, #{line_num := 27}, #{line_num := 33}] =
                     elvis_test_utils:elvis_core_apply_rule(
                         Config, elvis_style, no_successive_maps, #{}, Path2
                     )
