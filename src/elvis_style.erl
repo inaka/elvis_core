@@ -657,7 +657,6 @@ operator_spaces({_Config, Target, _RuleConfig} = RuleCfg) ->
     ).
 
 %% @doc Returns true when the node is an operator with more than one operand
--spec is_operator_node(ktn_code:tree_node()) -> boolean().
 is_operator_node(Node) ->
     NodeType = ktn_code:type(Node),
     OpOrMatch = [op | match_operators()],
@@ -996,25 +995,26 @@ dont_repeat_yourself(RuleCfg) ->
 
     Root = root(RuleCfg),
 
-    Nodes = find_repeated_nodes(Root, MinComplexity),
+    NodesWithRepeat = find_repeated_nodes(Root, MinComplexity),
 
-    LocationCat =
-        fun
-            ({Line, Col}, "") ->
-                io_lib:format("(~p, ~p)", [Line, Col]);
-            ({Line, Col}, Str) ->
-                io_lib:format("~s, (~p, ~p)", [Str, Line, Col])
-        end,
-    ResultFun =
-        fun(Locations) ->
-            LocationsStr = lists:foldl(LocationCat, "", Locations),
-            elvis_result:new_item(
-                "The code in the following (<line>, <column>) locations has the same structure: ~p",
-                [LocationsStr]
-            )
-        end,
-
-    lists:map(ResultFun, Nodes).
+    [
+        elvis_result:new_item(
+            "The code in the following (<line>, <column>) locations has the same structure: ~p",
+            [
+                lists:foldl(
+                    fun
+                        ({Line, Col}, "") ->
+                            io_lib:format("(~p, ~p)", [Line, Col]);
+                        ({Line, Col}, Str) ->
+                            io_lib:format("~s, (~p, ~p)", [Str, Line, Col])
+                    end,
+                    "",
+                    NodeWithRepeat
+                )
+            ]
+        )
+     || NodeWithRepeat <- NodesWithRepeat
+    ].
 
 max_module_length({_Config, Target, _RuleConfig} = RuleCfg) ->
     MaxLength = option(max_length, RuleCfg, ?FUNCTION_NAME),
@@ -1523,7 +1523,6 @@ ms_transform_included(RuleCfg) ->
             ]
     end.
 
--spec is_ets_fun2ms(ktn_code:tree_node()) -> boolean().
 is_ets_fun2ms(Node) ->
     Fun = ktn_code:node_attr(function, Node),
     Fun2 = ktn_code:node_attr(function, Fun),
@@ -1635,7 +1634,6 @@ same_node_attrs_except_location(#{node_attrs := LeftAttrs}, #{node_attrs := Righ
 same_node_attrs_except_location(LeftNode, RightNode) ->
     not maps:is_key(node_attrs, LeftNode) andalso not maps:is_key(node_attrs, RightNode).
 
--spec has_include_ms_transform(ktn_code:tree_node()) -> boolean().
 has_include_ms_transform(Root) ->
     elvis_code:find(#{
         of_types => [include_lib],
@@ -2155,7 +2153,6 @@ re_compile_for_atom_type(false = _IsEnclosed, Regex, _RegexEnclosed) ->
 re_compile_for_atom_type(true = _IsEnclosed, _Regex, RegexEnclosed) ->
     re_compile(RegexEnclosed).
 
--spec line_is_comment(binary()) -> boolean().
 line_is_comment(Line) ->
     case re_run(Line, "^[ \t]*%") of
         nomatch ->
@@ -2164,7 +2161,6 @@ line_is_comment(Line) ->
             true
     end.
 
--spec line_is_whitespace(binary()) -> boolean().
 line_is_whitespace(Line) ->
     case re_run(Line, "^[ \t]*$") of
         nomatch ->
@@ -2196,13 +2192,6 @@ macro_as_atom(
 macro_as_atom(false, [Type | OtherTypes], MacroNodeValue) ->
     macro_as_atom(lists:keyfind(Type, _N = 1, MacroNodeValue), OtherTypes, MacroNodeValue).
 
--spec generate_space_check_results(
-    {Lines :: [binary()], Encoding :: latin1 | utf8},
-    Nodes :: [ktn_code:tree_node()],
-    Rule :: {right | left, string()},
-    How :: {should_have, []} | {should_not_have, [{string(), {ok, re:mp()}}]}
-) ->
-    [elvis_result:item()].
 generate_space_check_results(
     {Lines, Encoding},
     UnfilteredNodes,
@@ -2339,7 +2328,6 @@ level_increment(#{type := Type}) ->
             0
     end.
 
--spec is_dynamic_call(ktn_code:tree_node()) -> boolean().
 is_dynamic_call(Node) ->
     case ktn_code:type(Node) of
         call ->
@@ -2360,7 +2348,6 @@ is_dynamic_call(Node) ->
 is_the_module_macro(Module) ->
     ktn_code:type(Module) =:= macro andalso ktn_code:attr(name, Module) =:= "MODULE".
 
--spec is_var(zipper:zipper(_)) -> boolean().
 is_var(Zipper) ->
     PrevLocation =
         case ktn_code:attr(location, zipper:node(Zipper)) of
@@ -2397,7 +2384,6 @@ is_at_location(#{attrs := #{location := {Line, NodeCol}}} = Node, {Line, Column}
 is_at_location(_, _) ->
     false.
 
--spec is_ignored_var(zipper:zipper(_)) -> boolean().
 is_ignored_var(Zipper) ->
     Node = zipper:node(Zipper),
     case ktn_code:type(Node) of
@@ -2434,7 +2420,6 @@ check_parent_remote(Zipper) ->
             ktn_code:type(Parent) =:= remote
     end.
 
--spec is_otp_behaviour(ktn_code:tree_node()) -> boolean().
 is_otp_behaviour(Root) ->
     OtpSet = sets:from_list([gen_server, gen_event, gen_fsm, gen_statem, supervisor_bridge]),
     case elvis_code:find(#{of_types => [behaviour, behavior], inside => Root}) of
@@ -2449,8 +2434,6 @@ is_otp_behaviour(Root) ->
             )
     end.
 
--spec find_repeated_nodes(ktn_code:tree_node(), non_neg_integer()) ->
-    [ktn_code:tree_node()].
 find_repeated_nodes(Root, MinComplexity) ->
     TypeAttrs = #{var => [location, name, text], clause => [location, text]},
 
