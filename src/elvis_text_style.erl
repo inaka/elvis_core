@@ -70,7 +70,7 @@ prefer_unquoted_atoms(RuleCfg) ->
     lists:map(
         fun(AtomNode) ->
             elvis_result:new_item(
-                "unnecessarily quoted atom '~p' was found; prefer removing the quotes when "
+                "unnecessarily quoted atom ~s was found; prefer removing the quotes when "
                 "not syntactically required",
                 [ktn_code:attr(text, AtomNode)],
                 #{node => AtomNode}

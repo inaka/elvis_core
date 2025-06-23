@@ -1094,12 +1094,12 @@ verify_param_pattern_matching(Config) ->
     PathRight = "right_param_pattern_matching." ++ Ext,
     PathLeft = "left_param_pattern_matching." ++ Ext,
     [
-        #{info := ['Simple' | _]},
-        #{info := ['SimpleToo' | _]},
-        #{info := ['The' | _]},
-        #{info := ['TheToo' | _]},
-        #{info := ['AsYoda' | _]},
-        #{info := ['AsYodaToo' | _]}
+        #{info := ["Simple" | _]},
+        #{info := ["SimpleToo" | _]},
+        #{info := ["The" | _]},
+        #{info := ["TheToo" | _]},
+        #{info := ["AsYoda" | _]},
+        #{info := ["AsYodaToo" | _]}
     ] =
         elvis_test_utils:elvis_core_apply_rule(
             Config,
@@ -1109,14 +1109,14 @@ verify_param_pattern_matching(Config) ->
             PathRight
         ),
     [
-        #{info := ['Simple' | _]},
-        #{info := ['SimpleToo' | _]},
-        #{info := ['Multiple' | _]},
-        #{info := ['MultipleToo' | _]},
-        #{info := ['TheSecond' | _]},
-        #{info := ['TheSecondToo' | _]},
-        #{info := ['But' | _]},
-        #{info := ['ButToo' | _]}
+        #{info := ["Simple" | _]},
+        #{info := ["SimpleToo" | _]},
+        #{info := ["Multiple" | _]},
+        #{info := ["MultipleToo" | _]},
+        #{info := ["TheSecond" | _]},
+        #{info := ["TheSecondToo" | _]},
+        #{info := ["But" | _]},
+        #{info := ["ButToo" | _]}
     ] =
         elvis_test_utils:elvis_core_apply_rule(
             Config,

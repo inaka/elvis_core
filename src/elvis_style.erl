@@ -73,7 +73,7 @@ default(no_init_lists) ->
             [gen_server, gen_statem, gen_fsm, supervisor, supervisor_bridge, gen_event]
     };
 default(macro_names) ->
-    #{regex => "^[A-Z](_?[A-Z0-9]+)*$"};
+    #{regex => "^[A-Z](_?[A-Z0-9]+)*$", forbidden_regex => undefined};
 default(operator_spaces) ->
     #{
         rules =>
@@ -323,27 +323,27 @@ function_naming_convention(RuleCfg) ->
             FunctionName = ktn_code:attr(name, FunctionNode),
             FunctionNameStr = unicode:characters_to_list(atom_to_list(FunctionName)),
 
-            case re:run(FunctionNameStr, Regex) of
+            case re_run(FunctionNameStr, Regex) of
                 nomatch ->
                     {true,
                         elvis_result:new_item(
-                            "the name of function '~p' is not acceptable by regular "
-                            "expression '~p'",
+                            "the name of function ~p is not acceptable by regular "
+                            "expression '~s'",
                             [FunctionNameStr, Regex],
                             #{node => FunctionNode}
                         )};
                 {match, _} when ForbiddenRegex =/= undefined ->
                     % We check for forbidden names only after accepted names
-                    case re:run(FunctionNameStr, ForbiddenRegex) of
+                    case re_run(FunctionNameStr, ForbiddenRegex) of
                         {match, _} ->
                             {true,
                                 elvis_result:new_item(
-                                    "the name of function '~p' is forbidden by regular "
-                                    "expression '~p'",
+                                    "the name of function ~p is forbidden by regular "
+                                    "expression '~s'",
                                     [FunctionNameStr, ForbiddenRegex],
                                     #{node => FunctionNode}
                                 )};
-                        _ ->
+                        nomatch ->
                             false
                     end;
                 _ ->
@@ -397,7 +397,7 @@ check_variable_casing_consistency({_, [#{name := FirstName, var := FirstVar} | O
         OtherNames ->
             [
                 elvis_result:new_item(
-                    "variable '~p' (first used in line ~p) is written in "
+                    "variable '~s' (first used in line ~p) is written in "
                     "different ways within the module: ~p",
                     [FirstName, line(FirstVar), OtherNames],
                     #{node => FirstVar}
@@ -422,27 +422,27 @@ variable_naming_convention(RuleCfg) ->
             VarNode = zipper:node(VarZipper),
             VariableNameStr = atom_to_list(ktn_code:attr(name, VarNode)),
 
-            case re:run(VariableNameStr, Regex) of
+            case re_run(VariableNameStr, Regex) of
                 nomatch when VariableNameStr =/= "_" ->
                     {true,
                         elvis_result:new_item(
-                            "the name of variable '~p' is not acceptable by regular "
-                            "expression '~p'",
+                            "the name of variable ~p is not acceptable by regular "
+                            "expression '~s'",
                             [VariableNameStr, Regex],
                             #{node => VarNode}
                         )};
                 {match, _} when ForbiddenRegex =/= undefined ->
                     % We check for forbidden names only after accepted names
-                    case re:run(VariableNameStr, ForbiddenRegex) of
+                    case re_run(VariableNameStr, ForbiddenRegex) of
                         {match, _} ->
                             {true,
                                 elvis_result:new_item(
-                                    "the name of variable '~p' is forbidden by regular "
-                                    "expression '~p'",
-                                    [VariableNameStr, Regex],
+                                    "the name of variable ~p is forbidden by regular "
+                                    "expression '~s'",
+                                    [VariableNameStr, ForbiddenRegex],
                                     #{node => VarNode}
                                 )};
-                        _ ->
+                        nomatch ->
                             false
                     end;
                 _ ->
@@ -453,28 +453,51 @@ variable_naming_convention(RuleCfg) ->
     ).
 
 macro_names(RuleCfg) ->
-    Regexp = option(regex, RuleCfg, ?FUNCTION_NAME),
-    RE = re_compile(Regexp, [unicode]),
+    Regex = option(regex, RuleCfg, ?FUNCTION_NAME),
+    ForbiddenRegex = option(forbidden_regex, RuleCfg, ?FUNCTION_NAME),
+
+    RegexAllow = re_compile(Regex),
+    RegexBlock = re_compile(ForbiddenRegex),
 
     MacroNodes = elvis_code:find(#{
         of_types => [define],
         inside => root(RuleCfg),
-        filtered_by =>
-            fun(MacroNode) ->
-                re:run(macro_name_from(MacroNode, stripped), RE) =:= nomatch
-            end,
         traverse => all
     }),
 
-    [
-        elvis_result:new_item(
-            "the name of macro '~p' is not acceptable by "
-            "regular expression '~p'",
-            [macro_name_from(MacroNode, original), Regexp],
-            #{node => MacroNode}
-        )
-     || MacroNode <- MacroNodes
-    ].
+    lists:filtermap(
+        fun(MacroNode) ->
+            MacroName = macro_name_from(MacroNode, stripped),
+
+            case re_run(MacroName, RegexAllow) of
+                nomatch ->
+                    {true,
+                        elvis_result:new_item(
+                            "the name of macro ~p is not acceptable by "
+                            "regular expression '~s'",
+                            [macro_name_from(MacroNode, original), Regex],
+                            #{node => MacroNode}
+                        )};
+                {match, _} when RegexBlock =/= undefined ->
+                    % We check for forbidden names only after accepted names
+                    case re_run(MacroName, RegexBlock) of
+                        {match, _} ->
+                            {true,
+                                elvis_result:new_item(
+                                    "the name of macro ~p is forbidden by regular "
+                                    "expression '~s'",
+                                    [macro_name_from(MacroNode, original), ForbiddenRegex],
+                                    #{node => MacroNode}
+                                )};
+                        nomatch ->
+                            false
+                    end;
+                _ ->
+                    false
+            end
+        end,
+        MacroNodes
+    ).
 
 no_macros(RuleCfg) ->
     AllowedMacros =
@@ -523,7 +546,7 @@ no_nested_hrls(RuleCfg) ->
 
     [
         elvis_result:new_item(
-            "unexpected nested '-include[_lib]' attribute ('~p') was found; "
+            "unexpected nested '-include[_lib]' attribute ('~s') was found; "
             "avoid including .hrl files in .hrl files",
             [ktn_code:attr(value, IncludeNode)],
             #{node => IncludeNode}
@@ -665,7 +688,7 @@ no_space({_Config, Target, _RuleConfig} = RuleCfg) ->
     }),
 
     AllSpaceUntilText = [
-        {Text, re_compile("^[ ]+" ++ escape_regex(Text), [unicode])}
+        {Text, re_compile("^[ ]+" ++ escape_regex(Text))}
      || {left, Text} <- Rules
     ],
 
@@ -840,6 +863,9 @@ module_naming_convention({_Config, Target, _RuleConfig} = RuleCfg) ->
     Regex = option(regex, RuleCfg, ?FUNCTION_NAME),
     ForbiddenRegex = option(forbidden_regex, RuleCfg, ?FUNCTION_NAME),
 
+    RegexAllow = re_compile(Regex),
+    RegexBlock = re_compile(ForbiddenRegex),
+
     ModuleNode = elvis_code:find(#{
         of_types => [module],
         inside => root(RuleCfg)
@@ -854,23 +880,23 @@ module_naming_convention({_Config, Target, _RuleConfig} = RuleCfg) ->
         end,
     ModuleNameStr = atom_to_list(ModuleName),
 
-    case re:run(ModuleNameStr, Regex) of
+    case re_run(ModuleNameStr, RegexAllow) of
         nomatch ->
             [
                 elvis_result:new_item(
                     "The name of this module is not acceptable by regular "
-                    "expression '~p'",
+                    "expression '~s'",
                     [Regex]
                 )
             ];
-        {match, _} when ForbiddenRegex =/= undefined ->
-            case re:run(ModuleNameStr, ForbiddenRegex) of
+        {match, _} when RegexBlock =/= undefined ->
+            case re_run(ModuleNameStr, RegexBlock) of
                 % We check for forbidden names only after accepted names
                 {match, _} ->
                     [
                         elvis_result:new_item(
                             "The name of this module name is forbidden by regular "
-                            "expression '~p'",
+                            "expression '~s'",
                             [ForbiddenRegex]
                         )
                     ];
@@ -1138,7 +1164,7 @@ max_function_clause_length({_Config, Target, _RuleConfig} = RuleCfg) ->
             FunctionNode = zipper:node(zipper:up(ClauseZipper)),
 
             elvis_result:new_item(
-                "the code for the ~p clause of function '~p/~p' has ~p lines, which is higher than "
+                "the code for the ~s clause of function '~p/~p' has ~p lines, which is higher than "
                 "the configured limit",
                 [
                     parse_clause_num(ClauseNum),
@@ -1318,50 +1344,48 @@ atom_naming_convention(RuleCfg) ->
             IsExceptionClass = is_exception_or_non_reversible(ValueAtomName),
             RegexAllow = re_compile_for_atom_type(IsEnclosed, Regex, RegexEnclosed),
             RegexBlock = re_compile_for_atom_type(
-                IsEnclosed,
-                ForbiddenRegex,
-                ForbiddenEnclosedRegex
+                IsEnclosed, ForbiddenRegex, ForbiddenEnclosedRegex
             ),
             AtomNameUnicode = unicode:characters_to_list(AtomName),
 
-            case re:run(AtomNameUnicode, RegexAllow) of
+            case re_run(AtomNameUnicode, RegexAllow) of
                 _ when IsExceptionClass, not IsEnclosed ->
                     false;
                 nomatch when not IsEnclosed ->
                     {true,
                         elvis_result:new_item(
-                            "the name of atom '~p' is not acceptable by regular "
-                            "expression '~p'",
-                            [AtomName0, Regex],
+                            "the name of atom ~p is not acceptable by regular "
+                            "expression '~s'",
+                            [AtomName0, RegexAllow],
                             #{node => AtomNode}
                         )};
                 nomatch when IsEnclosed ->
                     {true,
                         elvis_result:new_item(
-                            "the name of enclosed atom '~p' is not acceptable by regular "
-                            "expression '~p'",
-                            [AtomName0, RegexEnclosed],
+                            "the name of enclosed atom ~p is not acceptable by regular "
+                            "expression '~s'",
+                            [AtomName0, RegexAllow],
                             #{node => AtomNode}
                         )};
                 {match, _Captured} when RegexBlock =/= undefined ->
                     % We check for forbidden names only after accepted names
-                    case re:run(AtomNameUnicode, RegexBlock) of
+                    case re_run(AtomNameUnicode, RegexBlock) of
                         _ when IsExceptionClass, not IsEnclosed ->
                             false;
                         {match, _} when not IsEnclosed ->
                             {true,
                                 elvis_result:new_item(
-                                    "the name of atom '~p' is forbidden by regular "
-                                    "expression '~p'",
-                                    [AtomName, ForbiddenRegex],
+                                    "the name of atom ~p is forbidden by regular "
+                                    "expression '~s'",
+                                    [AtomName, RegexBlock],
                                     #{node => AtomNode}
                                 )};
                         {match, _} when IsEnclosed ->
                             {true,
                                 elvis_result:new_item(
-                                    "the name of enclosed atom '~p' is forbidden by regular "
-                                    "expression '~p'",
-                                    [AtomName, ForbiddenEnclosedRegex],
+                                    "the name of enclosed atom ~p is forbidden by regular "
+                                    "expression '~s'",
+                                    [AtomName, RegexBlock],
                                     #{node => AtomNode}
                                 )};
                         _ ->
@@ -1536,8 +1560,8 @@ no_operation_on_same_value(RuleCfg) ->
 
     [
         elvis_result:new_item(
-            "redundant operation '~p' has the same value on both sides",
-            [ktn_code:attr(operation, OpNode)],
+            "redundant operation '~s' has the same value on both sides",
+            [atom_to_list(ktn_code:attr(operation, OpNode))],
             #{node => OpNode}
         )
      || OpNode <- lists:uniq(OpNodes)
@@ -1840,9 +1864,9 @@ param_pattern_matching(RuleCfg) ->
 
     [
         elvis_result:new_item(
-            "variable '~p' is used to match an argument, but placed on "
+            "variable '~s' is used to match an argument, but placed on "
             "the wrong side of it; prefer the ~p side",
-            [ktn_code:attr(name, Var), Side],
+            [atom_to_list(ktn_code:attr(name, Var)), Side],
             #{node => Match}
         )
      || {Match, Var} <- MatchVars
@@ -2053,12 +2077,12 @@ check_numeric_format(Regex, [NumNode | RemainingNumNodes], AccIn) ->
             undefined ->
                 AccIn;
             Number ->
-                case re:run(Number, Regex) of
+                case re_run(Number, Regex) of
                     nomatch ->
                         [
                             elvis_result:new_item(
-                                "the format of number '~p' is not acceptable by regular "
-                                "expression '~p'",
+                                "the format of number '~s' is not acceptable by regular "
+                                "expression '~s'",
                                 [Number, Regex],
                                 #{node => NumNode}
                             )
@@ -2095,13 +2119,13 @@ re_compile_for_atom_type(false = _IsEnclosed, undefined = _Regex, _RegexEnclosed
 re_compile_for_atom_type(true = _IsEnclosed, _Regex, undefined = _RegexEnclosed) ->
     undefined;
 re_compile_for_atom_type(false = _IsEnclosed, Regex, _RegexEnclosed) ->
-    re_compile(Regex, [unicode]);
+    re_compile(Regex);
 re_compile_for_atom_type(true = _IsEnclosed, _Regex, RegexEnclosed) ->
-    re_compile(RegexEnclosed, [unicode]).
+    re_compile(RegexEnclosed).
 
 -spec line_is_comment(binary()) -> boolean().
 line_is_comment(Line) ->
-    case re:run(Line, "^[ \t]*%") of
+    case re_run(Line, "^[ \t]*%") of
         nomatch ->
             false;
         {match, _} ->
@@ -2110,7 +2134,7 @@ line_is_comment(Line) ->
 
 -spec line_is_whitespace(binary()) -> boolean().
 line_is_whitespace(Line) ->
-    case re:run(Line, "^[ \t]*$") of
+    case re_run(Line, "^[ \t]*$") of
         nomatch ->
             false;
         {match, _} ->
@@ -2172,14 +2196,14 @@ generate_space_check_results(
                 _ when How0 =:= should_have ->
                     {true,
                         elvis_result:new_item(
-                            "there is a missing space to the ~p of '~p'",
+                            "there is a missing space to the ~p of '~s'",
                             [Position, Text],
                             #{node => Node}
                         )};
                 _ when How0 =:= should_not_have ->
                     {true,
                         elvis_result:new_item(
-                            "an unexpected space was found to the ~p of '~p'",
+                            "an unexpected space was found to the ~p of '~s'",
                             [Position, Text],
                             #{node => Node}
                         )}
@@ -2191,7 +2215,7 @@ generate_space_check_results(
 maybe_re_run(_Line, undefined = _Regex) ->
     nomatch;
 maybe_re_run(Line, Regex) ->
-    re:run(Line, Regex).
+    re_run(Line, Regex).
 
 -spec character_at_location(
     Position :: atom(),
@@ -2628,7 +2652,7 @@ tokens_as_content(Root) ->
     Part :: binary_part().
 doc_bin_parts(Src) when is_binary(Src) ->
     RE = "(?ms)^-(?:(moduledoc|doc))\\b\\s*(\"*)?.*?\\2\\.(\\r\\n|\\n)",
-    case re:run(Src, RE, [global, {capture, first, index}]) of
+    case re_run(Src, RE, [global, {capture, first, index}, unicode]) of
         {match, Parts} ->
             [Part || [Part] <- Parts];
         nomatch ->
@@ -2657,6 +2681,17 @@ line(Node) ->
     {Line, _} = ktn_code:attr(location, Node),
     Line.
 
+re_run(Subject, RE) ->
+    re_run(Subject, RE, []).
+
+re_run(Subject, RE, Options) ->
+    re:run(Subject, RE, Options).
+
+re_compile(Regexp) ->
+    re_compile(Regexp, [unicode]).
+
+re_compile(undefined, _Options) ->
+    undefined;
 re_compile(Regexp, Options) ->
     {ok, MP} = re:compile(Regexp, Options),
     MP.
