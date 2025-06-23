@@ -353,9 +353,9 @@ function_naming_convention(RuleCfg) ->
         FunctionNodes
     ).
 
-%% @todo Use maps:groups_from_list/2 when we specify OTP25 as the minimum OTP version
 consistent_variable_casing(RuleCfg) ->
     Root = root(RuleCfg),
+
     {zippers, VarZippers} = elvis_code:find(#{
         of_types => [var],
         inside => Root,
@@ -363,47 +363,46 @@ consistent_variable_casing(RuleCfg) ->
         filtered_from => zipper,
         traverse => all
     }),
-    Grouped =
-        maps:to_list(
-            lists:foldr(
-                fun(Var0, Acc) ->
-                    Var = zipper:node(Var0),
-                    VarName = canonical_variable_name(Var),
-                    maps:update_with(
-                        string:uppercase(VarName),
-                        fun(Locations) -> [#{name => VarName, var => Var} | Locations] end,
-                        [#{name => VarName, var => Var}],
-                        Acc
-                    )
-                end,
-                #{},
-                VarZippers
-            )
-        ),
-    lists:flatmap(fun check_variable_casing_consistency/1, Grouped).
 
-canonical_variable_name(Var) ->
-    case atom_to_list(ktn_code:attr(name, Var)) of
+    GroupedZippers = maps:groups_from_list(fun canonical_variable_name_up/1, VarZippers),
+
+    lists:filtermap(
+        fun({_CanonicalVariableName, [FirstVarZipper | OtherVarZippers]}) ->
+            FirstName = canonical_variable_name(FirstVarZipper),
+
+            OtherNames = lists:usort([
+                OtherName
+             || OtherVarZipper <- OtherVarZippers,
+                (OtherName = canonical_variable_name(OtherVarZipper)) =/= FirstName
+            ]),
+
+            case OtherNames of
+                [] ->
+                    false;
+                _ ->
+                    {true,
+                        elvis_result:new_item(
+                            "variable '~s' (first used in line ~p) is written in "
+                            "different ways within the module: ~p",
+                            [FirstName, line(zipper:node(FirstVarZipper)), OtherNames],
+                            #{zipper => FirstVarZipper}
+                        )}
+            end
+        end,
+        maps:to_list(GroupedZippers)
+    ).
+
+canonical_variable_name(VarZipper) ->
+    VarNode = zipper:node(VarZipper),
+    case atom_to_list(ktn_code:attr(name, VarNode)) of
         [$_ | Rest] ->
             Rest;
         VarNameStr ->
             VarNameStr
     end.
 
-check_variable_casing_consistency({_, [#{name := FirstName, var := FirstVar} | Others]}) ->
-    case lists:usort([OtherName || #{name := OtherName} <- Others, OtherName =/= FirstName]) of
-        [] ->
-            [];
-        OtherNames ->
-            [
-                elvis_result:new_item(
-                    "variable '~s' (first used in line ~p) is written in "
-                    "different ways within the module: ~p",
-                    [FirstName, line(FirstVar), OtherNames],
-                    #{node => FirstVar}
-                )
-            ]
-    end.
+canonical_variable_name_up(VarZipper) ->
+    string:uppercase(canonical_variable_name(VarZipper)).
 
 variable_naming_convention(RuleCfg) ->
     Regex = option(regex, RuleCfg, ?FUNCTION_NAME),
