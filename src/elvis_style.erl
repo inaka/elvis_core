@@ -356,7 +356,7 @@ function_naming_convention(RuleCfg) ->
 %% @todo Use maps:groups_from_list/2 when we specify OTP25 as the minimum OTP version
 consistent_variable_casing(RuleCfg) ->
     Root = root(RuleCfg),
-    Vars = elvis_code:find(#{
+    {zippers, VarZippers} = elvis_code:find(#{
         of_types => [var],
         inside => Root,
         filtered_by => fun is_var/1,
@@ -377,7 +377,7 @@ consistent_variable_casing(RuleCfg) ->
                     )
                 end,
                 #{},
-                Vars
+                VarZippers
             )
         ),
     lists:flatmap(fun check_variable_casing_consistency/1, Grouped).
@@ -409,7 +409,7 @@ variable_naming_convention(RuleCfg) ->
     Regex = option(regex, RuleCfg, ?FUNCTION_NAME),
     ForbiddenRegex = option(forbidden_regex, RuleCfg, ?FUNCTION_NAME),
 
-    VarZippers = elvis_code:find(#{
+    {zippers, VarZippers} = elvis_code:find(#{
         of_types => [var],
         inside => root(RuleCfg),
         filtered_by => fun is_var/1,
@@ -824,7 +824,7 @@ invalid_dynamic_call(RuleCfg) ->
     ].
 
 used_ignored_variable(RuleCfg) ->
-    IgnoredVarZippers = elvis_code:find(#{
+    {zippers, IgnoredVarZippers} = elvis_code:find(#{
         of_types => [var],
         inside => root(RuleCfg),
         filtered_by => fun is_ignored_var/1,
@@ -1129,7 +1129,7 @@ max_function_clause_length({_Config, Target, _RuleConfig} = RuleCfg) ->
     {Src, _} = elvis_file:src(Target),
     Lines = elvis_utils:split_all_lines(Src, [trim]),
 
-    ClauseZippers = elvis_code:find(#{
+    {zippers, ClauseZippers} = elvis_code:find(#{
         of_types => [clause],
         inside => root(RuleCfg),
         filtered_by =>
@@ -1324,7 +1324,7 @@ atom_naming_convention(RuleCfg) ->
     ForbiddenEnclosedRegex0 = option(forbidden_enclosed_regex, RuleCfg, ?FUNCTION_NAME),
     ForbiddenEnclosedRegex = specific_or_default(ForbiddenEnclosedRegex0, ForbiddenRegex),
 
-    AtomZippers = elvis_code:find(#{
+    {zippers, AtomZippers} = elvis_code:find(#{
         of_types => [atom],
         inside => root(RuleCfg),
         filtered_by =>
@@ -1816,7 +1816,7 @@ behaviour_spelling(RuleCfg) ->
 param_pattern_matching(RuleCfg) ->
     Side = option(side, RuleCfg, ?FUNCTION_NAME),
 
-    ClauseZippers = elvis_code:find(#{
+    {zippers, ClauseZippers} = elvis_code:find(#{
         of_types => [clause],
         inside => root(RuleCfg),
         filtered_by =>

@@ -23,18 +23,18 @@
 
 -export_type([find_options/0, tree_node/0, tree_node_type/0, tree_node_zipper/0]).
 
--spec find(Options) -> [NodeOrZipper] when
+-spec find(Options) -> [Node] | {zippers, [Zipper]} when
     Options :: #{
         % undefined means "all types"
         of_types := [tree_node_type()] | undefined,
         inside := Node,
         % undefined means "don't filter"
-        filtered_by => fun((NodeOrZipper) -> boolean()),
+        filtered_by => fun((Node | Zipper) -> boolean()),
         filtered_from => node | zipper,
         traverse => content | all
     },
-    NodeOrZipper :: Node | tree_node_zipper(),
-    Node :: tree_node().
+    Node :: tree_node(),
+    Zipper :: tree_node_zipper().
 find(Options) ->
     OfTypes = maps:get(of_types, Options),
     Inside = maps:get(inside, Options),
@@ -61,11 +61,19 @@ find(Options) ->
         Traverse
     ),
 
-    case FilteredBy of
-        undefined ->
-            NonFilteredResults;
-        _ ->
-            [Result || Result <- NonFilteredResults, FilteredBy(Result)]
+    Results =
+        case FilteredBy of
+            undefined ->
+                NonFilteredResults;
+            _ ->
+                [Result || Result <- NonFilteredResults, FilteredBy(Result)]
+        end,
+
+    case FilteredFrom of
+        node ->
+            Results;
+        zipper ->
+            {zippers, Results}
     end.
 
 %% @doc Find all nodes in the tree for which the predicate function returns
