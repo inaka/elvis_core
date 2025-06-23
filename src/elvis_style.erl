@@ -997,20 +997,19 @@ dont_repeat_yourself(RuleCfg) ->
 
     NodesWithRepeat = find_repeated_nodes(Root, MinComplexity),
 
+    LocationCat =
+        fun
+            ({Line, Col}, "") ->
+                io_lib:format("(~p, ~p)", [Line, Col]);
+            ({Line, Col}, Str) ->
+                io_lib:format("~s, (~p, ~p)", [Str, Line, Col])
+        end,
+
     [
         elvis_result:new_item(
-            "The code in the following (<line>, <column>) locations has the same structure: ~p",
+            "The code in the following (<line>, <column>) locations has the same structure: ~ts",
             [
-                lists:foldl(
-                    fun
-                        ({Line, Col}, "") ->
-                            io_lib:format("(~p, ~p)", [Line, Col]);
-                        ({Line, Col}, Str) ->
-                            io_lib:format("~s, (~p, ~p)", [Str, Line, Col])
-                    end,
-                    "",
-                    NodeWithRepeat
-                )
+                lists:foldl(LocationCat, "", NodeWithRepeat)
             ]
         )
      || NodeWithRepeat <- NodesWithRepeat
