@@ -910,9 +910,40 @@ module_naming_convention({_Config, Target, _RuleConfig} = RuleCfg) ->
 
 state_record_and_type(RuleCfg) ->
     Root = root(RuleCfg),
+
     case is_otp_behaviour(Root) of
         true ->
-            case {has_state_record(Root), has_state_type(Root)} of
+            HasStateRecord =
+                elvis_code:find(#{
+                    of_types => [record_attr],
+                    inside => Root,
+                    filtered_by =>
+                        fun(RecordAttrNode) ->
+                            ktn_code:attr(name, RecordAttrNode) =:= state
+                        end
+                }) =/= [],
+
+            HasStateType =
+                elvis_code:find(#{
+                    of_types => [type_attr, opaque],
+                    inside => Root,
+                    filtered_by =>
+                        fun(TypeAttrOrOpaqueNode) ->
+                            case ktn_code:type(TypeAttrOrOpaqueNode) of
+                                type_attr ->
+                                    ktn_code:attr(name, TypeAttrOrOpaqueNode) =:= state;
+                                opaque ->
+                                    case ktn_code:attr(value, TypeAttrOrOpaqueNode) of
+                                        {state, _, _} ->
+                                            true;
+                                        _ ->
+                                            false
+                                    end
+                            end
+                        end
+                }) =/= [],
+
+            case {HasStateRecord, HasStateType} of
                 {true, true} ->
                     [];
                 {false, _} ->
@@ -2417,38 +2448,6 @@ is_otp_behaviour(Root) ->
                 sets:intersection(OtpSet, BehaviorsSet)
             )
     end.
-
--spec has_state_record(ktn_code:tree_node()) -> boolean().
-has_state_record(Root) ->
-    elvis_code:find(#{
-        of_types => [record_attr],
-        inside => Root,
-        filtered_by =>
-            fun(RecordAttrNode) ->
-                ktn_code:attr(name, RecordAttrNode) =:= state
-            end
-    }) =/= [].
-
--spec has_state_type(ktn_code:tree_node()) -> boolean().
-has_state_type(Root) ->
-    elvis_code:find(#{
-        of_types => [type_attr, opaque],
-        inside => Root,
-        filtered_by =>
-            fun(TypeAttrOrOpaqueNode) ->
-                case ktn_code:type(TypeAttrOrOpaqueNode) of
-                    type_attr ->
-                        ktn_code:attr(name, TypeAttrOrOpaqueNode) =:= state;
-                    opaque ->
-                        case ktn_code:attr(value, TypeAttrOrOpaqueNode) of
-                            {state, _, _} ->
-                                true;
-                            _ ->
-                                false
-                        end
-                end
-            end
-    }) =/= [].
 
 -spec find_repeated_nodes(ktn_code:tree_node(), non_neg_integer()) ->
     [ktn_code:tree_node()].
