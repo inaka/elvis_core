@@ -62,7 +62,7 @@ no_trailing_whitespace({_Config, Target, RuleConfig} = RuleCfg) ->
 prefer_unquoted_atoms(RuleCfg) ->
     {nodes, AtomNodes} = elvis_code:find(#{
         of_types => [atom],
-        inside => elvis_style:root(RuleCfg),
+        inside => elvis_code:root(RuleCfg),
         filtered_by => fun doesnt_need_quotes/1,
         traverse => all
     }),

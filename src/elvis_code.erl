@@ -3,7 +3,8 @@
 %% General
 -export([
     find/1,
-    zipper/1
+    zipper/1,
+    root/1
 ]).
 %% Specific
 -export([
@@ -164,6 +165,20 @@ find_with_zipper(Pred, Zipper, Results, Mode) ->
                         Results
                 end,
             find_with_zipper(Pred, zipper:next(Zipper), NewResults, Mode)
+    end.
+
+-spec root({Config, Target, RuleConfig}) -> Res when
+    Config :: elvis_config:config(),
+    Target :: elvis_file:file(),
+    RuleConfig :: (Options :: #{atom() => term()}),
+    Res :: ktn_code:tree_node().
+root({Config, Target, RuleConfig}) ->
+    {Root0, File0} = elvis_file:parse_tree(Config, Target, RuleConfig),
+    case maps:get(ruleset, Config, undefined) of
+        Ruleset when Ruleset =:= beam_files; Ruleset =:= beam_files_strict ->
+            maps:get(abstract_parse_tree, File0);
+        _ ->
+            Root0
     end.
 
 %% @doc Debugging utility function.

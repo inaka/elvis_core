@@ -2697,20 +2697,6 @@ maybe_default_option(undefined = _UserDefinedOptionValue, OptionName, Rule) ->
 maybe_default_option(UserDefinedOptionValue, _OptionName, _Rule) ->
     UserDefinedOptionValue.
 
--spec root({Config, Target, RuleConfig}) -> Res when
-    Config :: elvis_config:config(),
-    Target :: elvis_file:file(),
-    RuleConfig :: (Options :: #{atom() => term()}),
-    Res :: ktn_code:tree_node().
-root({Config, Target, RuleConfig}) ->
-    {Root0, File0} = elvis_file:parse_tree(Config, Target, RuleConfig),
-    case maps:get(ruleset, Config, undefined) of
-        Ruleset when Ruleset =:= beam_files; Ruleset =:= beam_files_strict ->
-            maps:get(abstract_parse_tree, File0);
-        _ ->
-            Root0
-    end.
-
 tokens_as_content(Root) ->
     % Minor trick to have elvis_code assume searches the way it usually does
     #{type => root, content => ktn_code:attr(tokens, Root)}.
@@ -2763,3 +2749,6 @@ re_compile(undefined, _Options) ->
 re_compile(Regexp, Options) ->
     {ok, MP} = re:compile(Regexp, Options),
     MP.
+
+root(RuleCfg) ->
+    elvis_code:root(RuleCfg).
