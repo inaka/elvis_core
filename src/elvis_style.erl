@@ -1321,7 +1321,7 @@ no_common_caveats_call(RuleCfg) ->
 
 -spec node_line_limits(ktn_code:tree_node()) -> {Min :: integer(), Max :: integer()}.
 node_line_limits(FunctionNode) ->
-    Zipper = elvis_code:code_zipper(FunctionNode),
+    Zipper = elvis_code:zipper(FunctionNode),
     % The first number in `lineNums' list is the location of the first
     % line of the function. That's why we use it for the `Min' value.
     LineNums = zipper:map(fun line/1, Zipper),
@@ -2514,7 +2514,7 @@ find_repeated_nodes(Root, MinComplexity) ->
 
     FoldFun =
         fun(Node, Map) ->
-            Zipper = elvis_code:code_zipper(Node),
+            Zipper = elvis_code:zipper(Node),
             case zipper:size(Zipper) of
                 Count when Count >= MinComplexity ->
                     Loc = ktn_code:attr(location, Node),
@@ -2527,7 +2527,7 @@ find_repeated_nodes(Root, MinComplexity) ->
                     Map
             end
         end,
-    ZipperRoot = elvis_code:code_zipper(Root),
+    ZipperRoot = elvis_code:zipper(Root),
     Grouped = zipper:fold(FoldFun, #{}, ZipperRoot),
 
     Repeated = filter_repeated(Grouped),
@@ -2557,7 +2557,7 @@ remove_attrs(
     AttrsNoLoc = maps:without(AttrsName, Attrs),
     NodeAttrsNoLoc =
         [
-            {Key, remove_attrs_zipper(elvis_code:code_zipper(Value), TypeAttrs)}
+            {Key, remove_attrs_zipper(elvis_code:zipper(Value), TypeAttrs)}
          || {Key, Value} <- maps:to_list(NodeAttrs)
         ],
 
@@ -2589,7 +2589,7 @@ filter_repeated(NodesLocs) ->
     maps:without(Nested, RepeatedMap).
 
 is_children(Parent, Node) ->
-    Zipper = elvis_code:code_zipper(Parent),
+    Zipper = elvis_code:zipper(Parent),
     zipper:filter(fun(Child) -> Child =:= Node end, Zipper) =/= [].
 
 no_call_common(RuleCfg, NoCallFuns, Msg) ->

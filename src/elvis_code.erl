@@ -3,7 +3,7 @@
 %% General
 -export([
     find/1,
-    code_zipper/1
+    zipper/1
 ]).
 %% Specific
 -export([
@@ -93,16 +93,16 @@ find(#{of_types := OfTypes, inside := Inside} = Options) ->
 -spec find(fun((tree_node_zipper()) -> boolean()), tree_node(), node | zipper, content | all) ->
     [tree_node() | tree_node_zipper()].
 find(Pred, Root, FilteredFrom, Traverse) ->
-    Zipper = code_zipper(Root, Traverse),
+    Zipper = zipper(Root, Traverse),
     Results = find_with_zipper(Pred, Zipper, [], FilteredFrom),
     lists:reverse(Results).
 
--spec code_zipper(tree_node()) -> tree_node_zipper().
-code_zipper(Root) ->
-    code_zipper(Root, content).
+-spec zipper(tree_node()) -> tree_node_zipper().
+zipper(Root) ->
+    zipper(Root, content).
 
--spec code_zipper(tree_node(), content | all) -> tree_node_zipper().
-code_zipper(Root, Traverse) ->
+-spec zipper(tree_node(), content | all) -> tree_node_zipper().
+zipper(Root, Traverse) ->
     case Traverse of
         content ->
             content_zipper(Root);
