@@ -23,7 +23,7 @@
 
 -export_type([find_options/0, tree_node/0, tree_node_type/0, tree_node_zipper/0]).
 
--spec find(Options) -> [Node] | {zippers, [Zipper]} when
+-spec find(Options) -> {nodes, [Node]} | {zippers, [Zipper]} when
     Options :: #{
         % undefined means "all types"
         of_types := [tree_node_type()] | undefined,
@@ -69,7 +69,7 @@ find(#{of_types := OfTypes, inside := Inside} = Options) ->
 
     case FilteredFrom of
         node ->
-            Results;
+            {nodes, Results};
         zipper ->
             {zippers, Results}
     end.

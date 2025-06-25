@@ -175,7 +175,7 @@ apply_rules(Config, File) ->
     elvis_result:new(file, File, RulesResults).
 
 merge_rules({file, ParseTree}, ElvisConfigRules) ->
-    ElvisAttrs =
+    {nodes, ElvisAttrs} =
         elvis_code:find(#{
             of_types => [elvis],
             inside => ParseTree
