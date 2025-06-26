@@ -314,7 +314,7 @@ function_naming_convention(RuleCfg) ->
 
     {nodes, FunctionNodes} = elvis_code:find(#{
         of_types => [function],
-        inside => root(RuleCfg)
+        inside => elvis_code:root(RuleCfg)
     }),
 
     lists:filtermap(
@@ -356,7 +356,7 @@ function_name(FunctionNode) ->
     unicode:characters_to_list(atom_to_list(FunctionName)).
 
 consistent_variable_casing(RuleCfg) ->
-    Root = root(RuleCfg),
+    Root = elvis_code:root(RuleCfg),
 
     {zippers, VarZippers} = elvis_code:find(#{
         of_types => [var],
@@ -415,7 +415,7 @@ variable_naming_convention(RuleCfg) ->
 
     {zippers, VarZippers} = elvis_code:find(#{
         of_types => [var],
-        inside => root(RuleCfg),
+        inside => elvis_code:root(RuleCfg),
         filtered_by => fun is_var/1,
         filtered_from => zipper,
         traverse => all
@@ -468,7 +468,7 @@ macro_names(RuleCfg) ->
 
     {nodes, MacroNodes} = elvis_code:find(#{
         of_types => [define],
-        inside => root(RuleCfg),
+        inside => elvis_code:root(RuleCfg),
         traverse => all
     }),
 
@@ -512,7 +512,7 @@ no_macros(RuleCfg) ->
 
     {nodes, MacroNodes} = elvis_code:find(#{
         of_types => [macro],
-        inside => root(RuleCfg),
+        inside => elvis_code:root(RuleCfg),
         filtered_by =>
             fun(MacroNode) ->
                 is_allowed_macro(MacroNode, AllowedMacros)
@@ -535,7 +535,7 @@ is_allowed_macro(MacroNode, AllowedMacros) ->
 no_types(RuleCfg) ->
     {nodes, TypeAttrNodes} = elvis_code:find(#{
         of_types => [type_attr],
-        inside => root(RuleCfg)
+        inside => elvis_code:root(RuleCfg)
     }),
 
     [
@@ -551,7 +551,7 @@ no_types(RuleCfg) ->
 no_nested_hrls(RuleCfg) ->
     {nodes, IncludeNodes} = elvis_code:find(#{
         of_types => [include, include_lib],
-        inside => root(RuleCfg)
+        inside => elvis_code:root(RuleCfg)
     }),
 
     [
@@ -567,7 +567,7 @@ no_nested_hrls(RuleCfg) ->
 no_specs(RuleCfg) ->
     {nodes, SpecNodes} = elvis_code:find(#{
         of_types => [spec],
-        inside => root(RuleCfg)
+        inside => elvis_code:root(RuleCfg)
     }),
 
     [
@@ -582,7 +582,7 @@ no_specs(RuleCfg) ->
 no_block_expressions(RuleCfg) ->
     {nodes, BlockExprs} = elvis_code:find(#{
         of_types => ['begin'],
-        inside => tokens_as_content(root(RuleCfg)),
+        inside => tokens_as_content(elvis_code:root(RuleCfg)),
         traverse => all
     }),
 
@@ -629,7 +629,7 @@ logger_macros() ->
 no_space_after_pound({_Config, Target, _RuleConfig} = RuleCfg) ->
     {nodes, TextNodes} = elvis_code:find(#{
         of_types => undefined,
-        inside => tokens_as_content(root(RuleCfg)),
+        inside => tokens_as_content(elvis_code:root(RuleCfg)),
         filtered_by => fun is_text_node/1
     }),
 
@@ -643,7 +643,7 @@ lines_in(Target) ->
 operator_spaces({_Config, Target, _RuleConfig} = RuleCfg) ->
     Rules = option(rules, RuleCfg, ?FUNCTION_NAME),
 
-    Root = root(RuleCfg),
+    Root = elvis_code:root(RuleCfg),
 
     {nodes, OpNodes} = elvis_code:find(#{
         of_types => undefined,
@@ -693,7 +693,7 @@ no_space({_Config, Target, _RuleConfig} = RuleCfg) ->
 
     {nodes, TextNodes} = elvis_code:find(#{
         of_types => undefined,
-        inside => tokens_as_content(root(RuleCfg)),
+        inside => tokens_as_content(elvis_code:root(RuleCfg)),
         filtered_by => fun is_text_node/1
     }),
 
@@ -725,7 +725,7 @@ nesting_level(RuleCfg) ->
 
     {nodes, ParentNodes} = elvis_code:find(#{
         of_types => undefined,
-        inside => root(RuleCfg)
+        inside => elvis_code:root(RuleCfg)
     }),
 
     lists:flatmap(
@@ -748,7 +748,7 @@ nesting_level(RuleCfg) ->
 god_modules(RuleCfg) ->
     Limit = option(limit, RuleCfg, ?FUNCTION_NAME),
 
-    Root = root(RuleCfg),
+    Root = elvis_code:root(RuleCfg),
     ExportedFunctions = exported_functions(Root),
     Count = length(ExportedFunctions),
 
@@ -792,7 +792,7 @@ exported_types(Root) ->
 no_if_expression(RuleCfg) ->
     {nodes, IfExprNodes} = elvis_code:find(#{
         of_types => ['if'],
-        inside => root(RuleCfg)
+        inside => elvis_code:root(RuleCfg)
     }),
 
     [
@@ -804,7 +804,7 @@ no_if_expression(RuleCfg) ->
     ].
 
 invalid_dynamic_call(RuleCfg) ->
-    Root = root(RuleCfg),
+    Root = elvis_code:root(RuleCfg),
 
     InvalidCallNodes =
         case has_callbacks(Root) of
@@ -839,7 +839,7 @@ has_callbacks(Root) ->
 used_ignored_variable(RuleCfg) ->
     {zippers, IgnoredVarZippers} = elvis_code:find(#{
         of_types => [var],
-        inside => root(RuleCfg),
+        inside => elvis_code:root(RuleCfg),
         filtered_by => fun is_ignored_var/1,
         filtered_from => zipper
     }),
@@ -855,7 +855,7 @@ used_ignored_variable(RuleCfg) ->
 no_behavior_info(RuleCfg) ->
     {nodes, BehaviourInfoNodes} = elvis_code:find(#{
         of_types => [function],
-        inside => root(RuleCfg),
+        inside => elvis_code:root(RuleCfg),
         filtered_by => fun has_behavior_info/1
     }),
 
@@ -881,7 +881,7 @@ module_naming_convention({_Config, Target, _RuleConfig} = RuleCfg) ->
 
     {nodes, ModuleNode} = elvis_code:find(#{
         of_types => [module],
-        inside => root(RuleCfg)
+        inside => elvis_code:root(RuleCfg)
     }),
 
     ModuleName = module_name_from(ModuleNode, Target),
@@ -924,7 +924,7 @@ module_name_from(ModuleNode, Target) ->
     atom_to_list(ModuleName).
 
 state_record_and_type(RuleCfg) ->
-    Root = root(RuleCfg),
+    Root = elvis_code:root(RuleCfg),
 
     case is_otp_behaviour(Root) of
         true ->
@@ -991,7 +991,7 @@ is_opaque_state(TypeAttrOrOpaqueNode) ->
 no_spec_with_records(RuleCfg) ->
     {nodes, SpecWithRecordNodes} = elvis_code:find(#{
         of_types => [spec],
-        inside => root(RuleCfg),
+        inside => elvis_code:root(RuleCfg),
         filtered_by => fun spec_has_records/1
     }),
 
@@ -1019,7 +1019,7 @@ type_is_record(TypeInSpecNode) ->
 dont_repeat_yourself(RuleCfg) ->
     MinComplexity = option(min_complexity, RuleCfg, ?FUNCTION_NAME),
 
-    Root = root(RuleCfg),
+    Root = elvis_code:root(RuleCfg),
 
     NodesWithRepeat = find_repeated_nodes(Root, MinComplexity),
 
@@ -1084,7 +1084,7 @@ max_anonymous_function_arity(RuleCfg) ->
 
     {nodes, FunNodes} = elvis_code:find(#{
         of_types => ['fun'],
-        inside => root(RuleCfg),
+        inside => elvis_code:root(RuleCfg),
         filtered_by => fun has_clauses/1
     }),
 
@@ -1134,7 +1134,7 @@ max_function_arity(RuleCfg) ->
     NonExportedMaxArity0 = option(non_exported_max_arity, RuleCfg, ?FUNCTION_NAME),
     NonExportedMaxArity = specific_or_default(NonExportedMaxArity0, ExportedMaxArity),
 
-    Root = root(RuleCfg),
+    Root = elvis_code:root(RuleCfg),
 
     {nodes, FunctionNodes0} = elvis_code:find(#{
         of_types => [function],
@@ -1191,7 +1191,7 @@ max_function_clause_length({_Config, Target, _RuleConfig} = RuleCfg) ->
 
     {zippers, ClauseZippers} = elvis_code:find(#{
         of_types => [clause],
-        inside => root(RuleCfg),
+        inside => elvis_code:root(RuleCfg),
         filtered_by =>
             fun(ClauseZipper) ->
                 is_function_clause(ClauseZipper, [function])
@@ -1276,7 +1276,7 @@ max_function_length({_Config, Target, _RuleConfig} = RuleCfg) ->
 
     {nodes, FunctionNodes} = elvis_code:find(#{
         of_types => [function],
-        inside => root(RuleCfg)
+        inside => elvis_code:root(RuleCfg)
     }),
 
     BigFunctions = big_functions(FunctionNodes, Lines, CountComments, CountWhitespace, MaxLength),
@@ -1344,7 +1344,7 @@ node_line_limits(FunctionNode) ->
 no_nested_try_catch(RuleCfg) ->
     {nodes, TryExprNodes} = elvis_code:find(#{
         of_types => ['try'],
-        inside => root(RuleCfg)
+        inside => elvis_code:root(RuleCfg)
     }),
 
     InnerTryExprNodes = inner_try_exprs(TryExprNodes),
@@ -1368,7 +1368,7 @@ inner_try_exprs(TryExprNodes) ->
 no_successive_maps(RuleCfg) ->
     {nodes, MapExprNodes} = elvis_code:find(#{
         of_types => [map],
-        inside => root(RuleCfg),
+        inside => elvis_code:root(RuleCfg),
         filtered_by => fun is_successive_map/1,
         traverse => all
     }),
@@ -1395,7 +1395,7 @@ atom_naming_convention(RuleCfg) ->
 
     {zippers, AtomZippers} = elvis_code:find(#{
         of_types => [atom],
-        inside => root(RuleCfg),
+        inside => elvis_code:root(RuleCfg),
         filtered_by => fun parent_is_not_remote/1,
         filtered_from => zipper,
         traverse => all
@@ -1473,7 +1473,7 @@ atom_name_and_node_value(AtomZipper) ->
 no_init_lists(RuleCfg) ->
     ConfigBehaviors = option(behaviours, RuleCfg, ?FUNCTION_NAME),
 
-    Root = root(RuleCfg),
+    Root = elvis_code:root(RuleCfg),
 
     InitClauseNodes =
         case is_behaviour_in(Root, ConfigBehaviors) of
@@ -1545,7 +1545,7 @@ is_list_node(_) ->
     false.
 
 ms_transform_included(RuleCfg) ->
-    Root = root(RuleCfg),
+    Root = elvis_code:root(RuleCfg),
 
     case has_include_ms_transform(Root) of
         true ->
@@ -1581,7 +1581,7 @@ is_ets_fun2ms(Node) ->
 no_boolean_in_comparison(RuleCfg) ->
     {nodes, OpNodes} = elvis_code:find(#{
         of_types => [op],
-        inside => root(RuleCfg),
+        inside => elvis_code:root(RuleCfg),
         filtered_by => fun is_boolean_in_comparison/1,
         traverse => all
     }),
@@ -1612,7 +1612,7 @@ is_boolean_operator(OpNode) ->
 no_receive_without_timeout(RuleCfg) ->
     {nodes, ReceiveExprNodes} = elvis_code:find(#{
         of_types => ['receive'],
-        inside => root(RuleCfg),
+        inside => elvis_code:root(RuleCfg),
         filtered_by => fun is_receive_without_timeout/1
     }),
 
@@ -1637,7 +1637,7 @@ no_operation_on_same_value(RuleCfg) ->
 
     {nodes, OpNodes} = elvis_code:find(#{
         of_types => [op],
-        inside => root(RuleCfg),
+        inside => elvis_code:root(RuleCfg),
         filtered_by =>
             fun(OpNode) ->
                 is_op(OpNode, InterestingOps) andalso same_value_on_both_sides(OpNode)
@@ -1716,7 +1716,7 @@ is_ms_transform_hrl(IncludeLibNode) ->
 no_throw(RuleCfg) ->
     {nodes, ThrowNodes} = elvis_code:find(#{
         of_types => [call],
-        inside => root(RuleCfg),
+        inside => elvis_code:root(RuleCfg),
         filtered_by => fun is_throw/1
     }),
 
@@ -1739,7 +1739,7 @@ is_throw(OpNode) ->
 no_dollar_space(RuleCfg) ->
     {nodes, CharNodes} = elvis_code:find(#{
         of_types => [char],
-        inside => root(RuleCfg),
+        inside => elvis_code:root(RuleCfg),
         filtered_by => fun is_dollar_space/1,
         traverse => all
     }),
@@ -1758,7 +1758,7 @@ is_dollar_space(CharNode) ->
 no_author(RuleCfg) ->
     {nodes, AuthorNodes} = elvis_code:find(#{
         of_types => [author],
-        inside => root(RuleCfg)
+        inside => elvis_code:root(RuleCfg)
     }),
 
     [
@@ -1772,7 +1772,7 @@ no_author(RuleCfg) ->
 no_import(RuleCfg) ->
     {nodes, ImportNodes} = elvis_code:find(#{
         of_types => [import],
-        inside => root(RuleCfg)
+        inside => elvis_code:root(RuleCfg)
     }),
 
     [
@@ -1786,7 +1786,7 @@ no_import(RuleCfg) ->
 no_catch_expressions(RuleCfg) ->
     {nodes, CatchExprNodes} = elvis_code:find(#{
         of_types => ['catch'],
-        inside => root(RuleCfg)
+        inside => elvis_code:root(RuleCfg)
     }),
 
     [
@@ -1800,7 +1800,7 @@ no_catch_expressions(RuleCfg) ->
 no_single_clause_case(RuleCfg) ->
     {nodes, CaseExprs} = elvis_code:find(#{
         of_types => ['case'],
-        inside => root(RuleCfg),
+        inside => elvis_code:root(RuleCfg),
         filtered_by => fun is_single_clause_case/1
     }),
 
@@ -1826,7 +1826,7 @@ case_clauses_in(Node) ->
 no_single_match_maybe(RuleCfg) ->
     {nodes, MaybeNodes} = elvis_code:find(#{
         of_types => ['maybe'],
-        inside => root(RuleCfg),
+        inside => elvis_code:root(RuleCfg),
         filtered_by => fun is_single_match_maybe/1
     }),
 
@@ -1844,7 +1844,7 @@ is_single_match_maybe(MaybeNode) ->
 no_match_in_condition(RuleCfg) ->
     {nodes, CaseExprNodes} = elvis_code:find(#{
         of_types => [case_expr],
-        inside => root(RuleCfg),
+        inside => elvis_code:root(RuleCfg),
         filtered_by =>
             fun(CaseExprNode) ->
                 has_match_child(CaseExprNode) orelse has_match_child_block(CaseExprNode)
@@ -1884,7 +1884,7 @@ numeric_format(RuleCfg) ->
     FloatRegex0 = option(float_regex, RuleCfg, ?FUNCTION_NAME),
     FloatRegex = specific_or_default(FloatRegex0, Regex),
 
-    Root = root(RuleCfg),
+    Root = elvis_code:root(RuleCfg),
 
     {nodes, IntegerNodes} = elvis_code:find(#{
         of_types => [integer],
@@ -1923,7 +1923,7 @@ behaviour_spelling(RuleCfg) ->
 
     {nodes, BehaviourNodes} = elvis_code:find(#{
         of_types => [behaviour, behavior],
-        inside => root(RuleCfg),
+        inside => elvis_code:root(RuleCfg),
         filtered_by =>
             fun(BehaviourNode) ->
                 ktn_code:type(BehaviourNode) =/= Spelling
@@ -1944,7 +1944,7 @@ param_pattern_matching(RuleCfg) ->
 
     {zippers, ClauseZippers} = elvis_code:find(#{
         of_types => [clause],
-        inside => root(RuleCfg),
+        inside => elvis_code:root(RuleCfg),
         filtered_by =>
             fun(ClauseZipper) ->
                 is_function_clause(ClauseZipper, [function, 'fun'])
@@ -2013,7 +2013,7 @@ consistent_generic_type(RuleCfg) ->
 
     {nodes, TypeNodes} = elvis_code:find(#{
         of_types => [type, callback],
-        inside => root(RuleCfg),
+        inside => elvis_code:root(RuleCfg),
         filtered_by =>
             fun(TypeNode) ->
                 is_inconsistent_generic_type(TypeNode, PreferredType)
@@ -2040,7 +2040,7 @@ always_shortcircuit(RuleCfg) ->
 
     {nodes, OpNodes} = elvis_code:find(#{
         of_types => [op],
-        inside => root(RuleCfg),
+        inside => elvis_code:root(RuleCfg),
         filtered_by =>
             fun(OpNode) ->
                 is_op(OpNode, maps:keys(Operators))
@@ -2061,7 +2061,7 @@ always_shortcircuit(RuleCfg) ->
     ].
 
 export_used_types(RuleCfg) ->
-    Root = root(RuleCfg),
+    Root = elvis_code:root(RuleCfg),
 
     case is_otp_behaviour(Root) of
         false ->
@@ -2125,7 +2125,7 @@ used_types(SpecNodes) ->
 private_data_types(RuleCfg) ->
     TypesToCheck = option(apply_to, RuleCfg, ?FUNCTION_NAME),
 
-    Root = root(RuleCfg),
+    Root = elvis_code:root(RuleCfg),
     ExportedTypes = exported_types(Root),
     PublicDataTypes = public_data_types(TypesToCheck, Root, ExportedTypes),
     Locations = map_type_declarations_to_location(Root),
@@ -2604,7 +2604,7 @@ is_children(Parent, Node) ->
 no_call_common(RuleCfg, NoCallFuns, Msg) ->
     {nodes, CallNodes} = elvis_code:find(#{
         of_types => [call],
-        inside => root(RuleCfg),
+        inside => elvis_code:root(RuleCfg),
         filtered_by =>
             fun(CallNode) ->
                 is_in_call_list(CallNode, NoCallFuns)
@@ -2748,6 +2748,3 @@ re_compile(undefined, _Options) ->
 re_compile(Regexp, Options) ->
     {ok, MP} = re:compile(Regexp, Options),
     MP.
-
-root(RuleCfg) ->
-    elvis_code:root(RuleCfg).
