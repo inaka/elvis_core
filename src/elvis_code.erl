@@ -103,13 +103,10 @@ zipper(Root) ->
     zipper(Root, content).
 
 -spec zipper(tree_node(), content | all) -> tree_node_zipper().
-zipper(Root, Traverse) ->
-    case Traverse of
-        content ->
-            content_zipper(Root);
-        all ->
-            all_zipper(Root)
-    end.
+zipper(Root, content) ->
+    content_zipper(Root);
+zipper(Root, all) ->
+    all_zipper(Root).
 
 -spec content_zipper(tree_node()) -> tree_node_zipper().
 content_zipper(Root) ->
