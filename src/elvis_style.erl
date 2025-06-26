@@ -56,8 +56,7 @@
     ms_transform_included/1,
     no_boolean_in_comparison/1,
     no_operation_on_same_value/1,
-    no_receive_without_timeout/1,
-    root/1
+    no_receive_without_timeout/1
 ]).
 
 -export_type([ignorable/0]).
