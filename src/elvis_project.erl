@@ -1,15 +1,13 @@
 -module(elvis_project).
 -behaviour(elvis_ruleset).
 
--export([default/1, no_branch_deps/3, protocol_for_deps/3, old_configuration_format/3]).
-
--export_type([protocol_for_deps_config/0]).
+-export([default/1, no_branch_deps/1, protocol_for_deps/1, old_configuration_format/1]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec default(RuleName :: atom()) -> DefaultRuleConfig :: #{atom() := term()}.
+-spec default(RuleName :: atom()) -> elvis_core:rule_config().
 default(no_branch_deps) ->
     #{ignore => []};
 default(protocol_for_deps) ->
@@ -21,17 +19,9 @@ default(old_configuration_format) ->
 %% Rules
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--type protocol_for_deps_config() :: #{ignore => [module()], regex => string()}.
-
--spec protocol_for_deps(
-    elvis_config:config(),
-    elvis_file:file(),
-    protocol_for_deps_config()
-) ->
-    [elvis_result:item()].
-protocol_for_deps(_Config, Target, RuleConfig) ->
-    IgnoreDeps = option(ignore, RuleConfig, protocol_for_deps),
-    Regex = option(regex, RuleConfig, protocol_for_deps),
+protocol_for_deps({_Config, Target, _RuleConfig} = RuleCfg) ->
+    IgnoreDeps = option(ignore, RuleCfg, ?FUNCTION_NAME),
+    Regex = option(regex, RuleCfg, ?FUNCTION_NAME),
     Deps = get_deps(Target),
     NoHexDeps = lists:filter(fun(Dep) -> not is_hex_dep(Dep) end, Deps),
     BadDeps = lists:filter(fun(Dep) -> is_not_git_dep(Dep, Regex) end, NoHexDeps),
@@ -61,14 +51,8 @@ appname_from_line({AppName, _, _GitInfo}) ->
 appname_from_line({AppName, _Vsn, _GitInfo, _Opts}) ->
     AppName.
 
--spec no_branch_deps(
-    elvis_config:config(),
-    elvis_file:file(),
-    elvis_style:empty_rule_config()
-) ->
-    [elvis_result:item()].
-no_branch_deps(_Config, Target, RuleConfig) ->
-    IgnoreDeps = option(ignore, RuleConfig, no_branch_deps),
+no_branch_deps({_Config, Target, _RuleConfig} = RuleCfg) ->
+    IgnoreDeps = option(ignore, RuleCfg, ?FUNCTION_NAME),
     Deps = get_deps(Target),
     BadDeps = lists:filter(fun is_branch_dep/1, Deps),
     lists:filtermap(
@@ -90,13 +74,7 @@ no_branch_deps(_Config, Target, RuleConfig) ->
         BadDeps
     ).
 
--spec old_configuration_format(
-    elvis_config:config(),
-    elvis_file:file(),
-    elvis_style:empty_rule_config()
-) ->
-    [elvis_result:item()].
-old_configuration_format(_Config, Target, _RuleConfig) ->
+old_configuration_format({_Config, Target, _RuleConfig}) ->
     {Content, _} = elvis_file:src(Target),
     [AllConfig] = ktn_code:consult(Content),
     case proplists:get_value(elvis, AllConfig) of
@@ -227,12 +205,15 @@ exists_old_rule(_) ->
 %% Internal Function Definitions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec option(OptionName, RuleConfig, Rule) -> OptionValue when
+-spec option(OptionName, RuleCfg, Rule) -> OptionValue when
     OptionName :: atom(),
-    RuleConfig :: elvis_config:config(),
+    RuleCfg :: {Config, Target, RuleConfig},
+    Config :: elvis_config:config(),
+    Target :: elvis_file:file(),
+    RuleConfig :: (Options :: #{atom() => term()}),
     Rule :: atom(),
     OptionValue :: term().
-option(OptionName, RuleConfig, Rule) ->
+option(OptionName, {_Config, _Target, RuleConfig}, Rule) ->
     maybe_default_option(maps:get(OptionName, RuleConfig, undefined), OptionName, Rule).
 
 -spec maybe_default_option(UserDefinedOptionValue, OptionName, Rule) -> OptionValue when

@@ -28,6 +28,8 @@ obscure errors during fetching or compilation. It also increases consistency acr
 
 - `regex :: string()`
   - default: `"^(https://|git://|\\d+(\\.\\d+)*)"`
+- `ignore :: [atom()]`
+  - default: `[]`
 
 `regex` was
 `"https://.*|[0-9]+([.][0-9]+)*)"` until [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0).
@@ -35,5 +37,6 @@ obscure errors during fetching or compilation. It also increases consistency acr
 ## Example configuration
 
 ```erlang
-{elvis_project, protocol_for_deps, #{ regex => "^(https://|git://|\\d+(\\.\\d+)*)" }}
+{elvis_project, protocol_for_deps, #{ regex => "^(https://|git://|\\d+(\\.\\d+)*)"
+                                    , ignore => [] }}
 ```

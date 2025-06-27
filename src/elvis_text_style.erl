@@ -3,20 +3,18 @@
 
 -export([
     default/1,
-    line_length/3,
-    no_tabs/3,
-    no_trailing_whitespace/3,
-    prefer_unquoted_atoms/3,
-    no_redundant_blank_lines/3
+    line_length/1,
+    no_tabs/1,
+    no_trailing_whitespace/1,
+    prefer_unquoted_atoms/1,
+    no_redundant_blank_lines/1
 ]).
-
--export_type([line_length_config/0, no_trailing_whitespace_config/0]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec default(RuleName :: atom()) -> DefaultRuleConfig :: #{atom() := term()}.
+-spec default(RuleName :: atom()) -> elvis_core:rule_config().
 default(line_length) ->
     #{
         limit => 100,
@@ -36,47 +34,23 @@ default(prefer_unquoted_atoms) ->
 %% Rules
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--type line_length_config() ::
-    #{
-        ignore => [elvis_style:ignorable()],
-        limit => integer(),
-        skip_comments => false | any | whole_line
-    }.
-
 %% @doc Target can be either a filename or the
 %% name of a module.
--spec line_length(elvis_config:config(), elvis_file:file(), line_length_config()) ->
-    [elvis_result:item()].
-line_length(_Config, Target, RuleConfig) ->
-    Limit = option(limit, RuleConfig, line_length),
-    SkipComments = option(skip_comments, RuleConfig, line_length),
-    NoWhitespace = option(no_whitespace_after_limit, RuleConfig, line_length),
+line_length({_Config, Target, _RuleConfig} = RuleCfg) ->
+    Limit = option(limit, RuleCfg, ?FUNCTION_NAME),
+    SkipComments = option(skip_comments, RuleCfg, ?FUNCTION_NAME),
+    NoWhitespace = option(no_whitespace_after_limit, RuleCfg, ?FUNCTION_NAME),
     {Src, #{encoding := Encoding}} = elvis_file:src(Target),
     Args = [Limit, SkipComments, Encoding, NoWhitespace],
     elvis_utils:check_lines(Src, fun check_line_length/3, Args).
 
--spec no_tabs(
-    elvis_config:config(),
-    elvis_file:file(),
-    elvis_style:empty_rule_config()
-) ->
-    [elvis_result:item()].
-no_tabs(_Config, Target, _RuleConfig) ->
+no_tabs({_Config, Target, _RuleConfig}) ->
     {Src, _} = elvis_file:src(Target),
     elvis_utils:check_lines(Src, fun check_no_tabs/2, []).
 
--type no_trailing_whitespace_config() ::
-    #{ignore => [module()], ignore_empty_lines => boolean()}.
-
--spec no_trailing_whitespace(
-    Config :: elvis_config:config(),
-    Target :: elvis_file:file(),
-    no_trailing_whitespace_config()
-) ->
-    [elvis_result:item()].
-no_trailing_whitespace(_Config, Target, RuleConfig) ->
+no_trailing_whitespace({_Config, Target, RuleConfig} = RuleCfg) ->
     {Src, _} = elvis_file:src(Target),
-    IgnoreEmptyLines = option(ignore_empty_lines, RuleConfig, no_trailing_whitespace),
+    IgnoreEmptyLines = option(ignore_empty_lines, RuleCfg, ?FUNCTION_NAME),
     elvis_utils:check_lines(
         Src,
         fun(Src1, Fun, _Args) ->
@@ -85,52 +59,39 @@ no_trailing_whitespace(_Config, Target, RuleConfig) ->
         RuleConfig
     ).
 
--spec prefer_unquoted_atoms(
-    elvis_config:config(),
-    elvis_file:file(),
-    elvis_style:empty_rule_config()
-) ->
-    [elvis_result:item()].
-prefer_unquoted_atoms(_Config, Target, _RuleConfig) ->
-    {Content, #{encoding := _Encoding}} = elvis_file:src(Target),
-    Tree = ktn_code:parse_tree(Content),
-    AtomNodes = elvis_code:find_by_types([atom], Tree, #{traverse => all, mode => node}),
-    check_atom_quotes(AtomNodes, []).
+prefer_unquoted_atoms(RuleCfg) ->
+    {nodes, AtomNodes} = elvis_code:find(#{
+        of_types => [atom],
+        inside => elvis_code:root(RuleCfg),
+        filtered_by => fun doesnt_need_quotes/1,
+        traverse => all
+    }),
 
-needs_quoting(AtomName0) ->
+    lists:map(
+        fun(AtomNode) ->
+            elvis_result:new_item(
+                "unnecessarily quoted atom ~s was found; prefer removing the quotes when "
+                "not syntactically required",
+                [ktn_code:attr(text, AtomNode)],
+                #{node => AtomNode}
+            )
+        end,
+        AtomNodes
+    ).
+
+doesnt_need_quotes(AtomNode) ->
+    AtomName0 = ktn_code:attr(text, AtomNode),
     case re:run(AtomName0, "^'[a-z][a-zA-Z0-9_@]*'$", [{capture, none}]) of
         match ->
             AtomName = string:trim(AtomName0, both, "'"),
             Atom = list_to_atom(AtomName),
-            Atom =:= 'maybe' orelse erl_scan:f_reserved_word(Atom);
+            Atom =/= 'maybe' andalso not erl_scan:f_reserved_word(Atom);
         _ ->
-            true
+            false
     end.
 
-check_atom_quotes([] = _AtomNodes, Acc) ->
-    Acc;
-check_atom_quotes([AtomNode | RemainingAtomNodes], AccIn) ->
-    AtomName = ktn_code:attr(text, AtomNode),
-
-    AccOut =
-        case needs_quoting(AtomName) of
-            false ->
-                [
-                    elvis_result:new_item(
-                        "unnecessarily quoted atom '~p' was found; prefer removing the quotes when "
-                        "not syntactically required",
-                        [AtomName],
-                        #{node => AtomNode}
-                    )
-                    | AccIn
-                ];
-            _ ->
-                AccIn
-        end,
-    check_atom_quotes(RemainingAtomNodes, AccOut).
-
-no_redundant_blank_lines(_Config, Target, RuleConfig) ->
-    MaxLines = option(max_lines, RuleConfig, ?FUNCTION_NAME) + 1,
+no_redundant_blank_lines({_Config, Target, _RuleConfig} = RuleCfg) ->
+    MaxLines = option(max_lines, RuleCfg, ?FUNCTION_NAME) + 1,
     {Src, _} = elvis_file:src(Target),
     Lines = elvis_utils:split_all_lines(Src, [trim]),
 
@@ -141,7 +102,9 @@ no_redundant_blank_lines(_Config, Target, RuleConfig) ->
             ({Line, BlankLinesLength}) when BlankLinesLength >= MaxLines ->
                 {true,
                     elvis_result:new_item(
-                        "there are too many blank lines; prefer respecting the configured limit",
+                        "there are too many (~p) blank lines; prefer respecting the configured "
+                        "limit",
+                        [BlankLinesLength],
                         #{line => Line, limit => BlankLinesLength}
                     )};
             (_) ->
@@ -211,20 +174,21 @@ check_line_length(Line0, Num, [Limit, Encoding, NoWhitespace]) ->
         Len when Len =< Limit ->
             no_result;
         Len when NoWhitespace ->
-            {ok, line_length_res(Num, Len)};
+            {ok, line_length_res(Num, Len, Limit)};
         Len ->
             case binary:match(Line, <<"\s">>, [{scope, {Limit, Len - Limit}}]) of
                 {_, _} ->
-                    {ok, line_length_res(Num, Len)};
+                    {ok, line_length_res(Num, Len, Limit)};
                 nomatch ->
                     no_result
             end
     end.
 
-line_length_res(Num, Len) ->
+line_length_res(Num, Len, Limit) ->
     elvis_result:new_item(
-        "there are too many characters; prefer respecting the configured limit",
-        #{line => Num, limit => Len}
+        "there are too many (~p) characters; prefer respecting the configured limit",
+        [Len],
+        #{line => Num, limit => Limit}
     ).
 
 %% No Tabs
@@ -259,12 +223,11 @@ check_no_trailing_whitespace(Line, Num, IgnoreEmptyLines) ->
     case re:run(Line, Regex) of
         nomatch ->
             no_result;
-        {match, [PosLen]} ->
+        {match, _} ->
             {ok,
                 elvis_result:new_item(
-                    "there are too many trailing whitespace characters; "
-                    "prefer respecting the configured limit",
-                    #{line => Num, limit => byte_size(binary:part(Line, PosLen))}
+                    "unexpected trailing whitespace was found",
+                    #{line => Num}
                 )}
     end.
 
@@ -272,12 +235,15 @@ check_no_trailing_whitespace(Line, Num, IgnoreEmptyLines) ->
 %% Internal Function Definitions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec option(OptionName, RuleConfig, Rule) -> OptionValue when
+-spec option(OptionName, RuleCfg, Rule) -> OptionValue when
     OptionName :: atom(),
-    RuleConfig :: elvis_core:rule_config(),
+    RuleCfg :: {Config, Target, RuleConfig},
+    Config :: elvis_config:config(),
+    Target :: elvis_file:file(),
+    RuleConfig :: (Options :: #{atom() => term()}),
     Rule :: atom(),
     OptionValue :: term().
-option(OptionName, RuleConfig, Rule) ->
+option(OptionName, {_Config, _Target, RuleConfig}, Rule) ->
     maybe_default_option(maps:get(OptionName, RuleConfig, undefined), OptionName, Rule).
 
 -spec maybe_default_option(UserDefinedOptionValue, OptionName, Rule) -> OptionValue when

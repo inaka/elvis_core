@@ -174,13 +174,13 @@ apply_rules(Config, File) ->
     elvis_result:new(file, File, RulesResults).
 
 merge_rules({file, ParseTree}, ElvisConfigRules) ->
-    ElvisAttrs =
-        elvis_code:find(fun is_elvis_attr/1, ParseTree, #{traverse => content, mode => node}),
+    {nodes, ElvisAttrs} =
+        elvis_code:find(#{
+            of_types => [elvis],
+            inside => ParseTree
+        }),
     ElvisAttrRules = elvis_attr_rules(ElvisAttrs),
     elvis_config:merge_rules(ElvisAttrRules, ElvisConfigRules).
-
-is_elvis_attr(Node) ->
-    ktn_code:type(Node) =:= elvis.
 
 elvis_attr_rules([] = _ElvisAttrs) ->
     [];
@@ -216,7 +216,7 @@ apply_rule({Module, Function, ConfigArgs}, {Result, Config, File}) ->
                             ConfigMap#{ignore => lists:delete(AnalyzedModule, Ignores)},
                             ConfigArgs
                         ),
-                    Results = Module:Function(Config, File, FilteredConfigMap),
+                    Results = Module:Function({Config, File, FilteredConfigMap}),
                     SortFun = fun(#{line_num := L1}, #{line_num := L2}) -> L1 =< L2 end,
                     SortResults = lists:sort(SortFun, Results),
                     elvis_result:new(rule, {Module, Function}, SortResults);

@@ -39,6 +39,7 @@
 -type elvis_warn() :: #{warn_msg => string(), info => list()}.
 -type attrs() :: #{
     node => ktn_code:tree_node(),
+    zipper => zipper:zipper(ktn_code:tree_node()),
     line => -1 | non_neg_integer(),
     column => -1 | non_neg_integer(),
     limit => -1 | non_neg_integer()
@@ -76,6 +77,8 @@ new_item(Format, Data0, Attrs0) ->
 extend_attrs_with_line_and_column(#{node := Node} = Attrs) ->
     {Line, Column} = ktn_code:attr(location, Node),
     Attrs#{line => Line, column => Column};
+extend_attrs_with_line_and_column(#{zipper := Zipper} = Attrs) ->
+    extend_attrs_with_line_and_column(Attrs#{node => zipper:node(Zipper)});
 extend_attrs_with_line_and_column(Attrs) ->
     Attrs.
 
