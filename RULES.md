@@ -89,7 +89,7 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [No Deps `master` `erlang.mk` - *deprecated*](doc_rules/elvis_project/no_deps_master_erlang_mk.md)
 - [No Deps `master` `rebar.config` - *deprecated*](doc_rules/elvis_project/no_deps_master_rebar.md)
 - [No Deps With Branches](doc_rules/elvis_project/no_branch_deps.md)
-- [Old Configuration Format](doc_rules/elvis_project/old_configuration_format.md)
+- [Old Configuration Format - *deprecated*](doc_rules/elvis_project/old_configuration_format.md)
 - [Protocol For Deps `erlang.mk` - *deprecated*](doc_rules/elvis_project/protocol_for_deps_erlang_mk.md)
 - [Protocol For Deps `rebar.config` - *deprecated*](doc_rules/elvis_project/protocol_for_deps_rebar.md)
 - [Protocol For Deps](doc_rules/elvis_project/protocol_for_deps.md)
@@ -102,7 +102,6 @@ rulesets in the configuration file.
 
 The six pre-defined rulesets are:
 
-- `elvis_config`, for elvis configuration files.
 - `erl_files`, for Erlang source files (pre-defined rule set).
 - `erl_files_strict`, for Erlang source files (all applicable rules).
 - `gitignore`, for `.gitignore` files.
@@ -226,10 +225,6 @@ for `.hrl` files.
       , #{ dirs => ["."]
          , filter => "rebar.config"
          , ruleset => rebar_config
-         , rules => [] }
-      , #{ dirs => ["."]
-         , filter => "elvis.config"
-         , ruleset => elvis_config
          , rules => [] }
       , #{ dirs => ["."]
          , filter => ".gitignore"

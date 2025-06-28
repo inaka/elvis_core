@@ -1,7 +1,7 @@
 -module(elvis_project).
 -behaviour(elvis_ruleset).
 
--export([default/1, no_branch_deps/1, protocol_for_deps/1, old_configuration_format/1]).
+-export([default/1, no_branch_deps/1, protocol_for_deps/1]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
@@ -11,9 +11,7 @@
 default(no_branch_deps) ->
     #{ignore => []};
 default(protocol_for_deps) ->
-    #{ignore => [], regex => "^(https://|git://|\\d+(\\.\\d+)*)"};
-default(old_configuration_format) ->
-    #{}.
+    #{ignore => [], regex => "^(https://|git://|\\d+(\\.\\d+)*)"}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Rules
@@ -73,27 +71,6 @@ no_branch_deps({_Config, Target, _RuleConfig} = RuleCfg) ->
         end,
         BadDeps
     ).
-
-old_configuration_format({_Config, Target, _RuleConfig}) ->
-    {Content, _} = elvis_file:src(Target),
-    [AllConfig] = ktn_code:consult(Content),
-    case proplists:get_value(elvis, AllConfig) of
-        undefined ->
-            [];
-        ElvisConfig ->
-            case is_old_config(ElvisConfig) of
-                false ->
-                    [];
-                true ->
-                    [
-                        elvis_result:new_item(
-                            "The current Elvis configuration file has an outdated format. "
-                            "Please check Elvis's GitHub repository to find out what the "
-                            "new format is"
-                        )
-                    ]
-            end
-    end.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
@@ -172,34 +149,6 @@ is_not_git_dep({_AppName, _Vsn, {_SCM, Url, {BranchTagOrRefType, _Branch}}, _Opt
     BranchTagOrRefType =:= ref
 ->
     nomatch == re:run(Url, Regex, []).
-
-%% Old config
-
-is_old_config(ElvisConfig) ->
-    case proplists:get_value(config, ElvisConfig) of
-        undefined ->
-            false;
-        Config when is_map(Config) ->
-            true;
-        Config when is_list(Config) ->
-            SrcDirsIsKey =
-                fun(RuleGroup) ->
-                    maps:is_key(src_dirs, RuleGroup) orelse exists_old_rule(RuleGroup)
-                end,
-            lists:filter(SrcDirsIsKey, Config) /= []
-    end.
-
-exists_old_rule(#{rules := Rules}) ->
-    Filter =
-        fun
-            ({_, _, Args}) when is_list(Args) ->
-                true;
-            (_) ->
-                false
-        end,
-    lists:filter(Filter, Rules) /= [];
-exists_old_rule(_) ->
-    false.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Internal Function Definitions

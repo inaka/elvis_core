@@ -105,9 +105,6 @@ An `elvis.config` file looks something like this:
       , #{ dirs    => ["."]
          , filter  => "rebar.config"
          , ruleset => rebar_config }
-      , #{ dirs    => ["."]
-         , filter  => "elvis.config"
-         , ruleset => elvis_config }
     ]}
     % output_format (optional): how to format the output.
     % Possible values are 'plain', 'colors' or 'parsable' (default='colors').

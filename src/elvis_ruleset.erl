@@ -40,8 +40,6 @@ rules(Group) ->
                 beam_files_strict_rules();
             rebar_config ->
                 rebar_config_rules();
-            elvis_config ->
-                elvis_config_rules();
             _ ->
                 try
                     ets:lookup_element(?MODULE, Group, 2)
@@ -209,9 +207,4 @@ rebar_config_rules() ->
     [
         {elvis_project, no_branch_deps},
         {elvis_project, protocol_for_deps}
-    ].
-
-elvis_config_rules() ->
-    [
-        {elvis_project, old_configuration_format}
     ].

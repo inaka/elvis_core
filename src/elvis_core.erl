@@ -197,14 +197,7 @@ elvis_attr_rules(ElvisAttrs) ->
     Result :: {Results, ElvisCfg, File}.
 apply_rule({Module, Function}, {Result, Config, File}) ->
     apply_rule({Module, Function, #{}}, {Result, Config, File});
-apply_rule({Module, Function, ConfigArgs}, {Result, Config, File}) ->
-    ConfigMap =
-        try
-            ensure_config_map(Module, Function, ConfigArgs)
-        catch
-            _:function_clause ->
-                throw({invalid_config, disable_without_ruleset})
-        end,
+apply_rule({Module, Function, ConfigMap}, {Result, Config, File}) ->
     RuleResult =
         try
             AnalyzedModule = elvis_file:module(File),
@@ -214,7 +207,7 @@ apply_rule({Module, Function, ConfigArgs}, {Result, Config, File}) ->
                     FilteredConfigMap =
                         maps:merge(
                             ConfigMap#{ignore => lists:delete(AnalyzedModule, Ignores)},
-                            ConfigArgs
+                            ConfigMap
                         ),
                     Results = Module:Function({Config, File, FilteredConfigMap}),
                     SortFun = fun(#{line_num := L1}, #{line_num := L2}) -> L1 =< L2 end,
@@ -229,26 +222,6 @@ apply_rule({Module, Function, ConfigArgs}, {Result, Config, File}) ->
                 elvis_result:new(error, Msg, [Reason, Function, Stacktrace])
         end,
     {[RuleResult | Result], Config, File}.
-
-%% @doc Process a tules configuration argument and converts it to a map.
-ensure_config_map(_, _, Map) when is_map(Map) ->
-    Map;
-ensure_config_map(elvis_style, line_length, [Limit]) ->
-    #{limit => Limit};
-ensure_config_map(elvis_style, operator_spaces, Rules) ->
-    #{rules => Rules};
-ensure_config_map(elvis_style, no_deep_nesting, [Level]) ->
-    #{level => Level};
-ensure_config_map(elvis_style, no_god_modules, [Limit]) ->
-    #{limit => Limit};
-ensure_config_map(elvis_style, no_god_modules, [Limit, IgnoreModules]) ->
-    #{limit => Limit, ignore => IgnoreModules};
-ensure_config_map(elvis_style, no_invalid_dynamic_calls, IgnoreModules) ->
-    #{ignore => IgnoreModules};
-ensure_config_map(elvis_style, module_naming_convention, [Regex, IgnoreModules]) ->
-    #{regex => Regex, ignore => IgnoreModules};
-ensure_config_map(_, _, []) ->
-    #{}.
 
 elvis_result_status(Results) ->
     case elvis_result:status(Results) of
