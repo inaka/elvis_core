@@ -3,14 +3,39 @@
 -format(#{inline_items => none}).
 
 -export([rules/1, set_rulesets/1]).
+-export([option/3]).
 -export([default/2]).
 
--callback default(RuleName :: atom()) -> DefaultRuleConfig :: elvis_core:rule_config().
+-callback default(Rule :: atom()) -> DefaultRuleConfig :: elvis_core:rule_config().
 
--spec default(Module :: module(), RuleName :: atom()) ->
+-spec default(Ruleset :: module(), Rule :: atom()) ->
     DefaultRuleConfig :: elvis_core:rule_config().
-default(Module, RuleName) ->
-    Module:default(RuleName).
+default(Ruleset, Rule) ->
+    Ruleset:default(Rule).
+
+-spec option(OptionName, RuleCfg, Rule) -> OptionValue when
+    OptionName :: atom(),
+    RuleCfg :: {Ruleset, Config, Target, RuleConfig},
+    Ruleset :: module(),
+    Config :: elvis_config:config(),
+    Target :: elvis_file:file(),
+    RuleConfig :: (Options :: #{atom() => term()}),
+    Rule :: atom(),
+    OptionValue :: term().
+option(OptionName, {Ruleset, _Config, _Target, RuleConfig}, Rule) ->
+    maybe_default_option(maps:get(OptionName, RuleConfig, undefined), OptionName, {Ruleset, Rule}).
+
+-spec maybe_default_option(UserDefinedOptionValue, OptionName, RulesetRule) -> OptionValue when
+    UserDefinedOptionValue :: undefined | term(),
+    OptionName :: atom(),
+    RulesetRule :: {Ruleset, Rule},
+    Ruleset :: module(),
+    Rule :: atom(),
+    OptionValue :: term().
+maybe_default_option(undefined = _UserDefinedOptionValue, OptionName, {Ruleset, Rule}) ->
+    maps:get(OptionName, default(Ruleset, Rule));
+maybe_default_option(UserDefinedOptionValue, _OptionName, _RulesetRule) ->
+    UserDefinedOptionValue.
 
 -spec set_rulesets(#{atom() => list()}) -> ok.
 set_rulesets(RuleSets) ->

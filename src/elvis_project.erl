@@ -19,9 +19,9 @@ default(protocol_for_deps) ->
 %% Rules
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-protocol_for_deps({_Config, Target, _RuleConfig} = RuleCfg) ->
-    IgnoreDeps = option(ignore, RuleCfg, ?FUNCTION_NAME),
-    Regex = option(regex, RuleCfg, ?FUNCTION_NAME),
+protocol_for_deps({_Ruleset, _Config, Target, _RuleConfig} = RuleCfg) ->
+    IgnoreDeps = elvis_ruleset:option(ignore, RuleCfg, ?FUNCTION_NAME),
+    Regex = elvis_ruleset:option(regex, RuleCfg, ?FUNCTION_NAME),
     Deps = get_deps(Target),
     NoHexDeps = lists:filter(fun(Dep) -> not is_hex_dep(Dep) end, Deps),
     BadDeps = lists:filter(fun(Dep) -> is_not_git_dep(Dep, Regex) end, NoHexDeps),
@@ -51,8 +51,8 @@ appname_from_line({AppName, _, _GitInfo}) ->
 appname_from_line({AppName, _Vsn, _GitInfo, _Opts}) ->
     AppName.
 
-no_branch_deps({_Config, Target, _RuleConfig} = RuleCfg) ->
-    IgnoreDeps = option(ignore, RuleCfg, ?FUNCTION_NAME),
+no_branch_deps({_Ruleset, _Config, Target, _RuleConfig} = RuleCfg) ->
+    IgnoreDeps = elvis_ruleset:option(ignore, RuleCfg, ?FUNCTION_NAME),
     Deps = get_deps(Target),
     BadDeps = lists:filter(fun is_branch_dep/1, Deps),
     lists:filtermap(
@@ -151,28 +151,3 @@ is_not_git_dep({_AppName, _Vsn, {_SCM, Url, {BranchTagOrRefType, _Branch}}, _Opt
     BranchTagOrRefType =:= ref
 ->
     nomatch == re:run(Url, Regex, []).
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Internal Function Definitions
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
--spec option(OptionName, RuleCfg, Rule) -> OptionValue when
-    OptionName :: atom(),
-    RuleCfg :: {Config, Target, RuleConfig},
-    Config :: elvis_config:config(),
-    Target :: elvis_file:file(),
-    RuleConfig :: (Options :: #{atom() => term()}),
-    Rule :: atom(),
-    OptionValue :: term().
-option(OptionName, {_Config, _Target, RuleConfig}, Rule) ->
-    maybe_default_option(maps:get(OptionName, RuleConfig, undefined), OptionName, Rule).
-
--spec maybe_default_option(UserDefinedOptionValue, OptionName, Rule) -> OptionValue when
-    UserDefinedOptionValue :: undefined | term(),
-    OptionName :: atom(),
-    Rule :: atom(),
-    OptionValue :: term().
-maybe_default_option(undefined = _UserDefinedOptionValue, OptionName, Rule) ->
-    maps:get(OptionName, default(Rule));
-maybe_default_option(UserDefinedOptionValue, _OptionName, _Rule) ->
-    UserDefinedOptionValue.

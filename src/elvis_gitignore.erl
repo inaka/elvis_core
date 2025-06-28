@@ -30,8 +30,8 @@ default(forbidden_patterns) ->
 %% Rules
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-required_patterns({_Config, #{path := Path}, _RuleConfig} = RuleCfg) ->
-    Regexes = option(regexes, RuleCfg, ?FUNCTION_NAME),
+required_patterns({_Ruleset, _Config, #{path := Path}, _RuleConfig} = RuleCfg) ->
+    Regexes = elvis_ruleset:option(regexes, RuleCfg, ?FUNCTION_NAME),
     case file:read_file(Path) of
         {ok, PatternsBin} ->
             Patterns = elvis_utils:split_all_lines(PatternsBin),
@@ -40,8 +40,8 @@ required_patterns({_Config, #{path := Path}, _RuleConfig} = RuleCfg) ->
             []
     end.
 
-forbidden_patterns({_Config, #{path := Path}, _RuleConfig} = RuleCfg) ->
-    Regexes = option(regexes, RuleCfg, ?FUNCTION_NAME),
+forbidden_patterns({_Ruleset, _Config, #{path := Path}, _RuleConfig} = RuleCfg) ->
+    Regexes = elvis_ruleset:option(regexes, RuleCfg, ?FUNCTION_NAME),
     case file:read_file(Path) of
         {ok, PatternsBin} ->
             Patterns = elvis_utils:split_all_lines(PatternsBin),
@@ -87,28 +87,3 @@ check_patterns_in_lines(Lines, [Pattern | Rest], Results0, Mode) ->
                 ]
         end,
     check_patterns_in_lines(Lines, Rest, Results, Mode).
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Internal Function Definitions
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
--spec option(OptionName, RuleCfg, Rule) -> OptionValue when
-    OptionName :: atom(),
-    RuleCfg :: {Config, Target, RuleConfig},
-    Config :: elvis_config:config(),
-    Target :: elvis_file:file(),
-    RuleConfig :: (Options :: #{atom() => term()}),
-    Rule :: atom(),
-    OptionValue :: term().
-option(OptionName, {_Config, _Target, RuleConfig}, Rule) ->
-    maybe_default_option(maps:get(OptionName, RuleConfig, undefined), OptionName, Rule).
-
--spec maybe_default_option(UserDefinedOptionValue, OptionName, Rule) -> OptionValue when
-    UserDefinedOptionValue :: undefined | term(),
-    OptionName :: atom(),
-    Rule :: atom(),
-    OptionValue :: term().
-maybe_default_option(undefined = _UserDefinedOptionValue, OptionName, Rule) ->
-    maps:get(OptionName, default(Rule));
-maybe_default_option(UserDefinedOptionValue, _OptionName, _Rule) ->
-    UserDefinedOptionValue.

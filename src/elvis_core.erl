@@ -21,8 +21,8 @@
 -type target() :: source_filename() | module().
 -type rule_config() :: #{atom() => term()}.
 -type rule() ::
-    {Module :: module(), Function :: atom(), RuleConfig :: rule_config()}
-    | {Module :: module(), Function :: atom()}.
+    {Ruleset :: module(), Rule :: atom(), RuleConfig :: rule_config()}
+    | {Ruleset :: module(), Rule :: atom()}.
 
 -export_type([rule_config/0, rule/0]).
 
@@ -185,17 +185,19 @@ elvis_attr_rules([] = _ElvisAttrs) ->
 elvis_attr_rules(ElvisAttrs) ->
     [Rule || ElvisAttr <- ElvisAttrs, Rule <- ktn_code:attr(value, ElvisAttr)].
 
--spec apply_rule({Mod, Fun} | {Mod, Fun, RuleCfg}, {Results, ElvisCfg, File}) -> Result when
-    Mod :: module(),
-    Fun :: atom(),
+-spec apply_rule({Ruleset, Rule} | {Ruleset, Rule, RuleCfg}, {Results, ElvisCfg, File}) ->
+    Result
+when
+    Ruleset :: module(),
+    Rule :: atom(),
     RuleCfg :: rule_config(),
     Results :: [elvis_result:rule() | elvis_result:elvis_error()],
     ElvisCfg :: elvis_config:config(),
     File :: elvis_file:file(),
     Result :: {Results, ElvisCfg, File}.
-apply_rule({Module, Function}, {Result, Config, File}) ->
-    apply_rule({Module, Function, #{}}, {Result, Config, File});
-apply_rule({Module, Function, ConfigMap}, {Result, Config, File}) ->
+apply_rule({Ruleset, Rule}, {Result, Config, File}) ->
+    apply_rule({Ruleset, Rule, #{}}, {Result, Config, File});
+apply_rule({Ruleset, Rule, ConfigMap}, {Result, Config, File}) ->
     RuleResult =
         try
             AnalyzedModule = elvis_file:module(File),
@@ -207,17 +209,17 @@ apply_rule({Module, Function, ConfigMap}, {Result, Config, File}) ->
                             ConfigMap#{ignore => lists:delete(AnalyzedModule, Ignores)},
                             ConfigMap
                         ),
-                    Results = Module:Function({Config, File, FilteredConfigMap}),
+                    Results = Ruleset:Rule({Ruleset, Config, File, FilteredConfigMap}),
                     SortFun = fun(#{line_num := L1}, #{line_num := L2}) -> L1 =< L2 end,
                     SortResults = lists:sort(SortFun, Results),
-                    elvis_result:new(rule, {Module, Function}, SortResults);
+                    elvis_result:new(rule, {Ruleset, Rule}, SortResults);
                 true ->
-                    elvis_result:new(rule, {Module, Function}, [])
+                    elvis_result:new(rule, {Ruleset, Rule}, [])
             end
         catch
             _:Reason:Stacktrace ->
                 Msg = "'~p' while applying rule '~p': ~p",
-                elvis_result:new(error, Msg, [Reason, Function, Stacktrace])
+                elvis_result:new(error, Msg, [Reason, Rule, Stacktrace])
         end,
     {[RuleResult | Result], Config, File}.
 

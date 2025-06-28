@@ -32,11 +32,15 @@ verify_required_patterns(_Config) ->
 
     PathPass = ".gitignore",
     {ok, FilePass} = elvis_test_utils:find_file([SrcDirPass], PathPass),
-    [] = elvis_gitignore:required_patterns({GitIgnoreConfig, FilePass, NoRuleConfig}),
+    [] = elvis_gitignore:required_patterns(
+        {elvis_gitignore, GitIgnoreConfig, FilePass, NoRuleConfig}
+    ),
 
     PathFail = ".gitignore",
     {ok, FileFail} = elvis_test_utils:find_file([SrcDirFail], PathFail),
-    [Res] = elvis_gitignore:required_patterns({GitIgnoreConfig, FileFail, NoRuleConfig}),
+    [Res] = elvis_gitignore:required_patterns(
+        {elvis_gitignore, GitIgnoreConfig, FileFail, NoRuleConfig}
+    ),
     #{info := ["^doc/$"]} = Res.
 
 verify_forbidden_patterns(_Config) ->
@@ -46,9 +50,13 @@ verify_forbidden_patterns(_Config) ->
 
     PathPass = ".gitignore",
     {ok, FilePass} = elvis_test_utils:find_file([SrcDirPass], PathPass),
-    [] = elvis_gitignore:forbidden_patterns({GitIgnoreConfig, FilePass, NoRuleConfig}),
+    [] = elvis_gitignore:forbidden_patterns(
+        {elvis_gitignore, GitIgnoreConfig, FilePass, NoRuleConfig}
+    ),
 
     PathFail = ".gitignore",
     {ok, FileFail} = elvis_test_utils:find_file([SrcDirFail], PathFail),
-    [Res] = elvis_gitignore:forbidden_patterns({GitIgnoreConfig, FileFail, NoRuleConfig}),
+    [Res] = elvis_gitignore:forbidden_patterns(
+        {elvis_gitignore, GitIgnoreConfig, FileFail, NoRuleConfig}
+    ),
     #{info := ["^rebar.lock$"]} = Res.
