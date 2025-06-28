@@ -36,7 +36,6 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [Max Function Length](doc_rules/elvis_style/max_function_length.md)
 - [Max Module Length](doc_rules/elvis_style/max_module_length.md)
 - [Module Naming Convention](doc_rules/elvis_style/module_naming_convention.md)
-- [Nesting Level](doc_rules/elvis_style/nesting_level.md)
 <!-- markdownlint-disable MD033 -->
 - [No <code>$&nbsp;</code>](doc_rules/elvis_style/no_dollar_space.md)
 <!-- markdownlint-enable MD033 -->
@@ -48,6 +47,7 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [No Catch Expressions](doc_rules/elvis_style/no_catch_expressions.md)
 - [No Common Caveats](doc_rules/elvis_style/no_common_caveats_call.md)
 - [No Debug Call](doc_rules/elvis_style/no_debug_call.md)
+- [No Deep Nesting](doc_rules/elvis_style/no_deep_nesting.md)
 - [No God Modules](doc_rules/elvis_style/no_god_modules.md)
 - [No If Expression](doc_rules/elvis_style/no_if_expression.md)
 - [No Import](doc_rules/elvis_style/no_import.md)
@@ -156,7 +156,7 @@ You can always play with the following, but results may not be surprising.
 
 ```erlang
 -module(mymodule).
--elvis([{elvis_style, nesting_level, #{ level => 4, ignore => [mymodule] }}]).
+-elvis([{elvis_style, no_deep_nesting, #{ level => 4, ignore => [mymodule] }}]).
 ...
 ```
 

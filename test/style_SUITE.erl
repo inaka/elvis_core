@@ -739,7 +739,7 @@ verify_nesting_level(Config) ->
                     #{line_num := 170}
                 ] =
                     elvis_test_utils:elvis_core_apply_rule(
-                        Config, elvis_style, nesting_level, #{level => 3}, Path
+                        Config, elvis_style, no_deep_nesting, #{level => 3}, Path
                     );
             erl_files ->
                 [
@@ -753,14 +753,14 @@ verify_nesting_level(Config) ->
                     #{line_num := 182}
                 ] =
                     elvis_test_utils:elvis_core_apply_rule(
-                        Config, elvis_style, nesting_level, #{level => 3}, Path
+                        Config, elvis_style, no_deep_nesting, #{level => 3}, Path
                     )
         end,
     [] =
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
-            nesting_level,
+            no_deep_nesting,
             #{ignore => [fail_nesting_level]},
             Path
         ).

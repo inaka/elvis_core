@@ -122,7 +122,7 @@ elvis_style_rules() ->
         {elvis_style, max_anonymous_function_arity},
         {elvis_style, max_function_arity},
         {elvis_style, module_naming_convention},
-        {elvis_style, nesting_level},
+        {elvis_style, no_deep_nesting},
         {elvis_style, no_author},
         {elvis_style, no_behavior_info},
         {elvis_style, no_block_expressions},

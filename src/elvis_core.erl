@@ -237,7 +237,7 @@ ensure_config_map(elvis_style, line_length, [Limit]) ->
     #{limit => Limit};
 ensure_config_map(elvis_style, operator_spaces, Rules) ->
     #{rules => Rules};
-ensure_config_map(elvis_style, nesting_level, [Level]) ->
+ensure_config_map(elvis_style, no_deep_nesting, [Level]) ->
     #{level => Level};
 ensure_config_map(elvis_style, no_god_modules, [Limit]) ->
     #{limit => Limit};

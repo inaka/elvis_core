@@ -15,7 +15,7 @@
     operator_spaces/1,
     no_space/1,
     no_space_after_pound/1,
-    nesting_level/1,
+    no_deep_nesting/1,
     no_god_modules/1,
     no_if_expression/1,
     invalid_dynamic_call/1,
@@ -153,7 +153,7 @@ default(no_space) ->
                 {left, ";"}
             ]
     };
-default(nesting_level) ->
+default(no_deep_nesting) ->
     #{level => 4};
 default(no_god_modules) ->
     #{limit => 25};
@@ -720,7 +720,7 @@ escape_regex(Text) ->
 is_text_node(Node) ->
     ktn_code:attr(text, Node) =/= "".
 
-nesting_level(RuleCfg) ->
+no_deep_nesting(RuleCfg) ->
     MaxLevel = option(level, RuleCfg, ?FUNCTION_NAME),
 
     {nodes, ParentNodes} = elvis_code:find(#{
