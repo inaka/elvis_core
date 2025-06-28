@@ -6,7 +6,7 @@
     function_naming_convention/1,
     variable_naming_convention/1,
     consistent_variable_casing/1,
-    macro_names/1,
+    macro_naming_convention/1,
     no_macros/1,
     no_specs/1,
     no_types/1,
@@ -71,7 +71,7 @@ default(no_init_lists) ->
         behaviours =>
             [gen_server, gen_statem, gen_fsm, supervisor, supervisor_bridge, gen_event]
     };
-default(macro_names) ->
+default(macro_naming_convention) ->
     #{regex => "^[A-Z](_?[A-Z0-9]+)*$", forbidden_regex => undefined};
 default(operator_spaces) ->
     #{
@@ -459,7 +459,7 @@ variable_name(VarZipper) ->
     VarNode = zipper:node(VarZipper),
     atom_to_list(ktn_code:attr(name, VarNode)).
 
-macro_names(RuleCfg) ->
+macro_naming_convention(RuleCfg) ->
     Regex = option(regex, RuleCfg, ?FUNCTION_NAME),
     ForbiddenRegex = option(forbidden_regex, RuleCfg, ?FUNCTION_NAME),
 
