@@ -239,9 +239,9 @@ ensure_config_map(elvis_style, operator_spaces, Rules) ->
     #{rules => Rules};
 ensure_config_map(elvis_style, nesting_level, [Level]) ->
     #{level => Level};
-ensure_config_map(elvis_style, god_modules, [Limit]) ->
+ensure_config_map(elvis_style, no_god_modules, [Limit]) ->
     #{limit => Limit};
-ensure_config_map(elvis_style, god_modules, [Limit, IgnoreModules]) ->
+ensure_config_map(elvis_style, no_god_modules, [Limit, IgnoreModules]) ->
     #{limit => Limit, ignore => IgnoreModules};
 ensure_config_map(elvis_style, invalid_dynamic_call, IgnoreModules) ->
     #{ignore => IgnoreModules};

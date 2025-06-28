@@ -16,7 +16,7 @@
     no_space/1,
     no_space_after_pound/1,
     nesting_level/1,
-    god_modules/1,
+    no_god_modules/1,
     no_if_expression/1,
     invalid_dynamic_call/1,
     used_ignored_variable/1,
@@ -155,7 +155,7 @@ default(no_space) ->
     };
 default(nesting_level) ->
     #{level => 4};
-default(god_modules) ->
+default(no_god_modules) ->
     #{limit => 25};
 default(function_naming_convention) ->
     #{regex => "^[a-z](_?[a-z0-9]+)*(_test_)?$", forbidden_regex => undefined};
@@ -745,7 +745,7 @@ nesting_level(RuleCfg) ->
         ParentNodes
     ).
 
-god_modules(RuleCfg) ->
+no_god_modules(RuleCfg) ->
     Limit = option(limit, RuleCfg, ?FUNCTION_NAME),
 
     Root = elvis_code:root(RuleCfg),

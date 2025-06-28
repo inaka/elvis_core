@@ -770,11 +770,13 @@ verify_god_modules(Config) ->
 
     Path = "fail_god_modules." ++ Ext,
     [_] = elvis_test_utils:elvis_core_apply_rule(
-        Config, elvis_style, god_modules, #{limit => 25}, Path
+        Config, elvis_style, no_god_modules, #{limit => 25}, Path
     ),
 
     RuleConfig = #{limit => 25, ignore => [fail_god_modules]},
-    [] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, god_modules, RuleConfig, Path).
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_god_modules, RuleConfig, Path
+    ).
 
 verify_no_if_expression(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
@@ -2678,7 +2680,7 @@ oddities(_Config) ->
                 dirs => ["../../_build/test/lib/elvis_core/test/examples"],
                 filter => "odditiesß.erl",
                 ruleset => erl_files,
-                rules => [{elvis_style, god_modules, #{limit => 0}}]
+                rules => [{elvis_style, no_god_modules, #{limit => 0}}]
             }
         ],
     {fail, [#{rules := [_, _, _, _]}]} = elvis_core:rock(ElvisConfig),

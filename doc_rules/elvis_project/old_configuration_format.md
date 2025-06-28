@@ -12,8 +12,8 @@
                 dirs => ["src/**"],
                 filter => "*.erl",
                 ruleset => erl_files,
-                rules => [{elvis_style, god_modules, [25]}]
-                                                   % ^ old format used lists
+                rules => [{elvis_style, no_god_modules, [25]}]
+                                                      % ^ old format used lists
             }
         ]}
     ]}
@@ -30,7 +30,7 @@
                 dirs => ["src/**"],
                 filter => "*.erl",
                 ruleset => erl_files,
-                rules => [{elvis_style, god_modules, #{limit => 25}}]
+                rules => [{elvis_style, no_god_modules, #{limit => 25}}]
             }
         ]}
     ]}
