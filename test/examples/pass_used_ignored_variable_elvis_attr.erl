@@ -6,7 +6,7 @@
         , macro_with_underscore/0
         ]).
 
--elvis([{elvis_style, used_ignored_variable, disable}]).
+-elvis([{elvis_style, no_used_ignored_variables, disable}]).
 -elvis([{elvis_style, macro_names, #{regex => ".*"}}]).
 -elvis([{elvis_style, no_macros, #{allow => ['__']}}]).
 

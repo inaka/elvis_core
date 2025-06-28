@@ -19,7 +19,7 @@
     no_god_modules/1,
     no_if_expression/1,
     no_invalid_dynamic_calls/1,
-    used_ignored_variable/1,
+    no_used_ignored_variables/1,
     no_behavior_info/1,
     module_naming_convention/1,
     state_record_and_type/1,
@@ -278,7 +278,7 @@ default(RuleWithEmptyDefault) when
     RuleWithEmptyDefault =:= no_nested_try_catch;
     RuleWithEmptyDefault =:= no_successive_maps;
     RuleWithEmptyDefault =:= no_invalid_dynamic_calls;
-    RuleWithEmptyDefault =:= used_ignored_variable;
+    RuleWithEmptyDefault =:= no_used_ignored_variables;
     RuleWithEmptyDefault =:= no_behavior_info;
     RuleWithEmptyDefault =:= state_record_and_type;
     RuleWithEmptyDefault =:= no_spec_with_records;
@@ -836,7 +836,7 @@ has_callbacks(Root) ->
     }),
     Nodes =/= [].
 
-used_ignored_variable(RuleCfg) ->
+no_used_ignored_variables(RuleCfg) ->
     {zippers, IgnoredVarZippers} = elvis_code:find(#{
         of_types => [var],
         inside => elvis_code:root(RuleCfg),

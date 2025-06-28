@@ -70,13 +70,13 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [No Throw](doc_rules/elvis_style/no_throw.md)
 - [No Trailing Whitespace](doc_rules/elvis_text_style/no_trailing_whitespace.md)
 - [No Types](doc_rules/elvis_style/no_types.md)
+- [No Used Ignored Variables](doc_rules/elvis_style/no_used_ignored_variables.md)
 - [Numeric Format](doc_rules/elvis_style/numeric_format.md)
 - [Operator Spaces](doc_rules/elvis_style/operator_spaces.md)
 - [Param Pattern-Matching](doc_rules/elvis_style/param_pattern_matching.md)
 - [Prefer Unquoted Atoms](doc_rules/elvis_text_style/prefer_unquoted_atoms.md)
 - [Private Data Types](doc_rules/elvis_style/private_data_types.md)
 - [State Record And Type](doc_rules/elvis_style/state_record_and_type.md)
-- [Used Ignored Variable](doc_rules/elvis_style/used_ignored_variable.md)
 - [Variable Naming Convention](doc_rules/elvis_style/variable_naming_convention.md)
 
 ## `.gitignore` rules

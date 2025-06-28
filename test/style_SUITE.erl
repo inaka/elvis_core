@@ -872,15 +872,15 @@ verify_used_ignored_variable(Config) ->
             beam_files ->
                 [#{line_num := _}, #{line_num := _}, #{line_num := _}, #{line_num := _}] =
                     elvis_test_utils:elvis_core_apply_rule(
-                        Config, elvis_style, used_ignored_variable, #{}, Path
+                        Config, elvis_style, no_used_ignored_variables, #{}, Path
                     );
             erl_files ->
                 [#{line_num := 23}, #{line_num := 26}, #{line_num := 30}, #{line_num := 30}] =
                     elvis_test_utils:elvis_core_apply_rule(
-                        Config, elvis_style, used_ignored_variable, #{}, Path
+                        Config, elvis_style, no_used_ignored_variables, #{}, Path
                     ),
                 [] = elvis_test_utils:elvis_core_apply_rule(
-                    Config, elvis_style, used_ignored_variable, #{}, Path2
+                    Config, elvis_style, no_used_ignored_variables, #{}, Path2
                 )
         end,
 
@@ -888,7 +888,7 @@ verify_used_ignored_variable(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
-            used_ignored_variable,
+            no_used_ignored_variables,
             #{ignore => [fail_used_ignored_variable]},
             Path
         ).

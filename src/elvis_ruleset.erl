@@ -147,7 +147,7 @@ elvis_style_rules() ->
         {elvis_style, operator_spaces},
         {elvis_style, param_pattern_matching},
         {elvis_style, private_data_types},
-        {elvis_style, used_ignored_variable},
+        {elvis_style, no_used_ignored_variables},
         {elvis_style, variable_naming_convention}
     ].
 

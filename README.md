@@ -192,8 +192,8 @@ to the one presented by `dialyzer`, like `<file>:<line>:<rule>:<message>`:
 ```shell
 src/example.erl:1:no_god_modules:This module has too many functions (56). Consider breaking it into a number of modules.
 src/example_a.erl:341:no_debug_call:Remove the debug call to io:format/2 on line 341.
-src/example_a.erl:511:used_ignored_variable:Ignored variable is being used on line 511 and column 54.
-src/example_a.erl:1252:used_ignored_variable:Ignored variable is being used on line 1252 and column 21.
+src/example_a.erl:511:no_used_ignored_variables:Ignored variable is being used on line 511 and column 54.
+src/example_a.erl:1252:no_used_ignored_variables:Ignored variable is being used on line 1252 and column 21.
 ```
 <!-- markdownlint-enable MD013 -->
 
