@@ -78,15 +78,12 @@ We have only presented results where all files were well-behaved (i.e. they resp
 so here's an example of how the output looks when files break some of the rules:
 
 ```shell
-# ../../test/examples/fail_line_length.erl [FAIL]
-  - line_length
-    - Line 14 is too long: "    io:format(\"This line is 81 characters long and should be detected, yeah!!!\").".
-    - Line 20 is too long: "    io:format(\"This line is 90 characters long and should be detected!!!!!!!!!!!!!!!!!!\").".
-# ../../test/examples/fail_no_tabs.erl [FAIL]
-  - no_tabs
-    - Line 6 has a tab at column 0.
-    - Line 15 has a tab at column 0.
-# ../../test/examples/small.erl [OK]
+# test/examples/british_behaviour_spelling.erl [FAIL]
+  - state_record_and_type (https://github.com/inaka/elvis_core/tree/main/doc_rules/elvis_style/state_record_and_type.md)
+    - This module implements an OTP behavior but is missing a '#state{}' record.
+# test/examples/fail_always_shortcircuit.erl [FAIL]
+  - always_shortcircuit (https://github.com/inaka/elvis_core/tree/main/doc_rules/elvis_style/always_shortcircuit.md)
+    - At line 5, column 45, unexpected non-shortcircuiting operator 'or' was found; prefer 'orelse'.
 ```
 
 ## Configuration
@@ -187,10 +184,8 @@ to the one presented by `dialyzer`, like `<file>:<line>:<rule>:<message>`:
 
 <!-- markdownlint-disable MD013 -->
 ```shell
-src/example.erl:1:no_god_modules:This module has too many functions (56). Consider breaking it into a number of modules.
-src/example_a.erl:341:no_debug_call:Remove the debug call to io:format/2 on line 341.
-src/example_a.erl:511:no_used_ignored_variables:Ignored variable is being used on line 511 and column 54.
-src/example_a.erl:1252:no_used_ignored_variables:Ignored variable is being used on line 1252 and column 21.
+test/examples/british_behaviour_spelling.erl:-1:state_record_and_type:This module implements an OTP behavior but is missing a '#state{}' record.```
+test/examples/fail_always_shortcircuit.erl:5:always_shortcircuit:At line 5, column 45, unexpected non-shortcircuiting operator ''or'' was found; prefer 'orelse'.
 ```
 <!-- markdownlint-enable MD013 -->
 
