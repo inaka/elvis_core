@@ -18,7 +18,7 @@
     no_deep_nesting/1,
     no_god_modules/1,
     no_if_expression/1,
-    invalid_dynamic_call/1,
+    no_invalid_dynamic_calls/1,
     used_ignored_variable/1,
     no_behavior_info/1,
     module_naming_convention/1,
@@ -277,7 +277,7 @@ default(RuleWithEmptyDefault) when
     RuleWithEmptyDefault =:= no_if_expression;
     RuleWithEmptyDefault =:= no_nested_try_catch;
     RuleWithEmptyDefault =:= no_successive_maps;
-    RuleWithEmptyDefault =:= invalid_dynamic_call;
+    RuleWithEmptyDefault =:= no_invalid_dynamic_calls;
     RuleWithEmptyDefault =:= used_ignored_variable;
     RuleWithEmptyDefault =:= no_behavior_info;
     RuleWithEmptyDefault =:= state_record_and_type;
@@ -803,7 +803,7 @@ no_if_expression(RuleCfg) ->
      || IfExprNode <- IfExprNodes
     ].
 
-invalid_dynamic_call(RuleCfg) ->
+no_invalid_dynamic_calls(RuleCfg) ->
     Root = elvis_code:root(RuleCfg),
 
     InvalidCallNodes =

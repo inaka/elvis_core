@@ -803,12 +803,12 @@ verify_invalid_dynamic_call(Config) ->
 
     PathPass = "pass_invalid_dynamic_call." ++ Ext,
     [] = elvis_test_utils:elvis_core_apply_rule(
-        Config, elvis_style, invalid_dynamic_call, #{}, PathPass
+        Config, elvis_style, no_invalid_dynamic_calls, #{}, PathPass
     ),
 
     PathPass2 = "pass_invalid_dynamic_call_callback." ++ Ext,
     [] = elvis_test_utils:elvis_core_apply_rule(
-        Config, elvis_style, invalid_dynamic_call, #{}, PathPass2
+        Config, elvis_style, no_invalid_dynamic_calls, #{}, PathPass2
     ),
 
     PathFail = "fail_invalid_dynamic_call." ++ Ext,
@@ -830,7 +830,7 @@ verify_invalid_dynamic_call(Config) ->
                     #{line_num := _}
                 ] =
                     elvis_test_utils:elvis_core_apply_rule(
-                        Config, elvis_style, invalid_dynamic_call, #{}, PathFail
+                        Config, elvis_style, no_invalid_dynamic_calls, #{}, PathFail
                     );
             erl_files ->
                 [
@@ -851,14 +851,14 @@ verify_invalid_dynamic_call(Config) ->
                     #{line_num := 36}
                 ] =
                     elvis_test_utils:elvis_core_apply_rule(
-                        Config, elvis_style, invalid_dynamic_call, #{}, PathFail
+                        Config, elvis_style, no_invalid_dynamic_calls, #{}, PathFail
                     )
         end,
 
     RuleConfig = #{ignore => [fail_invalid_dynamic_call]},
     [] =
         elvis_test_utils:elvis_core_apply_rule(
-            Config, elvis_style, invalid_dynamic_call, RuleConfig, PathFail
+            Config, elvis_style, no_invalid_dynamic_calls, RuleConfig, PathFail
         ).
 
 verify_used_ignored_variable(Config) ->

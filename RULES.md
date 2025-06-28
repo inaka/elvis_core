@@ -26,7 +26,6 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [Export Used Types](doc_rules/elvis_style/export_used_types.md)
 - [Function Naming Convention](doc_rules/elvis_style/function_naming_convention.md)
 - [Include `ms_transform` for `ets:fun2ms/1`](doc_rules/elvis_style/ms_transform_included.md)
-- [Invalid Dynamic Calls](doc_rules/elvis_style/invalid_dynamic_call.md)
 - [Line Length](doc_rules/elvis_text_style/line_length.md)
 - [Macro Module Names - *deprecated*](doc_rules/elvis_style/macro_module_names.md)
 - [Macro Names](doc_rules/elvis_style/macro_names.md)
@@ -51,6 +50,7 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [No God Modules](doc_rules/elvis_style/no_god_modules.md)
 - [No If Expression](doc_rules/elvis_style/no_if_expression.md)
 - [No Import](doc_rules/elvis_style/no_import.md)
+- [No Invalid Dynamic Calls](doc_rules/elvis_style/no_invalid_dynamic_calls.md)
 - [No Init Lists](doc_rules/elvis_style/no_init_lists.md)
 - [No Macros](doc_rules/elvis_style/no_macros.md)
 - [No Match In Condition](doc_rules/elvis_style/no_match_in_condition.md)
@@ -174,7 +174,7 @@ your choice.
 It suffices to add the `ignore` list to your rules, as per the example below.
 
 ```erlang
--elvis([{elvis_style, invalid_dynamic_call, #{ ignore => [elvis_core]}}]).
+-elvis([{elvis_style, no_invalid_dynamic_calls, #{ ignore => [elvis_core]}}]).
 -elvis([{elvis_style, no_debug_call, #{ ignore => [elvis_result, elvis_utils]}}]).
 ```
 

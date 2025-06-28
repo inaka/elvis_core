@@ -243,7 +243,7 @@ ensure_config_map(elvis_style, no_god_modules, [Limit]) ->
     #{limit => Limit};
 ensure_config_map(elvis_style, no_god_modules, [Limit, IgnoreModules]) ->
     #{limit => Limit, ignore => IgnoreModules};
-ensure_config_map(elvis_style, invalid_dynamic_call, IgnoreModules) ->
+ensure_config_map(elvis_style, no_invalid_dynamic_calls, IgnoreModules) ->
     #{ignore => IgnoreModules};
 ensure_config_map(elvis_style, module_naming_convention, [Regex, IgnoreModules]) ->
     #{regex => Regex, ignore => IgnoreModules};
