@@ -60,7 +60,7 @@ from_application_or_config(Key, Default) ->
 
 -spec load(atom(), term(), term()) -> configs().
 load(Key, ElvisConfig, Default) ->
-    ensure_config_list(Key, proplists:get_value(Key, ElvisConfig, Default)).
+    proplists:get_value(Key, ElvisConfig, Default).
 
 -spec load_initial(term()) -> [term()].
 load_initial(AppConfig) ->
@@ -68,11 +68,6 @@ load_initial(AppConfig) ->
     RulesetsConfig = proplists:get_value(rulesets, ElvisConfig, #{}),
     elvis_ruleset:set_rulesets(RulesetsConfig),
     ElvisConfig.
-
-ensure_config_list(config, Config) when is_map(Config) ->
-    [Config];
-ensure_config_list(_Other, Config) ->
-    Config.
 
 -spec validate(Config :: configs()) -> ok.
 validate([]) ->
