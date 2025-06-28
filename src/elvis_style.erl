@@ -2050,7 +2050,7 @@ always_shortcircuit(RuleCfg) ->
 
     [
         elvis_result:new_item(
-            "unexpected non-shortcircuiting operator '~p' was found; prefer ~p",
+            "unexpected non-shortcircuiting operator ~p was found; prefer ~p",
             [
                 ktn_code:attr(operation, OpNode),
                 maps:get(ktn_code:attr(operation, OpNode), Operators)
