@@ -5,7 +5,7 @@
     default/1,
     function_naming_convention/1,
     variable_naming_convention/1,
-    consistent_variable_casing/1,
+    variable_casing/1,
     macro_naming_convention/1,
     no_macros/1,
     no_specs/1,
@@ -293,7 +293,7 @@ default(RuleWithEmptyDefault) when
     RuleWithEmptyDefault =:= always_shortcircuit;
     RuleWithEmptyDefault =:= no_space_after_pound;
     RuleWithEmptyDefault =:= export_used_types;
-    RuleWithEmptyDefault =:= consistent_variable_casing;
+    RuleWithEmptyDefault =:= variable_casing;
     RuleWithEmptyDefault =:= ms_transform_included;
     RuleWithEmptyDefault =:= no_boolean_in_comparison;
     RuleWithEmptyDefault =:= no_receive_without_timeout
@@ -355,7 +355,7 @@ function_name(FunctionNode) ->
     FunctionName = ktn_code:attr(name, FunctionNode),
     unicode:characters_to_list(atom_to_list(FunctionName)).
 
-consistent_variable_casing(RuleCfg) ->
+variable_casing(RuleCfg) ->
     Root = elvis_code:root(RuleCfg),
 
     {zippers, VarZippers} = elvis_code:find(#{

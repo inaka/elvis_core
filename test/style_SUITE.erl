@@ -345,7 +345,7 @@ verify_consistent_variable_casing(Config) ->
     PathPass = "pass_consistent_variable_casing." ++ Ext,
     [] =
         elvis_test_utils:elvis_core_apply_rule(
-            Config, elvis_style, consistent_variable_casing, #{}, PathPass
+            Config, elvis_style, variable_casing, #{}, PathPass
         ),
 
     PathFail = "fail_consistent_variable_casing." ++ Ext,
@@ -370,7 +370,7 @@ verify_consistent_variable_casing(Config) ->
         #{info := ["IgnVar", _, ["IGNVar"]]}
     ] =
         elvis_test_utils:elvis_core_apply_rule(
-            Config, elvis_style, consistent_variable_casing, #{}, PathFail
+            Config, elvis_style, variable_casing, #{}, PathFail
         ).
 
 verify_macro_names_rule(Config) ->

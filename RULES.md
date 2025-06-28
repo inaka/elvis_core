@@ -20,7 +20,6 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [Always Shortcircuit](doc_rules/elvis_style/always_shortcircuit.md)
 - [Atom Naming Convention](doc_rules/elvis_style/atom_naming_convention.md)
 - [Behaviour Spelling](doc_rules/elvis_style/behaviour_spelling.md)
-- [Consistent Variable Casing](doc_rules/elvis_style/consistent_variable_casing.md)
 - [Don't Repeat Yourself](doc_rules/elvis_style/dont_repeat_yourself.md)
 - [Export Used Types](doc_rules/elvis_style/export_used_types.md)
 - [Function Naming Convention](doc_rules/elvis_style/function_naming_convention.md)
@@ -77,6 +76,7 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [Prefer Unquoted Atoms](doc_rules/elvis_text_style/prefer_unquoted_atoms.md)
 - [Private Data Types](doc_rules/elvis_style/private_data_types.md)
 - [State Record And Type](doc_rules/elvis_style/state_record_and_type.md)
+- [Variable Casing](doc_rules/elvis_style/variable_casing.md)
 - [Variable Naming Convention](doc_rules/elvis_style/variable_naming_convention.md)
 
 ## `.gitignore` rules

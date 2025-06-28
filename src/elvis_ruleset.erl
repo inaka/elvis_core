@@ -112,7 +112,7 @@ elvis_style_rules() ->
     [
         {elvis_style, atom_naming_convention},
         {elvis_style, behaviour_spelling},
-        {elvis_style, consistent_variable_casing},
+        {elvis_style, variable_casing},
         {elvis_style, dont_repeat_yourself},
         {elvis_style, export_used_types},
         {elvis_style, function_naming_convention},
