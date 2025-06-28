@@ -46,7 +46,7 @@
     numeric_format/1,
     behaviour_spelling/1,
     always_shortcircuit/1,
-    consistent_generic_type/1,
+    generic_type/1,
     export_used_types/1,
     no_match_in_condition/1,
     param_pattern_matching/1,
@@ -241,7 +241,7 @@ default(behaviour_spelling) ->
     #{spelling => behaviour};
 default(param_pattern_matching) ->
     #{side => right};
-default(consistent_generic_type) ->
+default(generic_type) ->
     #{preferred_type => term};
 default(private_data_types) ->
     #{apply_to => [record]};
@@ -2008,7 +2008,7 @@ is_function_clause(ClauseZipper, ParentNodeTypes) ->
     ParentNodeType = ktn_code:type(ParentNode),
     lists:member(ParentNodeType, ParentNodeTypes).
 
-consistent_generic_type(RuleCfg) ->
+generic_type(RuleCfg) ->
     PreferredType = option(preferred_type, RuleCfg, ?FUNCTION_NAME),
 
     {nodes, TypeNodes} = elvis_code:find(#{

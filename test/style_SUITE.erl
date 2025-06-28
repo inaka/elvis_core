@@ -1154,7 +1154,7 @@ verify_consistent_generic_type(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
-            consistent_generic_type,
+            generic_type,
             #{preferred_type => any},
             PathFail
         ),
@@ -1163,7 +1163,7 @@ verify_consistent_generic_type(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
-            consistent_generic_type,
+            generic_type,
             #{preferred_type => term},
             PathFail1
         ),
@@ -1172,7 +1172,7 @@ verify_consistent_generic_type(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
-            consistent_generic_type,
+            generic_type,
             #{preferred_type => any},
             PathFail2
         ),
@@ -1181,7 +1181,7 @@ verify_consistent_generic_type(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
-            consistent_generic_type,
+            generic_type,
             #{preferred_type => term},
             PathFail3
         ),
@@ -1191,7 +1191,7 @@ verify_consistent_generic_type(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
-            consistent_generic_type,
+            generic_type,
             #{preferred_type => term},
             PathPass
         ),
@@ -1200,7 +1200,7 @@ verify_consistent_generic_type(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
-            consistent_generic_type,
+            generic_type,
             #{preferred_type => any},
             PathPass1
         ),
@@ -1209,7 +1209,7 @@ verify_consistent_generic_type(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
-            consistent_generic_type,
+            generic_type,
             #{preferred_type => term},
             PathPass2
         ),
@@ -1217,7 +1217,7 @@ verify_consistent_generic_type(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
-            consistent_generic_type,
+            generic_type,
             #{preferred_type => any},
             PathPass2
         ).

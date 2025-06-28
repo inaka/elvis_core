@@ -164,7 +164,7 @@ erl_files_strict_rules() ->
 elvis_style_stricter_rules() ->
     [
         {elvis_style, always_shortcircuit},
-        {elvis_style, consistent_generic_type},
+        {elvis_style, generic_type},
         {elvis_style, max_function_clause_length},
         {elvis_style, max_function_length},
         {elvis_style, max_module_length},
