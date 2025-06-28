@@ -1,8 +1,9 @@
 -module(elvis_style).
+
 -behaviour(elvis_ruleset).
+-export([default/1]).
 
 -export([
-    default/1,
     function_naming_convention/1,
     variable_naming_convention/1,
     variable_casing/1,

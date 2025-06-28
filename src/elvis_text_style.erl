@@ -1,8 +1,9 @@
 -module(elvis_text_style).
+
 -behaviour(elvis_ruleset).
+-export([default/1]).
 
 -export([
-    default/1,
     line_length/1,
     no_tabs/1,
     no_trailing_whitespace/1,

@@ -1,7 +1,9 @@
 -module(elvis_project).
--behaviour(elvis_ruleset).
 
--export([default/1, no_branch_deps/1, protocol_for_deps/1]).
+-behaviour(elvis_ruleset).
+-export([default/1]).
+
+-export([no_branch_deps/1, protocol_for_deps/1]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values

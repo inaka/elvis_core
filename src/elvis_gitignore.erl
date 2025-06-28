@@ -1,7 +1,9 @@
 -module(elvis_gitignore).
--behaviour(elvis_ruleset).
 
--export([required_patterns/1, forbidden_patterns/1, default/1]).
+-behaviour(elvis_ruleset).
+-export([default/1]).
+
+-export([required_patterns/1, forbidden_patterns/1]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
