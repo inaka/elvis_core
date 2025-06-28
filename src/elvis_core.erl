@@ -40,8 +40,7 @@ start() ->
     ok | {fail, [{throw, term()} | elvis_result:file() | elvis_result:rule()]}.
 rock(Config) ->
     ok = elvis_config:validate(Config),
-    NewConfig = elvis_config:normalize(Config),
-    Results = lists:map(fun do_parallel_rock/1, NewConfig),
+    Results = lists:map(fun do_parallel_rock/1, Config),
     lists:foldl(fun combine_results/2, ok, Results).
 
 -spec rock_this(target(), elvis_config:configs()) ->
@@ -52,7 +51,6 @@ rock_this(Module, Config) when is_atom(Module) ->
     rock_this(Path, Config);
 rock_this(Path, Config) ->
     elvis_config:validate(Config),
-    NewConfig = elvis_config:normalize(Config),
     Dirname = filename:dirname(Path),
     Filename = filename:basename(Path),
     File =
@@ -70,7 +68,7 @@ rock_this(Path, Config) ->
             IgnoreList = elvis_config:ignore(Cfg),
             [] =/= elvis_file:filter_files([File], Dirs, Filter, IgnoreList)
         end,
-    case lists:filter(FilterFun, NewConfig) of
+    case lists:filter(FilterFun, Config) of
         [] ->
             elvis_utils:info("Skipping ~s", [Path]);
         FilteredConfig ->

@@ -89,7 +89,7 @@ rock_with_empty_list_config(_Config) ->
         end.
 
 rock_with_incomplete_config(_Config) ->
-    ElvisConfig = [#{src_dirs => ["src"]}],
+    ElvisConfig = [#{dirs => ["src"]}],
     ok =
         try
             ok = elvis_core:rock(ElvisConfig),
@@ -100,7 +100,7 @@ rock_with_incomplete_config(_Config) ->
         end.
 
 rock_with_list_config(_Config) ->
-    ElvisConfig = [#{src_dirs => ["src"], rules => []}],
+    ElvisConfig = [#{dirs => ["src"], rules => [], filter => "*.erl"}],
     ok =
         try
             ok = elvis_core:rock(ElvisConfig)

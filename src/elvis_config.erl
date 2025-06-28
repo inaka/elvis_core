@@ -6,8 +6,7 @@
     from_rebar/1,
     from_file/1,
     from_application_or_config/2,
-    validate/1,
-    normalize/1
+    validate/1
 ]).
 %% Geters
 -export([dirs/1, ignore/1, filter/1, files/1, rules/1]).
@@ -99,7 +98,7 @@ maybe_missing_dirs(RuleGroup) ->
 
 maybe_missing_filter(RuleGroup) ->
     maybe_boolean_wrapper(
-        maps:is_key(src_dirs, RuleGroup) orelse maps:is_key(dirs, RuleGroup), missing_filter
+        maps:is_key(dirs, RuleGroup), missing_filter
     ).
 
 maybe_missing_rules(RuleGroup) ->
@@ -139,18 +138,6 @@ is_invalid_rule({Module, RuleName}) ->
             ),
             {true, {invalid_rule, {Module, RuleName}}}
     end.
-
--spec normalize(configs()) -> configs().
-normalize(Config) when is_list(Config) ->
-    lists:map(fun do_normalize/1, Config).
-
-do_normalize(#{src_dirs := Dirs} = Config) ->
-    %% NOTE: Provided for backwards compatibility.
-    %% Rename 'src_dirs' key to 'dirs'.
-    Config1 = maps:remove(src_dirs, Config),
-    Config1#{dirs => Dirs};
-do_normalize(Config) ->
-    Config.
 
 -spec dirs(Config :: configs() | config()) -> [string()].
 dirs(Config) when is_list(Config) ->
