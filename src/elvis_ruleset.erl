@@ -4,7 +4,6 @@
 
 -export([rules/1, set_rulesets/1]).
 -export([option/3]).
--export([default/2]).
 
 -callback default(Rule :: atom()) -> DefaultRuleConfig :: elvis_core:rule_config().
 

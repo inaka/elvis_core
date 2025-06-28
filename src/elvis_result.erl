@@ -3,11 +3,10 @@
 -compile({no_auto_import, [error/2]}).
 
 %% API
--export([new_item/1, new_item/2, new_item/3, new/3, new/4, status/1, clean/1, print_results/1]).
+-export([new_item/1, new_item/2, new_item/3, new/3, status/1, clean/1, print_results/1]).
 -export([
     get_path/1,
     get_rules/1,
-    get_name/1,
     get_items/1,
     get_message/1,
     get_info/1,
@@ -104,10 +103,6 @@ new(error, Msg, Info) ->
 new(warn, Msg, Info) ->
     #{warn_msg => Msg, info => Info}.
 
--spec new(item, string(), [term()], integer()) -> item().
-new(item, Msg, Info, LineNum) ->
-    new_item(Msg, Info, #{line => LineNum}).
-
 new(item, Msg0, Info, {Line, Column}, Limit) ->
     Prefix0 =
         case Line of
@@ -149,10 +144,6 @@ get_path(#{file := File}) ->
 -spec get_rules(file()) -> [rule()].
 get_rules(#{rules := Rules}) ->
     Rules.
-
--spec get_name(rule()) -> atom().
-get_name(#{name := Name}) ->
-    Name.
 
 -spec get_items(rule()) -> [item()].
 get_items(#{items := Items}) ->
