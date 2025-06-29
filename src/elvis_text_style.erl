@@ -43,16 +43,16 @@ line_length({_Ruleset, _Config, Target, _RuleConfig} = RuleCfg) ->
     NoWhitespace = elvis_ruleset:option(no_whitespace_after_limit, RuleCfg, ?FUNCTION_NAME),
     {Src, #{encoding := Encoding}} = elvis_file:src(Target),
     Args = [Limit, SkipComments, Encoding, NoWhitespace],
-    elvis_utils:check_lines(Src, fun check_line_length/3, Args).
+    check_lines(Src, fun check_line_length/3, Args).
 
 no_tabs({_Ruleset, _Config, Target, _RuleConfig}) ->
     {Src, _} = elvis_file:src(Target),
-    elvis_utils:check_lines(Src, fun check_no_tabs/2, []).
+    check_lines(Src, fun check_no_tabs/2, []).
 
 no_trailing_whitespace({_Ruleset, _Config, Target, RuleConfig} = RuleCfg) ->
     {Src, _} = elvis_file:src(Target),
     IgnoreEmptyLines = elvis_ruleset:option(ignore_empty_lines, RuleCfg, ?FUNCTION_NAME),
-    elvis_utils:check_lines(
+    check_lines(
         Src,
         fun(Src1, Fun, _Args) ->
             check_no_trailing_whitespace(Src1, Fun, IgnoreEmptyLines)
@@ -230,4 +230,32 @@ check_no_trailing_whitespace(Line, Num, IgnoreEmptyLines) ->
                     "unexpected trailing whitespace was found",
                     #{line => Num}
                 )}
+    end.
+
+%% @doc Takes a binary that holds source code and applies
+%%      Fun to each line. Fun takes 2 or 3 arguments (the line
+%%      as a binary, the line number and the optional supplied Args) and
+%%      returns 'no_result' or {'ok', Result}.
+-spec check_lines(binary(), fun(), term()) -> [elvis_result:item()].
+check_lines(Src, Fun, Args) ->
+    Lines = elvis_utils:split_all_lines(Src),
+    check_lines(Lines, Fun, Args, [], 1).
+
+check_lines([], _Fun, _Args, Results, _Num) ->
+    lists:flatten(
+        lists:reverse(Results)
+    );
+check_lines([Line | Lines], Fun, Args, Results, Num) ->
+    FunRes =
+        case is_function(Fun, 3) of
+            true ->
+                Fun(Line, Num, Args);
+            false ->
+                Fun(Line, Num)
+        end,
+    case FunRes of
+        {ok, Result} ->
+            check_lines(Lines, Fun, Args, [Result | Results], Num + 1);
+        no_result ->
+            check_lines(Lines, Fun, Args, Results, Num + 1)
     end.

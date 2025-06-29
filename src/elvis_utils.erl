@@ -2,8 +2,6 @@
 
 -compile({no_auto_import, [error/2]}).
 
-%% Rules
--export([check_lines/3]).
 %% General
 -export([erlang_halt/1, to_str/1, split_all_lines/1, split_all_lines/2]).
 %% Output
@@ -17,34 +15,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Public
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%% @doc Takes a binary that holds source code and applies
-%%      Fun to each line. Fun takes 2 or 3 arguments (the line
-%%      as a binary, the line number and the optional supplied Args) and
-%%      returns 'no_result' or {'ok', Result}.
--spec check_lines(binary(), fun(), term()) -> [elvis_result:item()].
-check_lines(Src, Fun, Args) ->
-    Lines = split_all_lines(Src),
-    check_lines(Lines, Fun, Args, [], 1).
-
-check_lines([], _Fun, _Args, Results, _Num) ->
-    lists:flatten(
-        lists:reverse(Results)
-    );
-check_lines([Line | Lines], Fun, Args, Results, Num) ->
-    FunRes =
-        case is_function(Fun, 3) of
-            true ->
-                Fun(Line, Num, Args);
-            false ->
-                Fun(Line, Num)
-        end,
-    case FunRes of
-        {ok, Result} ->
-            check_lines(Lines, Fun, Args, [Result | Results], Num + 1);
-        no_result ->
-            check_lines(Lines, Fun, Args, Results, Num + 1)
-    end.
 
 %% @doc This is defined so that it can be mocked for tests.
 -spec erlang_halt(integer()) -> no_return().
