@@ -16,7 +16,7 @@ file, too.
 ```erlang
 -ifndef(HEADER_FILE).
 …
--endif().
+-endif.
 ```
 
 The code becomes unnecessarily complex and harder to maintain.
