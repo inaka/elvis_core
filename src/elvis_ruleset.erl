@@ -37,11 +37,11 @@ maybe_default_option(UserDefinedOptionValue, _OptionName, _RulesetRule) ->
     UserDefinedOptionValue.
 
 -spec set_rulesets(#{atom() => list()}) -> ok.
-set_rulesets(RuleSets) ->
+set_rulesets(Rulesets) ->
     Tid = ensure_clean_table(),
     lists:foreach(
         fun({Name, Rules}) -> true = ets:insert(Tid, {Name, Rules}) end,
-        maps:to_list(RuleSets)
+        maps:to_list(Rulesets)
     ).
 
 -spec rules(Group :: atom()) -> [elvis_core:rule()].
@@ -73,7 +73,7 @@ rules(Group) ->
                 end
         end,
     lists:map(
-        fun({Mod, Rule}) -> {Mod, Rule, default(Mod, Rule)} end,
+        fun({Ruleset, Rule}) -> {Ruleset, Rule, default(Ruleset, Rule)} end,
         Rules
     ).
 

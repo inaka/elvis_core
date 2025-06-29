@@ -15,7 +15,7 @@
 %% Default values
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec default(RuleName :: atom()) -> elvis_core:rule_config().
+-spec default(Rule :: atom()) -> elvis_core:rule_config().
 default(line_length) ->
     #{
         limit => 100,

@@ -16,9 +16,9 @@ excluded_funs_all() ->
 config() ->
     application:get_env(elvis_core, config, []).
 
-config(RuleSet) ->
-    RuleSetCfgs = application:get_env(elvis_core, config, []),
-    [Config] = [Cfg || #{ruleset := R} = Cfg <- RuleSetCfgs, R =:= RuleSet],
+config(Ruleset) ->
+    RulesetCfgs = application:get_env(elvis_core, config, []),
+    [Config] = [Cfg || #{ruleset := R} = Cfg <- RulesetCfgs, R =:= Ruleset],
     Config.
 
 find_file(Dirs, Pattern) ->

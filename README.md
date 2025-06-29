@@ -127,9 +127,12 @@ The `dirs` key is a list that tells `elvis_core` where it should look for the fi
 
 If you want to override the [pre-defined rules](#pre-defined-rules), for a given ruleset, you need
 to specify them in a `rules` key which is a list of items with the following structure
-`{Module, Function, RuleConfig}`, or `{Module, Function}` - if the rule takes no configuration
+`{Ruleset, Rule, RuleConfig}`, or `{Ruleset, Rule}` - if the rule takes no configuration
 values. You can also `disable` certain rules if you want to, by specifying them in the `rules` key
 and passing `disable` as a third argument.
+
+`Ruleset` is an Erlang module.
+`Rule` is a function exported from `Ruleset`.
 
 #### Disabling Rules
 
