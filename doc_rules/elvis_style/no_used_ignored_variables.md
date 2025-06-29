@@ -1,4 +1,7 @@
-# Used Ignored Variable ![](https://img.shields.io/badge/BEAM-yes-orange)
+# No Used Ignored Variables ![](https://img.shields.io/badge/BEAM-yes-orange)
+
+> [!NOTE]
+> This rule was named `used_ignored_variable` before [4.2.0](https://github.com/inaka/elvis_core/releases/tag/4.2.0).
 
 Declared anonymous variables (prefixed with `_`) should not be used.
 
@@ -33,5 +36,5 @@ subtle bugs or overlooked logic due to mistaken assumptions about variable usage
 ## Example configuration
 
 ```erlang
-{elvis_style, used_ignored_variable, #{}}
+{elvis_style, no_used_ignored_variables, #{}}
 ```

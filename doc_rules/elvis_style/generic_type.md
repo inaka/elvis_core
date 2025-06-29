@@ -1,4 +1,7 @@
-# Consistent Generic Type [![](https://img.shields.io/badge/since-2.0.1-blue)](https://github.com/inaka/elvis_core/releases/tag/2.0.1) ![](https://img.shields.io/badge/BEAM-yes-orange)
+# Generic Type [![](https://img.shields.io/badge/since-2.0.1-blue)](https://github.com/inaka/elvis_core/releases/tag/2.0.1) ![](https://img.shields.io/badge/BEAM-yes-orange)
+
+> [!NOTE]
+> This rule was named `consistent_generic_type` before [4.2.0](https://github.com/inaka/elvis_core/releases/tag/4.2.0).
 
 `term()` or `any()` should be used consistently in typespecs.
 
@@ -44,5 +47,5 @@ Defining a specific "term" type enhances consistency across your codebase.
 ## Example configuration
 
 ```erlang
-{elvis_style, consistent_generic_type, #{ preferred_type => term }}
+{elvis_style, generic_type, #{ preferred_type => term }}
 ```

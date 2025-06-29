@@ -6,8 +6,7 @@
     from_rebar/1,
     from_file/1,
     from_application_or_config/2,
-    validate/1,
-    normalize/1
+    validate/1
 ]).
 %% Geters
 -export([dirs/1, ignore/1, filter/1, files/1, rules/1]).
@@ -61,7 +60,7 @@ from_application_or_config(Key, Default) ->
 
 -spec load(atom(), term(), term()) -> configs().
 load(Key, ElvisConfig, Default) ->
-    ensure_config_list(Key, proplists:get_value(Key, ElvisConfig, Default)).
+    proplists:get_value(Key, ElvisConfig, Default).
 
 -spec load_initial(term()) -> [term()].
 load_initial(AppConfig) ->
@@ -69,11 +68,6 @@ load_initial(AppConfig) ->
     RulesetsConfig = proplists:get_value(rulesets, ElvisConfig, #{}),
     elvis_ruleset:set_rulesets(RulesetsConfig),
     ElvisConfig.
-
-ensure_config_list(config, Config) when is_map(Config) ->
-    [Config];
-ensure_config_list(_Other, Config) ->
-    Config.
 
 -spec validate(Config :: configs()) -> ok.
 validate([]) ->
@@ -99,7 +93,7 @@ maybe_missing_dirs(RuleGroup) ->
 
 maybe_missing_filter(RuleGroup) ->
     maybe_boolean_wrapper(
-        maps:is_key(src_dirs, RuleGroup) orelse maps:is_key(dirs, RuleGroup), missing_filter
+        maps:is_key(dirs, RuleGroup), missing_filter
     ).
 
 maybe_missing_rules(RuleGroup) ->
@@ -121,36 +115,24 @@ maybe_invalid_rules(_) ->
 invalid_rules(Rules) ->
     lists:filtermap(fun is_invalid_rule/1, Rules).
 
-is_invalid_rule({Module, RuleName, _}) ->
-    is_invalid_rule({Module, RuleName});
-is_invalid_rule({Module, RuleName}) ->
+is_invalid_rule({Ruleset, Rule, _}) ->
+    is_invalid_rule({Ruleset, Rule});
+is_invalid_rule({Ruleset, Rule}) ->
     maybe
-        {module, Module} ?= code:ensure_loaded(Module),
-        ExportedRules = erlang:get_module_info(Module, exports),
-        case lists:keymember(RuleName, 1, ExportedRules) of
-            false -> {true, {invalid_rule, {Module, RuleName}}};
+        {module, Ruleset} ?= code:ensure_loaded(Ruleset),
+        ExportedRules = erlang:get_module_info(Ruleset, exports),
+        case lists:keymember(Rule, 1, ExportedRules) of
+            false -> {true, {invalid_rule, {Ruleset, Rule}}};
             _ -> false
         end
     else
         {error, _} ->
             elvis_utils:warn_prn(
                 "Invalid module (~p) specified in elvis.config.~n",
-                [Module]
+                [Ruleset]
             ),
-            {true, {invalid_rule, {Module, RuleName}}}
+            {true, {invalid_rule, {Ruleset, Rule}}}
     end.
-
--spec normalize(configs()) -> configs().
-normalize(Config) when is_list(Config) ->
-    lists:map(fun do_normalize/1, Config).
-
-do_normalize(#{src_dirs := Dirs} = Config) ->
-    %% NOTE: Provided for backwards compatibility.
-    %% Rename 'src_dirs' key to 'dirs'.
-    Config1 = maps:remove(src_dirs, Config),
-    Config1#{dirs => Dirs};
-do_normalize(Config) ->
-    Config.
 
 -spec dirs(Config :: configs() | config()) -> [string()].
 dirs(Config) when is_list(Config) ->
@@ -189,13 +171,13 @@ files(#{}) ->
     (Rules :: config()) -> [elvis_core:rule()].
 rules(Rules) when is_list(Rules) ->
     lists:map(fun rules/1, Rules);
-rules(#{rules := UserRules, ruleset := RuleSet}) ->
-    DefaultRules = elvis_ruleset:rules(RuleSet),
+rules(#{rules := UserRules, ruleset := Ruleset}) ->
+    DefaultRules = elvis_ruleset:rules(Ruleset),
     merge_rules(UserRules, DefaultRules);
 rules(#{rules := Rules}) ->
     Rules;
-rules(#{ruleset := RuleSet}) ->
-    elvis_ruleset:rules(RuleSet);
+rules(#{ruleset := Ruleset}) ->
+    elvis_ruleset:rules(Ruleset);
 rules(#{}) ->
     [].
 
@@ -217,14 +199,14 @@ resolve_files(RuleGroup, Files) ->
     _ =
         case FilteredFiles of
             [] ->
-                RuleSet = maps:get(ruleset, RuleGroup, undefined),
+                Ruleset = maps:get(ruleset, RuleGroup, undefined),
                 Error =
                     elvis_result:new(
                         warn,
                         "Searching for files in ~p, for ruleset ~p, "
                         "with filter ~p, yielded none. "
                         "Update your configuration",
-                        [Dirs, RuleSet, Filter]
+                        [Dirs, Ruleset, Filter]
                     ),
                 ok = elvis_result:print_results([Error]);
             _ ->
@@ -277,10 +259,10 @@ merge_rules(UserRules, DefaultRules) ->
         lists:filter(
             % wants to override the rule.
             fun
-                ({FileName, RuleName}) ->
-                    not is_rule_override(FileName, RuleName, UserRules);
-                ({FileName, RuleName, _}) ->
-                    not is_rule_override(FileName, RuleName, UserRules);
+                ({Ruleset, Rule}) ->
+                    not is_rule_override(Ruleset, Rule, UserRules);
+                ({Ruleset, Rule, _}) ->
+                    not is_rule_override(Ruleset, Rule, UserRules);
                 (_) ->
                     false
             end,
@@ -291,9 +273,9 @@ merge_rules(UserRules, DefaultRules) ->
         % remains just the rules the user wants to override.
         lists:filter(
             fun
-                ({_FileName, _RuleName, OverrideOptions}) ->
+                ({_Ruleset, _Rule, OverrideOptions}) ->
                     disable /= OverrideOptions;
-                ({_FileName, _RuleName}) ->
+                ({_Ruleset, _Rule}) ->
                     % not disabled
                     true;
                 (_) ->
@@ -304,16 +286,16 @@ merge_rules(UserRules, DefaultRules) ->
     UnduplicatedRules ++ OverrideRules.
 
 -spec is_rule_override(
-    FileName :: atom(),
-    RuleName :: atom(),
+    Ruleset :: atom(),
+    Rule :: atom(),
     UserRules :: [elvis_core:rule()]
 ) ->
     boolean().
-is_rule_override(FileName, RuleName, UserRules) ->
+is_rule_override(Ruleset, Rule, UserRules) ->
     lists:any(
         fun(UserRule) ->
             case UserRule of
-                {FileName, RuleName, _} ->
+                {Ruleset, Rule, _} ->
                     true;
                 _ ->
                     false

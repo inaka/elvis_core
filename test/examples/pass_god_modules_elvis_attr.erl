@@ -1,6 +1,6 @@
 -module(pass_god_modules_elvis_attr).
 
--elvis([{elvis_style, god_modules, #{limit => 26}}]).
+-elvis([{elvis_style, no_god_modules, #{limit => 26}}]).
 -elvis([{elvis_style, function_naming_convention, #{regex => "^[a-z0-9_]+$"}}]).
 
 -export([

@@ -21,8 +21,8 @@
 -type target() :: source_filename() | module().
 -type rule_config() :: #{atom() => term()}.
 -type rule() ::
-    {Module :: module(), Function :: atom(), RuleConfig :: rule_config()}
-    | {Module :: module(), Function :: atom()}.
+    {Ruleset :: module(), Rule :: atom(), RuleConfig :: rule_config()}
+    | {Ruleset :: module(), Rule :: atom()}.
 
 -export_type([rule_config/0, rule/0]).
 
@@ -40,8 +40,7 @@ start() ->
     ok | {fail, [{throw, term()} | elvis_result:file() | elvis_result:rule()]}.
 rock(Config) ->
     ok = elvis_config:validate(Config),
-    NewConfig = elvis_config:normalize(Config),
-    Results = lists:map(fun do_parallel_rock/1, NewConfig),
+    Results = lists:map(fun do_parallel_rock/1, Config),
     lists:foldl(fun combine_results/2, ok, Results).
 
 -spec rock_this(target(), elvis_config:configs()) ->
@@ -52,7 +51,6 @@ rock_this(Module, Config) when is_atom(Module) ->
     rock_this(Path, Config);
 rock_this(Path, Config) ->
     elvis_config:validate(Config),
-    NewConfig = elvis_config:normalize(Config),
     Dirname = filename:dirname(Path),
     Filename = filename:basename(Path),
     File =
@@ -70,7 +68,7 @@ rock_this(Path, Config) ->
             IgnoreList = elvis_config:ignore(Cfg),
             [] =/= elvis_file:filter_files([File], Dirs, Filter, IgnoreList)
         end,
-    case lists:filter(FilterFun, NewConfig) of
+    case lists:filter(FilterFun, Config) of
         [] ->
             elvis_utils:info("Skipping ~s", [Path]);
         FilteredConfig ->
@@ -187,24 +185,19 @@ elvis_attr_rules([] = _ElvisAttrs) ->
 elvis_attr_rules(ElvisAttrs) ->
     [Rule || ElvisAttr <- ElvisAttrs, Rule <- ktn_code:attr(value, ElvisAttr)].
 
--spec apply_rule({Mod, Fun} | {Mod, Fun, RuleCfg}, {Results, ElvisCfg, File}) -> Result when
-    Mod :: module(),
-    Fun :: atom(),
+-spec apply_rule({Ruleset, Rule} | {Ruleset, Rule, RuleCfg}, {Results, ElvisCfg, File}) ->
+    Result
+when
+    Ruleset :: module(),
+    Rule :: atom(),
     RuleCfg :: rule_config(),
     Results :: [elvis_result:rule() | elvis_result:elvis_error()],
     ElvisCfg :: elvis_config:config(),
     File :: elvis_file:file(),
     Result :: {Results, ElvisCfg, File}.
-apply_rule({Module, Function}, {Result, Config, File}) ->
-    apply_rule({Module, Function, #{}}, {Result, Config, File});
-apply_rule({Module, Function, ConfigArgs}, {Result, Config, File}) ->
-    ConfigMap =
-        try
-            ensure_config_map(Module, Function, ConfigArgs)
-        catch
-            _:function_clause ->
-                throw({invalid_config, disable_without_ruleset})
-        end,
+apply_rule({Ruleset, Rule}, {Result, Config, File}) ->
+    apply_rule({Ruleset, Rule, #{}}, {Result, Config, File});
+apply_rule({Ruleset, Rule, ConfigMap}, {Result, Config, File}) ->
     RuleResult =
         try
             AnalyzedModule = elvis_file:module(File),
@@ -214,41 +207,21 @@ apply_rule({Module, Function, ConfigArgs}, {Result, Config, File}) ->
                     FilteredConfigMap =
                         maps:merge(
                             ConfigMap#{ignore => lists:delete(AnalyzedModule, Ignores)},
-                            ConfigArgs
+                            ConfigMap
                         ),
-                    Results = Module:Function({Config, File, FilteredConfigMap}),
+                    Results = Ruleset:Rule({Ruleset, Config, File, FilteredConfigMap}),
                     SortFun = fun(#{line_num := L1}, #{line_num := L2}) -> L1 =< L2 end,
                     SortResults = lists:sort(SortFun, Results),
-                    elvis_result:new(rule, {Module, Function}, SortResults);
+                    elvis_result:new(rule, {Ruleset, Rule}, SortResults);
                 true ->
-                    elvis_result:new(rule, {Module, Function}, [])
+                    elvis_result:new(rule, {Ruleset, Rule}, [])
             end
         catch
             _:Reason:Stacktrace ->
                 Msg = "'~p' while applying rule '~p': ~p",
-                elvis_result:new(error, Msg, [Reason, Function, Stacktrace])
+                elvis_result:new(error, Msg, [Reason, Rule, Stacktrace])
         end,
     {[RuleResult | Result], Config, File}.
-
-%% @doc Process a tules configuration argument and converts it to a map.
-ensure_config_map(_, _, Map) when is_map(Map) ->
-    Map;
-ensure_config_map(elvis_style, line_length, [Limit]) ->
-    #{limit => Limit};
-ensure_config_map(elvis_style, operator_spaces, Rules) ->
-    #{rules => Rules};
-ensure_config_map(elvis_style, nesting_level, [Level]) ->
-    #{level => Level};
-ensure_config_map(elvis_style, god_modules, [Limit]) ->
-    #{limit => Limit};
-ensure_config_map(elvis_style, god_modules, [Limit, IgnoreModules]) ->
-    #{limit => Limit, ignore => IgnoreModules};
-ensure_config_map(elvis_style, invalid_dynamic_call, IgnoreModules) ->
-    #{ignore => IgnoreModules};
-ensure_config_map(elvis_style, module_naming_convention, [Regex, IgnoreModules]) ->
-    #{regex => Regex, ignore => IgnoreModules};
-ensure_config_map(_, _, []) ->
-    #{}.
 
 elvis_result_status(Results) ->
     case elvis_result:status(Results) of

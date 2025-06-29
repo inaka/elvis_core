@@ -2,13 +2,13 @@
 
 -export([chunk_fold/6]).
 
-%% @doc chunk_fold evaluates apply(Module, Function, [Elem|ExtrArgs]) for
+%% @doc chunk_fold evaluates apply(Ruleset, Rule, [Elem|ExtrArgs]) for
 %% every element Elem in JobItemList in parallel with max concurrcy factor
 %% equal to Concurrency. On successful evaluation FunAcc function is called
 %% with the result of successful execution as a first argument and accumulator
 %% as a second argument.
 -spec chunk_fold(
-    FunWork :: {Module :: module(), Function :: atom()},
+    FunWork :: {Ruleset :: module(), Rule :: atom()},
     FunAcc :: fun((NewElem :: term(), Acc :: term()) -> Acc :: term()),
     InitialAcc :: term(),
     ExtraArgs :: list(),

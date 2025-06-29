@@ -1,4 +1,7 @@
-# Nesting Level ![](https://img.shields.io/badge/BEAM-yes-orange)
+# No Deep Nesting ![](https://img.shields.io/badge/BEAM-yes-orange)
+
+> [!NOTE]
+> This rule was named `nesting_level` before [4.2.0](https://github.com/inaka/elvis_core/releases/tag/4.2.0).
 
 Nesting levels in code structures should be limited to a specified maximum depth.
 
@@ -88,5 +91,5 @@ developers.
 ## Example configuration
 
 ```erlang
-{elvis_style, nesting_level, #{ level => 4 }}
+{elvis_style, no_deep_nesting, #{ level => 4 }}
 ```

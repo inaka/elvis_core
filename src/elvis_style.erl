@@ -1,12 +1,13 @@
 -module(elvis_style).
+
 -behaviour(elvis_ruleset).
+-export([default/1]).
 
 -export([
-    default/1,
     function_naming_convention/1,
     variable_naming_convention/1,
-    consistent_variable_casing/1,
-    macro_names/1,
+    variable_casing/1,
+    macro_naming_convention/1,
     no_macros/1,
     no_specs/1,
     no_types/1,
@@ -15,11 +16,11 @@
     operator_spaces/1,
     no_space/1,
     no_space_after_pound/1,
-    nesting_level/1,
-    god_modules/1,
+    no_deep_nesting/1,
+    no_god_modules/1,
     no_if_expression/1,
-    invalid_dynamic_call/1,
-    used_ignored_variable/1,
+    no_invalid_dynamic_calls/1,
+    no_used_ignored_variables/1,
     no_behavior_info/1,
     module_naming_convention/1,
     state_record_and_type/1,
@@ -46,12 +47,11 @@
     numeric_format/1,
     behaviour_spelling/1,
     always_shortcircuit/1,
-    consistent_generic_type/1,
+    generic_type/1,
     export_used_types/1,
     no_match_in_condition/1,
     param_pattern_matching/1,
     private_data_types/1,
-    option/3,
     no_init_lists/1,
     ms_transform_included/1,
     no_boolean_in_comparison/1,
@@ -65,13 +65,13 @@
 %% Default values
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec default(RuleName :: atom()) -> elvis_core:rule_config().
+-spec default(Rule :: atom()) -> elvis_core:rule_config().
 default(no_init_lists) ->
     #{
         behaviours =>
             [gen_server, gen_statem, gen_fsm, supervisor, supervisor_bridge, gen_event]
     };
-default(macro_names) ->
+default(macro_naming_convention) ->
     #{regex => "^[A-Z](_?[A-Z0-9]+)*$", forbidden_regex => undefined};
 default(operator_spaces) ->
     #{
@@ -153,9 +153,9 @@ default(no_space) ->
                 {left, ";"}
             ]
     };
-default(nesting_level) ->
+default(no_deep_nesting) ->
     #{level => 4};
-default(god_modules) ->
+default(no_god_modules) ->
     #{limit => 25};
 default(function_naming_convention) ->
     #{regex => "^[a-z](_?[a-z0-9]+)*(_test_)?$", forbidden_regex => undefined};
@@ -241,7 +241,7 @@ default(behaviour_spelling) ->
     #{spelling => behaviour};
 default(param_pattern_matching) ->
     #{side => right};
-default(consistent_generic_type) ->
+default(generic_type) ->
     #{preferred_type => term};
 default(private_data_types) ->
     #{apply_to => [record]};
@@ -277,8 +277,8 @@ default(RuleWithEmptyDefault) when
     RuleWithEmptyDefault =:= no_if_expression;
     RuleWithEmptyDefault =:= no_nested_try_catch;
     RuleWithEmptyDefault =:= no_successive_maps;
-    RuleWithEmptyDefault =:= invalid_dynamic_call;
-    RuleWithEmptyDefault =:= used_ignored_variable;
+    RuleWithEmptyDefault =:= no_invalid_dynamic_calls;
+    RuleWithEmptyDefault =:= no_used_ignored_variables;
     RuleWithEmptyDefault =:= no_behavior_info;
     RuleWithEmptyDefault =:= state_record_and_type;
     RuleWithEmptyDefault =:= no_spec_with_records;
@@ -293,7 +293,7 @@ default(RuleWithEmptyDefault) when
     RuleWithEmptyDefault =:= always_shortcircuit;
     RuleWithEmptyDefault =:= no_space_after_pound;
     RuleWithEmptyDefault =:= export_used_types;
-    RuleWithEmptyDefault =:= consistent_variable_casing;
+    RuleWithEmptyDefault =:= variable_casing;
     RuleWithEmptyDefault =:= ms_transform_included;
     RuleWithEmptyDefault =:= no_boolean_in_comparison;
     RuleWithEmptyDefault =:= no_receive_without_timeout
@@ -309,8 +309,8 @@ default(RuleWithEmptyDefault) when
 -type binary_part() :: {Start :: non_neg_integer(), Length :: integer()}.
 
 function_naming_convention(RuleCfg) ->
-    Regex = option(regex, RuleCfg, ?FUNCTION_NAME),
-    ForbiddenRegex = option(forbidden_regex, RuleCfg, ?FUNCTION_NAME),
+    Regex = elvis_ruleset:option(regex, RuleCfg, ?FUNCTION_NAME),
+    ForbiddenRegex = elvis_ruleset:option(forbidden_regex, RuleCfg, ?FUNCTION_NAME),
 
     {nodes, FunctionNodes} = elvis_code:find(#{
         of_types => [function],
@@ -355,7 +355,7 @@ function_name(FunctionNode) ->
     FunctionName = ktn_code:attr(name, FunctionNode),
     unicode:characters_to_list(atom_to_list(FunctionName)).
 
-consistent_variable_casing(RuleCfg) ->
+variable_casing(RuleCfg) ->
     Root = elvis_code:root(RuleCfg),
 
     {zippers, VarZippers} = elvis_code:find(#{
@@ -410,8 +410,8 @@ canonical_variable_name_up(VarZipper) ->
     string:uppercase(canonical_variable_name(VarZipper)).
 
 variable_naming_convention(RuleCfg) ->
-    Regex = option(regex, RuleCfg, ?FUNCTION_NAME),
-    ForbiddenRegex = option(forbidden_regex, RuleCfg, ?FUNCTION_NAME),
+    Regex = elvis_ruleset:option(regex, RuleCfg, ?FUNCTION_NAME),
+    ForbiddenRegex = elvis_ruleset:option(forbidden_regex, RuleCfg, ?FUNCTION_NAME),
 
     {zippers, VarZippers} = elvis_code:find(#{
         of_types => [var],
@@ -459,9 +459,9 @@ variable_name(VarZipper) ->
     VarNode = zipper:node(VarZipper),
     atom_to_list(ktn_code:attr(name, VarNode)).
 
-macro_names(RuleCfg) ->
-    Regex = option(regex, RuleCfg, ?FUNCTION_NAME),
-    ForbiddenRegex = option(forbidden_regex, RuleCfg, ?FUNCTION_NAME),
+macro_naming_convention(RuleCfg) ->
+    Regex = elvis_ruleset:option(regex, RuleCfg, ?FUNCTION_NAME),
+    ForbiddenRegex = elvis_ruleset:option(forbidden_regex, RuleCfg, ?FUNCTION_NAME),
 
     RegexAllow = re_compile(Regex),
     RegexBlock = re_compile(ForbiddenRegex),
@@ -508,7 +508,8 @@ macro_names(RuleCfg) ->
 
 no_macros(RuleCfg) ->
     AllowedMacros =
-        option(allow, RuleCfg, ?FUNCTION_NAME) ++ eep_predef_macros() ++ logger_macros(),
+        elvis_ruleset:option(allow, RuleCfg, ?FUNCTION_NAME) ++ eep_predef_macros() ++
+            logger_macros(),
 
     {nodes, MacroNodes} = elvis_code:find(#{
         of_types => [macro],
@@ -626,7 +627,7 @@ logger_macros() ->
         'LOG_WARNING'
     ].
 
-no_space_after_pound({_Config, Target, _RuleConfig} = RuleCfg) ->
+no_space_after_pound({_Ruleset, _Config, Target, _RuleConfig} = RuleCfg) ->
     {nodes, TextNodes} = elvis_code:find(#{
         of_types => undefined,
         inside => tokens_as_content(elvis_code:root(RuleCfg)),
@@ -640,8 +641,8 @@ lines_in(Target) ->
     {Src, #{encoding := Encoding}} = elvis_file:src(Target),
     {elvis_utils:split_all_lines(Src), Encoding}.
 
-operator_spaces({_Config, Target, _RuleConfig} = RuleCfg) ->
-    Rules = option(rules, RuleCfg, ?FUNCTION_NAME),
+operator_spaces({_Ruleset, _Config, Target, _RuleConfig} = RuleCfg) ->
+    Rules = elvis_ruleset:option(rules, RuleCfg, ?FUNCTION_NAME),
 
     Root = elvis_code:root(RuleCfg),
 
@@ -688,8 +689,8 @@ is_operator_node(Node) ->
 match_operators() ->
     [match, maybe_match].
 
-no_space({_Config, Target, _RuleConfig} = RuleCfg) ->
-    Rules = option(rules, RuleCfg, ?FUNCTION_NAME),
+no_space({_Ruleset, _Config, Target, _RuleConfig} = RuleCfg) ->
+    Rules = elvis_ruleset:option(rules, RuleCfg, ?FUNCTION_NAME),
 
     {nodes, TextNodes} = elvis_code:find(#{
         of_types => undefined,
@@ -720,8 +721,8 @@ escape_regex(Text) ->
 is_text_node(Node) ->
     ktn_code:attr(text, Node) =/= "".
 
-nesting_level(RuleCfg) ->
-    MaxLevel = option(level, RuleCfg, ?FUNCTION_NAME),
+no_deep_nesting(RuleCfg) ->
+    MaxLevel = elvis_ruleset:option(level, RuleCfg, ?FUNCTION_NAME),
 
     {nodes, ParentNodes} = elvis_code:find(#{
         of_types => undefined,
@@ -745,8 +746,8 @@ nesting_level(RuleCfg) ->
         ParentNodes
     ).
 
-god_modules(RuleCfg) ->
-    Limit = option(limit, RuleCfg, ?FUNCTION_NAME),
+no_god_modules(RuleCfg) ->
+    Limit = elvis_ruleset:option(limit, RuleCfg, ?FUNCTION_NAME),
 
     Root = elvis_code:root(RuleCfg),
     ExportedFunctions = exported_functions(Root),
@@ -803,7 +804,7 @@ no_if_expression(RuleCfg) ->
      || IfExprNode <- IfExprNodes
     ].
 
-invalid_dynamic_call(RuleCfg) ->
+no_invalid_dynamic_calls(RuleCfg) ->
     Root = elvis_code:root(RuleCfg),
 
     InvalidCallNodes =
@@ -836,7 +837,7 @@ has_callbacks(Root) ->
     }),
     Nodes =/= [].
 
-used_ignored_variable(RuleCfg) ->
+no_used_ignored_variables(RuleCfg) ->
     {zippers, IgnoredVarZippers} = elvis_code:find(#{
         of_types => [var],
         inside => elvis_code:root(RuleCfg),
@@ -872,9 +873,9 @@ has_behavior_info(FunctionNode) ->
     FunctionName = ktn_code:attr(name, FunctionNode),
     lists:member(FunctionName, [behavior_info, behaviour_info]).
 
-module_naming_convention({_Config, Target, _RuleConfig} = RuleCfg) ->
-    Regex = option(regex, RuleCfg, ?FUNCTION_NAME),
-    ForbiddenRegex = option(forbidden_regex, RuleCfg, ?FUNCTION_NAME),
+module_naming_convention({_Ruleset, _Config, Target, _RuleConfig} = RuleCfg) ->
+    Regex = elvis_ruleset:option(regex, RuleCfg, ?FUNCTION_NAME),
+    ForbiddenRegex = elvis_ruleset:option(forbidden_regex, RuleCfg, ?FUNCTION_NAME),
 
     RegexAllow = re_compile(Regex),
     RegexBlock = re_compile(ForbiddenRegex),
@@ -1017,7 +1018,7 @@ type_is_record(TypeInSpecNode) ->
     ktn_code:attr(name, TypeInSpecNode) =:= record.
 
 dont_repeat_yourself(RuleCfg) ->
-    MinComplexity = option(min_complexity, RuleCfg, ?FUNCTION_NAME),
+    MinComplexity = elvis_ruleset:option(min_complexity, RuleCfg, ?FUNCTION_NAME),
 
     Root = elvis_code:root(RuleCfg),
 
@@ -1037,11 +1038,11 @@ comma_separate_repetitions(NodeWithRepeat) ->
         ", "
     ).
 
-max_module_length({_Config, Target, _RuleConfig} = RuleCfg) ->
-    MaxLength = option(max_length, RuleCfg, ?FUNCTION_NAME),
-    CountComments = option(count_comments, RuleCfg, ?FUNCTION_NAME),
-    CountWhitespace = option(count_whitespace, RuleCfg, ?FUNCTION_NAME),
-    CountDocs = option(count_docs, RuleCfg, ?FUNCTION_NAME),
+max_module_length({_Ruleset, _Config, Target, _RuleConfig} = RuleCfg) ->
+    MaxLength = elvis_ruleset:option(max_length, RuleCfg, ?FUNCTION_NAME),
+    CountComments = elvis_ruleset:option(count_comments, RuleCfg, ?FUNCTION_NAME),
+    CountWhitespace = elvis_ruleset:option(count_whitespace, RuleCfg, ?FUNCTION_NAME),
+    CountDocs = elvis_ruleset:option(count_docs, RuleCfg, ?FUNCTION_NAME),
 
     {Src0, _} = elvis_file:src(Target),
     DocParts = doc_bin_parts(Src0),
@@ -1080,7 +1081,7 @@ doc_lines(false, _Docs) ->
     [].
 
 max_anonymous_function_arity(RuleCfg) ->
-    MaxArity = option(max_arity, RuleCfg, ?FUNCTION_NAME),
+    MaxArity = elvis_ruleset:option(max_arity, RuleCfg, ?FUNCTION_NAME),
 
     {nodes, FunNodes} = elvis_code:find(#{
         of_types => ['fun'],
@@ -1130,8 +1131,8 @@ first_clause_args(FunNode) ->
     ktn_code:node_attr(pattern, FirstClause).
 
 max_function_arity(RuleCfg) ->
-    ExportedMaxArity = option(max_arity, RuleCfg, ?FUNCTION_NAME),
-    NonExportedMaxArity0 = option(non_exported_max_arity, RuleCfg, ?FUNCTION_NAME),
+    ExportedMaxArity = elvis_ruleset:option(max_arity, RuleCfg, ?FUNCTION_NAME),
+    NonExportedMaxArity0 = elvis_ruleset:option(non_exported_max_arity, RuleCfg, ?FUNCTION_NAME),
     NonExportedMaxArity = specific_or_default(NonExportedMaxArity0, ExportedMaxArity),
 
     Root = elvis_code:root(RuleCfg),
@@ -1181,10 +1182,10 @@ is_exported_function(FunctionNode, ExportedFunctions) ->
     Arity = ktn_code:attr(arity, FunctionNode),
     lists:member({Name, Arity}, ExportedFunctions).
 
-max_function_clause_length({_Config, Target, _RuleConfig} = RuleCfg) ->
-    MaxLength = option(max_length, RuleCfg, ?FUNCTION_NAME),
-    CountComments = option(count_comments, RuleCfg, ?FUNCTION_NAME),
-    CountWhitespace = option(count_whitespace, RuleCfg, ?FUNCTION_NAME),
+max_function_clause_length({_Ruleset, _Config, Target, _RuleConfig} = RuleCfg) ->
+    MaxLength = elvis_ruleset:option(max_length, RuleCfg, ?FUNCTION_NAME),
+    CountComments = elvis_ruleset:option(count_comments, RuleCfg, ?FUNCTION_NAME),
+    CountWhitespace = elvis_ruleset:option(count_whitespace, RuleCfg, ?FUNCTION_NAME),
 
     {Src, _} = elvis_file:src(Target),
     Lines = elvis_utils:split_all_lines(Src, [trim]),
@@ -1266,10 +1267,10 @@ parse_clause_num(Num) when Num rem 10 =:= 3 ->
 parse_clause_num(Num) ->
     integer_to_list(Num) ++ "th".
 
-max_function_length({_Config, Target, _RuleConfig} = RuleCfg) ->
-    MaxLength = option(max_length, RuleCfg, ?FUNCTION_NAME),
-    CountComments = option(count_comments, RuleCfg, ?FUNCTION_NAME),
-    CountWhitespace = option(count_whitespace, RuleCfg, ?FUNCTION_NAME),
+max_function_length({_Ruleset, _Config, Target, _RuleConfig} = RuleCfg) ->
+    MaxLength = elvis_ruleset:option(max_length, RuleCfg, ?FUNCTION_NAME),
+    CountComments = elvis_ruleset:option(count_comments, RuleCfg, ?FUNCTION_NAME),
+    CountWhitespace = elvis_ruleset:option(count_whitespace, RuleCfg, ?FUNCTION_NAME),
 
     {Src, _} = elvis_file:src(Target),
     Lines = elvis_utils:split_all_lines(Src, [trim]),
@@ -1310,17 +1311,17 @@ big_functions(FunctionNodes, Lines, CountComments, CountWhitespace, MaxLength) -
     ).
 
 no_call(RuleCfg) ->
-    DefaultFns = option(no_call_functions, RuleCfg, ?FUNCTION_NAME),
+    DefaultFns = elvis_ruleset:option(no_call_functions, RuleCfg, ?FUNCTION_NAME),
     Msg = "an unexpected call to '~p:~p/~p' was found (check no_call list)",
     no_call_common(RuleCfg, DefaultFns, Msg).
 
 no_debug_call(RuleCfg) ->
-    DefaultFns = option(debug_functions, RuleCfg, ?FUNCTION_NAME),
+    DefaultFns = elvis_ruleset:option(debug_functions, RuleCfg, ?FUNCTION_NAME),
     Msg = "an unexpected debug call to '~p:~p/~p' was found",
     no_call_common(RuleCfg, DefaultFns, Msg).
 
 no_common_caveats_call(RuleCfg) ->
-    DefaultFns = option(caveat_functions, RuleCfg, ?FUNCTION_NAME),
+    DefaultFns = elvis_ruleset:option(caveat_functions, RuleCfg, ?FUNCTION_NAME),
     Msg = "the call to '~p:~p/~p' might have performance drawbacks or implicit behavior",
     no_call_common(RuleCfg, DefaultFns, Msg).
 
@@ -1386,11 +1387,13 @@ is_successive_map(MapExprNode) ->
     ktn_code:type(InnerVar) =:= map.
 
 atom_naming_convention(RuleCfg) ->
-    Regex = option(regex, RuleCfg, ?FUNCTION_NAME),
-    ForbiddenRegex = option(forbidden_regex, RuleCfg, ?FUNCTION_NAME),
-    RegexEnclosed0 = option(enclosed_atoms, RuleCfg, ?FUNCTION_NAME),
+    Regex = elvis_ruleset:option(regex, RuleCfg, ?FUNCTION_NAME),
+    ForbiddenRegex = elvis_ruleset:option(forbidden_regex, RuleCfg, ?FUNCTION_NAME),
+    RegexEnclosed0 = elvis_ruleset:option(enclosed_atoms, RuleCfg, ?FUNCTION_NAME),
     RegexEnclosed = specific_or_default(RegexEnclosed0, Regex),
-    ForbiddenEnclosedRegex0 = option(forbidden_enclosed_regex, RuleCfg, ?FUNCTION_NAME),
+    ForbiddenEnclosedRegex0 = elvis_ruleset:option(
+        forbidden_enclosed_regex, RuleCfg, ?FUNCTION_NAME
+    ),
     ForbiddenEnclosedRegex = specific_or_default(ForbiddenEnclosedRegex0, ForbiddenRegex),
 
     {zippers, AtomZippers} = elvis_code:find(#{
@@ -1471,7 +1474,7 @@ atom_name_and_node_value(AtomZipper) ->
     {ktn_code:attr(text, AtomNode), ktn_code:attr(value, AtomNode)}.
 
 no_init_lists(RuleCfg) ->
-    ConfigBehaviors = option(behaviours, RuleCfg, ?FUNCTION_NAME),
+    ConfigBehaviors = elvis_ruleset:option(behaviours, RuleCfg, ?FUNCTION_NAME),
 
     Root = elvis_code:root(RuleCfg),
 
@@ -1633,7 +1636,7 @@ is_receive_without_timeout(Receive) ->
     ReceiveAfterNodes =:= [].
 
 no_operation_on_same_value(RuleCfg) ->
-    InterestingOps = option(operations, RuleCfg, ?FUNCTION_NAME),
+    InterestingOps = elvis_ruleset:option(operations, RuleCfg, ?FUNCTION_NAME),
 
     {nodes, OpNodes} = elvis_code:find(#{
         of_types => [op],
@@ -1878,10 +1881,10 @@ has_match_child_block(CaseExprNode) ->
     ).
 
 numeric_format(RuleCfg) ->
-    Regex = option(regex, RuleCfg, ?FUNCTION_NAME),
-    IntRegex0 = option(int_regex, RuleCfg, ?FUNCTION_NAME),
+    Regex = elvis_ruleset:option(regex, RuleCfg, ?FUNCTION_NAME),
+    IntRegex0 = elvis_ruleset:option(int_regex, RuleCfg, ?FUNCTION_NAME),
     IntRegex = specific_or_default(IntRegex0, Regex),
-    FloatRegex0 = option(float_regex, RuleCfg, ?FUNCTION_NAME),
+    FloatRegex0 = elvis_ruleset:option(float_regex, RuleCfg, ?FUNCTION_NAME),
     FloatRegex = specific_or_default(FloatRegex0, Regex),
 
     Root = elvis_code:root(RuleCfg),
@@ -1919,7 +1922,7 @@ is_not_acceptable_number(NumberNode, Regex) ->
     Number =/= undefined andalso re_run(Number, Regex) =:= nomatch.
 
 behaviour_spelling(RuleCfg) ->
-    Spelling = option(spelling, RuleCfg, ?FUNCTION_NAME),
+    Spelling = elvis_ruleset:option(spelling, RuleCfg, ?FUNCTION_NAME),
 
     {nodes, BehaviourNodes} = elvis_code:find(#{
         of_types => [behaviour, behavior],
@@ -1940,7 +1943,7 @@ behaviour_spelling(RuleCfg) ->
     ].
 
 param_pattern_matching(RuleCfg) ->
-    Side = option(side, RuleCfg, ?FUNCTION_NAME),
+    Side = elvis_ruleset:option(side, RuleCfg, ?FUNCTION_NAME),
 
     {zippers, ClauseZippers} = elvis_code:find(#{
         of_types => [clause],
@@ -2008,8 +2011,8 @@ is_function_clause(ClauseZipper, ParentNodeTypes) ->
     ParentNodeType = ktn_code:type(ParentNode),
     lists:member(ParentNodeType, ParentNodeTypes).
 
-consistent_generic_type(RuleCfg) ->
-    PreferredType = option(preferred_type, RuleCfg, ?FUNCTION_NAME),
+generic_type(RuleCfg) ->
+    PreferredType = elvis_ruleset:option(preferred_type, RuleCfg, ?FUNCTION_NAME),
 
     {nodes, TypeNodes} = elvis_code:find(#{
         of_types => [type, callback],
@@ -2050,7 +2053,7 @@ always_shortcircuit(RuleCfg) ->
 
     [
         elvis_result:new_item(
-            "unexpected non-shortcircuiting operator '~p' was found; prefer ~p",
+            "unexpected non-shortcircuiting operator ~p was found; prefer ~p",
             [
                 ktn_code:attr(operation, OpNode),
                 maps:get(ktn_code:attr(operation, OpNode), Operators)
@@ -2123,7 +2126,7 @@ used_types(SpecNodes) ->
     ).
 
 private_data_types(RuleCfg) ->
-    TypesToCheck = option(apply_to, RuleCfg, ?FUNCTION_NAME),
+    TypesToCheck = elvis_ruleset:option(apply_to, RuleCfg, ?FUNCTION_NAME),
 
     Root = elvis_code:root(RuleCfg),
     ExportedTypes = exported_types(Root),
@@ -2674,27 +2677,6 @@ wildcard_match(X, Y) ->
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Internal Function Definitions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
--spec option(OptionName, RuleCfg, Rule) -> OptionValue when
-    OptionName :: atom(),
-    RuleCfg :: {Config, Target, RuleConfig},
-    Config :: elvis_config:config(),
-    Target :: elvis_file:file(),
-    RuleConfig :: (Options :: #{atom() => term()}),
-    Rule :: atom(),
-    OptionValue :: term().
-option(OptionName, {_Config, _Target, RuleConfig}, Rule) ->
-    maybe_default_option(maps:get(OptionName, RuleConfig, undefined), OptionName, Rule).
-
--spec maybe_default_option(UserDefinedOptionValue, OptionName, Rule) -> OptionValue when
-    UserDefinedOptionValue :: undefined | term(),
-    OptionName :: atom(),
-    Rule :: atom(),
-    OptionValue :: term().
-maybe_default_option(undefined = _UserDefinedOptionValue, OptionName, Rule) ->
-    maps:get(OptionName, default(Rule));
-maybe_default_option(UserDefinedOptionValue, _OptionName, _Rule) ->
-    UserDefinedOptionValue.
 
 tokens_as_content(Root) ->
     % Minor trick to have elvis_code assume searches the way it usually does

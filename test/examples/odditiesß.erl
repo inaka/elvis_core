@@ -4,7 +4,7 @@
 -export(['function_naming_convention🎱'/0]).
 -export([atom_naming_convention/0]).
 
--define('macro_names🎱', 0]).
+-define('macro_naming_convention🎱', 0]).
 -define('strange_module_nameß', 'odditiesß').
 
 strange_module_name() ->

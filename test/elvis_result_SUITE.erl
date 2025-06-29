@@ -25,7 +25,7 @@ end_per_suite(Config) ->
     Config.
 
 without_line(_Config) ->
-    Rule = god_modules,
+    Rule = no_god_modules,
     RuleConfig = #{limit => 1},
     ExampleTestFile = "elvis_results_new_item.erl",
 

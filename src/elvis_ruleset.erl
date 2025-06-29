@@ -3,21 +3,45 @@
 -format(#{inline_items => none}).
 
 -export([rules/1, set_rulesets/1]).
--export([default/2]).
+-export([option/3]).
 
--callback default(RuleName :: atom()) -> DefaultRuleConfig :: elvis_core:rule_config().
+-callback default(Rule :: atom()) -> DefaultRuleConfig :: elvis_core:rule_config().
 
--spec default(Module :: module(), RuleName :: atom()) ->
+-spec default(Ruleset :: module(), Rule :: atom()) ->
     DefaultRuleConfig :: elvis_core:rule_config().
-default(Module, RuleName) ->
-    Module:default(RuleName).
+default(Ruleset, Rule) ->
+    Ruleset:default(Rule).
+
+-spec option(OptionName, RuleCfg, Rule) -> OptionValue when
+    OptionName :: atom(),
+    RuleCfg :: {Ruleset, Config, Target, RuleConfig},
+    Ruleset :: module(),
+    Config :: elvis_config:config(),
+    Target :: elvis_file:file(),
+    RuleConfig :: (Options :: #{atom() => term()}),
+    Rule :: atom(),
+    OptionValue :: term().
+option(OptionName, {Ruleset, _Config, _Target, RuleConfig}, Rule) ->
+    maybe_default_option(maps:get(OptionName, RuleConfig, undefined), OptionName, {Ruleset, Rule}).
+
+-spec maybe_default_option(UserDefinedOptionValue, OptionName, RulesetRule) -> OptionValue when
+    UserDefinedOptionValue :: undefined | term(),
+    OptionName :: atom(),
+    RulesetRule :: {Ruleset, Rule},
+    Ruleset :: module(),
+    Rule :: atom(),
+    OptionValue :: term().
+maybe_default_option(undefined = _UserDefinedOptionValue, OptionName, {Ruleset, Rule}) ->
+    maps:get(OptionName, default(Ruleset, Rule));
+maybe_default_option(UserDefinedOptionValue, _OptionName, _RulesetRule) ->
+    UserDefinedOptionValue.
 
 -spec set_rulesets(#{atom() => list()}) -> ok.
-set_rulesets(RuleSets) ->
+set_rulesets(Rulesets) ->
     Tid = ensure_clean_table(),
     lists:foreach(
         fun({Name, Rules}) -> true = ets:insert(Tid, {Name, Rules}) end,
-        maps:to_list(RuleSets)
+        maps:to_list(Rulesets)
     ).
 
 -spec rules(Group :: atom()) -> [elvis_core:rule()].
@@ -40,8 +64,6 @@ rules(Group) ->
                 beam_files_strict_rules();
             rebar_config ->
                 rebar_config_rules();
-            elvis_config ->
-                elvis_config_rules();
             _ ->
                 try
                     ets:lookup_element(?MODULE, Group, 2)
@@ -51,7 +73,7 @@ rules(Group) ->
                 end
         end,
     lists:map(
-        fun({Mod, Rule}) -> {Mod, Rule, default(Mod, Rule)} end,
+        fun({Ruleset, Rule}) -> {Ruleset, Rule, default(Ruleset, Rule)} end,
         Rules
     ).
 
@@ -89,8 +111,8 @@ doesnt_work_on_hrl_files() ->
         {elvis_style, dont_repeat_yourself},
         {elvis_style, export_used_types},
         {elvis_style, function_naming_convention},
-        {elvis_style, god_modules},
-        {elvis_style, invalid_dynamic_call},
+        {elvis_style, no_god_modules},
+        {elvis_style, no_invalid_dynamic_calls},
         {elvis_style, max_anonymous_function_arity},
         {elvis_style, max_function_clause_length},
         {elvis_style, max_function_length},
@@ -112,17 +134,17 @@ elvis_style_rules() ->
     [
         {elvis_style, atom_naming_convention},
         {elvis_style, behaviour_spelling},
-        {elvis_style, consistent_variable_casing},
+        {elvis_style, variable_casing},
         {elvis_style, dont_repeat_yourself},
         {elvis_style, export_used_types},
         {elvis_style, function_naming_convention},
-        {elvis_style, god_modules},
-        {elvis_style, invalid_dynamic_call},
-        {elvis_style, macro_names},
+        {elvis_style, no_god_modules},
+        {elvis_style, no_invalid_dynamic_calls},
+        {elvis_style, macro_naming_convention},
         {elvis_style, max_anonymous_function_arity},
         {elvis_style, max_function_arity},
         {elvis_style, module_naming_convention},
-        {elvis_style, nesting_level},
+        {elvis_style, no_deep_nesting},
         {elvis_style, no_author},
         {elvis_style, no_behavior_info},
         {elvis_style, no_block_expressions},
@@ -147,7 +169,7 @@ elvis_style_rules() ->
         {elvis_style, operator_spaces},
         {elvis_style, param_pattern_matching},
         {elvis_style, private_data_types},
-        {elvis_style, used_ignored_variable},
+        {elvis_style, no_used_ignored_variables},
         {elvis_style, variable_naming_convention}
     ].
 
@@ -164,7 +186,7 @@ erl_files_strict_rules() ->
 elvis_style_stricter_rules() ->
     [
         {elvis_style, always_shortcircuit},
-        {elvis_style, consistent_generic_type},
+        {elvis_style, generic_type},
         {elvis_style, max_function_clause_length},
         {elvis_style, max_function_length},
         {elvis_style, max_module_length},
@@ -193,7 +215,7 @@ doesnt_work_on_beam_files() ->
 
 not_on_beam() ->
     [
-        {elvis_style, macro_names},
+        {elvis_style, macro_naming_convention},
         {elvis_style, max_function_clause_length},
         {elvis_style, max_function_length},
         {elvis_style, max_module_length},
@@ -209,9 +231,4 @@ rebar_config_rules() ->
     [
         {elvis_project, no_branch_deps},
         {elvis_project, protocol_for_deps}
-    ].
-
-elvis_config_rules() ->
-    [
-        {elvis_project, old_configuration_format}
     ].
