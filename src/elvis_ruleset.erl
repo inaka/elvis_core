@@ -7,33 +7,37 @@
 
 -callback default(Rule :: atom()) -> DefaultRuleConfig :: elvis_core:rule_config().
 
--spec default(Ruleset :: module(), Rule :: atom()) ->
+-spec default(RuleNamespace :: module(), Rule :: atom()) ->
     DefaultRuleConfig :: elvis_core:rule_config().
-default(Ruleset, Rule) ->
-    Ruleset:default(Rule).
+default(RuleNamespace, Rule) ->
+    RuleNamespace:default(Rule).
 
 -spec option(OptionName, RuleCfg, Rule) -> OptionValue when
     OptionName :: atom(),
-    RuleCfg :: {Ruleset, Config, Target, RuleConfig},
-    Ruleset :: module(),
+    RuleCfg :: {RuleNamespace, Config, Target, RuleConfig},
+    RuleNamespace :: module(),
     Config :: elvis_config:config(),
     Target :: elvis_file:file(),
     RuleConfig :: (Options :: #{atom() => term()}),
     Rule :: atom(),
     OptionValue :: term().
-option(OptionName, {Ruleset, _Config, _Target, RuleConfig}, Rule) ->
-    maybe_default_option(maps:get(OptionName, RuleConfig, undefined), OptionName, {Ruleset, Rule}).
+option(OptionName, {RuleNamespace, _Config, _Target, RuleConfig}, Rule) ->
+    maybe_default_option(
+        maps:get(OptionName, RuleConfig, undefined), OptionName, {RuleNamespace, Rule}
+    ).
 
--spec maybe_default_option(UserDefinedOptionValue, OptionName, RulesetRule) -> OptionValue when
+-spec maybe_default_option(UserDefinedOptionValue, OptionName, RuleNamespaceRule) ->
+    OptionValue
+when
     UserDefinedOptionValue :: undefined | term(),
     OptionName :: atom(),
-    RulesetRule :: {Ruleset, Rule},
-    Ruleset :: module(),
+    RuleNamespaceRule :: {RuleNamespace, Rule},
+    RuleNamespace :: module(),
     Rule :: atom(),
     OptionValue :: term().
-maybe_default_option(undefined = _UserDefinedOptionValue, OptionName, {Ruleset, Rule}) ->
-    maps:get(OptionName, default(Ruleset, Rule));
-maybe_default_option(UserDefinedOptionValue, _OptionName, _RulesetRule) ->
+maybe_default_option(undefined = _UserDefinedOptionValue, OptionName, {RuleNamespace, Rule}) ->
+    maps:get(OptionName, default(RuleNamespace, Rule));
+maybe_default_option(UserDefinedOptionValue, _OptionName, _RuleNamespaceRule) ->
     UserDefinedOptionValue.
 
 -spec set_rulesets(#{atom() => list()}) -> ok.
@@ -73,7 +77,7 @@ rules(Group) ->
                 end
         end,
     lists:map(
-        fun({Ruleset, Rule}) -> {Ruleset, Rule, default(Ruleset, Rule)} end,
+        fun({RuleNamespace, Rule}) -> {RuleNamespace, Rule, default(RuleNamespace, Rule)} end,
         Rules
     ).
 

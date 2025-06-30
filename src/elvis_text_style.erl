@@ -37,7 +37,7 @@ default(prefer_unquoted_atoms) ->
 
 %% @doc Target can be either a filename or the
 %% name of a module.
-line_length({_Ruleset, _Config, Target, _RuleConfig} = RuleCfg) ->
+line_length({_RuleNamespace, _Config, Target, _RuleConfig} = RuleCfg) ->
     Limit = elvis_ruleset:option(limit, RuleCfg, ?FUNCTION_NAME),
     SkipComments = elvis_ruleset:option(skip_comments, RuleCfg, ?FUNCTION_NAME),
     NoWhitespace = elvis_ruleset:option(no_whitespace_after_limit, RuleCfg, ?FUNCTION_NAME),
@@ -45,11 +45,11 @@ line_length({_Ruleset, _Config, Target, _RuleConfig} = RuleCfg) ->
     Args = [Limit, SkipComments, Encoding, NoWhitespace],
     check_lines(Src, fun check_line_length/3, Args).
 
-no_tabs({_Ruleset, _Config, Target, _RuleConfig}) ->
+no_tabs({_RuleNamespace, _Config, Target, _RuleConfig}) ->
     {Src, _} = elvis_file:src(Target),
     check_lines(Src, fun check_no_tabs/2, []).
 
-no_trailing_whitespace({_Ruleset, _Config, Target, RuleConfig} = RuleCfg) ->
+no_trailing_whitespace({_RuleNamespace, _Config, Target, RuleConfig} = RuleCfg) ->
     {Src, _} = elvis_file:src(Target),
     IgnoreEmptyLines = elvis_ruleset:option(ignore_empty_lines, RuleCfg, ?FUNCTION_NAME),
     check_lines(
@@ -91,7 +91,7 @@ doesnt_need_quotes(AtomNode) ->
             false
     end.
 
-no_redundant_blank_lines({_Ruleset, _Config, Target, _RuleConfig} = RuleCfg) ->
+no_redundant_blank_lines({_RuleNamespace, _Config, Target, _RuleConfig} = RuleCfg) ->
     MaxLines = elvis_ruleset:option(max_lines, RuleCfg, ?FUNCTION_NAME) + 1,
     {Src, _} = elvis_file:src(Target),
     Lines = elvis_utils:split_all_lines(Src, [trim]),

@@ -115,23 +115,23 @@ maybe_invalid_rules(_) ->
 invalid_rules(Rules) ->
     lists:filtermap(fun is_invalid_rule/1, Rules).
 
-is_invalid_rule({Ruleset, Rule, _}) ->
-    is_invalid_rule({Ruleset, Rule});
-is_invalid_rule({Ruleset, Rule}) ->
+is_invalid_rule({RuleNamespace, Rule, _}) ->
+    is_invalid_rule({RuleNamespace, Rule});
+is_invalid_rule({RuleNamespace, Rule}) ->
     maybe
-        {module, Ruleset} ?= code:ensure_loaded(Ruleset),
-        ExportedRules = erlang:get_module_info(Ruleset, exports),
+        {module, RuleNamespace} ?= code:ensure_loaded(RuleNamespace),
+        ExportedRules = erlang:get_module_info(RuleNamespace, exports),
         case lists:keymember(Rule, 1, ExportedRules) of
-            false -> {true, {invalid_rule, {Ruleset, Rule}}};
+            false -> {true, {invalid_rule, {RuleNamespace, Rule}}};
             _ -> false
         end
     else
         {error, _} ->
             elvis_utils:warn_prn(
                 "Invalid module (~p) specified in elvis.config.~n",
-                [Ruleset]
+                [RuleNamespace]
             ),
-            {true, {invalid_rule, {Ruleset, Rule}}}
+            {true, {invalid_rule, {RuleNamespace, Rule}}}
     end.
 
 -spec dirs(Config :: configs() | config()) -> [string()].
@@ -259,10 +259,10 @@ merge_rules(UserRules, DefaultRules) ->
         lists:filter(
             % wants to override the rule.
             fun
-                ({Ruleset, Rule}) ->
-                    not is_rule_override(Ruleset, Rule, UserRules);
-                ({Ruleset, Rule, _}) ->
-                    not is_rule_override(Ruleset, Rule, UserRules);
+                ({RuleNamespace, Rule}) ->
+                    not is_rule_override(RuleNamespace, Rule, UserRules);
+                ({RuleNamespace, Rule, _}) ->
+                    not is_rule_override(RuleNamespace, Rule, UserRules);
                 (_) ->
                     false
             end,
@@ -273,9 +273,9 @@ merge_rules(UserRules, DefaultRules) ->
         % remains just the rules the user wants to override.
         lists:filter(
             fun
-                ({_Ruleset, _Rule, OverrideOptions}) ->
+                ({_RuleNamespace, _Rule, OverrideOptions}) ->
                     disable /= OverrideOptions;
-                ({_Ruleset, _Rule}) ->
+                ({_RuleNamespace, _Rule}) ->
                     % not disabled
                     true;
                 (_) ->
@@ -286,16 +286,16 @@ merge_rules(UserRules, DefaultRules) ->
     UnduplicatedRules ++ OverrideRules.
 
 -spec is_rule_override(
-    Ruleset :: atom(),
+    RuleNamespace :: atom(),
     Rule :: atom(),
     UserRules :: [elvis_core:rule()]
 ) ->
     boolean().
-is_rule_override(Ruleset, Rule, UserRules) ->
+is_rule_override(RuleNamespace, Rule, UserRules) ->
     lists:any(
         fun(UserRule) ->
             case UserRule of
-                {Ruleset, Rule, _} ->
+                {RuleNamespace, Rule, _} ->
                     true;
                 _ ->
                     false

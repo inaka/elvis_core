@@ -30,7 +30,7 @@ default(forbidden_patterns) ->
 %% Rules
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-required_patterns({_Ruleset, _Config, #{path := Path}, _RuleConfig} = RuleCfg) ->
+required_patterns({_RuleNamespace, _Config, #{path := Path}, _RuleConfig} = RuleCfg) ->
     Regexes = elvis_ruleset:option(regexes, RuleCfg, ?FUNCTION_NAME),
     case file:read_file(Path) of
         {ok, PatternsBin} ->
@@ -40,7 +40,7 @@ required_patterns({_Ruleset, _Config, #{path := Path}, _RuleConfig} = RuleCfg) -
             []
     end.
 
-forbidden_patterns({_Ruleset, _Config, #{path := Path}, _RuleConfig} = RuleCfg) ->
+forbidden_patterns({_RuleNamespace, _Config, #{path := Path}, _RuleConfig} = RuleCfg) ->
     Regexes = elvis_ruleset:option(regexes, RuleCfg, ?FUNCTION_NAME),
     case file:read_file(Path) of
         {ok, PatternsBin} ->

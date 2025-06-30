@@ -19,7 +19,7 @@ default(protocol_for_deps) ->
 %% Rules
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-protocol_for_deps({_Ruleset, _Config, Target, _RuleConfig} = RuleCfg) ->
+protocol_for_deps({_RuleNamespace, _Config, Target, _RuleConfig} = RuleCfg) ->
     IgnoreDeps = elvis_ruleset:option(ignore, RuleCfg, ?FUNCTION_NAME),
     Regex = elvis_ruleset:option(regex, RuleCfg, ?FUNCTION_NAME),
     Deps = get_deps(Target),
@@ -51,7 +51,7 @@ appname_from_line({AppName, _, _GitInfo}) ->
 appname_from_line({AppName, _Vsn, _GitInfo, _Opts}) ->
     AppName.
 
-no_branch_deps({_Ruleset, _Config, Target, _RuleConfig} = RuleCfg) ->
+no_branch_deps({_RuleNamespace, _Config, Target, _RuleConfig} = RuleCfg) ->
     IgnoreDeps = elvis_ruleset:option(ignore, RuleCfg, ?FUNCTION_NAME),
     Deps = get_deps(Target),
     BadDeps = lists:filter(fun is_branch_dep/1, Deps),

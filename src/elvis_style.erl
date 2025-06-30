@@ -627,7 +627,7 @@ logger_macros() ->
         'LOG_WARNING'
     ].
 
-no_space_after_pound({_Ruleset, _Config, Target, _RuleConfig} = RuleCfg) ->
+no_space_after_pound({_RuleNamespace, _Config, Target, _RuleConfig} = RuleCfg) ->
     {nodes, TextNodes} = elvis_code:find(#{
         of_types => undefined,
         inside => tokens_as_content(elvis_code:root(RuleCfg)),
@@ -641,7 +641,7 @@ lines_in(Target) ->
     {Src, #{encoding := Encoding}} = elvis_file:src(Target),
     {elvis_utils:split_all_lines(Src), Encoding}.
 
-operator_spaces({_Ruleset, _Config, Target, _RuleConfig} = RuleCfg) ->
+operator_spaces({_RuleNamespace, _Config, Target, _RuleConfig} = RuleCfg) ->
     Rules = elvis_ruleset:option(rules, RuleCfg, ?FUNCTION_NAME),
 
     Root = elvis_code:root(RuleCfg),
@@ -689,7 +689,7 @@ is_operator_node(Node) ->
 match_operators() ->
     [match, maybe_match].
 
-no_space({_Ruleset, _Config, Target, _RuleConfig} = RuleCfg) ->
+no_space({_RuleNamespace, _Config, Target, _RuleConfig} = RuleCfg) ->
     Rules = elvis_ruleset:option(rules, RuleCfg, ?FUNCTION_NAME),
 
     {nodes, TextNodes} = elvis_code:find(#{
@@ -873,7 +873,7 @@ has_behavior_info(FunctionNode) ->
     FunctionName = ktn_code:attr(name, FunctionNode),
     lists:member(FunctionName, [behavior_info, behaviour_info]).
 
-module_naming_convention({_Ruleset, _Config, Target, _RuleConfig} = RuleCfg) ->
+module_naming_convention({_RuleNamespace, _Config, Target, _RuleConfig} = RuleCfg) ->
     Regex = elvis_ruleset:option(regex, RuleCfg, ?FUNCTION_NAME),
     ForbiddenRegex = elvis_ruleset:option(forbidden_regex, RuleCfg, ?FUNCTION_NAME),
 
@@ -1038,7 +1038,7 @@ comma_separate_repetitions(NodeWithRepeat) ->
         ", "
     ).
 
-max_module_length({_Ruleset, _Config, Target, _RuleConfig} = RuleCfg) ->
+max_module_length({_RuleNamespace, _Config, Target, _RuleConfig} = RuleCfg) ->
     MaxLength = elvis_ruleset:option(max_length, RuleCfg, ?FUNCTION_NAME),
     CountComments = elvis_ruleset:option(count_comments, RuleCfg, ?FUNCTION_NAME),
     CountWhitespace = elvis_ruleset:option(count_whitespace, RuleCfg, ?FUNCTION_NAME),
@@ -1182,7 +1182,7 @@ is_exported_function(FunctionNode, ExportedFunctions) ->
     Arity = ktn_code:attr(arity, FunctionNode),
     lists:member({Name, Arity}, ExportedFunctions).
 
-max_function_clause_length({_Ruleset, _Config, Target, _RuleConfig} = RuleCfg) ->
+max_function_clause_length({_RuleNamespace, _Config, Target, _RuleConfig} = RuleCfg) ->
     MaxLength = elvis_ruleset:option(max_length, RuleCfg, ?FUNCTION_NAME),
     CountComments = elvis_ruleset:option(count_comments, RuleCfg, ?FUNCTION_NAME),
     CountWhitespace = elvis_ruleset:option(count_whitespace, RuleCfg, ?FUNCTION_NAME),
@@ -1267,7 +1267,7 @@ parse_clause_num(Num) when Num rem 10 =:= 3 ->
 parse_clause_num(Num) ->
     integer_to_list(Num) ++ "th".
 
-max_function_length({_Ruleset, _Config, Target, _RuleConfig} = RuleCfg) ->
+max_function_length({_RuleNamespace, _Config, Target, _RuleConfig} = RuleCfg) ->
     MaxLength = elvis_ruleset:option(max_length, RuleCfg, ?FUNCTION_NAME),
     CountComments = elvis_ruleset:option(count_comments, RuleCfg, ?FUNCTION_NAME),
     CountWhitespace = elvis_ruleset:option(count_whitespace, RuleCfg, ?FUNCTION_NAME),

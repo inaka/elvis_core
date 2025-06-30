@@ -102,16 +102,16 @@ rulesets in the configuration file.
 
 The six pre-defined rulesets are:
 
-- `erl_files`, for Erlang source files (pre-defined rule set).
+- `erl_files`, for Erlang source files (pre-defined ruleset).
 - `erl_files_strict`, for Erlang source files (all applicable rules).
 - `gitignore`, for `.gitignore` files.
-- `hrl_files`, for Erlang header files (pre-defined rule set).
+- `hrl_files`, for Erlang header files (pre-defined ruleset).
 - `hrl_files_strict`, for Erlang header files (all applicable rules).
 - `rebar_config`, for rebar configuration files.
 
-Custom rulesets are defined in a `{<ruleset>, #{}}` tuple in `elvis`' configuration. Each key in the
-map represents the ruleset name and is mapped to a list of rules as otherwise defined in a standard
-ruleset.
+Custom rulesets are defined in a `{RuleNamespace, #{}}` tuple in `elvis`' configuration. Each key in
+the map represents the ruleset name and is mapped to a list of rules as otherwise defined in a
+standard ruleset.
 
 Example configuration with a custom ruleset (named `my_ruleset`):
 
