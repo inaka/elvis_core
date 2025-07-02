@@ -56,7 +56,8 @@
     ms_transform_included/2,
     no_boolean_in_comparison/2,
     no_operation_on_same_value/2,
-    no_receive_without_timeout/2
+    no_receive_without_timeout/2,
+    guard_operators/2
 ]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -258,6 +259,10 @@ default(numeric_format) ->
         regex => ".*",
         int_regex => same,
         float_regex => same
+    };
+default(guard_operators) ->
+    elvis_rule:defmap(#{
+        preferred_syntax => per_expression
     });
 default(behaviour_spelling) ->
     elvis_rule:defmap(#{
@@ -1936,6 +1941,58 @@ behaviour_spelling(Rule, ElvisConfig) ->
             #{node => BehaviourNode}
         )
      || BehaviourNode <- BehaviourNodes
+    ].
+
+guard_operators(RuleCfg) ->
+    PreferredSyntax = option(preferred_syntax, RuleCfg, ?FUNCTION_NAME),
+
+    {nodes, GuardedClauseNodes} = elvis_code:find(#{
+        of_types => [clause],
+        inside => elvis_code:root(RuleCfg),
+        filtered_by =>
+            fun(ClauseNode) ->
+                [] =/= ktn_code:node_attr(guards, ClauseNode)
+            end
+    }),
+
+    ct:pal("GuardedClauseNodes:\n~p", [GuardedClauseNodes]),
+    guard_operators(PreferredSyntax, GuardedClauseNodes).
+
+guard_operators(punctuation, ClauseNodes) ->
+    [
+        elvis_result:new_item(
+            "an unexpected shortcircuit operator was found; prefer ; or ,",
+            [],
+            #{node => ClauseNode}
+        )
+     || ClauseNode <- ClauseNodes
+    ];
+guard_operators(words, ClauseNodes) ->
+    [
+        elvis_result:new_item(
+            "an unexpected operator was found; prefer andalso or orelse",
+            [],
+            #{node => ClauseNode}
+        )
+     || ClauseNode <- ClauseNodes
+    ];
+guard_operators(per_expression, ClauseNodes) ->
+    [
+        elvis_result:new_item(
+            "an unexpected combination of punctuation and shortcircuit operators was found",
+            [],
+            #{node => ClauseNode}
+        )
+     || ClauseNode <- ClauseNodes
+    ];
+guard_operators(per_clause, ClauseNodes) ->
+    [
+        elvis_result:new_item(
+            "an unexpected combination of punctuation and shortcircuit operators was found",
+            [],
+            #{node => ClauseNode}
+        )
+     || ClauseNode <- ClauseNodes
     ].
 
 param_pattern_matching(Rule, ElvisConfig) ->

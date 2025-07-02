@@ -2591,7 +2591,7 @@ verify_guard_operators(Config) ->
             ] = PerGuard,
             true = PerExpression =/= PerGuard
     end,
-    PerExpression == Default.
+    PerExpression = Default.
 
 -endif.
 
