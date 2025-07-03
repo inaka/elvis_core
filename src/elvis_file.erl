@@ -10,9 +10,9 @@
     module/1
 ]).
 
--export_type([file/0]).
+-export_type([t/0]).
 
--type file() ::
+-type t() ::
     #{
         path => string(),
         content => binary(),
@@ -24,7 +24,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% @doc Returns a tuple with the contents of the file and the file itself.
--spec src(file()) -> {binary(), file()} | {error, enoent}.
+-spec src(t()) -> {binary(), t()} | {error, enoent}.
 src(#{content := Content, encoding := _} = File) ->
     {Content, File};
 src(#{content := Content} = File) ->
@@ -40,8 +40,8 @@ src(#{path := Path} = File) ->
 src(File) ->
     throw({invalid_file, File}).
 
-%% @doc Given a file() returns its path.
--spec path(file()) -> string().
+%% @doc Given a t() returns its path.
+-spec path(t()) -> string().
 path(#{path := Path}) ->
     Path;
 path(File) ->
@@ -49,10 +49,10 @@ path(File) ->
 
 %% @doc Add the root node of the parse tree to the file data, with filtering.
 -spec parse_tree(
-    elvis_rule:t() | elvis_file:file(),
-    elvis_config:configs() | elvis_config:config()
+    elvis_rule:t() | elvis_file:t(),
+    [elvis_config:t()] | elvis_config:t()
 ) ->
-    {ktn_code:tree_node(), file()}.
+    {ktn_code:tree_node(), t()}.
 parse_tree(File, ElvisConfig) when is_map(File) ->
     Rule = elvis_rule:new(no_namespace, no_rule, elvis_rule:defmap(#{})),
     parse_tree(elvis_rule:file(Rule, File), ElvisConfig);
@@ -77,7 +77,7 @@ parse_tree(Rule, ElvisConfig) ->
     end.
 
 %% @doc Loads and adds all related file data.
--spec load_file_data(elvis_config:configs() | elvis_config:config(), file()) -> file().
+-spec load_file_data([elvis_config:t()] | elvis_config:t(), t()) -> t().
 load_file_data(ElvisConfig, #{path := _Path} = File0) ->
     {_, File1} = src(File0),
     {_, File2} = parse_tree(File1, ElvisConfig),
@@ -85,7 +85,7 @@ load_file_data(ElvisConfig, #{path := _Path} = File0) ->
 
 %% @doc Returns all files under the specified Path
 %% that match the pattern Name.
--spec find_files([string()], string()) -> [file()].
+-spec find_files([string()], string()) -> [t()].
 find_files(Dirs, Pattern) ->
     Fun = fun(Dir) ->
         filelib:wildcard(
@@ -109,7 +109,7 @@ file_in(ExpandedFilter, Files) ->
     lists:filter(fun(#{path := Path}) -> lists:member(Path, ExpandedFilter) end, Files).
 
 %% @doc Filter files based on the glob provided.
--spec filter_files([file()], [string()], string(), [string()]) -> [file()].
+-spec filter_files([t()], [string()], string(), [string()]) -> [t()].
 filter_files(Files, Dirs, Filter, IgnoreList) ->
     ExpandedFilters = lists:map(fun(Dir) -> filelib:wildcard(dir_to(Filter, Dir)) end, Dirs),
     Found =
@@ -126,7 +126,7 @@ filter_files(Files, Dirs, Filter, IgnoreList) ->
     ).
 
 %% @doc Return module name corresponding to a given .hrl/.erl/.beam file
--spec module(file()) -> module().
+-spec module(t()) -> module().
 module(#{path := Path}) ->
     BaseName = filename:basename(Path),
     Stripped = lists:foldl(
@@ -185,11 +185,11 @@ find_encoding(Content) ->
     end.
 
 -spec maybe_add_abstract_parse_tree(ElvisConfig, File, Module, Rule) -> Res when
-    ElvisConfig :: elvis_config:configs() | elvis_config:config(),
-    File :: file(),
+    ElvisConfig :: [elvis_config:t()] | elvis_config:t(),
+    File :: t(),
     Module :: module(),
     Rule :: elvis_rule:t(),
-    Res :: file().
+    Res :: t().
 maybe_add_abstract_parse_tree(
     #{ruleset := Ruleset},
     #{path := Path} = File,

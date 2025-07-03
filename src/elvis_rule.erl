@@ -23,7 +23,7 @@
     def = #{} :: def(),
     ignores = [] :: [ignorable()],
     disabled = false :: boolean(),
-    file = undefined :: undefined | elvis_file:file()
+    file = undefined :: undefined | elvis_file:t()
 }).
 -opaque t() :: #rule{}.
 
@@ -92,11 +92,11 @@ ignores(Rule) ->
 disabled(Rule) ->
     Rule#rule.disabled.
 
--spec file(t()) -> elvis_file:file().
+-spec file(t()) -> elvis_file:t().
 file(Rule) ->
     Rule#rule.file.
 
--spec file(t(), elvis_file:file()) -> t().
+-spec file(t(), elvis_file:t()) -> t().
 file(Rule, File) ->
     Rule#rule{
         file = File
@@ -113,7 +113,7 @@ ignored(Needle, Rule) ->
     lists:member(Needle, Rule#rule.ignores).
 
 -spec execute(t(), ElvisConfig) -> Results when
-    ElvisConfig :: elvis_config:config(),
+    ElvisConfig :: elvis_config:t(),
     Results :: [elvis_result:rule() | elvis_result:elvis_error()].
 execute(Rule, ElvisConfig) ->
     NS = Rule#rule.ns,

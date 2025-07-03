@@ -16,18 +16,15 @@
 %%% Public API
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--type find_options() :: #{filtered_from => node | zipper, traverse => content | all}.
-
 -type tree_node() :: ktn_code:tree_node().
--type tree_node_type() :: ktn_code:tree_node_type().
 -type tree_node_zipper() :: zipper:zipper(tree_node()).
 
--export_type([find_options/0, tree_node/0, tree_node_type/0, tree_node_zipper/0]).
+-export_type([tree_node/0, tree_node_zipper/0]).
 
 -spec find(Options) -> {nodes, [Node]} | {zippers, [Zipper]} when
     Options :: #{
         % undefined means "all types"
-        of_types := [tree_node_type()] | undefined,
+        of_types := [ktn_code:tree_node_type()] | undefined,
         inside := Node,
         % undefined means "don't filter"
         filtered_by => fun((Node | Zipper) -> boolean()),
@@ -166,7 +163,7 @@ find_with_zipper(Pred, Zipper, Results, Mode) ->
 
 -spec root(Rule, ElvisConfig) -> Res when
     Rule :: elvis_rule:t(),
-    ElvisConfig :: elvis_config:config(),
+    ElvisConfig :: elvis_config:t(),
     Res :: ktn_code:tree_node().
 root(Rule, ElvisConfig) ->
     {Root0, File0} = elvis_file:parse_tree(Rule, ElvisConfig),

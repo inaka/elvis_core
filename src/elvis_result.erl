@@ -84,7 +84,7 @@ extend_attrs_with_line_and_column(Attrs) ->
 -spec new
     (item, string(), [term()]) -> item();
     (rule, elvis_rule:t(), [item()]) -> rule();
-    (file, elvis_file:file(), [elvis_error() | rule()]) -> file();
+    (file, elvis_file:t(), [elvis_error() | rule()]) -> file();
     (error, string(), string()) -> elvis_error();
     (warn, string(), string()) -> elvis_warn().
 % new(item, ...) is kept for backward compatibility, but discouraged

@@ -30,14 +30,14 @@ start() ->
     {ok, _} = application:ensure_all_started(elvis_core),
     ok.
 
--spec rock(elvis_config:configs()) ->
+-spec rock([elvis_config:t()]) ->
     ok | {fail, [{throw, term()} | elvis_result:file() | elvis_result:rule()]}.
 rock(ElvisConfig) ->
     ok = elvis_config:validate(ElvisConfig),
     Results = lists:map(fun do_parallel_rock/1, ElvisConfig),
     lists:foldl(fun combine_results/2, ok, Results).
 
--spec rock_this(target(), elvis_config:configs()) ->
+-spec rock_this(target(), [elvis_config:t()]) ->
     ok | {fail, [elvis_result:file() | elvis_result:rule()]}.
 rock_this(Module, ElvisConfig) when is_atom(Module) ->
     ModuleInfo = Module:module_info(compile),
@@ -72,7 +72,7 @@ rock_this(Path, ElvisConfig) ->
             elvis_result_status(Results)
     end.
 
--spec do_parallel_rock(elvis_config:config()) ->
+-spec do_parallel_rock(elvis_config:t()) ->
     ok
     | {fail, [{throw, term()} | elvis_result:file() | elvis_result:rule()]}.
 do_parallel_rock(ElvisConfig0) ->
@@ -101,15 +101,15 @@ do_parallel_rock(ElvisConfig0) ->
             {fail, [{T, E}]}
     end.
 
--spec do_rock(elvis_file:file(), elvis_config:configs() | elvis_config:config()) ->
+-spec do_rock(elvis_file:t(), [elvis_config:t()] | elvis_config:t()) ->
     {ok, elvis_result:file()}.
 do_rock(File, ElvisConfig) ->
     LoadedFile = load_file_data(ElvisConfig, File),
     Results = apply_rules(ElvisConfig, LoadedFile),
     {ok, Results}.
 
--spec load_file_data(elvis_config:configs() | elvis_config:config(), elvis_file:file()) ->
-    elvis_file:file().
+-spec load_file_data([elvis_config:t()] | elvis_config:t(), elvis_file:t()) ->
+    elvis_file:t().
 load_file_data(ElvisConfig, File) ->
     Path = elvis_file:path(File),
     elvis_utils:info("Loading ~s", [Path]),
@@ -153,8 +153,8 @@ apply_rules_and_print(ElvisConfig, File) ->
     Results.
 
 -spec apply_rules(
-    elvis_config:configs() | elvis_config:config(),
-    File :: elvis_file:file()
+    [elvis_config:t()] | elvis_config:t(),
+    File :: elvis_file:t()
 ) ->
     elvis_result:file().
 apply_rules(ElvisConfig, File) ->
@@ -182,8 +182,8 @@ elvis_attr_rules(ElvisAttrs) ->
 -spec apply_rule(Rule, {Results, ElvisConfig, File}) -> Result when
     Rule :: elvis_rule:t(),
     Results :: [elvis_result:rule() | elvis_result:elvis_error()],
-    ElvisConfig :: elvis_config:config(),
-    File :: elvis_file:file(),
+    ElvisConfig :: elvis_config:t(),
+    File :: elvis_file:t(),
     Result :: {Results, ElvisConfig, File}.
 apply_rule(Rule, {Result, ElvisConfig, File}) ->
     RuleResult =

@@ -15,17 +15,15 @@
 %% Rules
 -export([merge_rules/2]).
 
--export_type([config/0]).
--export_type([configs/0]).
+-export_type([t/0]).
 
--type config() :: map().
--type configs() :: [config()].
+-type t() :: map().
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Public
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec from_rebar(string()) -> configs().
+-spec from_rebar(string()) -> [t()].
 from_rebar(Path) ->
     case file:consult(Path) of
         {ok, AppConfig} ->
@@ -34,11 +32,11 @@ from_rebar(Path) ->
             throw(Reason)
     end.
 
--spec from_file(string()) -> configs().
+-spec from_file(string()) -> [t()].
 from_file(Path) ->
     from_file(Path, config, []).
 
--spec from_file(string(), atom(), term()) -> configs().
+-spec from_file(string(), atom(), term()) -> [t()].
 from_file(Path, Key, Default) ->
     case file:consult(Path) of
         {ok, [AppConfig]} ->
@@ -58,7 +56,7 @@ from_application_or_config(Key, Default) ->
             from_file("elvis.config", Key, Default)
     end.
 
--spec load(atom(), term(), term()) -> configs().
+-spec load(atom(), term(), term()) -> [t()].
 load(Key, ElvisConfig, Default) ->
     proplists:get_value(Key, ElvisConfig, Default).
 
@@ -69,7 +67,7 @@ load_initial(AppConfig) ->
     elvis_ruleset:set_rulesets(RulesetsConfig),
     ElvisConfig.
 
--spec validate(Config :: configs()) -> ok.
+-spec validate(Config :: [t()]) -> ok.
 validate([]) ->
     throw({invalid_config, empty_config});
 validate(Config) ->
@@ -134,7 +132,7 @@ is_invalid_rule({NS, Rule}) ->
             {true, {invalid_rule, {NS, Rule}}}
     end.
 
--spec dirs(Config :: configs() | config()) -> [string()].
+-spec dirs(Config :: [t()] | t()) -> [string()].
 dirs(Config) when is_list(Config) ->
     lists:flatmap(fun dirs/1, Config);
 dirs(#{dirs := Dirs}) ->
@@ -142,7 +140,7 @@ dirs(#{dirs := Dirs}) ->
 dirs(#{}) ->
     [].
 
--spec ignore(configs() | config()) -> [string()].
+-spec ignore([t()] | t()) -> [string()].
 ignore(Config) when is_list(Config) ->
     lists:flatmap(fun ignore/1, Config);
 ignore(#{ignore := Ignore}) ->
@@ -150,7 +148,7 @@ ignore(#{ignore := Ignore}) ->
 ignore(#{}) ->
     [].
 
--spec filter(configs() | config()) -> [string()].
+-spec filter([t()] | t()) -> [string()].
 filter(Config) when is_list(Config) ->
     lists:flatmap(fun filter/1, Config);
 filter(#{filter := Filter}) ->
@@ -158,7 +156,7 @@ filter(#{filter := Filter}) ->
 filter(#{}) ->
     "*.erl".
 
--spec files(RuleGroup :: configs() | config()) -> [elvis_file:file()].
+-spec files(RuleGroup :: [t()] | t()) -> [elvis_file:t()].
 files(RuleGroup) when is_list(RuleGroup) ->
     lists:map(fun files/1, RuleGroup);
 files(#{files := Files}) ->
@@ -167,8 +165,8 @@ files(#{}) ->
     [].
 
 -spec rules
-    (RulesL :: configs()) -> [[elvis_rule:t()]];
-    (Rules :: config()) -> [elvis_rule:t()].
+    (RulesL :: [t()]) -> [[elvis_rule:t()]];
+    (Rules :: t()) -> [elvis_rule:t()].
 rules(Rules) when is_list(Rules) ->
     lists:map(fun rules/1, Rules);
 rules(#{rules := UserRules, ruleset := Ruleset}) ->
@@ -185,9 +183,9 @@ rules(#{}) ->
 %%      of them according to the 'filter' key, or if not specified
 %%      uses '*.erl'.
 %% @end
-%% resolve_files/2 with a configs() type is used in elvis project
--spec resolve_files(Config :: configs() | config(), Files :: [elvis_file:file()]) ->
-    configs() | config().
+%% resolve_files/2 with a [t()] type is used in elvis project
+-spec resolve_files(Config :: [t()] | t(), Files :: [elvis_file:t()]) ->
+    [t()] | t().
 resolve_files(Config, Files) when is_list(Config) ->
     Fun = fun(RuleGroup) -> resolve_files(RuleGroup, Files) end,
     lists:map(Fun, Config);
@@ -217,7 +215,7 @@ resolve_files(RuleGroup, Files) ->
 %% @doc Takes a configuration and finds all files according to its 'dirs'
 %%      end  'filter' key, or if not specified uses '*.erl'.
 %% @end
--spec resolve_files(config()) -> config().
+-spec resolve_files(t()) -> t().
 resolve_files(#{files := _Files} = RuleGroup) ->
     RuleGroup;
 resolve_files(#{dirs := Dirs} = RuleGroup) ->
@@ -228,8 +226,8 @@ resolve_files(#{dirs := Dirs} = RuleGroup) ->
 %% @doc Takes a function and configuration and applies the function to all
 %%      file in the configuration.
 %% @end
--spec apply_to_files(Fun :: fun(), Config :: configs() | config()) ->
-    configs() | config().
+-spec apply_to_files(Fun :: fun(), Config :: [t()] | t()) ->
+    [t()] | t().
 apply_to_files(Fun, Config) when is_list(Config) ->
     ApplyFun = fun(RuleGroup) -> apply_to_files(Fun, RuleGroup) end,
     lists:map(ApplyFun, Config);

@@ -7,11 +7,6 @@
 %% Output
 -export([info/2, notice/2, error/2, error_prn/2, warn_prn/2]).
 
--export_type([file/0, line_content/0]).
-
--type file() :: #{path => string(), content => binary()}.
--type line_content() :: {integer(), integer()}.
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Public
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
