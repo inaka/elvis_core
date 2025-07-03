@@ -235,12 +235,11 @@ found in this repository's [RULES.md](https://github.com/inaka/elvis_core/blob/m
 
 ### User-defined rules
 
-The implementation of a new rule is a function that takes 3 arguments in the following order:
+The implementation of a new rule is a function that takes 2 arguments in the following order:
 
+1. `t:elvis_rule:t()`: the opaque rule to implement
 1. `t:elvis_config:config()`: the value of option `config` as found in the
 [configuration](#configuration),
-1. `t:elvis_file:file()`: the file to be analyzed,
-1. `t:erlang:map()`: a configuration map specific to your user-defined rule.
 
 This means you can define rules of your own (user-defined rules) as long as the functions that
 implement them respect this interface.
