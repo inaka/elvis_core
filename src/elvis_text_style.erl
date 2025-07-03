@@ -1,69 +1,71 @@
 -module(elvis_text_style).
 
--behaviour(elvis_ruleset).
+-behaviour(elvis_rule).
 -export([default/1]).
 
 -export([
-    line_length/1,
-    no_tabs/1,
-    no_trailing_whitespace/1,
-    prefer_unquoted_atoms/1,
-    no_redundant_blank_lines/1
+    line_length/2,
+    no_tabs/2,
+    no_trailing_whitespace/2,
+    prefer_unquoted_atoms/2,
+    no_redundant_blank_lines/2
 ]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec default(Rule :: atom()) -> elvis_core:rule_config().
+-spec default(RuleName :: atom()) -> elvis_rule:def().
 default(line_length) ->
-    #{
+    elvis_rule:defmap(#{
         limit => 100,
         skip_comments => false,
         no_whitespace_after_limit => true
-    };
-default(no_tabs) ->
-    #{};
+    });
 default(no_trailing_whitespace) ->
-    #{ignore_empty_lines => false};
+    elvis_rule:defmap(#{
+        ignore_empty_lines => false
+    });
 default(no_redundant_blank_lines) ->
-    #{max_lines => 1};
-default(prefer_unquoted_atoms) ->
-    #{}.
+    elvis_rule:defmap(#{
+        max_lines => 1
+    });
+default(_RuleName) ->
+    elvis_rule:defmap(#{}).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Rules
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% @doc Target can be either a filename or the
+%% @doc File can be either a filename or the
 %% name of a module.
-line_length({_RuleNamespace, _Config, Target, _RuleConfig} = RuleCfg) ->
-    Limit = elvis_ruleset:option(limit, RuleCfg, ?FUNCTION_NAME),
-    SkipComments = elvis_ruleset:option(skip_comments, RuleCfg, ?FUNCTION_NAME),
-    NoWhitespace = elvis_ruleset:option(no_whitespace_after_limit, RuleCfg, ?FUNCTION_NAME),
-    {Src, #{encoding := Encoding}} = elvis_file:src(Target),
+line_length(Rule, _ElvisConfig) ->
+    Limit = elvis_rule:option(limit, Rule),
+    SkipComments = elvis_rule:option(skip_comments, Rule),
+    NoWhitespace = elvis_rule:option(no_whitespace_after_limit, Rule),
+    {Src, #{encoding := Encoding}} = elvis_file:src(elvis_rule:file(Rule)),
     Args = [Limit, SkipComments, Encoding, NoWhitespace],
     check_lines(Src, fun check_line_length/3, Args).
 
-no_tabs({_RuleNamespace, _Config, Target, _RuleConfig}) ->
-    {Src, _} = elvis_file:src(Target),
+no_tabs(Rule, _ElvisConfig) ->
+    {Src, _} = elvis_file:src(elvis_rule:file(Rule)),
     check_lines(Src, fun check_no_tabs/2, []).
 
-no_trailing_whitespace({_RuleNamespace, _Config, Target, RuleConfig} = RuleCfg) ->
-    {Src, _} = elvis_file:src(Target),
-    IgnoreEmptyLines = elvis_ruleset:option(ignore_empty_lines, RuleCfg, ?FUNCTION_NAME),
+no_trailing_whitespace(Rule, _ElvisConfig) ->
+    {Src, _} = elvis_file:src(elvis_rule:file(Rule)),
+    IgnoreEmptyLines = elvis_rule:option(ignore_empty_lines, Rule),
     check_lines(
         Src,
         fun(Src1, Fun, _Args) ->
             check_no_trailing_whitespace(Src1, Fun, IgnoreEmptyLines)
         end,
-        RuleConfig
+        elvis_rule:def(Rule)
     ).
 
-prefer_unquoted_atoms(RuleCfg) ->
+prefer_unquoted_atoms(Rule, ElvisConfig) ->
     {nodes, AtomNodes} = elvis_code:find(#{
         of_types => [atom],
-        inside => elvis_code:root(RuleCfg),
+        inside => elvis_code:root(Rule, ElvisConfig),
         filtered_by => fun doesnt_need_quotes/1,
         traverse => all
     }),
@@ -91,9 +93,9 @@ doesnt_need_quotes(AtomNode) ->
             false
     end.
 
-no_redundant_blank_lines({_RuleNamespace, _Config, Target, _RuleConfig} = RuleCfg) ->
-    MaxLines = elvis_ruleset:option(max_lines, RuleCfg, ?FUNCTION_NAME) + 1,
-    {Src, _} = elvis_file:src(Target),
+no_redundant_blank_lines(Rule, _ElvisConfig) ->
+    MaxLines = elvis_rule:option(max_lines, Rule) + 1,
+    {Src, _} = elvis_file:src(elvis_rule:file(Rule)),
     Lines = elvis_utils:split_all_lines(Src, [trim]),
 
     Result = redundant_blank_lines(Lines, {1, []}),

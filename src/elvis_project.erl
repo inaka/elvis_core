@@ -1,28 +1,35 @@
 -module(elvis_project).
 
--behaviour(elvis_ruleset).
+-behaviour(elvis_rule).
 -export([default/1]).
 
--export([no_branch_deps/1, protocol_for_deps/1]).
+-export([no_branch_deps/2, protocol_for_deps/2]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec default(Rule :: atom()) -> elvis_core:rule_config().
+-spec default(RuleName :: atom()) -> elvis_rule:def().
 default(no_branch_deps) ->
-    #{ignore => []};
+    elvis_rule:defmap(#{
+        ignore => []
+    });
 default(protocol_for_deps) ->
-    #{ignore => [], regex => "^(https://|git://|\\d+(\\.\\d+)*)"}.
+    elvis_rule:defmap(#{
+        ignore => [],
+        regex => "^(https://|git://|\\d+(\\.\\d+)*)"
+    });
+default(_RuleName) ->
+    elvis_rule:defmap(#{}).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Rules
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-protocol_for_deps({_RuleNamespace, _Config, Target, _RuleConfig} = RuleCfg) ->
-    IgnoreDeps = elvis_ruleset:option(ignore, RuleCfg, ?FUNCTION_NAME),
-    Regex = elvis_ruleset:option(regex, RuleCfg, ?FUNCTION_NAME),
-    Deps = get_deps(Target),
+protocol_for_deps(Rule, _ElvisConfig) ->
+    IgnoreDeps = elvis_rule:option(ignore, Rule),
+    Regex = elvis_rule:option(regex, Rule),
+    Deps = get_deps(elvis_rule:file(Rule)),
     NoHexDeps = lists:filter(fun(Dep) -> not is_hex_dep(Dep) end, Deps),
     BadDeps = lists:filter(fun(Dep) -> is_not_git_dep(Dep, Regex) end, NoHexDeps),
     lists:filtermap(
@@ -51,9 +58,9 @@ appname_from_line({AppName, _, _GitInfo}) ->
 appname_from_line({AppName, _Vsn, _GitInfo, _Opts}) ->
     AppName.
 
-no_branch_deps({_RuleNamespace, _Config, Target, _RuleConfig} = RuleCfg) ->
-    IgnoreDeps = elvis_ruleset:option(ignore, RuleCfg, ?FUNCTION_NAME),
-    Deps = get_deps(Target),
+no_branch_deps(Rule, _ElvisConfig) ->
+    IgnoreDeps = elvis_rule:option(ignore, Rule),
+    Deps = get_deps(elvis_rule:file(Rule)),
     BadDeps = lists:filter(fun is_branch_dep/1, Deps),
     lists:filtermap(
         fun(Line) ->

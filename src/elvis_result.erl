@@ -29,7 +29,7 @@
     }.
 -type rule() ::
     #{
-        scope => atom(),
+        ns => atom(),
         name => atom(),
         items => [item()]
     }.
@@ -83,17 +83,17 @@ extend_attrs_with_line_and_column(Attrs) ->
 
 -spec new
     (item, string(), [term()]) -> item();
-    (rule, {atom(), atom()}, [item()]) -> rule();
+    (rule, elvis_rule:t(), [item()]) -> rule();
     (file, elvis_file:file(), [elvis_error() | rule()]) -> file();
     (error, string(), string()) -> elvis_error();
     (warn, string(), string()) -> elvis_warn().
 % new(item, ...) is kept for backward compatibility, but discouraged
 new(item, Msg, Info) ->
     new_item(Msg, Info);
-new(rule, {Scope, Name}, Results) ->
+new(rule, Rule, Results) ->
     #{
-        scope => Scope,
-        name => Name,
+        ns => elvis_rule:ns(Rule),
+        name => elvis_rule:name(Rule),
         items => Results
     };
 new(file, #{path := Path}, Rules) ->
@@ -202,7 +202,7 @@ print_rules(
     File,
     [
         #{
-            scope := Scope,
+            ns := Scope,
             items := Items,
             name := Name
         }

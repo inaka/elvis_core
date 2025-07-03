@@ -36,16 +36,20 @@ verify_no_branch_deps(_Config) ->
     Filename = "rebar.config.fail",
     {ok, File} = elvis_test_utils:find_file(SrcDirs, Filename),
 
-    [_, _, _, _, _] = elvis_project:no_branch_deps({elvis_project, ElvisConfig, File, #{}}),
+    Rule1 = elvis_rule:new(elvis_project, no_branch_deps, #{}),
+    [_, _, _, _, _] = elvis_rule:execute(elvis_rule:file(Rule1, File), ElvisConfig),
 
     RuleConfig = #{ignore => [jsx]},
-    [_, _, _] = elvis_project:no_branch_deps({elvis_project, ElvisConfig, File, RuleConfig}),
+    Rule2 = elvis_rule:new(elvis_project, no_branch_deps, RuleConfig),
+    [_, _, _] = elvis_rule:execute(elvis_rule:file(Rule2, File), ElvisConfig),
 
     RuleConfig1 = #{ignore => [jsx, getopt]},
-    [_] = elvis_project:no_branch_deps({elvis_project, ElvisConfig, File, RuleConfig1}),
+    Rule3 = elvis_rule:new(elvis_project, no_branch_deps, RuleConfig1),
+    [_] = elvis_rule:execute(elvis_rule:file(Rule3, File), ElvisConfig),
 
     RuleConfig2 = #{ignore => [getopt]},
-    [_, _, _] = elvis_project:no_branch_deps({elvis_project, ElvisConfig, File, RuleConfig2}).
+    Rule4 = elvis_rule:new(elvis_project, no_branch_deps, RuleConfig2),
+    [_, _, _] = elvis_rule:execute(elvis_rule:file(Rule4, File), ElvisConfig).
 
 verify_protocol_for_deps(_Config) ->
     ElvisConfig = elvis_test_utils:config(rebar_config),
@@ -54,6 +58,7 @@ verify_protocol_for_deps(_Config) ->
     Filename = "rebar.config.fail",
     {ok, File} = elvis_test_utils:find_file(SrcDirs, Filename),
 
+    Rule1 = elvis_rule:new(elvis_project, protocol_for_deps, #{}),
     [
         #{info := [lager, _]},
         #{info := [getopt, _]},
@@ -63,20 +68,19 @@ verify_protocol_for_deps(_Config) ->
         #{info := [getopt, _]},
         #{info := [jiffy, _]},
         #{info := [opentelemetry_api, _]}
-    ] =
-        elvis_project:protocol_for_deps({elvis_project, ElvisConfig, File, #{}}),
+    ] = elvis_rule:execute(elvis_rule:file(Rule1, File), ElvisConfig),
 
     RuleConfig = #{ignore => [getopt, jsx]},
-    [_, _, _, _, _] = elvis_project:protocol_for_deps(
-        {elvis_project, ElvisConfig, File, RuleConfig}
-    ),
+    Rule2 = elvis_rule:new(elvis_project, protocol_for_deps, RuleConfig),
+    [_, _, _, _, _] = elvis_rule:execute(elvis_rule:file(Rule2, File), ElvisConfig),
 
     RuleConfig1 = #{ignore => [getopt, lager]},
-    [_, _, _, _] = elvis_project:protocol_for_deps({elvis_project, ElvisConfig, File, RuleConfig1}),
+    Rule3 = elvis_rule:new(elvis_project, protocol_for_deps, RuleConfig1),
+    [_, _, _, _] = elvis_rule:execute(elvis_rule:file(Rule3, File), ElvisConfig),
 
     RuleConfig2 = #{ignore => [meck], regex => "git@.*"},
-    [_, _, _, _, _, _, _, _, _, _] =
-        elvis_project:protocol_for_deps({elvis_project, ElvisConfig, File, RuleConfig2}).
+    Rule4 = elvis_rule:new(elvis_project, protocol_for_deps, RuleConfig2),
+    [_, _, _, _, _, _, _, _, _, _] = elvis_rule:execute(elvis_rule:file(Rule4, File), ElvisConfig).
 
 verify_hex_dep(_Config) ->
     ElvisConfig = elvis_test_utils:config(rebar_config),
@@ -85,9 +89,11 @@ verify_hex_dep(_Config) ->
     Filename1 = "rebar3.config.success",
     {ok, File1} = elvis_test_utils:find_file(SrcDirs, Filename1),
 
-    [] = elvis_project:protocol_for_deps({elvis_project, ElvisConfig, File1, #{}}),
+    Rule1 = elvis_rule:new(elvis_project, protocol_for_deps, #{}),
+    [] = elvis_rule:execute(elvis_rule:file(Rule1, File1), ElvisConfig),
 
     Filename2 = "rebar3_2.config.success",
     {ok, File2} = elvis_test_utils:find_file(SrcDirs, Filename2),
 
-    [] = elvis_project:protocol_for_deps({elvis_project, ElvisConfig, File2, #{}}).
+    Rule2 = elvis_rule:new(elvis_project, protocol_for_deps, #{}),
+    [] = elvis_rule:execute(elvis_rule:file(Rule2, File2), ElvisConfig).

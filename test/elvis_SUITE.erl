@@ -385,7 +385,8 @@ rock_with_invalid_rules(_Config) ->
 custom_ruleset(_Config) ->
     ConfigPath = "../../config/elvis-test-custom-ruleset.config",
     ElvisConfig = elvis_config:from_file(ConfigPath),
-    [[{elvis_text_style, no_tabs, #{}}]] = elvis_config:rules(ElvisConfig),
+    NoTabs = elvis_rule:new(elvis_text_style, no_tabs),
+    [[NoTabs]] = elvis_config:rules(ElvisConfig),
 
     %% read unknown ruleset configuration to ensure rulesets from
     %% previous load do not stick around

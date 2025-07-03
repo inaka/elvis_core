@@ -115,23 +115,23 @@ maybe_invalid_rules(_) ->
 invalid_rules(Rules) ->
     lists:filtermap(fun is_invalid_rule/1, Rules).
 
-is_invalid_rule({RuleNamespace, Rule, _}) ->
-    is_invalid_rule({RuleNamespace, Rule});
-is_invalid_rule({RuleNamespace, Rule}) ->
+is_invalid_rule({NS, Rule, _}) ->
+    is_invalid_rule({NS, Rule});
+is_invalid_rule({NS, Rule}) ->
     maybe
-        {module, RuleNamespace} ?= code:ensure_loaded(RuleNamespace),
-        ExportedRules = erlang:get_module_info(RuleNamespace, exports),
+        {module, NS} ?= code:ensure_loaded(NS),
+        ExportedRules = erlang:get_module_info(NS, exports),
         case lists:keymember(Rule, 1, ExportedRules) of
-            false -> {true, {invalid_rule, {RuleNamespace, Rule}}};
+            false -> {true, {invalid_rule, {NS, Rule}}};
             _ -> false
         end
     else
         {error, _} ->
             elvis_utils:warn_prn(
                 "Invalid module (~p) specified in elvis.config.~n",
-                [RuleNamespace]
+                [NS]
             ),
-            {true, {invalid_rule, {RuleNamespace, Rule}}}
+            {true, {invalid_rule, {NS, Rule}}}
     end.
 
 -spec dirs(Config :: configs() | config()) -> [string()].
@@ -167,8 +167,8 @@ files(#{}) ->
     [].
 
 -spec rules
-    (RulesL :: configs()) -> [[elvis_core:rule()]];
-    (Rules :: config()) -> [elvis_core:rule()].
+    (RulesL :: configs()) -> [[elvis_rule:t()]];
+    (Rules :: config()) -> [elvis_rule:t()].
 rules(Rules) when is_list(Rules) ->
     lists:map(fun rules/1, Rules);
 rules(#{rules := UserRules, ruleset := Ruleset}) ->
@@ -250,56 +250,52 @@ ignore_to_regexp(A) when is_atom(A) ->
     "/" ++ atom_to_list(A) ++ "\\.erl$".
 
 %% @doc Merge user rules (override) with elvis default rules.
--spec merge_rules(UserRules :: list(), DefaultRules :: list()) -> [elvis_core:rule()].
+-spec merge_rules(UserRules :: list(), DefaultRules :: list()) -> [elvis_rule:t()].
 merge_rules(UserRules, DefaultRules) ->
     UnduplicatedRules =
         % Drops repeated rules
 
         % If any default rule is in UserRules it means the user
-        lists:filter(
+        lists:filtermap(
             % wants to override the rule.
-            fun
-                ({RuleNamespace, Rule}) ->
-                    not is_rule_override(RuleNamespace, Rule, UserRules);
-                ({RuleNamespace, Rule, _}) ->
-                    not is_rule_override(RuleNamespace, Rule, UserRules);
-                (_) ->
-                    false
+            fun(Tuple) ->
+                Rule = elvis_rule:from_tuple(Tuple),
+                case not is_rule_override(Rule, UserRules) of
+                    true ->
+                        {true, Rule};
+                    false ->
+                        false
+                end
             end,
             DefaultRules
         ),
     OverrideRules =
         % Remove the rules that the user wants to "disable" and after that,
         % remains just the rules the user wants to override.
-        lists:filter(
-            fun
-                ({_RuleNamespace, _Rule, OverrideOptions}) ->
-                    disable /= OverrideOptions;
-                ({_RuleNamespace, _Rule}) ->
-                    % not disabled
-                    true;
-                (_) ->
-                    false
+        lists:filtermap(
+            fun(Tuple) ->
+                Rule = elvis_rule:from_tuple(Tuple),
+                case elvis_rule:disabled(Rule) of
+                    false ->
+                        {true, Rule};
+                    true ->
+                        false
+                end
             end,
             UserRules
         ),
+
     UnduplicatedRules ++ OverrideRules.
 
 -spec is_rule_override(
-    RuleNamespace :: atom(),
-    Rule :: atom(),
-    UserRules :: [elvis_core:rule()]
+    Rule :: elvis_rule:t(),
+    UserRules :: [{NS :: module(), Name :: atom()}]
 ) ->
     boolean().
-is_rule_override(RuleNamespace, Rule, UserRules) ->
+is_rule_override(Rule, UserRules) ->
     lists:any(
         fun(UserRule) ->
-            case UserRule of
-                {RuleNamespace, Rule, _} ->
-                    true;
-                _ ->
-                    false
-            end
+            elvis_rule:same(Rule, elvis_rule:from_tuple(UserRule))
         end,
         UserRules
     ).

@@ -3,7 +3,7 @@
 -export([
     src/1,
     path/1,
-    parse_tree/2, parse_tree/3,
+    parse_tree/2,
     load_file_data/2,
     find_files/2,
     filter_files/4,
@@ -47,42 +47,40 @@ path(#{path := Path}) ->
 path(File) ->
     throw({invalid_file, File}).
 
-%% @doc Add the root node of the parse tree to the file data.
--spec parse_tree(elvis_config:configs() | elvis_config:config(), file()) ->
-    {ktn_code:tree_node(), file()}.
-parse_tree(Config, Target) ->
-    parse_tree(Config, Target, _RuleConfig = #{}).
-
 %% @doc Add the root node of the parse tree to the file data, with filtering.
 -spec parse_tree(
-    elvis_config:configs() | elvis_config:config(),
-    file(),
-    elvis_core:rule_config()
+    elvis_rule:t() | elvis_file:file(),
+    elvis_config:configs() | elvis_config:config()
 ) ->
     {ktn_code:tree_node(), file()}.
-parse_tree(_Config, #{parse_tree := ParseTree0} = File, RuleConfig) ->
-    Ignore = maps:get(ignore, RuleConfig, []),
-    Mod = module(File),
-    {filter_tree_for(ParseTree0, Mod, Ignore), File};
-parse_tree(Config, #{path := Path, content := Content} = File, RuleConfig) ->
-    Ext = filename:extension(Path),
-    ExtStr = elvis_utils:to_str(Ext),
-    Mod = module(File),
-    Ignore = maps:get(ignore, RuleConfig, []),
-    ParseTree = resolve_parse_tree(ExtStr, Content, Mod, Ignore),
-    File1 = maybe_add_abstract_parse_tree(Config, File, Mod, Ignore),
-    parse_tree(Config, File1#{parse_tree => ParseTree}, RuleConfig);
-parse_tree(Config, #{path := _Path} = File0, RuleConfig) ->
-    {_, File} = src(File0),
-    parse_tree(Config, File, RuleConfig);
-parse_tree(_Config, File, _RuleConfig) ->
-    throw({invalid_file, File}).
+parse_tree(File, ElvisConfig) when is_map(File) ->
+    Rule = elvis_rule:new(no_namespace, no_rule, elvis_rule:defmap(#{})),
+    parse_tree(elvis_rule:file(Rule, File), ElvisConfig);
+parse_tree(Rule, ElvisConfig) ->
+    File0 = elvis_rule:file(Rule),
+    case File0 of
+        #{parse_tree := ParseTree0} ->
+            Module = module(File0),
+            {filter_tree_for(ParseTree0, Module, Rule), File0};
+        #{path := Path, content := Content} ->
+            Ext = filename:extension(Path),
+            ExtStr = elvis_utils:to_str(Ext),
+            Module = module(File0),
+            ParseTree = resolve_parse_tree(ExtStr, Content, Module, Rule),
+            File = maybe_add_abstract_parse_tree(ElvisConfig, File0, Module, Rule),
+            parse_tree(elvis_rule:file(Rule, File#{parse_tree => ParseTree}), ElvisConfig);
+        #{path := _Path} ->
+            {_, File} = src(File0),
+            parse_tree(elvis_rule:file(Rule, File), ElvisConfig);
+        _ ->
+            throw({invalid_file, File0})
+    end.
 
 %% @doc Loads and adds all related file data.
 -spec load_file_data(elvis_config:configs() | elvis_config:config(), file()) -> file().
-load_file_data(Config, #{path := _Path} = File0) ->
+load_file_data(ElvisConfig, #{path := _Path} = File0) ->
     {_, File1} = src(File0),
-    {_, File2} = parse_tree(Config, File1),
+    {_, File2} = parse_tree(File1, ElvisConfig),
     File2.
 
 %% @doc Returns all files under the specified Path
@@ -144,15 +142,15 @@ module(#{path := Path}) ->
 %% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec resolve_parse_tree(string(), string() | binary(), module(), list()) ->
+-spec resolve_parse_tree(string(), string() | binary(), module(), elvis_rule:t()) ->
     undefined | ktn_code:tree_node().
-resolve_parse_tree(Ext, Content, Mod, Ignore) when Ext =:= ".erl"; Ext =:= ".hrl" ->
+resolve_parse_tree(Ext, Content, Module, Rule) when Ext =:= ".erl"; Ext =:= ".hrl" ->
     Tree = ktn_code:parse_tree(Content),
-    filter_tree_for(Tree, Mod, Ignore);
+    filter_tree_for(Tree, Module, Rule);
 resolve_parse_tree(_, _, _, _) ->
     undefined.
 
-filter_tree_for(Tree, Mod, Ignore) when is_map(Tree) ->
+filter_tree_for(Tree, Module, Rule) when is_map(Tree) ->
     TreeContent = maps:get(content, Tree, []),
     Tree#{
         content =>
@@ -161,18 +159,20 @@ filter_tree_for(Tree, Mod, Ignore) when is_map(Tree) ->
                     (
                         #{
                             type := function,
-                            attrs := #{name := FunName, arity := FunArity}
+                            attrs := #{name := Function, arity := Arity}
                         }
                     ) ->
-                        not lists:member({Mod, FunName}, Ignore) andalso
-                            not lists:member({Mod, FunName, FunArity}, Ignore);
+                        MF = elvis_rule:ignorable({Module, Function}),
+                        MFA = elvis_rule:ignorable({Module, Function, Arity}),
+                        not elvis_rule:ignored(MF, Rule) andalso
+                            not elvis_rule:ignored(MFA, Rule);
                     (_) ->
                         true
                 end,
                 TreeContent
             )
     };
-filter_tree_for(Tree, _Mod, _Ignore) ->
+filter_tree_for(Tree, _Mod, _Rule) ->
     Tree.
 
 -spec find_encoding(Content :: binary()) -> atom().
@@ -184,31 +184,31 @@ find_encoding(Content) ->
             Enc
     end.
 
--spec maybe_add_abstract_parse_tree(Config, File, Mod, Ignore) -> Res when
-    Config :: elvis_config:configs() | elvis_config:config(),
+-spec maybe_add_abstract_parse_tree(ElvisConfig, File, Module, Rule) -> Res when
+    ElvisConfig :: elvis_config:configs() | elvis_config:config(),
     File :: file(),
-    Mod :: module(),
-    Ignore :: [elvis_style:ignorable()],
+    Module :: module(),
+    Rule :: elvis_rule:t(),
     Res :: file().
 maybe_add_abstract_parse_tree(
     #{ruleset := Ruleset},
     #{path := Path} = File,
-    Mod,
-    Ignore
+    Module,
+    Rule
 ) when Ruleset =:= beam_files; Ruleset =:= beam_files_strict ->
-    AbstractParseTree = get_abstract_parse_tree(Path, Mod, Ignore),
+    AbstractParseTree = get_abstract_parse_tree(Path, Module, Rule),
     File#{abstract_parse_tree => AbstractParseTree};
-maybe_add_abstract_parse_tree(_Config, File, _Mod, _Ignore) ->
+maybe_add_abstract_parse_tree(_ElvisConfig, File, _Mod, _Rule) ->
     File.
 
--spec get_abstract_parse_tree(BeamPath, Mod, Ignore) -> Res when
+-spec get_abstract_parse_tree(BeamPath, Module, Rule) -> Res when
     BeamPath :: file:filename(),
-    Mod :: module(),
-    Ignore :: [elvis_style:ignorable()],
+    Module :: module(),
+    Rule :: elvis_rule:t(),
     Res :: ktn_code:tree_node() | undefined.
-get_abstract_parse_tree(BeamPath, Mod, Ignore) ->
+get_abstract_parse_tree(BeamPath, Module, Rule) ->
     AbstractSrc = get_abstract_source(BeamPath),
-    resolve_parse_tree(".erl", AbstractSrc, Mod, Ignore).
+    resolve_parse_tree(".erl", AbstractSrc, Module, Rule).
 
 -spec get_abstract_source(BeamPath) -> Res when
     BeamPath :: file:filename() | binary(),

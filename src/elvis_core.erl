@@ -19,12 +19,6 @@
 
 -type source_filename() :: nonempty_string().
 -type target() :: source_filename() | module().
--type rule_config() :: #{atom() => term()}.
--type rule() ::
-    {RuleNamespace :: module(), Rule :: atom(), RuleConfig :: rule_config()}
-    | {RuleNamespace :: module(), Rule :: atom()}.
-
--export_type([rule_config/0, rule/0]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Public API
@@ -38,19 +32,19 @@ start() ->
 
 -spec rock(elvis_config:configs()) ->
     ok | {fail, [{throw, term()} | elvis_result:file() | elvis_result:rule()]}.
-rock(Config) ->
-    ok = elvis_config:validate(Config),
-    Results = lists:map(fun do_parallel_rock/1, Config),
+rock(ElvisConfig) ->
+    ok = elvis_config:validate(ElvisConfig),
+    Results = lists:map(fun do_parallel_rock/1, ElvisConfig),
     lists:foldl(fun combine_results/2, ok, Results).
 
 -spec rock_this(target(), elvis_config:configs()) ->
     ok | {fail, [elvis_result:file() | elvis_result:rule()]}.
-rock_this(Module, Config) when is_atom(Module) ->
+rock_this(Module, ElvisConfig) when is_atom(Module) ->
     ModuleInfo = Module:module_info(compile),
     Path = proplists:get_value(source, ModuleInfo),
-    rock_this(Path, Config);
-rock_this(Path, Config) ->
-    elvis_config:validate(Config),
+    rock_this(Path, ElvisConfig);
+rock_this(Path, ElvisConfig) ->
+    elvis_config:validate(ElvisConfig),
     Dirname = filename:dirname(Path),
     Filename = filename:basename(Path),
     File =
@@ -68,23 +62,23 @@ rock_this(Path, Config) ->
             IgnoreList = elvis_config:ignore(Cfg),
             [] =/= elvis_file:filter_files([File], Dirs, Filter, IgnoreList)
         end,
-    case lists:filter(FilterFun, Config) of
+    case lists:filter(FilterFun, ElvisConfig) of
         [] ->
             elvis_utils:info("Skipping ~s", [Path]);
-        FilteredConfig ->
-            LoadedFile = load_file_data(FilteredConfig, File),
+        FilteredElvisConfig ->
+            LoadedFile = load_file_data(FilteredElvisConfig, File),
             ApplyRulesFun = fun(Cfg) -> apply_rules_and_print(Cfg, LoadedFile) end,
-            Results = lists:map(ApplyRulesFun, FilteredConfig),
+            Results = lists:map(ApplyRulesFun, FilteredElvisConfig),
             elvis_result_status(Results)
     end.
 
 -spec do_parallel_rock(elvis_config:config()) ->
     ok
     | {fail, [{throw, term()} | elvis_result:file() | elvis_result:rule()]}.
-do_parallel_rock(Config0) ->
+do_parallel_rock(ElvisConfig0) ->
     Parallel = elvis_config:from_application_or_config(parallel, 1),
-    Config = elvis_config:resolve_files(Config0),
-    Files = elvis_config:files(Config),
+    ElvisConfig = elvis_config:resolve_files(ElvisConfig0),
+    Files = elvis_config:files(ElvisConfig),
 
     Result =
         elvis_task:chunk_fold(
@@ -94,7 +88,7 @@ do_parallel_rock(Config0) ->
                 {ok, [Elem | Acc]}
             end,
             [],
-            [Config],
+            [ElvisConfig],
             Files,
             Parallel
         ),
@@ -109,18 +103,18 @@ do_parallel_rock(Config0) ->
 
 -spec do_rock(elvis_file:file(), elvis_config:configs() | elvis_config:config()) ->
     {ok, elvis_result:file()}.
-do_rock(File, Config) ->
-    LoadedFile = load_file_data(Config, File),
-    Results = apply_rules(Config, LoadedFile),
+do_rock(File, ElvisConfig) ->
+    LoadedFile = load_file_data(ElvisConfig, File),
+    Results = apply_rules(ElvisConfig, LoadedFile),
     {ok, Results}.
 
 -spec load_file_data(elvis_config:configs() | elvis_config:config(), elvis_file:file()) ->
     elvis_file:file().
-load_file_data(Config, File) ->
+load_file_data(ElvisConfig, File) ->
     Path = elvis_file:path(File),
     elvis_utils:info("Loading ~s", [Path]),
     try
-        elvis_file:load_file_data(Config, File)
+        elvis_file:load_file_data(ElvisConfig, File)
     catch
         _:Reason ->
             Msg = "~p when loading file ~p.",
@@ -153,8 +147,8 @@ combine_results(Item, ok) ->
 combine_results({fail, ItemResults}, {fail, AccResults}) ->
     {fail, ItemResults ++ AccResults}.
 
-apply_rules_and_print(Config, File) ->
-    Results = apply_rules(Config, File),
+apply_rules_and_print(ElvisConfig, File) ->
+    Results = apply_rules(ElvisConfig, File),
     elvis_result:print_results(Results),
     Results.
 
@@ -163,10 +157,10 @@ apply_rules_and_print(Config, File) ->
     File :: elvis_file:file()
 ) ->
     elvis_result:file().
-apply_rules(Config, File) ->
-    Rules = elvis_config:rules(Config),
-    Acc = {[], Config, File},
-    {ParseTree, _} = elvis_file:parse_tree(Config, File),
+apply_rules(ElvisConfig, File) ->
+    Rules = elvis_config:rules(ElvisConfig),
+    Acc = {[], ElvisConfig, File},
+    {ParseTree, _} = elvis_file:parse_tree(File, ElvisConfig),
     {RulesResults, _, _} =
         lists:foldl(fun apply_rule/2, Acc, merge_rules({file, ParseTree}, lists:flatten(Rules))),
     elvis_result:new(file, File, RulesResults).
@@ -185,45 +179,34 @@ elvis_attr_rules([] = _ElvisAttrs) ->
 elvis_attr_rules(ElvisAttrs) ->
     [Rule || ElvisAttr <- ElvisAttrs, Rule <- ktn_code:attr(value, ElvisAttr)].
 
--spec apply_rule(
-    {RuleNamespace, Rule} | {RuleNamespace, Rule, RuleCfg}, {Results, ElvisCfg, File}
-) ->
-    Result
-when
-    RuleNamespace :: module(),
-    Rule :: atom(),
-    RuleCfg :: rule_config(),
+-spec apply_rule(Rule, {Results, ElvisConfig, File}) -> Result when
+    Rule :: elvis_rule:t(),
     Results :: [elvis_result:rule() | elvis_result:elvis_error()],
-    ElvisCfg :: elvis_config:config(),
+    ElvisConfig :: elvis_config:config(),
     File :: elvis_file:file(),
-    Result :: {Results, ElvisCfg, File}.
-apply_rule({RuleNamespace, Rule}, {Result, Config, File}) ->
-    apply_rule({RuleNamespace, Rule, #{}}, {Result, Config, File});
-apply_rule({RuleNamespace, Rule, ConfigMap}, {Result, Config, File}) ->
+    Result :: {Results, ElvisConfig, File}.
+apply_rule(Rule, {Result, ElvisConfig, File}) ->
     RuleResult =
         try
             AnalyzedModule = elvis_file:module(File),
-            Ignores = maps:get(ignore, ConfigMap, []),
-            case lists:member(AnalyzedModule, Ignores) of
+            IgnorableModule = elvis_rule:ignorable(AnalyzedModule),
+            case elvis_rule:ignored(IgnorableModule, Rule) of
                 false ->
-                    FilteredConfigMap =
-                        maps:merge(
-                            ConfigMap#{ignore => lists:delete(AnalyzedModule, Ignores)},
-                            ConfigMap
-                        ),
-                    Results = RuleNamespace:Rule({RuleNamespace, Config, File, FilteredConfigMap}),
+                    Results = elvis_rule:execute(elvis_rule:file(Rule, File), ElvisConfig),
                     SortFun = fun(#{line_num := L1}, #{line_num := L2}) -> L1 =< L2 end,
                     SortResults = lists:sort(SortFun, Results),
-                    elvis_result:new(rule, {RuleNamespace, Rule}, SortResults);
+                    elvis_result:new(rule, Rule, SortResults);
                 true ->
-                    elvis_result:new(rule, {RuleNamespace, Rule}, [])
+                    elvis_result:new(rule, Rule, [])
             end
         catch
             _:Reason:Stacktrace ->
                 Msg = "'~p' while applying rule '~p': ~p",
-                elvis_result:new(error, Msg, [Reason, Rule, Stacktrace])
+                elvis_result:new(error, Msg, [
+                    Reason, {elvis_rule:ns(Rule), elvis_rule:name(Rule)}, Stacktrace
+                ])
         end,
-    {[RuleResult | Result], Config, File}.
+    {[RuleResult | Result], ElvisConfig, File}.
 
 elvis_result_status(Results) ->
     case elvis_result:status(Results) of

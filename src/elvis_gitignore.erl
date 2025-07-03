@@ -1,17 +1,17 @@
 -module(elvis_gitignore).
 
--behaviour(elvis_ruleset).
+-behaviour(elvis_rule).
 -export([default/1]).
 
--export([required_patterns/1, forbidden_patterns/1]).
+-export([required_patterns/2, forbidden_patterns/2]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec default(Rule :: atom()) -> elvis_core:rule_config().
+-spec default(RuleName :: atom()) -> elvis_rule:def().
 default(required_patterns) ->
-    #{
+    elvis_rule:defmap(#{
         regexes =>
             [
                 "^.rebar3/$",
@@ -22,16 +22,21 @@ default(required_patterns) ->
                 "^/rebar3.crashdump$",
                 "^test/logs/$"
             ]
-    };
+    });
 default(forbidden_patterns) ->
-    #{regexes => ["^rebar.lock$"]}.
+    elvis_rule:defmap(#{
+        regexes => ["^rebar.lock$"]
+    });
+default(_RuleName) ->
+    elvis_rule:defmap(#{}).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Rules
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-required_patterns({_RuleNamespace, _Config, #{path := Path}, _RuleConfig} = RuleCfg) ->
-    Regexes = elvis_ruleset:option(regexes, RuleCfg, ?FUNCTION_NAME),
+required_patterns(Rule, _ElvisConfig) ->
+    #{path := Path} = elvis_rule:file(Rule),
+    Regexes = elvis_rule:option(regexes, Rule),
     case file:read_file(Path) of
         {ok, PatternsBin} ->
             Patterns = elvis_utils:split_all_lines(PatternsBin),
@@ -40,8 +45,9 @@ required_patterns({_RuleNamespace, _Config, #{path := Path}, _RuleConfig} = Rule
             []
     end.
 
-forbidden_patterns({_RuleNamespace, _Config, #{path := Path}, _RuleConfig} = RuleCfg) ->
-    Regexes = elvis_ruleset:option(regexes, RuleCfg, ?FUNCTION_NAME),
+forbidden_patterns(Rule, _ElvisConfig) ->
+    #{path := Path} = elvis_rule:file(Rule),
+    Regexes = elvis_rule:option(regexes, Rule),
     case file:read_file(Path) of
         {ok, PatternsBin} ->
             Patterns = elvis_utils:split_all_lines(PatternsBin),
