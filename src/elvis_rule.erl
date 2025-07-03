@@ -49,7 +49,8 @@ new(NS, Name, Def) ->
         ignores = maps:get(ignore, Def, [])
     }.
 
--spec from_tuple(NSName | NSNameDef) -> t() when
+-spec from_tuple(Rule | NSName | NSNameDef) -> t() when
+    Rule :: t(),
     NSName :: {NS :: module(), Name :: atom()},
     NSNameDef :: {NS :: module(), Name :: atom(), Def :: disable | map()}.
 from_tuple(Rule) when is_record(Rule, rule) ->
@@ -148,6 +149,6 @@ ignorable(Ignorable) ->
     Ignorable.
 
 -spec same(t(), t()) -> boolean().
+%% @doc Loose equality comparison for a specific use case
 same(RuleL, RuleR) ->
-    % we make a loose comparison for a specific use case
     {ns(RuleL), name(RuleL)} =:= {ns(RuleR), name(RuleR)}.

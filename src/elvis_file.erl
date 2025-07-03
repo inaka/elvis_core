@@ -57,23 +57,22 @@ parse_tree(File, ElvisConfig) when is_map(File) ->
     Rule = elvis_rule:new(no_namespace, no_rule, elvis_rule:defmap(#{})),
     parse_tree(elvis_rule:file(Rule, File), ElvisConfig);
 parse_tree(Rule, ElvisConfig) ->
-    File0 = elvis_rule:file(Rule),
-    case File0 of
-        #{parse_tree := ParseTree0} ->
-            Module = module(File0),
-            {filter_tree_for(ParseTree0, Module, Rule), File0};
-        #{path := Path, content := Content} ->
+    case elvis_rule:file(Rule) of
+        #{parse_tree := ParseTree0} = File ->
+            Module = module(File),
+            {filter_tree_for(ParseTree0, Module, Rule), File};
+        #{path := Path, content := Content} = File0 ->
             Ext = filename:extension(Path),
             ExtStr = elvis_utils:to_str(Ext),
             Module = module(File0),
             ParseTree = resolve_parse_tree(ExtStr, Content, Module, Rule),
             File = maybe_add_abstract_parse_tree(ElvisConfig, File0, Module, Rule),
             parse_tree(elvis_rule:file(Rule, File#{parse_tree => ParseTree}), ElvisConfig);
-        #{path := _Path} ->
+        #{path := _Path} = File0 ->
             {_, File} = src(File0),
             parse_tree(elvis_rule:file(Rule, File), ElvisConfig);
-        _ ->
-            throw({invalid_file, File0})
+        File ->
+            throw({invalid_file, File})
     end.
 
 %% @doc Loads and adds all related file data.

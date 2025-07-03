@@ -131,7 +131,7 @@ to specify them in a `rules` key which is a list of items with the following str
 values. You can also `disable` certain rules if you want to, by specifying them in the `rules` key
 and passing `disable` as a third argument.
 
-`RuleNamespace` is an Erlang module.
+`RuleNamespace` is an Erlang module that implements the `elvis_rule` behaviour.
 `Rule` is a function exported from `RuleNamespace`.
 
 #### Disabling Rules
