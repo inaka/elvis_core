@@ -4,7 +4,7 @@
 -export([
     find/1,
     zipper/1,
-    root/1
+    root/2
 ]).
 %% Specific
 -export([
@@ -16,18 +16,15 @@
 %%% Public API
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--type find_options() :: #{filtered_from => node | zipper, traverse => content | all}.
-
 -type tree_node() :: ktn_code:tree_node().
--type tree_node_type() :: ktn_code:tree_node_type().
 -type tree_node_zipper() :: zipper:zipper(tree_node()).
 
--export_type([find_options/0, tree_node/0, tree_node_type/0, tree_node_zipper/0]).
+-export_type([tree_node/0, tree_node_zipper/0]).
 
 -spec find(Options) -> {nodes, [Node]} | {zippers, [Zipper]} when
     Options :: #{
         % undefined means "all types"
-        of_types := [tree_node_type()] | undefined,
+        of_types := [ktn_code:tree_node_type()] | undefined,
         inside := Node,
         % undefined means "don't filter"
         filtered_by => fun((Node | Zipper) -> boolean()),
@@ -164,14 +161,13 @@ find_with_zipper(Pred, Zipper, Results, Mode) ->
             find_with_zipper(Pred, zipper:next(Zipper), NewResults, Mode)
     end.
 
--spec root({Config, Target, RuleConfig}) -> Res when
-    Config :: elvis_config:config(),
-    Target :: elvis_file:file(),
-    RuleConfig :: (Options :: #{atom() => term()}),
+-spec root(Rule, ElvisConfig) -> Res when
+    Rule :: elvis_rule:t(),
+    ElvisConfig :: elvis_config:t(),
     Res :: ktn_code:tree_node().
-root({Config, Target, RuleConfig}) ->
-    {Root0, File0} = elvis_file:parse_tree(Config, Target, RuleConfig),
-    case maps:get(ruleset, Config, undefined) of
+root(Rule, ElvisConfig) ->
+    {Root0, File0} = elvis_file:parse_tree(Rule, ElvisConfig),
+    case maps:get(ruleset, ElvisConfig, undefined) of
         Ruleset when Ruleset =:= beam_files; Ruleset =:= beam_files_strict ->
             maps:get(abstract_parse_tree, File0);
         _ ->

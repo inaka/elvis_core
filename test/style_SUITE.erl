@@ -345,7 +345,7 @@ verify_consistent_variable_casing(Config) ->
     PathPass = "pass_consistent_variable_casing." ++ Ext,
     [] =
         elvis_test_utils:elvis_core_apply_rule(
-            Config, elvis_style, consistent_variable_casing, #{}, PathPass
+            Config, elvis_style, variable_casing, #{}, PathPass
         ),
 
     PathFail = "fail_consistent_variable_casing." ++ Ext,
@@ -370,7 +370,7 @@ verify_consistent_variable_casing(Config) ->
         #{info := ["IgnVar", _, ["IGNVar"]]}
     ] =
         elvis_test_utils:elvis_core_apply_rule(
-            Config, elvis_style, consistent_variable_casing, #{}, PathFail
+            Config, elvis_style, variable_casing, #{}, PathFail
         ).
 
 verify_macro_names_rule(Config) ->
@@ -379,14 +379,14 @@ verify_macro_names_rule(Config) ->
     Path = "fail_macro_names." ++ Ext,
 
     [_, _, _, _, _, _] = elvis_test_utils:elvis_core_apply_rule(
-        Config, elvis_style, macro_names, #{}, Path
+        Config, elvis_style, macro_naming_convention, #{}, Path
     ),
 
     [_, _] =
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
-            macro_names,
+            macro_naming_convention,
             #{regex => "^[A-Za-z_ ]+$"},
             Path
         ),
@@ -395,7 +395,7 @@ verify_macro_names_rule(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
-            macro_names,
+            macro_naming_convention,
             #{regex => "^[A-Za-z_ \-]+$"},
             Path
         ),
@@ -404,7 +404,7 @@ verify_macro_names_rule(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
-            macro_names,
+            macro_naming_convention,
             #{regex => "^[A-Za-z_, \-]+$"},
             Path
         ),
@@ -413,7 +413,7 @@ verify_macro_names_rule(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
-            macro_names,
+            macro_naming_convention,
             #{regex => "^POTENTIAL_BAD-NAME$"},
             Path
         ),
@@ -422,7 +422,7 @@ verify_macro_names_rule(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
-            macro_names,
+            macro_naming_convention,
             #{ignore => [fail_macro_names]},
             Path
         ),
@@ -433,7 +433,7 @@ verify_macro_names_rule(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
-            macro_names,
+            macro_naming_convention,
             #{regex => "^[A-Za-z_, \-]+$", forbidden_regex => "FORBIDDEN"},
             PathForbidden
         ).
@@ -739,7 +739,7 @@ verify_nesting_level(Config) ->
                     #{line_num := 170}
                 ] =
                     elvis_test_utils:elvis_core_apply_rule(
-                        Config, elvis_style, nesting_level, #{level => 3}, Path
+                        Config, elvis_style, no_deep_nesting, #{level => 3}, Path
                     );
             erl_files ->
                 [
@@ -753,14 +753,14 @@ verify_nesting_level(Config) ->
                     #{line_num := 182}
                 ] =
                     elvis_test_utils:elvis_core_apply_rule(
-                        Config, elvis_style, nesting_level, #{level => 3}, Path
+                        Config, elvis_style, no_deep_nesting, #{level => 3}, Path
                     )
         end,
     [] =
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
-            nesting_level,
+            no_deep_nesting,
             #{ignore => [fail_nesting_level]},
             Path
         ).
@@ -770,11 +770,13 @@ verify_god_modules(Config) ->
 
     Path = "fail_god_modules." ++ Ext,
     [_] = elvis_test_utils:elvis_core_apply_rule(
-        Config, elvis_style, god_modules, #{limit => 25}, Path
+        Config, elvis_style, no_god_modules, #{limit => 25}, Path
     ),
 
     RuleConfig = #{limit => 25, ignore => [fail_god_modules]},
-    [] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, god_modules, RuleConfig, Path).
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, no_god_modules, RuleConfig, Path
+    ).
 
 verify_no_if_expression(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
@@ -801,12 +803,12 @@ verify_invalid_dynamic_call(Config) ->
 
     PathPass = "pass_invalid_dynamic_call." ++ Ext,
     [] = elvis_test_utils:elvis_core_apply_rule(
-        Config, elvis_style, invalid_dynamic_call, #{}, PathPass
+        Config, elvis_style, no_invalid_dynamic_calls, #{}, PathPass
     ),
 
     PathPass2 = "pass_invalid_dynamic_call_callback." ++ Ext,
     [] = elvis_test_utils:elvis_core_apply_rule(
-        Config, elvis_style, invalid_dynamic_call, #{}, PathPass2
+        Config, elvis_style, no_invalid_dynamic_calls, #{}, PathPass2
     ),
 
     PathFail = "fail_invalid_dynamic_call." ++ Ext,
@@ -828,7 +830,7 @@ verify_invalid_dynamic_call(Config) ->
                     #{line_num := _}
                 ] =
                     elvis_test_utils:elvis_core_apply_rule(
-                        Config, elvis_style, invalid_dynamic_call, #{}, PathFail
+                        Config, elvis_style, no_invalid_dynamic_calls, #{}, PathFail
                     );
             erl_files ->
                 [
@@ -849,14 +851,14 @@ verify_invalid_dynamic_call(Config) ->
                     #{line_num := 36}
                 ] =
                     elvis_test_utils:elvis_core_apply_rule(
-                        Config, elvis_style, invalid_dynamic_call, #{}, PathFail
+                        Config, elvis_style, no_invalid_dynamic_calls, #{}, PathFail
                     )
         end,
 
     RuleConfig = #{ignore => [fail_invalid_dynamic_call]},
     [] =
         elvis_test_utils:elvis_core_apply_rule(
-            Config, elvis_style, invalid_dynamic_call, RuleConfig, PathFail
+            Config, elvis_style, no_invalid_dynamic_calls, RuleConfig, PathFail
         ).
 
 verify_used_ignored_variable(Config) ->
@@ -870,15 +872,15 @@ verify_used_ignored_variable(Config) ->
             beam_files ->
                 [#{line_num := _}, #{line_num := _}, #{line_num := _}, #{line_num := _}] =
                     elvis_test_utils:elvis_core_apply_rule(
-                        Config, elvis_style, used_ignored_variable, #{}, Path
+                        Config, elvis_style, no_used_ignored_variables, #{}, Path
                     );
             erl_files ->
                 [#{line_num := 23}, #{line_num := 26}, #{line_num := 30}, #{line_num := 30}] =
                     elvis_test_utils:elvis_core_apply_rule(
-                        Config, elvis_style, used_ignored_variable, #{}, Path
+                        Config, elvis_style, no_used_ignored_variables, #{}, Path
                     ),
                 [] = elvis_test_utils:elvis_core_apply_rule(
-                    Config, elvis_style, used_ignored_variable, #{}, Path2
+                    Config, elvis_style, no_used_ignored_variables, #{}, Path2
                 )
         end,
 
@@ -886,7 +888,7 @@ verify_used_ignored_variable(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
-            used_ignored_variable,
+            no_used_ignored_variables,
             #{ignore => [fail_used_ignored_variable]},
             Path
         ).
@@ -1152,7 +1154,7 @@ verify_consistent_generic_type(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
-            consistent_generic_type,
+            generic_type,
             #{preferred_type => any},
             PathFail
         ),
@@ -1161,7 +1163,7 @@ verify_consistent_generic_type(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
-            consistent_generic_type,
+            generic_type,
             #{preferred_type => term},
             PathFail1
         ),
@@ -1170,7 +1172,7 @@ verify_consistent_generic_type(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
-            consistent_generic_type,
+            generic_type,
             #{preferred_type => any},
             PathFail2
         ),
@@ -1179,7 +1181,7 @@ verify_consistent_generic_type(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
-            consistent_generic_type,
+            generic_type,
             #{preferred_type => term},
             PathFail3
         ),
@@ -1189,7 +1191,7 @@ verify_consistent_generic_type(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
-            consistent_generic_type,
+            generic_type,
             #{preferred_type => term},
             PathPass
         ),
@@ -1198,7 +1200,7 @@ verify_consistent_generic_type(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
-            consistent_generic_type,
+            generic_type,
             #{preferred_type => any},
             PathPass1
         ),
@@ -1207,7 +1209,7 @@ verify_consistent_generic_type(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
-            consistent_generic_type,
+            generic_type,
             #{preferred_type => term},
             PathPass2
         ),
@@ -1215,7 +1217,7 @@ verify_consistent_generic_type(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
-            consistent_generic_type,
+            generic_type,
             #{preferred_type => any},
             PathPass2
         ).
@@ -2678,7 +2680,7 @@ oddities(_Config) ->
                 dirs => ["../../_build/test/lib/elvis_core/test/examples"],
                 filter => "odditiesß.erl",
                 ruleset => erl_files,
-                rules => [{elvis_style, god_modules, #{limit => 0}}]
+                rules => [{elvis_style, no_god_modules, #{limit => 0}}]
             }
         ],
     {fail, [#{rules := [_, _, _, _]}]} = elvis_core:rock(ElvisConfig),

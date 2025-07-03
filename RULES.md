@@ -20,24 +20,20 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [Always Shortcircuit](doc_rules/elvis_style/always_shortcircuit.md)
 - [Atom Naming Convention](doc_rules/elvis_style/atom_naming_convention.md)
 - [Behaviour Spelling](doc_rules/elvis_style/behaviour_spelling.md)
-- [Consistent Generic Type](doc_rules/elvis_style/consistent_generic_type.md)
-- [Consistent Variable Casing](doc_rules/elvis_style/consistent_variable_casing.md)
 - [Don't Repeat Yourself](doc_rules/elvis_style/dont_repeat_yourself.md)
 - [Export Used Types](doc_rules/elvis_style/export_used_types.md)
 - [Function Naming Convention](doc_rules/elvis_style/function_naming_convention.md)
-- [God Modules](doc_rules/elvis_style/god_modules.md)
+- [Generic Type](doc_rules/elvis_style/generic_type.md)
 - [Include `ms_transform` for `ets:fun2ms/1`](doc_rules/elvis_style/ms_transform_included.md)
-- [Invalid Dynamic Calls](doc_rules/elvis_style/invalid_dynamic_call.md)
 - [Line Length](doc_rules/elvis_text_style/line_length.md)
 - [Macro Module Names - *deprecated*](doc_rules/elvis_style/macro_module_names.md)
-- [Macro Names](doc_rules/elvis_style/macro_names.md)
+- [Macro Naming Convention](doc_rules/elvis_style/macro_naming_convention.md)
 - [Max Anonymous Function Arity](doc_rules/elvis_style/max_anonymous_function_arity.md)
 - [Max Function Arity](doc_rules/elvis_style/max_function_arity.md)
 - [Max Function Clause Length](doc_rules/elvis_style/max_function_clause_length.md)
 - [Max Function Length](doc_rules/elvis_style/max_function_length.md)
 - [Max Module Length](doc_rules/elvis_style/max_module_length.md)
 - [Module Naming Convention](doc_rules/elvis_style/module_naming_convention.md)
-- [Nesting Level](doc_rules/elvis_style/nesting_level.md)
 <!-- markdownlint-disable MD033 -->
 - [No <code>$&nbsp;</code>](doc_rules/elvis_style/no_dollar_space.md)
 <!-- markdownlint-enable MD033 -->
@@ -49,11 +45,15 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [No Catch Expressions](doc_rules/elvis_style/no_catch_expressions.md)
 - [No Common Caveats](doc_rules/elvis_style/no_common_caveats_call.md)
 - [No Debug Call](doc_rules/elvis_style/no_debug_call.md)
+- [No Deep Nesting](doc_rules/elvis_style/no_deep_nesting.md)
+- [No God Modules](doc_rules/elvis_style/no_god_modules.md)
 - [No If Expression](doc_rules/elvis_style/no_if_expression.md)
 - [No Import](doc_rules/elvis_style/no_import.md)
+- [No Invalid Dynamic Calls](doc_rules/elvis_style/no_invalid_dynamic_calls.md)
 - [No Init Lists](doc_rules/elvis_style/no_init_lists.md)
 - [No Macros](doc_rules/elvis_style/no_macros.md)
 - [No Match In Condition](doc_rules/elvis_style/no_match_in_condition.md)
+- [No Nested Header Files](doc_rules/elvis_style/no_nested_hrls.md)
 - [No Nested `try...catch` Blocks](doc_rules/elvis_style/no_nested_try_catch.md)
 - [No Operator With Same Values](doc_rules/elvis_style/no_operation_on_same_value.md)
 - [No Redundant Blank Lines](doc_rules/elvis_text_style/no_redundant_blank_lines.md)
@@ -69,14 +69,14 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [No Throw](doc_rules/elvis_style/no_throw.md)
 - [No Trailing Whitespace](doc_rules/elvis_text_style/no_trailing_whitespace.md)
 - [No Types](doc_rules/elvis_style/no_types.md)
-- [No Nested Header Files](doc_rules/elvis_style/no_nested_hrls.md)
+- [No Used Ignored Variables](doc_rules/elvis_style/no_used_ignored_variables.md)
 - [Numeric Format](doc_rules/elvis_style/numeric_format.md)
 - [Operator Spaces](doc_rules/elvis_style/operator_spaces.md)
 - [Param Pattern-Matching](doc_rules/elvis_style/param_pattern_matching.md)
 - [Prefer Unquoted Atoms](doc_rules/elvis_text_style/prefer_unquoted_atoms.md)
 - [Private Data Types](doc_rules/elvis_style/private_data_types.md)
 - [State Record And Type](doc_rules/elvis_style/state_record_and_type.md)
-- [Used Ignored Variable](doc_rules/elvis_style/used_ignored_variable.md)
+- [Variable Casing](doc_rules/elvis_style/variable_casing.md)
 - [Variable Naming Convention](doc_rules/elvis_style/variable_naming_convention.md)
 
 ## `.gitignore` rules
@@ -89,7 +89,7 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [No Deps `master` `erlang.mk` - *deprecated*](doc_rules/elvis_project/no_deps_master_erlang_mk.md)
 - [No Deps `master` `rebar.config` - *deprecated*](doc_rules/elvis_project/no_deps_master_rebar.md)
 - [No Deps With Branches](doc_rules/elvis_project/no_branch_deps.md)
-- [Old Configuration Format](doc_rules/elvis_project/old_configuration_format.md)
+- [Old Configuration Format - *deprecated*](doc_rules/elvis_project/old_configuration_format.md)
 - [Protocol For Deps `erlang.mk` - *deprecated*](doc_rules/elvis_project/protocol_for_deps_erlang_mk.md)
 - [Protocol For Deps `rebar.config` - *deprecated*](doc_rules/elvis_project/protocol_for_deps_rebar.md)
 - [Protocol For Deps](doc_rules/elvis_project/protocol_for_deps.md)
@@ -102,17 +102,16 @@ rulesets in the configuration file.
 
 The six pre-defined rulesets are:
 
-- `elvis_config`, for elvis configuration files.
-- `erl_files`, for Erlang source files (pre-defined rule set).
+- `erl_files`, for Erlang source files (pre-defined ruleset).
 - `erl_files_strict`, for Erlang source files (all applicable rules).
 - `gitignore`, for `.gitignore` files.
-- `hrl_files`, for Erlang header files (pre-defined rule set).
+- `hrl_files`, for Erlang header files (pre-defined ruleset).
 - `hrl_files_strict`, for Erlang header files (all applicable rules).
 - `rebar_config`, for rebar configuration files.
 
-Custom rulesets are defined in a `{<ruleset>, #{}}` tuple in `elvis`' configuration. Each key in the
-map represents the ruleset name and is mapped to a list of rules as otherwise defined in a standard
-ruleset.
+Custom rulesets are defined in a `{RuleNamespace, #{}}` tuple in `elvis`' configuration. Each key in
+the map represents the ruleset name and is mapped to a list of rules as otherwise defined in a
+standard ruleset.
 
 Example configuration with a custom ruleset (named `my_ruleset`):
 
@@ -156,7 +155,7 @@ You can always play with the following, but results may not be surprising.
 
 ```erlang
 -module(mymodule).
--elvis([{elvis_style, nesting_level, #{ level => 4, ignore => [mymodule] }}]).
+-elvis([{elvis_style, no_deep_nesting, #{ level => 4, ignore => [mymodule] }}]).
 ...
 ```
 
@@ -174,7 +173,7 @@ your choice.
 It suffices to add the `ignore` list to your rules, as per the example below.
 
 ```erlang
--elvis([{elvis_style, invalid_dynamic_call, #{ ignore => [elvis_core]}}]).
+-elvis([{elvis_style, no_invalid_dynamic_calls, #{ ignore => [elvis_core]}}]).
 -elvis([{elvis_style, no_debug_call, #{ ignore => [elvis_result, elvis_utils]}}]).
 ```
 
@@ -226,10 +225,6 @@ for `.hrl` files.
       , #{ dirs => ["."]
          , filter => "rebar.config"
          , ruleset => rebar_config
-         , rules => [] }
-      , #{ dirs => ["."]
-         , filter => "elvis.config"
-         , ruleset => elvis_config
          , rules => [] }
       , #{ dirs => ["."]
          , filter => ".gitignore"

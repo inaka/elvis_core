@@ -1,4 +1,7 @@
-# Macro Names
+# Macro Naming Convention
+
+> [!NOTE]
+> This rule was named `macro_names` before [4.2.0](https://github.com/inaka/elvis_core/releases/tag/4.2.0).
 
 All macro names should conform to the pattern defined by the `regex` option pattern, unless they match
 the `forbidden_regex` option pattern, in which case they are disallowed.
@@ -43,7 +46,7 @@ the standard.
 ## Example configuration
 
 ```erlang
-{elvis_style, macro_names, #{ regex => "^[A-Z](_?[A-Z0-9]+)*$"
-                            , forbidden_regex => undefined
-                            }}
+{elvis_style, macro_naming_convention, #{ regex => "^[A-Z](_?[A-Z0-9]+)*$"
+                                        , forbidden_regex => undefined
+                                        }}
 ```

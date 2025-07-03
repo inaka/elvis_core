@@ -3,11 +3,10 @@
 -compile({no_auto_import, [error/2]}).
 
 %% API
--export([new_item/1, new_item/2, new_item/3, new/3, new/4, status/1, clean/1, print_results/1]).
+-export([new_item/1, new_item/2, new_item/3, new/3, status/1, clean/1, print_results/1]).
 -export([
     get_path/1,
     get_rules/1,
-    get_name/1,
     get_items/1,
     get_message/1,
     get_info/1,
@@ -30,7 +29,7 @@
     }.
 -type rule() ::
     #{
-        scope => atom(),
+        ns => atom(),
         name => atom(),
         items => [item()]
     }.
@@ -84,17 +83,17 @@ extend_attrs_with_line_and_column(Attrs) ->
 
 -spec new
     (item, string(), [term()]) -> item();
-    (rule, {atom(), atom()}, [item()]) -> rule();
-    (file, elvis_file:file(), [elvis_error() | rule()]) -> file();
+    (rule, elvis_rule:t(), [item()]) -> rule();
+    (file, elvis_file:t(), [elvis_error() | rule()]) -> file();
     (error, string(), string()) -> elvis_error();
     (warn, string(), string()) -> elvis_warn().
 % new(item, ...) is kept for backward compatibility, but discouraged
 new(item, Msg, Info) ->
     new_item(Msg, Info);
-new(rule, {Scope, Name}, Results) ->
+new(rule, Rule, Results) ->
     #{
-        scope => Scope,
-        name => Name,
+        ns => elvis_rule:ns(Rule),
+        name => elvis_rule:name(Rule),
         items => Results
     };
 new(file, #{path := Path}, Rules) ->
@@ -103,10 +102,6 @@ new(error, Msg, Info) ->
     #{error_msg => Msg, info => Info};
 new(warn, Msg, Info) ->
     #{warn_msg => Msg, info => Info}.
-
--spec new(item, string(), [term()], integer()) -> item().
-new(item, Msg, Info, LineNum) ->
-    new_item(Msg, Info, #{line => LineNum}).
 
 new(item, Msg0, Info, {Line, Column}, Limit) ->
     Prefix0 =
@@ -149,10 +144,6 @@ get_path(#{file := File}) ->
 -spec get_rules(file()) -> [rule()].
 get_rules(#{rules := Rules}) ->
     Rules.
-
--spec get_name(rule()) -> atom().
-get_name(#{name := Name}) ->
-    Name.
 
 -spec get_items(rule()) -> [item()].
 get_items(#{items := Items}) ->
@@ -211,7 +202,7 @@ print_rules(
     File,
     [
         #{
-            scope := Scope,
+            ns := Scope,
             items := Items,
             name := Name
         }

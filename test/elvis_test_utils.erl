@@ -16,9 +16,9 @@ excluded_funs_all() ->
 config() ->
     application:get_env(elvis_core, config, []).
 
-config(RuleSet) ->
-    RuleSetCfgs = application:get_env(elvis_core, config, []),
-    [Config] = [Cfg || #{ruleset := R} = Cfg <- RuleSetCfgs, R =:= RuleSet],
+config(Ruleset) ->
+    RulesetCfgs = application:get_env(elvis_core, config, []),
+    [Config] = [Cfg || #{ruleset := R} = Cfg <- RulesetCfgs, R =:= Ruleset],
     Config.
 
 find_file(Dirs, Pattern) ->
@@ -37,7 +37,7 @@ elvis_core_apply_rule(Config, Module, Function, RuleConfig, Filename) ->
     SrcDirs = elvis_config:dirs(ElvisConfig),
     {ok, File} = elvis_test_utils:find_file(SrcDirs, Filename),
     {[RulesResults], _, _} =
-        elvis_core:apply_rule({Module, Function, RuleConfig}, {[], ElvisConfig, File}),
+        elvis_core:apply_rule(elvis_rule:new(Module, Function, RuleConfig), {[], ElvisConfig, File}),
     case RulesResults of
         #{error_msg := Msg, info := Info} ->
             ct:fail(Msg, Info);

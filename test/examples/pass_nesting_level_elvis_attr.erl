@@ -1,6 +1,6 @@
 -module(pass_nesting_level_elvis_attr).
 
--elvis([{elvis_style, nesting_level, #{level => 5}}, {elvis_style, no_if_expression, disable}]).
+-elvis([{elvis_style, no_deep_nesting, #{level => 5}}, {elvis_style, no_if_expression, disable}]).
 -elvis([{elvis_text_style, line_length, #{limit => 100}}]).
 -elvis([{elvis_style, no_catch_expressions, disable}]).
 -dialyzer(no_match).
