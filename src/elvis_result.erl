@@ -167,7 +167,7 @@ get_line_num(#{line_num := LineNum}) ->
 
 -spec print_results(file() | [elvis_warn()]) -> ok.
 print_results(Results) ->
-    Format = elvis_config:from_application_or_config(output_format, colors),
+    Format = elvis_config:output_format(),
     print(Format, Results).
 
 -spec print(plain | colors | parsable, [file()] | file()) -> ok.

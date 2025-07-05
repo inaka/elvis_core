@@ -61,7 +61,7 @@ warn_prn(Message, Args) ->
 
 -spec print_info(string(), [term()]) -> ok.
 print_info(Message, Args) ->
-    case elvis_config:from_application_or_config(verbose, false) of
+    case elvis_config:verbose() of
         true ->
             print(Message, Args);
         false ->
@@ -70,7 +70,7 @@ print_info(Message, Args) ->
 
 -spec print(string(), [term()]) -> ok.
 print(Message, Args) ->
-    case elvis_config:from_application_or_config(no_output, false) of
+    case elvis_config:no_output() of
         true ->
             ok;
         _ ->
@@ -93,7 +93,7 @@ parse_colors(Message) ->
             "reset" => "\e[0m"
         },
     Opts = [global, {return, list}],
-    case elvis_config:from_application_or_config(output_format, colors) of
+    case elvis_config:output_format() of
         P when P =:= plain; P =:= parsable ->
             re:replace(Message, "{{.*?}}", "", Opts);
         colors ->
