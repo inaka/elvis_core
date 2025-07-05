@@ -33,7 +33,6 @@ start() ->
 -spec rock([elvis_config:t()]) ->
     ok | {fail, [{throw, term()} | elvis_result:file() | elvis_result:rule()]}.
 rock(ElvisConfig) ->
-    ok = elvis_config:validate(ElvisConfig),
     Results = lists:map(fun do_parallel_rock/1, ElvisConfig),
     lists:foldl(fun combine_results/2, ok, Results).
 
@@ -44,7 +43,6 @@ rock_this(Module, ElvisConfig) when is_atom(Module) ->
     Path = proplists:get_value(source, ModuleInfo),
     rock_this(Path, ElvisConfig);
 rock_this(Path, ElvisConfig) ->
-    elvis_config:validate(ElvisConfig),
     Dirname = filename:dirname(Path),
     Filename = filename:basename(Path),
     File =

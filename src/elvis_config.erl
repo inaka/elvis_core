@@ -23,10 +23,25 @@
 %%% Public
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-load_elvis(AppConfig) ->
-    ElvisConfig = proplists:get_value(elvis, AppConfig, default(elvis)),
-    elvis_ruleset:set_rulesets(proplists:get_value(rulesets, ElvisConfig, default(rulesets))),
+fetch_elvis_config(AppConfig) ->
+    ElvisConfig = from_static(elvis, {app, AppConfig}),
+    elvis_ruleset:load(from_static(rulesets, {elvis, ElvisConfig})),
     ElvisConfig.
+
+from_static(Key, {Type, Config}) ->
+    elvis_utils:output(debug, "fetching key ~p from ~p config.", [Key, Type]),
+    case proplists:get_value(Key, Config) of
+        undefined ->
+            elvis_utils:output(
+                debug, "no value for config. key ~p found in ~p config.; going with default", [
+                    Key, Type
+                ]
+            ),
+            default(Key);
+        Value ->
+            elvis_utils:output(debug, "value for config. key ~p found in ~p config.", [Key, Type]),
+            Value
+    end.
 
 config() ->
     for(config).
@@ -46,71 +61,98 @@ parallel() ->
 default(Key) ->
     case application:get_env(elvis_core, Key) of
         undefined ->
+            elvis_utils:output(
+                debug,
+                "no value for config. key ~p found in application env.; going with default",
+                [Key]
+            ),
             default_for(Key);
         {ok, Value} ->
+            elvis_utils:output(debug, "value for config. key ~p found in application env.", [Key]),
             Value
     end.
 
 for(Key) ->
+    ElvisDefault = default_for(elvis),
     AppConfig =
-        case consult_elvis_config(default) of
-            [] ->
-                consult_rebar_config(default);
+        case consult_elvis_config("elvis.config") of
+            ElvisDefault ->
+                % This might happen whether we fail to parse the fail or it actually is []
+                elvis_utils:output(
+                    debug, "elvis.config unusable; falling back to rebar.config", []
+                ),
+                consult_rebar_config("rebar.config");
             AppConfig0 ->
                 AppConfig0
         end,
-    TopLevelCfg = load_elvis(AppConfig),
-    proplists:get_value(Key, TopLevelCfg, default(Key)).
+    ElvisConfig = fetch_elvis_config(AppConfig),
+    from_static(Key, {elvis, ElvisConfig}).
 
-consult_elvis_config(File0) ->
-    File =
-        case File0 of
-            default ->
-                "elvis.config";
-            _ ->
-                File0
-        end,
+consult_elvis_config(File) ->
     case file:consult(File) of
         {ok, [AppConfig]} ->
+            elvis_utils:output(debug, "elvis.config usable; using it", []),
             AppConfig;
         _ ->
-            []
+            elvis_utils:output(debug, "elvis.config unusable", []),
+            default_for(elvis)
     end.
 
-consult_rebar_config(File0) ->
-    File =
-        case File0 of
-            default ->
-                "rebar.config";
-            _ ->
-                File0
-        end,
+consult_rebar_config(File) ->
     case file:consult(File) of
         {ok, AppConfig0} ->
+            elvis_utils:output(debug, "rebar.config usable; using it", []),
             AppConfig0;
         _ ->
-            []
+            elvis_utils:output(debug, "rebar.config unusable", []),
+            default_for(elvis)
     end.
 
 from_rebar(File) ->
     RebarConfig = consult_rebar_config(File),
-    TopLevelCfg = load_elvis(RebarConfig),
-    Key = config,
-    proplists:get_value(Key, TopLevelCfg, default(Key)).
+    ElvisConfig = fetch_elvis_config(RebarConfig),
+    from_static(config, {elvis, ElvisConfig}).
 
 from_file(File) ->
     FileConfig = consult_elvis_config(File),
-    TopLevelCfg = load_elvis(FileConfig),
-    Key = config,
-    proplists:get_value(Key, TopLevelCfg, default(Key)).
+    ElvisConfig = fetch_elvis_config(FileConfig),
+    from_static(config, {elvis, ElvisConfig}).
 
-default_for(elvis) -> [];
-default_for(config) -> [];
-default_for(output_format) -> colors;
-default_for(verbose) -> false;
-default_for(no_output) -> false;
-default_for(parallel) -> 1;
-default_for(rulesets) -> #{}.
+default_for(elvis) ->
+    [];
+default_for(config) ->
+    [
+        #{
+            dirs => ["apps/*/src/**", "src/**"],
+            filter => "*.erl",
+            ruleset => erl_files
+        },
+        #{
+            dirs => ["."],
+            filter => "rebar.config",
+            ruleset => rebar_config
+        },
+        #{
+            dirs => ["."],
+            filter => ".gitignore",
+            ruleset => gitignore
+        },
+        #{
+            dirs => ["."],
+            filter => "elvis.config",
+            ruleset => elvis_config
+        }
+    ];
+default_for(output_format) ->
+    colors;
+default_for(verbose) ->
+    false;
+default_for(no_output) ->
+    false;
+default_for(parallel) ->
+    1;
+default_for(rulesets) ->
+    #{}.
 
 -spec validate(Config :: [t()]) -> [validation_error()].
 validate([]) ->
@@ -344,35 +386,37 @@ is_rule_override(Rule, UserRules) ->
         UserRules
     ).
 
-flag_validated(Option) ->
-    Table = table(),
-    _ = create_table(Table),
-    Obj = validated_flag(Option),
-    ets:insert(Table, Obj).
-
-is_validated(Option) ->
-    Table = table(),
-    case table_exists(Table) of
-        false ->
-            false;
-        _ ->
-            Obj = validated_flag(Option),
-            ets:lookup(Table, Option) =:= [Obj]
-    end.
-
-validated_flag(Option) ->
-    {Option, validated}.
-
-create_table(Table) ->
-    case table_exists(Table) of
-        false ->
-            _ = ets:new(Table, [public, named_table]);
-        _ ->
-            ok
-    end.
-
-table() ->
-    ?MODULE.
-
-table_exists(Table) ->
-    ets:info(Table) =/= undefined.
+%flag_validated(Option) ->
+%    Table = table(),
+%    _ = create_table(Table),
+%    Obj = validated_flag(Option),
+%    ets:insert(Table, Obj).
+%
+%is_validated(Option) ->
+%    Table = table(),
+%    case table_exists(Table) of
+%        false ->
+%            false;
+%        _ ->
+%            Obj = validated_flag(Option),
+%            ets:lookup(Table, Option) =:= [Obj]
+%    end.
+%
+%validated_flag(Option) ->
+%    {Option, validated}.
+%
+%create_table(Table) ->
+%    case table_exists(Table) of
+%        false ->
+%            _ = ets:new(Table, [public, named_table]);
+%        _ ->
+%            ok
+%    end.
+%
+%table() ->
+%    ?MODULE.
+%
+%table_exists(Table) ->
+%    ets:info(Table) =/= undefined.
+%
+%-spec default_config() -> [t()].
