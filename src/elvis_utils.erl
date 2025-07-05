@@ -6,6 +6,8 @@
 -export([erlang_halt/1, to_str/1, split_all_lines/1, split_all_lines/2]).
 %% Output
 -export([info/2, notice/2, error/2, error_prn/2, warn_prn/2]).
+%% rebar3
+-export([output/3, abort/2]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Public
@@ -111,3 +113,15 @@ escape_format_str(String) ->
     Result = re:replace(Binary, "[^~]~", "~~", [global]),
     ResultBin = iolist_to_binary(Result),
     binary_to_list(ResultBin).
+
+-dialyzer({nowarn_function, output/3}).
+-spec output(debug | info, Format :: io:format(), Data :: [term()]) -> ok.
+output(debug, Format, Data) ->
+    rebar_api:debug("Elvis: " ++ Format, Data);
+output(info, Format, Data) ->
+    rebar_api:info("Elvis: " ++ Format, Data).
+
+-dialyzer({nowarn_function, abort/2}).
+-spec abort(Format :: io:format(), Data :: [term()]) -> no_return().
+abort(Format, Data) ->
+    rebar_api:abort("Elvis: " ++ Format, [Data]).

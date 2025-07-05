@@ -2,18 +2,28 @@
 
 -format(#{inline_items => none}).
 
--export([rules/1, set_rulesets/1]).
+-export([rules/1, load/1]).
 
--spec set_rulesets(#{atom() => list()}) -> ok.
-set_rulesets(Rulesets) ->
-    Tid = ensure_clean_table(),
-    lists:foreach(
-        fun({Ruleset, NSNameDefs}) ->
-            Rules = [elvis_rule:from_tuple(NSNameDef) || NSNameDef <- NSNameDefs],
-            true = ets:insert(Tid, {Ruleset, Rules})
-        end,
-        maps:to_list(Rulesets)
-    ).
+-ifdef(TEST).
+-export([drop_custom/0]).
+-endif.
+
+-spec load(#{atom() => list()}) -> ok.
+load(Rulesets) ->
+    {Existed, Tid} = ensure_table(),
+    case Existed of
+        false ->
+            elvis_utils:output(debug, "loading custom rulesets into state", []),
+            lists:foreach(
+                fun({Ruleset, NSNameDefs}) ->
+                    Rules = [elvis_rule:from_tuple(NSNameDef) || NSNameDef <- NSNameDefs],
+                    true = ets:insert(Tid, {Ruleset, Rules})
+                end,
+                maps:to_list(Rulesets)
+            );
+        true ->
+            ok
+    end.
 
 -spec rules(Group :: atom()) -> [elvis_rule:t()].
 rules(gitignore) ->
@@ -35,21 +45,31 @@ rules(rebar_config) ->
 rules(erl_files_test) ->
     erl_files_test_rules();
 rules(Group) ->
-    try
-        ets:lookup_element(?MODULE, Group, 2)
-    catch
-        error:badarg ->
+    Table = table(),
+    case ets:lookup(Table, Group) of
+        [{Group, Rules}] ->
+            Rules;
+        _ ->
             []
     end.
 
-ensure_clean_table() ->
-    case ets:info(?MODULE) of
+ensure_table() ->
+    Table = table(),
+    case ets:info(Table) of
         undefined ->
-            ets:new(?MODULE, [set, named_table, {keypos, 1}, public]);
+            {false, ets:new(Table, [set, named_table, {keypos, 1}, public])};
         _ ->
-            true = ets:delete_all_objects(?MODULE),
-            ?MODULE
+            {true, Table}
     end.
+
+table() ->
+    ?MODULE.
+
+-ifdef(TEST).
+drop_custom() ->
+    Table = table(),
+    ets:delete(Table).
+-endif.
 
 gitignore_rules() ->
     [
