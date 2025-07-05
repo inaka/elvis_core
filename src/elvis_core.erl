@@ -76,7 +76,7 @@ rock_this(Path, ElvisConfig) ->
     ok
     | {fail, [{throw, term()} | elvis_result:file() | elvis_result:rule()]}.
 do_parallel_rock(ElvisConfig0) ->
-    Parallel = elvis_config:from_application_or_config(parallel, 1),
+    Parallel = elvis_config:parallel(),
     ElvisConfig = elvis_config:resolve_files(ElvisConfig0),
     Files = elvis_config:files(ElvisConfig),
 
@@ -126,7 +126,7 @@ load_file_data(ElvisConfig, File) ->
 main([]) ->
     ok = application:load(elvis_core),
     {module, _} = code:ensure_loaded(elvis_style),
-    case rock(elvis_config:from_file("elvis.config")) of
+    case rock(elvis_config:config()) of
         ok -> true;
         _ -> halt(1)
     end.
