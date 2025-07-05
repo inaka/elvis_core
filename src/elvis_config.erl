@@ -2,12 +2,7 @@
 
 -feature(maybe_expr, enable).
 
--export([
-    from_rebar/1,
-    from_file/1,
-    from_application_or_config/2,
-    validate/1
-]).
+-export([from_rebar/1, from_file/1, validate/1]).
 %% Geters
 -export([dirs/1, ignore/1, filter/1, files/1, rules/1]).
 %% Files
@@ -15,63 +10,114 @@
 %% Rules
 -export([merge_rules/2]).
 
--export_type([t/0]).
+%% Options
+-export([config/0, output_format/0, verbose/0, no_output/0, parallel/0]).
 
 -type t() :: map().
+-export_type([t/0]).
+
+-type validation_error() :: empty_config.
+-export_type([validation_error/0]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Public
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec from_rebar(string()) -> [t()].
-from_rebar(Path) ->
-    case file:consult(Path) of
-        {ok, AppConfig} ->
-            load(config, load_initial(AppConfig), []);
-        {error, Reason} ->
-            throw(Reason)
-    end.
-
--spec from_file(string()) -> [t()].
-from_file(Path) ->
-    from_file(Path, config, []).
-
--spec from_file(string(), atom(), term()) -> [t()].
-from_file(Path, Key, Default) ->
-    case file:consult(Path) of
-        {ok, [AppConfig]} ->
-            load(Key, load_initial(AppConfig), Default);
-        {error, {_Line, _Mod, _Term} = Reason} ->
-            throw(Reason);
-        {error, _Reason} ->
-            Default
-    end.
-
--spec from_application_or_config(atom(), term()) -> term().
-from_application_or_config(Key, Default) ->
-    case application:get_env(elvis_core, Key) of
-        {ok, Value} ->
-            Value;
-        _ ->
-            from_file("elvis.config", Key, Default)
-    end.
-
--spec load(atom(), term(), term()) -> [t()].
-load(Key, ElvisConfig, Default) ->
-    proplists:get_value(Key, ElvisConfig, Default).
-
--spec load_initial(term()) -> [term()].
-load_initial(AppConfig) ->
-    ElvisConfig = proplists:get_value(elvis, AppConfig, []),
-    RulesetsConfig = proplists:get_value(rulesets, ElvisConfig, #{}),
-    elvis_ruleset:set_rulesets(RulesetsConfig),
+load_elvis(AppConfig) ->
+    ElvisConfig = proplists:get_value(elvis, AppConfig, default(elvis)),
+    elvis_ruleset:set_rulesets(proplists:get_value(rulesets, ElvisConfig, default(rulesets))),
     ElvisConfig.
 
--spec validate(Config :: [t()]) -> ok.
+config() ->
+    for(config).
+
+output_format() ->
+    for(output_format).
+
+verbose() ->
+    for(verbose).
+
+no_output() ->
+    for(no_output).
+
+parallel() ->
+    for(parallel).
+
+default(Key) ->
+    case application:get_env(elvis_core, Key) of
+        undefined ->
+            default_for(Key);
+        {ok, Value} ->
+            Value
+    end.
+
+for(Key) ->
+    AppConfig =
+        case consult_elvis_config(default) of
+            [] ->
+                consult_rebar_config(default);
+            AppConfig0 ->
+                AppConfig0
+        end,
+    TopLevelCfg = load_elvis(AppConfig),
+    proplists:get_value(Key, TopLevelCfg, default(Key)).
+
+consult_elvis_config(File0) ->
+    File =
+        case File0 of
+            default ->
+                "elvis.config";
+            _ ->
+                File0
+        end,
+    case file:consult(File) of
+        {ok, [AppConfig]} ->
+            AppConfig;
+        _ ->
+            []
+    end.
+
+consult_rebar_config(File0) ->
+    File =
+        case File0 of
+            default ->
+                "rebar.config";
+            _ ->
+                File0
+        end,
+    case file:consult(File) of
+        {ok, AppConfig0} ->
+            AppConfig0;
+        _ ->
+            []
+    end.
+
+from_rebar(File) ->
+    RebarConfig = consult_rebar_config(File),
+    TopLevelCfg = load_elvis(RebarConfig),
+    Key = config,
+    proplists:get_value(Key, TopLevelCfg, default(Key)).
+
+from_file(File) ->
+    FileConfig = consult_elvis_config(File),
+    TopLevelCfg = load_elvis(FileConfig),
+    Key = config,
+    proplists:get_value(Key, TopLevelCfg, default(Key)).
+
+default_for(elvis) -> [];
+default_for(config) -> [];
+default_for(output_format) -> colors;
+default_for(verbose) -> false;
+default_for(no_output) -> false;
+default_for(parallel) -> 1;
+default_for(rulesets) -> #{}.
+
+-spec validate(Config :: [t()]) -> [validation_error()].
 validate([]) ->
-    throw({invalid_config, empty_config});
+    [empty_config];
 validate(Config) ->
-    lists:foreach(fun do_validate/1, Config).
+    lists:foreach(fun do_validate/1, Config),
+    [].
 
 do_validate(RuleGroup) ->
     maybe
