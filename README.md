@@ -37,19 +37,28 @@ Once this is done you can apply the style rules in the following ways.
 #### Loading configuration from a file
 
 ```shell
-1> ElvisConfig = elvis_config:from_file("elvis.config").
+1> ElvisConfig = elvis_config:config().
 <loaded_config>
 2> elvis_core:rock(ElvisConfig).
+Loading src/elvis_code.erl
+# src/elvis_code.erl [OK]
+Loading src/elvis_config.erl
+# src/elvis_config.erl [OK]
+Loading src/elvis_core.erl
 # src/elvis_core.erl [OK]
-# src/elvis_result.erl [OK]
-# src/elvis_style.erl [OK]
-# src/elvis_utils.erl [OK]
+Loading src/elvis_file.erl
+# src/elvis_file.erl [OK]
+...
 ok
 3>
 ```
 
 This will load the [configuration](#configuration), specified in file `elvis.config`, from the
-current directory. If no configuration is found `{invalid_config, _}` is thrown.
+current directory.
+
+If `elvis.config` is not present, the application will fall back to searching for configuration
+parameters in `rebar.config`. If `rebar.config` is also unavailable, the application proceeds to
+perform a tertiary lookup within the `app/sys.config` file for the required settings.
 
 #### Providing configuration as a value
 
@@ -60,14 +69,15 @@ an argument to `elvis_core:rock/1`:
 1> ElvisConfig = [#{dirs => ["src"], filter => "*.erl", rules => []}].
 [#{dirs => ["src"],filter => "*.erl",rules => []}]
 2> elvis_core:rock(ElvisConfig).
+Loading src/elvis_code.erl
+# src/elvis_code.erl [OK]
+Loading src/elvis_config.erl
+# src/elvis_config.erl [OK]
 Loading src/elvis_core.erl
 # src/elvis_core.erl [OK]
-Loading src/elvis_result.erl
-# src/elvis_result.erl [OK]
-Loading src/elvis_style.erl
-# src/elvis_style.erl [OK]
-Loading src/elvis_utils.erl
-# src/elvis_utils.erl [OK]
+Loading src/elvis_file.erl
+# src/elvis_file.erl [OK]
+...
 ok
 3>
 ```
