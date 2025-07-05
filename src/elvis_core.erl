@@ -31,35 +31,20 @@ start() ->
     ok.
 
 -spec rock([elvis_config:t()]) ->
-    ok | {fail, [FailThrow | FailFile | FailRules | FailInvalid]}
-when
-    FailThrow :: {throw, term()},
-    FailFile :: elvis_result:file(),
-    FailRules :: elvis_result:rule(),
-    FailInvalid :: {elvis_config, [elvis_config:validation_error()]}.
+    ok | {fail, [{throw, term()} | elvis_result:file() | elvis_result:rule()]}.
 rock(ElvisConfig) ->
-    _IsValid = elvis_config:validate(ElvisConfig),
-    continue_to_rock({_StopOnErrors = false, []}, ElvisConfig).
-
-continue_to_rock({false = _StopOnErrors, _Errors}, ElvisConfig) ->
+    ok = elvis_config:validate(ElvisConfig),
     Results = lists:map(fun do_parallel_rock/1, ElvisConfig),
     lists:foldl(fun combine_results/2, ok, Results).
 
 -spec rock_this(target(), [elvis_config:t()]) ->
-    ok | {fail, [FailFile | FailRule | FailInvalid]}
-when
-    FailFile :: elvis_result:file(),
-    FailRule :: elvis_result:rule(),
-    FailInvalid :: {throw, {elvis_config, [elvis_config:validation_error()]}}.
+    ok | {fail, [elvis_result:file() | elvis_result:rule()]}.
 rock_this(Module, ElvisConfig) when is_atom(Module) ->
     ModuleInfo = Module:module_info(compile),
     Path = proplists:get_value(source, ModuleInfo),
     rock_this(Path, ElvisConfig);
 rock_this(Path, ElvisConfig) ->
-    _IsValid = elvis_config:validate(ElvisConfig),
-    continue_to_rock_this({_StopOnErrors = false, []}, Path, ElvisConfig).
-
-continue_to_rock_this({false = _StopOnErrors, _Errors}, Path, ElvisConfig) ->
+    elvis_config:validate(ElvisConfig),
     Dirname = filename:dirname(Path),
     Filename = filename:basename(Path),
     File =
