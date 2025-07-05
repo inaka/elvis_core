@@ -343,3 +343,36 @@ is_rule_override(Rule, UserRules) ->
         end,
         UserRules
     ).
+
+flag_validated(Option) ->
+    Table = table(),
+    _ = create_table(Table),
+    Obj = validated_flag(Option),
+    ets:insert(Table, Obj).
+
+is_validated(Option) ->
+    Table = table(),
+    case table_exists(Table) of
+        false ->
+            false;
+        _ ->
+            Obj = validated_flag(Option),
+            ets:lookup(Table, Option) =:= [Obj]
+    end.
+
+validated_flag(Option) ->
+    {Option, validated}.
+
+create_table(Table) ->
+    case table_exists(Table) of
+        false ->
+            _ = ets:new(Table, [public, named_table]);
+        _ ->
+            ok
+    end.
+
+table() ->
+    ?MODULE.
+
+table_exists(Table) ->
+    ets:info(Table) =/= undefined.
