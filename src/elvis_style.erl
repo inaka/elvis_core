@@ -259,7 +259,7 @@ default(numeric_format) ->
         regex => ".*",
         int_regex => same,
         float_regex => same
-    };
+    });
 default(guard_operators) ->
     elvis_rule:defmap(#{
         preferred_syntax => per_expression
@@ -1943,12 +1943,12 @@ behaviour_spelling(Rule, ElvisConfig) ->
      || BehaviourNode <- BehaviourNodes
     ].
 
-guard_operators(RuleCfg) ->
-    case option(preferred_syntax, RuleCfg, ?FUNCTION_NAME) of
+guard_operators(Rule, ElvisConfig) ->
+    case elvis_rule:option(preferred_syntax, Rule) of
         per_expression ->
             {zippers, GuardedClauseZippers} = elvis_code:find(#{
                 of_types => [clause],
-                inside => elvis_code:root(RuleCfg),
+                inside => elvis_code:root(Rule, ElvisConfig),
                 filtered_by =>
                     fun(ClauseZipper) ->
                         ClauseNode = zipper:node(ClauseZipper),
@@ -1962,20 +1962,20 @@ guard_operators(RuleCfg) ->
                     zipper:node(zipper:up(GuardedClauseZipper))
                  || GuardedClauseZipper <- GuardedClauseZippers
                 ],
-            guard_operators(per_expression, GuardedExpressionNodes);
+            check_guard_operators(per_expression, GuardedExpressionNodes);
         PreferredSyntax ->
             {nodes, GuardedClauseNodes} = elvis_code:find(#{
                 of_types => [clause],
-                inside => elvis_code:root(RuleCfg),
+                inside => elvis_code:root(Rule, ElvisConfig),
                 filtered_by =>
                     fun(ClauseNode) ->
                         [] =/= ktn_code:node_attr(guards, ClauseNode)
                     end
             }),
-            guard_operators(PreferredSyntax, GuardedClauseNodes)
+            check_guard_operators(PreferredSyntax, GuardedClauseNodes)
     end.
 
-guard_operators(punctuation, ClauseNodes) ->
+check_guard_operators(punctuation, ClauseNodes) ->
     [
         elvis_result:new_item(
             "an unexpected shortcircuit operator was found; prefer ; or ,",
@@ -1985,7 +1985,7 @@ guard_operators(punctuation, ClauseNodes) ->
      || ClauseNode <- ClauseNodes,
         has_guard_defined_with_words(ClauseNode)
     ];
-guard_operators(words, ClauseNodes) ->
+check_guard_operators(words, ClauseNodes) ->
     [
         elvis_result:new_item(
             "one or more unexpected punctutation operators were found; prefer andalso or orelse",
@@ -1995,7 +1995,7 @@ guard_operators(words, ClauseNodes) ->
      || ClauseNode <- ClauseNodes,
         has_guard_defined_with_punctuation(ClauseNode)
     ];
-guard_operators(per_clause, ClauseNodes) ->
+check_guard_operators(per_clause, ClauseNodes) ->
     [
         elvis_result:new_item(
             "an unexpected combination of punctuation and shortcircuit operators was found",
@@ -2006,7 +2006,7 @@ guard_operators(per_clause, ClauseNodes) ->
         has_guard_defined_with_punctuation(ClauseNode),
         has_guard_defined_with_words(ClauseNode)
     ];
-guard_operators(per_expression, ExpressionNodes) ->
+check_guard_operators(per_expression, ExpressionNodes) ->
     lists:uniq([
         elvis_result:new_item(
             "an unexpected combination of punctuation and shortcircuit operators was found",
