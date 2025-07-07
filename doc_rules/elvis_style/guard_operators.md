@@ -50,12 +50,12 @@ Choosing a specific guard operator style enhances consistency across your codeba
 
 ## Options
 
-- `preferred_syntax :: punctuation | words | per_expression | per_guard`
+- `preferred_syntax :: punctuation | words | per_expression | per_clause`
   - default: `per_expression`
   - `punctuation` - always use `,` or `;`.
   - `words` - always use `andalso` or `orelse`.
   - `per_expression` - do not mix _words_ and _punctuation_ in an expression.
-  - `per_guard` - do not mix _words_ and _punctuation_ in a guard.
+  - `per_clause` - do not mix _words_ and _punctuation_ in a guard.
 
 ## Example configurations
 
@@ -106,7 +106,7 @@ This configuration will emit a warning for:
 - clauses 2 and 3 in the first expression
 
 ```erlang
-{elvis_style, guard_operators, #{ preferred_syntax => per_guard }}
+{elvis_style, guard_operators, #{ preferred_syntax => per_clause }}
 ```
 
 This configuration  will emit a warning for:

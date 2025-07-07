@@ -26,9 +26,9 @@ case_clauses() ->
             Y when Y == c; Y == d; Y >= 10 -> {clause, 3}
         end,
         case third:expression() of
-            Z when Z == a orelse Z =< 10 -> {clause, 1};
-            Z when Z == b orelse Z == 10 -> {clause, 2};
-            Z when Z == c orelse Z == d orelse Z >= 10 -> {clause, 3}
+            Z when Z == a andalso Z =< 10 -> {clause, 1};
+            Z when Z == b andalso Z == 10 -> {clause, 2};
+            Z when Z == c andalso Z == d andalso Z >= 10 -> {clause, 3}
         end
     }.
 
@@ -51,9 +51,9 @@ else_clauses() ->
         maybe
             third:expression()
         else
-            Z when Z == a orelse Z =< 10 -> {clause, 1};
-            Z when Z == b orelse Z == 10 -> {clause, 2};
-            Z when Z == c orelse Z == d orelse Z >= 10 -> {clause, 3}
+            Z when Z == a or (Z =< 10) -> {clause, 1};
+            Z when Z == b or (Z == 10) -> {clause, 2};
+            Z when Z == c or (Z == d) or (Z >= 10) -> {clause, 3}
         end
     }.
 
@@ -63,9 +63,9 @@ function_clauses_first(X) when (X == c orelse X == d); X >= 10 -> {clause, 3}.
 function_clauses_second(Y) when Y == a; Y =< 10 -> {clause, 1};
 function_clauses_second(Y) when Y == b; Y == 10 -> {clause, 2};
 function_clauses_second(Y) when Y == c; Y == d; Y >= 10 -> {clause, 3}.
-function_clauses_third(Z) when Z == a orelse Z =< 10 -> {clause, 1};
-function_clauses_third(Z) when Z == b orelse Z == 10 -> {clause, 2};
-function_clauses_third(Z) when Z == c orelse Z == d orelse Z >= 10 -> {clause, 3}.
+function_clauses_third(Z) when Z == a and (Z =< 10) -> {clause, 1};
+function_clauses_third(Z) when Z == b and (Z == 10) -> {clause, 2};
+function_clauses_third(Z) when Z == c and (Z == d) and (Z >= 10) -> {clause, 3}.
 
 fun_clauses() ->
     {

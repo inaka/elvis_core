@@ -2465,23 +2465,23 @@ verify_guard_operators(Config) ->
         Config, elvis_style, guard_operators, #{preferred_syntax => words}, FailPath
     ),
     PerExpression = elvis_test_utils:elvis_core_apply_rule(
-        Config, elvis_style, guard_operators, #{preferred_syntax => per_expresssion}, FailPath
+        Config, elvis_style, guard_operators, #{preferred_syntax => per_expression}, FailPath
     ),
     PerGuard = elvis_test_utils:elvis_core_apply_rule(
-        Config, elvis_style, guard_operators, #{preferred_syntax => per_guard}, FailPath
+        Config, elvis_style, guard_operators, #{preferred_syntax => per_clause}, FailPath
     ),
     Default = elvis_test_utils:elvis_core_apply_rule(
         Config, elvis_style, guard_operators, #{}, FailPath
     ),
     case Group of
         beam_files ->
-            [ _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
-              _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _ ] = Punctuation,
+            [ _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
+              _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _ ] = Punctuation,
             [ _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _,
               _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _ ] = Words,
             true = Punctuation =/= Words,
-            [_, _, _, _, _, _, _, _] = PerExpression,
             [_, _, _, _, _, _, _, _] = PerGuard,
+            [_, _, _, _, _, _, _, _] = PerExpression,
             true = PerExpression =/= PerGuard;
         erl_files ->
             [
@@ -2492,14 +2492,8 @@ verify_guard_operators(Config) ->
                 #{line_num := 31},
                 #{line_num := 41},
                 #{line_num := 42},
-                #{line_num := 54},
-                #{line_num := 55},
-                #{line_num := 56},
                 #{line_num := 61},
                 #{line_num := 62},
-                #{line_num := 66},
-                #{line_num := 67},
-                #{line_num := 68},
                 #{line_num := 74},
                 #{line_num := 75},
                 #{line_num := 83},
@@ -2549,9 +2543,9 @@ verify_guard_operators(Config) ->
                 #{line_num := 80},
                 #{line_num := 92},
                 #{line_num := 94},
-                #{line_num := 102},
-                #{line_num := 103},
-                #{line_num := 104},
+                #{line_num := 97},
+                #{line_num := 98},
+                #{line_num := 99},
                 #{line_num := 111},
                 #{line_num := 113},
                 #{line_num := 116},
@@ -2570,16 +2564,6 @@ verify_guard_operators(Config) ->
             ] = Words,
             true = Punctuation =/= Words,
             [
-                #{line_num := 18},
-                #{line_num := 37},
-                #{line_num := 60},
-                #{line_num := 72},
-                #{line_num := 91},
-                #{line_num := 110},
-                #{line_num := 129},
-                #{line_num := 154}
-            ] = PerExpression,
-            [
                 #{line_num := 21},
                 #{line_num := 42},
                 #{line_num := 62},
@@ -2589,6 +2573,16 @@ verify_guard_operators(Config) ->
                 #{line_num := 132},
                 #{line_num := 159}
             ] = PerGuard,
+            [
+                #{line_num := 18},
+                #{line_num := 39},
+                #{line_num := 60},
+                #{line_num := 72},
+                #{line_num := 91},
+                #{line_num := 110},
+                #{line_num := 129},
+                #{line_num := 154}
+            ] = PerExpression,
             true = PerExpression =/= PerGuard
     end,
     PerExpression = Default.
