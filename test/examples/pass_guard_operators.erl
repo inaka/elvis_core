@@ -1,5 +1,7 @@
 -module(pass_guard_operators).
 
+-feature(maybe_expr, enable).
+
 -export([
     case_clauses/0,
     else_clauses/0,
