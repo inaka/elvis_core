@@ -23,6 +23,7 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [Don't Repeat Yourself](doc_rules/elvis_style/dont_repeat_yourself.md)
 - [Export Used Types](doc_rules/elvis_style/export_used_types.md)
 - [Function Naming Convention](doc_rules/elvis_style/function_naming_convention.md)
+- [Generic Type](doc_rules/elvis_style/generic_type.md)
 - [Guard Operators](doc_rules/elvis_style/guard_operators.md)
 - [Include `ms_transform` for `ets:fun2ms/1`](doc_rules/elvis_style/ms_transform_included.md)
 - [Line Length](doc_rules/elvis_text_style/line_length.md)
@@ -102,10 +103,10 @@ rulesets in the configuration file.
 
 The six pre-defined rulesets are:
 
-- `erl_files`, for Erlang source files (pre-defined rule set).
+- `erl_files`, for Erlang source files (pre-defined ruleset).
 - `erl_files_strict`, for Erlang source files (all applicable rules).
 - `gitignore`, for `.gitignore` files.
-- `hrl_files`, for Erlang header files (pre-defined rule set).
+- `hrl_files`, for Erlang header files (pre-defined ruleset).
 - `hrl_files_strict`, for Erlang header files (all applicable rules).
 - `rebar_config`, for rebar configuration files.
 
