@@ -2028,7 +2028,8 @@ check_guard_operators(per_expression, ExpressionNodes) ->
                 })
     ]).
 
-%% @doc If guards are joined by ; or guard-expressions are joined by , ktn_code reports them as lists of lists.
+%% @doc If guards are joined by ; or guard-expressions are joined by , ktn_code reports them
+%%      as lists of lists.
 %%      If they only use words, then we just have [[#{type := op, attrs := #{operation = '...'}}]]
 has_guard_defined_with_punctuation(ClauseNode) ->
     length(ktn_code:node_attr(guards, ClauseNode)) > 1 orelse
