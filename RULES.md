@@ -24,6 +24,7 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [Export Used Types](doc_rules/elvis_style/export_used_types.md)
 - [Function Naming Convention](doc_rules/elvis_style/function_naming_convention.md)
 - [Generic Type](doc_rules/elvis_style/generic_type.md)
+- [Guard Operators](doc_rules/elvis_style/guard_operators.md)
 - [Include `ms_transform` for `ets:fun2ms/1`](doc_rules/elvis_style/ms_transform_included.md)
 - [Line Length](doc_rules/elvis_text_style/line_length.md)
 - [Macro Module Names - *deprecated*](doc_rules/elvis_style/macro_module_names.md)

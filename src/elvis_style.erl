@@ -56,7 +56,8 @@
     ms_transform_included/2,
     no_boolean_in_comparison/2,
     no_operation_on_same_value/2,
-    no_receive_without_timeout/2
+    no_receive_without_timeout/2,
+    guard_operators/2
 ]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -258,6 +259,10 @@ default(numeric_format) ->
         regex => ".*",
         int_regex => same,
         float_regex => same
+    });
+default(guard_operators) ->
+    elvis_rule:defmap(#{
+        preferred_syntax => per_expression
     });
 default(behaviour_spelling) ->
     elvis_rule:defmap(#{
@@ -1937,6 +1942,110 @@ behaviour_spelling(Rule, ElvisConfig) ->
         )
      || BehaviourNode <- BehaviourNodes
     ].
+
+guard_operators(Rule, ElvisConfig) ->
+    case elvis_rule:option(preferred_syntax, Rule) of
+        per_expression ->
+            {zippers, GuardedClauseZippers} = elvis_code:find(#{
+                of_types => [clause],
+                inside => elvis_code:root(Rule, ElvisConfig),
+                filtered_by =>
+                    fun(ClauseZipper) ->
+                        ClauseNode = zipper:node(ClauseZipper),
+                        [] =/= ktn_code:node_attr(guards, ClauseNode)
+                    end,
+                filtered_from => zipper,
+                traverse => all
+            }),
+            GuardedExpressionNodes =
+                [
+                    zipper:node(zipper:up(GuardedClauseZipper))
+                 || GuardedClauseZipper <- GuardedClauseZippers
+                ],
+            check_guard_operators(per_expression, GuardedExpressionNodes);
+        PreferredSyntax ->
+            {nodes, GuardedClauseNodes} = elvis_code:find(#{
+                of_types => [clause],
+                inside => elvis_code:root(Rule, ElvisConfig),
+                filtered_by =>
+                    fun(ClauseNode) ->
+                        [] =/= ktn_code:node_attr(guards, ClauseNode)
+                    end
+            }),
+            check_guard_operators(PreferredSyntax, GuardedClauseNodes)
+    end.
+
+check_guard_operators(punctuation, ClauseNodes) ->
+    [
+        elvis_result:new_item(
+            "an unexpected shortcircuit operator was found; prefer ; or ,",
+            [],
+            #{node => ClauseNode}
+        )
+     || ClauseNode <- ClauseNodes,
+        has_guard_defined_with_words(ClauseNode)
+    ];
+check_guard_operators(words, ClauseNodes) ->
+    [
+        elvis_result:new_item(
+            "one or more unexpected punctutation operators were found; prefer andalso or orelse",
+            [],
+            #{node => ClauseNode}
+        )
+     || ClauseNode <- ClauseNodes,
+        has_guard_defined_with_punctuation(ClauseNode)
+    ];
+check_guard_operators(per_clause, ClauseNodes) ->
+    [
+        elvis_result:new_item(
+            "an unexpected combination of punctuation and shortcircuit operators was found",
+            [],
+            #{node => ClauseNode}
+        )
+     || ClauseNode <- ClauseNodes,
+        has_guard_defined_with_punctuation(ClauseNode),
+        has_guard_defined_with_words(ClauseNode)
+    ];
+check_guard_operators(per_expression, ExpressionNodes) ->
+    lists:uniq([
+        elvis_result:new_item(
+            "an unexpected combination of punctuation and shortcircuit operators was found",
+            [],
+            #{node => ExpressionNode}
+        )
+     || ExpressionNode <- ExpressionNodes,
+        {nodes, []} =/=
+            elvis_code:find(#{
+                of_types => [clause],
+                inside => ExpressionNode,
+                filtered_by => fun has_guard_defined_with_punctuation/1
+            }) andalso
+            {nodes, []} =/=
+                elvis_code:find(#{
+                    of_types => [clause],
+                    inside => ExpressionNode,
+                    filtered_by => fun has_guard_defined_with_words/1
+                })
+    ]).
+
+%% @doc If guards are joined by ; or guard-expressions are joined by , ktn_code reports them
+%%      as lists of lists.
+%%      If they only use words, then we just have [[#{type := op, attrs := #{operation = '...'}}]]
+has_guard_defined_with_punctuation(ClauseNode) ->
+    length(ktn_code:node_attr(guards, ClauseNode)) > 1 orelse
+        length(hd(ktn_code:node_attr(guards, ClauseNode))) > 1.
+
+has_guard_defined_with_words(ClauseNode) ->
+    [] =/=
+        [
+            GuardExpression
+         || Guard <- ktn_code:node_attr(guards, ClauseNode),
+            GuardExpression <- Guard,
+            op == ktn_code:type(GuardExpression),
+            lists:member(ktn_code:attr(operation, GuardExpression), [
+                'and', 'or', 'andalso', 'orelse'
+            ])
+        ].
 
 param_pattern_matching(Rule, ElvisConfig) ->
     Side = elvis_rule:option(side, Rule),
