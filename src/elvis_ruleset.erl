@@ -153,7 +153,13 @@ elvis_style_rules() ->
     ].
 
 erl_files_test_rules() ->
-    elvis_style_rules() -- [{elvis_style, dont_repeat_yourself}].
+    without_rules(
+        [
+            {elvis_style, dont_repeat_yourself},
+            {elvis_style, god_modules}
+        ],
+        elvis_style_rules()
+    ).
 
 elvis_text_style_rules() ->
     [
@@ -219,3 +225,9 @@ elvis_config_rules() ->
     [
         {elvis_project, old_configuration_format}
     ].
+
+-spec without_rules(Exceptions, Rules) -> Rules when
+    Exceptions :: [{atom(), atom()}],
+    Rules :: [{atom(), atom()}].
+without_rules(Exceptions, Rules) ->
+    Rules -- Exceptions.
