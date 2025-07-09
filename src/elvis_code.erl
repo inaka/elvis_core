@@ -2,15 +2,9 @@
 
 %% General
 -export([
-    find/2,
-    find/3,
-    find_by_location/2,
-    find_by_types/2,
-    find_by_types/3,
-    find_by_types_in_tokens/2,
-    find_token/2,
-    code_zipper/1,
-    code_zipper/2
+    find/1,
+    zipper/1,
+    root/2
 ]).
 %% Specific
 -export([
@@ -18,27 +12,71 @@
     print_node/2
 ]).
 
--export_type([find_options/0]).
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Public API
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--type find_options() :: #{mode => node | zipper, traverse => content | all}.
+-type tree_node() :: ktn_code:tree_node().
+-type tree_node_zipper() :: zipper:zipper(tree_node()).
 
-%% @doc Same as calling find/3 with `#{mode => node, traverse => content}' as
-%%      the options map.
-%% @end
--spec find(fun((zipper:zipper(_)) -> boolean()), ktn_code:tree_node()) ->
-    [ktn_code:tree_node()].
-find(Pred, Root) ->
-    find(Pred, Root, #{}).
+-export_type([tree_node/0, tree_node_zipper/0]).
+
+-spec find(Options) -> {nodes, [Node]} | {zippers, [Zipper]} when
+    Options :: #{
+        % undefined means "all types"
+        of_types := [ktn_code:tree_node_type()] | undefined,
+        inside := Node,
+        % undefined means "don't filter"
+        filtered_by => fun((Node | Zipper) -> boolean()),
+        filtered_from => node | zipper,
+        traverse => content | all
+    },
+    Node :: tree_node(),
+    Zipper :: tree_node_zipper().
+find(#{of_types := OfTypes, inside := Inside} = Options) ->
+    FilteredBy = maps:get(filtered_by, Options, undefined),
+    FilteredFrom = maps:get(filtered_from, Options, node),
+    Traverse = maps:get(traverse, Options, content),
+
+    NonFilteredResults = find(
+        fun(NodeOrZipper) ->
+            Node =
+                case FilteredFrom of
+                    _ when OfTypes =:= undefined ->
+                        undefined;
+                    node ->
+                        NodeOrZipper;
+                    zipper ->
+                        Zipper = NodeOrZipper,
+                        zipper:node(Zipper)
+                end,
+            OfTypes =:= undefined orelse lists:member(ktn_code:type(Node), OfTypes)
+        end,
+        Inside,
+        FilteredFrom,
+        Traverse
+    ),
+
+    Results =
+        case FilteredBy of
+            undefined ->
+                NonFilteredResults;
+            _ ->
+                [Result || Result <- NonFilteredResults, FilteredBy(Result)]
+        end,
+
+    case FilteredFrom of
+        node ->
+            {nodes, Results};
+        zipper ->
+            {zippers, Results}
+    end.
 
 %% @doc Find all nodes in the tree for which the predicate function returns
 %%      `true'. The options map has two keys:
 %%      <ul>
 %%        <li>
-%%        - `mode': when the value `node' is specified the predicate function
+%%        - `filtered_from': when the value `node' is specified the predicate function
 %%          receives a tree_node() as its argument. When `zipper' is specified
 %%          the argument is the zipper location for the current node.
 %%        </li>
@@ -50,29 +88,24 @@ find(Pred, Root) ->
 %%        </li>
 %%      </ul>
 %% @end
--spec find(fun((zipper:zipper(_)) -> boolean()), ktn_code:tree_node(), find_options()) ->
-    [ktn_code:tree_node()].
-find(Pred, Root, Opts) ->
-    Mode = maps:get(mode, Opts, node),
-    ZipperMode = maps:get(traverse, Opts, content),
-    Zipper = code_zipper(Root, ZipperMode),
-    Results = find(Pred, Zipper, [], Mode),
+-spec find(fun((tree_node_zipper()) -> boolean()), tree_node(), node | zipper, content | all) ->
+    [tree_node() | tree_node_zipper()].
+find(Pred, Root, FilteredFrom, Traverse) ->
+    Zipper = zipper(Root, Traverse),
+    Results = find_with_zipper(Pred, Zipper, [], FilteredFrom),
     lists:reverse(Results).
 
--spec code_zipper(ktn_code:tree_node()) -> zipper:zipper(_).
-code_zipper(Root) ->
-    code_zipper(Root, content).
+-spec zipper(tree_node()) -> tree_node_zipper().
+zipper(Root) ->
+    zipper(Root, content).
 
--spec code_zipper(ktn_code:tree_node(), content | all) -> zipper:zipper(_).
-code_zipper(Root, Mode) ->
-    case Mode of
-        content ->
-            content_zipper(Root);
-        all ->
-            all_zipper(Root)
-    end.
+-spec zipper(tree_node(), content | all) -> tree_node_zipper().
+zipper(Root, content) ->
+    content_zipper(Root);
+zipper(Root, all) ->
+    all_zipper(Root).
 
--spec content_zipper(ktn_code:tree_node()) -> zipper:zipper(_).
+-spec content_zipper(tree_node()) -> tree_node_zipper().
 content_zipper(Root) ->
     IsBranch =
         fun
@@ -85,7 +118,7 @@ content_zipper(Root) ->
     MakeNode = fun(Node, Content) -> Node#{content => Content} end,
     zipper:new(IsBranch, Children, MakeNode, Root).
 
--spec all_zipper(ktn_code:tree_node()) -> zipper:zipper(_).
+-spec all_zipper(tree_node()) -> tree_node_zipper().
 all_zipper(Root) ->
     IsBranch =
         fun(#{} = Node) -> ktn_code:content(Node) =/= [] orelse maps:is_key(node_attrs, Node) end,
@@ -106,7 +139,7 @@ all_zipper(Root) ->
     MakeNode = fun(Node, _) -> Node end,
     zipper:new(IsBranch, Children, MakeNode, Root).
 
-find(Pred, Zipper, Results, Mode) ->
+find_with_zipper(Pred, Zipper, Results, Mode) ->
     case zipper:is_end(Zipper) of
         true ->
             Results;
@@ -121,70 +154,33 @@ find(Pred, Zipper, Results, Mode) ->
             NewResults =
                 case Pred(Value) of
                     true ->
-                        [zipper:node(Zipper) | Results];
+                        [Value | Results];
                     false ->
                         Results
                 end,
-            find(Pred, zipper:next(Zipper), NewResults, Mode)
+            find_with_zipper(Pred, zipper:next(Zipper), NewResults, Mode)
     end.
 
--spec find_by_location(ktn_code:tree_node(), {integer(), integer()}) ->
-    not_found | {ok, ktn_code:tree_node()}.
-find_by_location(Root, Location) ->
-    Fun = fun(Node) -> is_at_location(Node, Location) end,
-    case find(Fun, Root, #{traverse => all}) of
-        [] ->
-            not_found;
-        [Node | _] ->
-            {ok, Node}
-    end.
-
-find_by_types(Types, Root) ->
-    find_by_types(Types, Root, #{}).
-
-find_by_types(Types, Root, Opts) ->
-    find(
-        fun(Node) ->
-            lists:member(ktn_code:type(Node), Types)
-        end,
-        Root,
-        Opts
-    ).
-
-find_by_types_in_tokens(Types, Root) ->
-    Tokens = ktn_code:attr(tokens, Root),
-    lists:filter(
-        fun(Node) ->
-            lists:member(ktn_code:type(Node), Types)
-        end,
-        Tokens
-    ).
-
-is_at_location(#{attrs := #{location := {Line, NodeCol}}} = Node, {Line, Column}) ->
-    Text = ktn_code:attr(text, Node),
-    Length = length(Text),
-    NodeCol =< Column andalso Column < NodeCol + Length;
-is_at_location(_, _) ->
-    false.
-
--spec find_token(ktn_code:tree_node(), {integer(), integer()}) -> not_found | {ok, map()}.
-find_token(Root, Location) ->
-    Fun = fun(Token) -> is_at_location(Token, Location) end,
-    Tokens = ktn_code:attr(tokens, Root),
-    case lists:filter(Fun, Tokens) of
-        [] ->
-            not_found;
-        [Token | _] ->
-            {ok, Token}
+-spec root(Rule, ElvisConfig) -> Res when
+    Rule :: elvis_rule:t(),
+    ElvisConfig :: elvis_config:t(),
+    Res :: ktn_code:tree_node().
+root(Rule, ElvisConfig) ->
+    {Root0, File0} = elvis_file:parse_tree(Rule, ElvisConfig),
+    case maps:get(ruleset, ElvisConfig, undefined) of
+        Ruleset when Ruleset =:= beam_files; Ruleset =:= beam_files_strict ->
+            maps:get(abstract_parse_tree, File0);
+        _ ->
+            Root0
     end.
 
 %% @doc Debugging utility function.
--spec print_node(ktn_code:tree_node()) -> ok.
+-spec print_node(tree_node()) -> ok.
 print_node(Node) ->
     print_node(Node, 0).
 
 %% @doc Debugging utility function.
--spec print_node(ktn_code:tree_node(), integer()) -> ok.
+-spec print_node(tree_node(), integer()) -> ok.
 print_node(#{type := Type} = Node, CurrentLevel) ->
     Type = ktn_code:type(Node),
     Indentation = lists:duplicate(CurrentLevel * 4, $\s),

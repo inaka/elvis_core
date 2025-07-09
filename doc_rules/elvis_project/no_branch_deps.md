@@ -29,10 +29,11 @@ branch heads.
 
 ## Options
 
-- None.
+- `ignore :: [atom()]`
+  - default: `[]`
 
 ## Example configuration
 
 ```erlang
-{elvis_project, no_branch_deps, #{}}
+{elvis_project, no_branch_deps, #{ ignore => [] }}
 ```

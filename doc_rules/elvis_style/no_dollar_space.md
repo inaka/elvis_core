@@ -1,5 +1,5 @@
 <!-- markdownlint-disable MD033 -->
-# No <code>&&nbsp;</code> [![](https://img.shields.io/badge/since-1.5.0-blue)](https://github.com/inaka/elvis_core/releases/tag/1.5.0)
+# No <code>$&nbsp;</code> [![](https://img.shields.io/badge/since-1.5.0-blue)](https://github.com/inaka/elvis_core/releases/tag/1.5.0)
 
 Use of <code>$&nbsp;</code> should be avoided.
 

@@ -1,4 +1,7 @@
-# Consistent Variable Casing [![](https://img.shields.io/badge/since-3.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/3.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
+# Variable Casing [![](https://img.shields.io/badge/since-3.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/3.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
+
+> [!NOTE]
+> This rule was named `consistent_variable_casing` before [4.2.0](https://github.com/inaka/elvis_core/releases/tag/4.2.0).
 
 Variables with the same name should follow a consistent casing style (either upper or lower case)
 to avoid mismatches, such as `UserID` being mixed with `UserId` or `Userid`.
@@ -39,5 +42,5 @@ case-sensitive, whole-word searches.
 ## Example configuration
 
 ```erlang
-{elvis_style, consistent_variable_casing, #{}}
+{elvis_style, variable_casing, #{}}
 ```

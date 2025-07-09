@@ -9,7 +9,6 @@
     rock_with_incomplete_config/1,
     rock_with_list_config/1,
     rock_with_file_config/1,
-    rock_with_old_config/1,
     rock_with_rebar_default_config/1,
     rock_this/1,
     rock_without_colors/1,
@@ -90,7 +89,7 @@ rock_with_empty_list_config(_Config) ->
         end.
 
 rock_with_incomplete_config(_Config) ->
-    ElvisConfig = [#{src_dirs => ["src"]}],
+    ElvisConfig = [#{dirs => ["src"]}],
     ok =
         try
             ok = elvis_core:rock(ElvisConfig),
@@ -101,7 +100,7 @@ rock_with_incomplete_config(_Config) ->
         end.
 
 rock_with_list_config(_Config) ->
-    ElvisConfig = [#{src_dirs => ["src"], rules => []}],
+    ElvisConfig = [#{dirs => ["src"], rules => [], filter => "*.erl"}],
     ok =
         try
             ok = elvis_core:rock(ElvisConfig)
@@ -118,37 +117,6 @@ rock_with_file_config(_Config) ->
         "# \\.\\./\\.\\./_build/test/lib/elvis_core/test/" ++ "examples/.*\\.erl.*FAIL",
     [_ | _] = check_some_line_output(Fun, Expected, fun matches_regex/2),
     ok.
-
-rock_with_old_config(_Config) ->
-    ConfigPath = "../../config/old/elvis.config",
-    ElvisConfig = elvis_config:from_file(ConfigPath),
-    ok =
-        try
-            ok = elvis_core:rock(ElvisConfig)
-        catch
-            {invalid_config, _} ->
-                fail
-        end,
-
-    ConfigPath1 = "../../config/old/elvis-test.config",
-    ElvisConfig1 = elvis_config:from_file(ConfigPath1),
-    ok =
-        try
-            ok = elvis_core:rock(ElvisConfig1)
-        catch
-            {invalid_config, _} ->
-                fail
-        end,
-
-    ConfigPath2 = "../../config/old/elvis-test-rule-config-list.config",
-    ElvisConfig2 = elvis_config:from_file(ConfigPath2),
-    ok =
-        try
-            ok = elvis_core:rock(ElvisConfig2)
-        catch
-            {invalid_config, _} ->
-                fail
-        end.
 
 rock_with_rebar_default_config(_Config) ->
     {ok, _} = file:copy("../../config/rebar.config", "rebar.config"),
@@ -286,11 +254,6 @@ rock_with_rule_groups(_Config) ->
                 dirs => ["."],
                 filter => "rebar.config",
                 ruleset => rebar_config
-            },
-            #{
-                dirs => ["."],
-                filter => "elvis.config",
-                ruleset => elvis_config
             }
         ],
     ok =
@@ -339,11 +302,6 @@ rock_with_rule_groups(_Config) ->
                 dirs => ["."],
                 filter => "rebar.config",
                 ruleset => rebar_config
-            },
-            #{
-                dirs => ["."],
-                filter => "elvis.config",
-                ruleset => elvis_config
             }
         ],
     ok =
@@ -427,7 +385,8 @@ rock_with_invalid_rules(_Config) ->
 custom_ruleset(_Config) ->
     ConfigPath = "../../config/elvis-test-custom-ruleset.config",
     ElvisConfig = elvis_config:from_file(ConfigPath),
-    [[{elvis_text_style, no_tabs, #{}}]] = elvis_config:rules(ElvisConfig),
+    NoTabs = elvis_rule:new(elvis_text_style, no_tabs),
+    [[NoTabs]] = elvis_config:rules(ElvisConfig),
 
     %% read unknown ruleset configuration to ensure rulesets from
     %% previous load do not stick around

@@ -2,96 +2,14 @@
 
 -compile({no_auto_import, [error/2]}).
 
-%% Rules
--export([check_lines/3, check_lines_with_context/4, indentation/3, check_nodes/3]).
 %% General
 -export([erlang_halt/1, to_str/1, split_all_lines/1, split_all_lines/2]).
 %% Output
--export([
-    info/1, info/2,
-    notice/1, notice/2,
-    error/1, error/2,
-    error_prn/1, error_prn/2,
-    warn_prn/2,
-    parse_colors/1
-]).
-
--export_type([file/0, line_content/0]).
-
--type file() :: #{path => string(), content => binary()}.
--type line_content() :: {integer(), integer()}.
+-export([info/2, notice/2, error/2, error_prn/2, warn_prn/2]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Public
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%% @doc Takes a binary that holds source code and applies
-%%      Fun to each line. Fun takes 2 or 3 arguments (the line
-%%      as a binary, the line number and the optional supplied Args) and
-%%      returns 'no_result' or {'ok', Result}.
--spec check_lines(binary(), fun(), term()) -> [elvis_result:item()].
-check_lines(Src, Fun, Args) ->
-    Lines = split_all_lines(Src),
-    check_lines(Lines, Fun, Args, [], 1).
-
-%% @doc Checks each line calling fun and providing the previous and next
-%%      lines based on the context tuple {Before, After}.
--spec check_lines_with_context(binary(), fun(), term(), line_content()) ->
-    [elvis_result:item()].
-check_lines_with_context(Src, Fun, Args, Ctx) ->
-    Lines = split_all_lines(Src),
-    LinesContext = context(Lines, Ctx),
-    check_lines(LinesContext, Fun, Args, [], 1).
-
-check_lines([], _Fun, _Args, Results, _Num) ->
-    lists:flatten(
-        lists:reverse(Results)
-    );
-check_lines([Line | Lines], Fun, Args, Results, Num) ->
-    FunRes =
-        case is_function(Fun, 3) of
-            true ->
-                Fun(Line, Num, Args);
-            false ->
-                Fun(Line, Num)
-        end,
-    case FunRes of
-        {ok, Result} ->
-            check_lines(Lines, Fun, Args, [Result | Results], Num + 1);
-        no_result ->
-            check_lines(Lines, Fun, Args, Results, Num + 1)
-    end.
-
-context(List, CtxCount) ->
-    context(List, [], CtxCount, []).
-
-context([], _Past, _CtxCount, Results) ->
-    lists:reverse(Results);
-context([Current | Future], Past, {PrevCount, NextCount} = CtxCount, Results) ->
-    Prev = lists:sublist(Past, PrevCount),
-    Next = lists:sublist(Future, NextCount),
-    Item = {Current, lists:reverse(Prev), Next},
-    context(Future, [Current | Past], CtxCount, [Item | Results]).
-
-%% @doc Takes a binary that holds source code and applies
-%% Fun to each line. Fun takes 3 arguments (the line
-%% as a binary, the line number and the supplied Args) and
-%% returns 'no_result' or {'ok', Result}.
--spec check_nodes(ktn_code:tree_node(), fun(), [term()]) -> [elvis_result:item()].
-check_nodes(RootNode, Fun, Args) ->
-    ChildNodes = ktn_code:content(RootNode),
-    check_nodes(ChildNodes, Fun, Args, []).
-
-check_nodes([], _Fun, _Args, Results) ->
-    FlatResults = lists:flatten(Results),
-    lists:reverse(FlatResults);
-check_nodes([Node | Nodes], Fun, Args, Results) ->
-    case Fun(Node, Args) of
-        [] ->
-            check_nodes(Nodes, Fun, Args, Results);
-        Result ->
-            check_nodes(Nodes, Fun, Args, [Result | Results])
-    end.
 
 %% @doc This is defined so that it can be mocked for tests.
 -spec erlang_halt(integer()) -> no_return().
@@ -116,50 +34,20 @@ split_all_lines(Binary) ->
 split_all_lines(Binary, Opts) ->
     binary:split(Binary, [<<"\r\n">>, <<"\n">>], [global | Opts]).
 
-%% @doc Takes a line, a character and a count, returning the indentation level
-%%      invalid if the number of character is not a multiple of count.
--spec indentation(binary() | string(), char(), integer()) -> invalid | integer().
-indentation(Line, Char, Count) ->
-    LineStr = to_str(Line),
-    Regex = "^" ++ [Char] ++ "*",
-    {match, [{0, Len} | _]} = re:run(LineStr, Regex),
-    case Len rem Count of
-        0 ->
-            Len div Count;
-        _ ->
-            invalid
-    end.
-
--spec info(string()) -> ok.
-info(Message) ->
-    info(Message, []).
-
 -spec info(string(), [term()]) -> ok.
 info(Message, Args) ->
     ColoredMessage = Message ++ "{{reset}}~n",
     print_info(ColoredMessage, Args).
-
--spec notice(string()) -> ok.
-notice(Message) ->
-    notice(Message, []).
 
 -spec notice(string(), [term()]) -> ok.
 notice(Message, Args) ->
     ColoredMessage = "{{white-bold}}" ++ Message ++ "{{reset}}~n",
     print_info(ColoredMessage, Args).
 
--spec error(string()) -> ok.
-error(Message) ->
-    error(Message, []).
-
 -spec error(string(), [term()]) -> ok.
 error(Message, Args) ->
     ColoredMessage = "{{white-bold}}" ++ Message ++ "{{reset}}~n",
     print(ColoredMessage, Args).
-
--spec error_prn(string()) -> ok.
-error_prn(Message) ->
-    error_prn(Message, []).
 
 -spec error_prn(string(), [term()]) -> ok.
 error_prn(Message, Args) ->

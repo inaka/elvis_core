@@ -1,15 +1,17 @@
 -module(elvis_gitignore).
--behaviour(elvis_ruleset).
 
--export([required_patterns/3, forbidden_patterns/3, default/1]).
+-behaviour(elvis_rule).
+-export([default/1]).
+
+-export([required_patterns/2, forbidden_patterns/2]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec default(RuleName :: atom()) -> DefaultRuleConfig :: #{atom() := term()}.
+-spec default(RuleName :: atom()) -> elvis_rule:def().
 default(required_patterns) ->
-    #{
+    elvis_rule:defmap(#{
         regexes =>
             [
                 "^.rebar3/$",
@@ -20,22 +22,21 @@ default(required_patterns) ->
                 "^/rebar3.crashdump$",
                 "^test/logs/$"
             ]
-    };
+    });
 default(forbidden_patterns) ->
-    #{regexes => ["^rebar.lock$"]}.
+    elvis_rule:defmap(#{
+        regexes => ["^rebar.lock$"]
+    });
+default(_RuleName) ->
+    elvis_rule:defmap(#{}).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Rules
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--spec required_patterns(
-    elvis_config:config(),
-    elvis_file:file(),
-    elvis_style:empty_rule_config()
-) ->
-    [elvis_result:item()].
-required_patterns(_Config, #{path := Path}, RuleConfig) ->
-    Regexes = option(regexes, RuleConfig, required_patterns),
+required_patterns(Rule, _ElvisConfig) ->
+    #{path := Path} = elvis_rule:file(Rule),
+    Regexes = elvis_rule:option(regexes, Rule),
     case file:read_file(Path) of
         {ok, PatternsBin} ->
             Patterns = elvis_utils:split_all_lines(PatternsBin),
@@ -44,14 +45,9 @@ required_patterns(_Config, #{path := Path}, RuleConfig) ->
             []
     end.
 
--spec forbidden_patterns(
-    elvis_config:config(),
-    elvis_file:file(),
-    elvis_style:empty_rule_config()
-) ->
-    [elvis_result:item()].
-forbidden_patterns(_Config, #{path := Path}, RuleConfig) ->
-    Regexes = option(regexes, RuleConfig, forbidden_patterns),
+forbidden_patterns(Rule, _ElvisConfig) ->
+    #{path := Path} = elvis_rule:file(Rule),
+    Regexes = elvis_rule:option(regexes, Rule),
     case file:read_file(Path) of
         {ok, PatternsBin} ->
             Patterns = elvis_utils:split_all_lines(PatternsBin),
@@ -97,25 +93,3 @@ check_patterns_in_lines(Lines, [Pattern | Rest], Results0, Mode) ->
                 ]
         end,
     check_patterns_in_lines(Lines, Rest, Results, Mode).
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Internal Function Definitions
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
--spec option(OptionName, RuleConfig, Rule) -> OptionValue when
-    OptionName :: atom(),
-    RuleConfig :: elvis_config:config(),
-    Rule :: atom(),
-    OptionValue :: term().
-option(OptionName, RuleConfig, Rule) ->
-    maybe_default_option(maps:get(OptionName, RuleConfig, undefined), OptionName, Rule).
-
--spec maybe_default_option(UserDefinedOptionValue, OptionName, Rule) -> OptionValue when
-    UserDefinedOptionValue :: undefined | term(),
-    OptionName :: atom(),
-    Rule :: atom(),
-    OptionValue :: term().
-maybe_default_option(undefined = _UserDefinedOptionValue, OptionName, Rule) ->
-    maps:get(OptionName, default(Rule));
-maybe_default_option(UserDefinedOptionValue, _OptionName, _Rule) ->
-    UserDefinedOptionValue.

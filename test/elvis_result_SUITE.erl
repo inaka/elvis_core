@@ -25,11 +25,11 @@ end_per_suite(Config) ->
     Config.
 
 without_line(_Config) ->
-    Rule = god_modules,
+    Rule = no_god_modules,
     RuleConfig = #{limit => 1},
     ExampleTestFile = "elvis_results_new_item.erl",
 
-    [#{message := Message, line_num := LineNum, column_num := ColumnNum}] =
+    [#{message := Message, line_num := LineNum, column_num := ColumnNum, info := [9]}] =
         elvis_test_utils:elvis_core_apply_rule(
             _TestcaseConfig = [],
             elvis_style,
@@ -39,7 +39,7 @@ without_line(_Config) ->
         ),
 
     ?assertEqual(
-        "This module's function count is higher than the configured limit (limit: 1).", Message
+        "This module's function count (~p) is higher than the configured limit (limit: 1).", Message
     ),
     ?assertEqual(-1, LineNum),
     ?assertEqual(-1, ColumnNum).
@@ -49,7 +49,7 @@ without_column(_Config) ->
     RuleConfig = #{},
     ExampleTestFile = "elvis_results_new_item.erl",
 
-    [#{message := Message, line_num := LineNum, column_num := ColumnNum}] =
+    [#{message := Message, line_num := LineNum, column_num := ColumnNum, info := [2]}] =
         elvis_test_utils:elvis_core_apply_rule(
             _TestcaseConfig = [],
             elvis_text_style,
@@ -59,7 +59,7 @@ without_column(_Config) ->
         ),
 
     ?assertEqual(
-        "At line 22, there are too many blank lines; prefer respecting the configured limit (limit: 2).",
+        "At line 22, there are too many (~p) blank lines; prefer respecting the configured limit (limit: 2).",
         Message
     ),
     ?assertEqual(22, LineNum),
@@ -129,7 +129,7 @@ complete(_Config) ->
     RuleConfig = #{max_arity => 1},
     ExampleTestFile = "elvis_results_new_item.erl",
 
-    [#{message := Message, line_num := LineNum, column_num := ColumnNum}] =
+    [#{message := Message, line_num := LineNum, column_num := ColumnNum, info := [2]}] =
         elvis_test_utils:elvis_core_apply_rule(
             _TestcaseConfig = [],
             elvis_style,
@@ -139,7 +139,7 @@ complete(_Config) ->
         ),
 
     ?assertEqual(
-        "At line 46, column 9, the arity of the anonymous function is higher than the configured limit (limit: 1).",
+        "At line 46, column 9, the arity (~p) of the anonymous function is higher than the configured limit (limit: 1).",
         Message
     ),
     ?assertEqual(46, LineNum),

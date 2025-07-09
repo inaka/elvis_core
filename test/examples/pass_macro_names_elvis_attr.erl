@@ -8,7 +8,7 @@
 -define(  'POTENTIAL_BAD-NAME'  , nomegusta).
 -define('A,aZ', 2).
 
--elvis([{elvis_style, macro_names, #{regex => "^[a-zA-Z_,\-]+$"}}]).
+-elvis([{elvis_style, macro_naming_convention, #{regex => "^[a-zA-Z_,\-]+$"}}]).
 -elvis([{elvis_style, no_space, #{rules => []}}]).
 
 -export([
