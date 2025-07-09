@@ -48,10 +48,10 @@ jobs:
       - name: Run test
         run: rebar3 test
         env:
-        ERL_FLAGS: "-args_file config/vm.args"
+          ERL_FLAGS: "-args_file config/vm.args"
       - name: Run elvis on elvis
         run: |
           rebar3 escriptize
           _build/default/bin/elvis_core
-          env:
+        env:
           ERL_FLAGS: "-args_file config/vm.args"
