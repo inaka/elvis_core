@@ -139,7 +139,7 @@ elvis_style_rules() ->
     ].
 
 erl_files_test_rules() ->
-    without_rules(
+    trim(
         [
             {elvis_style, dont_repeat_yourself},
             {elvis_style, god_modules}
@@ -206,12 +206,6 @@ rebar_config_rules() ->
         elvis_rule:new(elvis_project, no_branch_deps),
         elvis_rule:new(elvis_project, protocol_for_deps)
     ].
-
--spec without_rules(Exceptions, Rules) -> Rules when
-    Exceptions :: [{atom(), atom()}],
-    Rules :: [{atom(), atom()}].
-without_rules(Exceptions, Rules) ->
-    Rules -- Exceptions.
 
 trim(Ruleset, RulesToRemove) ->
     lists:filter(
