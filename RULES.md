@@ -103,8 +103,8 @@ rulesets in the configuration file.
 
 The six pre-defined rulesets are:
 
-- `erl_files`, for Erlang source files (pre-defined rule set).
-- `erl_files_test`, for Erlang test files (pre-defined rule set).
+- `erl_files`, for Erlang source files (pre-defined ruleset).
+- `erl_files_test`, for Erlang test files (pre-defined ruleset).
 - `erl_files_strict`, for Erlang source files (all applicable rules).
 - `gitignore`, for `.gitignore` files.
 - `hrl_files`, for Erlang header files (pre-defined ruleset).
