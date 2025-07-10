@@ -2,14 +2,14 @@
 
 -format(#{inline_items => none}).
 
--export([rules/1, load/1]).
+-export([rules/1, load_custom/1, dump_custom/0]).
 
 -ifdef(TEST).
 -export([drop_custom/0]).
 -endif.
 
--spec load(#{atom() => list()}) -> ok.
-load(Rulesets) ->
+-spec load_custom(#{atom() => list()}) -> ok.
+load_custom(Rulesets) ->
     {Existed, Tid} = ensure_table(),
     case Existed of
         false ->
@@ -23,6 +23,15 @@ load(Rulesets) ->
             );
         true ->
             ok
+    end.
+
+dump_custom() ->
+    Table = table(),
+    case ets:info(Table) of
+        undefined ->
+            ok;
+        _ ->
+            ets:delete(Table)
     end.
 
 -spec rules(Group :: atom()) -> [elvis_rule:t()].
