@@ -2,7 +2,7 @@
 
 -feature(maybe_expr, enable).
 
--export([from_rebar/1, from_file/1, validate/1]).
+-export([from_rebar/1, from_file/1]).
 %% Geters
 -export([dirs/1, ignore/1, filter/1, files/1, rules/1]).
 %% Files
