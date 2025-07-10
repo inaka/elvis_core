@@ -100,7 +100,6 @@
     verify_elvis_attr_private_data_types/1
 ]).
 
--if(?OTP_RELEASE >= 27).
 -export([
     verify_no_single_match_maybe/1,
     verify_guard_operators/1
@@ -110,7 +109,6 @@
 -export([
     verify_operator_spaces_otp28/1
 ]).
--endif.
 -endif.
 %% Non-rule
 -export([results_are_ordered_by_line/1, oddities/1]).
@@ -2423,7 +2421,6 @@ verify_no_single_clause_case(Config) ->
                 [#{line_num := 6}, #{line_num := 14}, #{line_num := 16}] = R
         end.
 
--if(?OTP_RELEASE >= 27).
 verify_no_single_match_maybe(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
@@ -2584,8 +2581,6 @@ verify_guard_operators(Config) ->
     ] = PerExpression,
     true = PerExpression =/= PerGuard,
     PerExpression = Default.
-
--endif.
 
 verify_no_match_in_condition(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
