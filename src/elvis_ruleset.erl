@@ -32,6 +32,8 @@ rules(beam_files_strict) ->
     beam_files_strict_rules();
 rules(rebar_config) ->
     rebar_config_rules();
+rules(erl_files_test) ->
+    erl_files_test_rules();
 rules(Group) ->
     try
         ets:lookup_element(?MODULE, Group, 2)
@@ -136,6 +138,15 @@ elvis_style_rules() ->
         elvis_rule:new(elvis_style, variable_naming_convention),
         elvis_rule:new(elvis_style, guard_operators)
     ].
+
+erl_files_test_rules() ->
+    trim(
+        [
+            elvis_rule:new(elvis_style, dont_repeat_yourself),
+            elvis_rule:new(elvis_style, no_god_modules)
+        ],
+        elvis_style_rules()
+    ).
 
 elvis_text_style_rules() ->
     [
