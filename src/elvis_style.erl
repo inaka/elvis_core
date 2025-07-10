@@ -1951,8 +1951,7 @@ guard_operators(Rule, ElvisConfig) ->
                 inside => elvis_code:root(Rule, ElvisConfig),
                 filtered_by =>
                     fun(ClauseZipper) ->
-                        ClauseNode = zipper:node(ClauseZipper),
-                        [] =/= ktn_code:node_attr(guards, ClauseNode)
+                        has_guards(zipper:node(ClauseZipper))
                     end,
                 filtered_from => zipper,
                 traverse => all
@@ -1967,10 +1966,7 @@ guard_operators(Rule, ElvisConfig) ->
             {nodes, GuardedClauseNodes} = elvis_code:find(#{
                 of_types => [clause],
                 inside => elvis_code:root(Rule, ElvisConfig),
-                filtered_by =>
-                    fun(ClauseNode) ->
-                        [] =/= ktn_code:node_attr(guards, ClauseNode)
-                    end
+                filtered_by => fun has_guards/1
             }),
             check_guard_operators(PreferredSyntax, GuardedClauseNodes)
     end.
@@ -1978,7 +1974,7 @@ guard_operators(Rule, ElvisConfig) ->
 check_guard_operators(punctuation, ClauseNodes) ->
     [
         elvis_result:new_item(
-            "an unexpected shortcircuit operator was found; prefer ; or ,",
+            "an unexpected shortcircuit operator was found; prefer ';' or ','",
             [],
             #{node => ClauseNode}
         )
@@ -1988,7 +1984,7 @@ check_guard_operators(punctuation, ClauseNodes) ->
 check_guard_operators(words, ClauseNodes) ->
     [
         elvis_result:new_item(
-            "one or more unexpected punctutation operators were found; prefer andalso or orelse",
+            "one or more unexpected punctutation operators were found; prefer 'andalso' or 'orelse'",
             [],
             #{node => ClauseNode}
         )
@@ -2027,6 +2023,9 @@ check_guard_operators(per_expression, ExpressionNodes) ->
                     filtered_by => fun has_guard_defined_with_words/1
                 })
     ]).
+
+has_guards(ClauseNode) ->
+    [] =/= ktn_code:node_attr(guards, ClauseNode).
 
 %% @doc If guards are joined by ; or guard-expressions are joined by , ktn_code reports them
 %%      as lists of lists.
