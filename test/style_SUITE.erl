@@ -103,8 +103,7 @@
 ]).
 
 -if(?OTP_RELEASE >= 27).
--export([
-]).
+-export([]).
 
 -if(?OTP_RELEASE >= 28).
 -export([
