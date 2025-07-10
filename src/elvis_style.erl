@@ -1984,7 +1984,8 @@ check_guard_operators(punctuation, ClauseNodes) ->
 check_guard_operators(words, ClauseNodes) ->
     [
         elvis_result:new_item(
-            "one or more unexpected punctutation operators were found; prefer 'andalso' or 'orelse'",
+            "one or more unexpected punctutation operators were found;"
+            " prefer 'andalso' or 'orelse'",
             [],
             #{node => ClauseNode}
         )
@@ -2032,7 +2033,8 @@ has_guards(ClauseNode) ->
 %%      If they only use words, then we just have [[#{type := op, attrs := #{operation = '...'}}]]
 has_guard_defined_with_punctuation(ClauseNode) ->
     length(ktn_code:node_attr(guards, ClauseNode)) > 1 orelse
-        length(hd(ktn_code:node_attr(guards, ClauseNode))) > 1.
+        length(ktn_code:node_attr(guards, ClauseNode)) == 1 andalso
+            length(hd(ktn_code:node_attr(guards, ClauseNode))) > 1.
 
 has_guard_defined_with_words(ClauseNode) ->
     [] =/=
@@ -2477,16 +2479,16 @@ character_at_location(
     case {ColToCheck, Position, length(TextLineStr)} of
         {0, _, _} when Text =/= ")" ->
             SpaceChar;
-        {_, right, LenLine} when How =:= should_have, ColToCheck > LenLine ->
+        {_, right, LenLine} when How =:= should_have andalso ColToCheck > LenLine ->
             SpaceChar;
-        {_, right, LenLine} when How =:= should_not_have, ColToCheck > LenLine ->
+        {_, right, LenLine} when How =:= should_not_have andalso ColToCheck > LenLine ->
             "";
-        _ when How =:= should_have; TextRegex =:= nomatch, ColToCheck > 1 ->
+        _ when How =:= should_have orelse TextRegex =:= nomatch andalso ColToCheck > 1 ->
             lists:nth(ColToCheck, TextLineStr);
         _ when
-            How =:= should_not_have,
-            ColToCheck > 1,
-            (Text =:= ":" orelse Text =:= "." orelse Text =:= ";")
+            How =:= should_not_have andalso
+                ColToCheck > 1 andalso
+                (Text =:= ":" orelse Text =:= "." orelse Text =:= ";")
         ->
             lists:nth(ColToCheck - 1, TextLineStr);
         _ ->
