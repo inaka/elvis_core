@@ -13,6 +13,7 @@
 %% Options
 -export([config/0, output_format/0, verbose/0, no_output/0, parallel/0]).
 
+% Corresponds to the 'config' key.
 -type t() :: map().
 -export_type([t/0]).
 
