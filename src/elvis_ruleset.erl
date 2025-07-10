@@ -142,7 +142,7 @@ erl_files_test_rules() ->
     trim(
         [
             elvis_rule:new(elvis_style, dont_repeat_yourself),
-            elvis_rule:new(elvis_style, god_modules)
+            elvis_rule:new(elvis_style, no_god_modules)
         ],
         elvis_style_rules()
     ).
