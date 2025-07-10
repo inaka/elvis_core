@@ -100,7 +100,6 @@
     verify_elvis_attr_private_data_types/1
 ]).
 
--if(?OTP_RELEASE >= 27).
 -export([
     verify_no_single_match_maybe/1,
     verify_guard_operators/1
@@ -110,7 +109,6 @@
 -export([
     verify_operator_spaces_otp28/1
 ]).
--endif.
 -endif.
 %% Non-rule
 -export([results_are_ordered_by_line/1, oddities/1]).
@@ -2423,7 +2421,6 @@ verify_no_single_clause_case(Config) ->
                 [#{line_num := 6}, #{line_num := 14}, #{line_num := 16}] = R
         end.
 
--if(?OTP_RELEASE >= 27).
 verify_no_single_match_maybe(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
@@ -2472,108 +2469,118 @@ verify_guard_operators(Config) ->
         Config, elvis_style, guard_operators, #{}, FailPath
     ),
     [
-        #{line_num := 20},
         #{line_num := 21},
-        #{line_num := 29},
+        #{line_num := 22},
         #{line_num := 30},
         #{line_num := 31},
-        #{line_num := 41},
+        #{line_num := 32},
         #{line_num := 42},
-        #{line_num := 61},
+        #{line_num := 43},
         #{line_num := 62},
-        #{line_num := 74},
+        #{line_num := 63},
         #{line_num := 75},
-        #{line_num := 83},
+        #{line_num := 76},
         #{line_num := 84},
         #{line_num := 85},
-        #{line_num := 93},
+        #{line_num := 86},
         #{line_num := 94},
-        #{line_num := 102},
+        #{line_num := 95},
         #{line_num := 103},
         #{line_num := 104},
-        #{line_num := 112},
+        #{line_num := 105},
         #{line_num := 113},
-        #{line_num := 121},
+        #{line_num := 114},
         #{line_num := 122},
         #{line_num := 123},
-        #{line_num := 131},
+        #{line_num := 124},
         #{line_num := 132},
-        #{line_num := 144},
+        #{line_num := 133},
         #{line_num := 145},
         #{line_num := 146},
-        #{line_num := 158},
+        #{line_num := 147},
         #{line_num := 159},
-        #{line_num := 171},
+        #{line_num := 160},
         #{line_num := 172},
-        #{line_num := 173}
+        #{line_num := 173},
+        #{line_num := 174},
+        #{line_num := 182},
+        #{line_num := 183},
+        #{line_num := 191},
+        #{line_num := 192},
+        #{line_num := 193}
     ] = Punctuation,
     [
-        #{line_num := 19},
-        #{line_num := 21},
-        #{line_num := 24},
+        #{line_num := 20},
+        #{line_num := 22},
         #{line_num := 25},
         #{line_num := 26},
-        #{line_num := 40},
-        #{line_num := 42},
-        #{line_num := 47},
+        #{line_num := 27},
+        #{line_num := 41},
+        #{line_num := 43},
         #{line_num := 48},
         #{line_num := 49},
-        #{line_num := 60},
-        #{line_num := 62},
+        #{line_num := 50},
+        #{line_num := 61},
         #{line_num := 63},
         #{line_num := 64},
         #{line_num := 65},
-        #{line_num := 73},
-        #{line_num := 75},
-        #{line_num := 78},
+        #{line_num := 66},
+        #{line_num := 74},
+        #{line_num := 76},
         #{line_num := 79},
         #{line_num := 80},
-        #{line_num := 92},
-        #{line_num := 94},
-        #{line_num := 97},
+        #{line_num := 81},
+        #{line_num := 93},
+        #{line_num := 95},
         #{line_num := 98},
         #{line_num := 99},
-        #{line_num := 111},
-        #{line_num := 113},
-        #{line_num := 116},
+        #{line_num := 100},
+        #{line_num := 112},
+        #{line_num := 114},
         #{line_num := 117},
         #{line_num := 118},
-        #{line_num := 130},
-        #{line_num := 132},
-        #{line_num := 137},
+        #{line_num := 119},
+        #{line_num := 131},
+        #{line_num := 133},
         #{line_num := 138},
         #{line_num := 139},
-        #{line_num := 157},
-        #{line_num := 159},
-        #{line_num := 164},
+        #{line_num := 140},
+        #{line_num := 158},
+        #{line_num := 160},
         #{line_num := 165},
-        #{line_num := 166}
+        #{line_num := 166},
+        #{line_num := 167},
+        #{line_num := 181},
+        #{line_num := 183},
+        #{line_num := 186},
+        #{line_num := 187},
+        #{line_num := 188}
     ] = Words,
     true = Punctuation =/= Words,
     [
-        #{line_num := 21},
-        #{line_num := 42},
-        #{line_num := 62},
-        #{line_num := 75},
-        #{line_num := 94},
-        #{line_num := 113},
-        #{line_num := 132},
-        #{line_num := 159}
+        #{line_num := 22},
+        #{line_num := 43},
+        #{line_num := 63},
+        #{line_num := 76},
+        #{line_num := 95},
+        #{line_num := 114},
+        #{line_num := 133},
+        #{line_num := 160},
+        #{line_num := 183}
     ] = PerGuard,
     [
-        #{line_num := 18},
-        #{line_num := 39},
-        #{line_num := 60},
-        #{line_num := 72},
-        #{line_num := 91},
-        #{line_num := 110},
-        #{line_num := 129},
-        #{line_num := 154}
+        #{line_num := 19},
+        #{line_num := 40},
+        #{line_num := 61},
+        #{line_num := 73},
+        #{line_num := 92},
+        #{line_num := 111},
+        #{line_num := 130},
+        #{line_num := 155},
+        #{line_num := 180}
     ] = PerExpression,
     true = PerExpression =/= PerGuard,
     PerExpression = Default.
-
--endif.
 
 verify_no_match_in_condition(Config) ->
     Group = proplists:get_value(group, Config, erl_files),

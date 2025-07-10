@@ -133,7 +133,8 @@ elvis_style_rules() ->
         elvis_rule:new(elvis_style, param_pattern_matching),
         elvis_rule:new(elvis_style, private_data_types),
         elvis_rule:new(elvis_style, no_used_ignored_variables),
-        elvis_rule:new(elvis_style, variable_naming_convention)
+        elvis_rule:new(elvis_style, variable_naming_convention),
+        elvis_rule:new(elvis_style, guard_operators)
     ].
 
 elvis_text_style_rules() ->

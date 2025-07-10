@@ -21,7 +21,7 @@ bad() ->
 ugly() ->
     case begin
              #{a := A} = do:something(),
-             B = do:something('else', with, A)
+             B = do:something("else", with, A)
          end
     of
         #{b := good} ->

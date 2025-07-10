@@ -1599,13 +1599,13 @@ no_boolean_in_comparison(Rule, ElvisConfig) ->
     ].
 
 is_boolean_in_comparison(OpNode) ->
-    is_op(OpNode, ['==', '=:=', '/=', '=/=']) andalso is_boolean_operator(OpNode).
+    is_op(OpNode, ['==', '=:=', '/=', '=/=']) andalso operates_on_boolean(OpNode).
 
 is_op(OpNode, Ops) ->
     Operation = ktn_code:attr(operation, OpNode),
     lists:member(Operation, Ops).
 
-is_boolean_operator(OpNode) ->
+operates_on_boolean(OpNode) ->
     lists:any(
         fun(OpContentNode) ->
             is_boolean(ktn_code:attr(value, OpContentNode))
@@ -1951,8 +1951,7 @@ guard_operators(Rule, ElvisConfig) ->
                 inside => elvis_code:root(Rule, ElvisConfig),
                 filtered_by =>
                     fun(ClauseZipper) ->
-                        ClauseNode = zipper:node(ClauseZipper),
-                        [] =/= ktn_code:node_attr(guards, ClauseNode)
+                        has_guards(zipper:node(ClauseZipper))
                     end,
                 filtered_from => zipper,
                 traverse => all
@@ -1967,10 +1966,7 @@ guard_operators(Rule, ElvisConfig) ->
             {nodes, GuardedClauseNodes} = elvis_code:find(#{
                 of_types => [clause],
                 inside => elvis_code:root(Rule, ElvisConfig),
-                filtered_by =>
-                    fun(ClauseNode) ->
-                        [] =/= ktn_code:node_attr(guards, ClauseNode)
-                    end
+                filtered_by => fun has_guards/1
             }),
             check_guard_operators(PreferredSyntax, GuardedClauseNodes)
     end.
@@ -1978,7 +1974,7 @@ guard_operators(Rule, ElvisConfig) ->
 check_guard_operators(punctuation, ClauseNodes) ->
     [
         elvis_result:new_item(
-            "an unexpected shortcircuit operator was found; prefer ; or ,",
+            "an unexpected shortcircuit operator was found; prefer ';' or ','",
             [],
             #{node => ClauseNode}
         )
@@ -1988,7 +1984,8 @@ check_guard_operators(punctuation, ClauseNodes) ->
 check_guard_operators(words, ClauseNodes) ->
     [
         elvis_result:new_item(
-            "one or more unexpected punctutation operators were found; prefer andalso or orelse",
+            "one or more unexpected punctutation operators were found;"
+            " prefer 'andalso' or 'orelse'",
             [],
             #{node => ClauseNode}
         )
@@ -2028,12 +2025,16 @@ check_guard_operators(per_expression, ExpressionNodes) ->
                 })
     ]).
 
+has_guards(ClauseNode) ->
+    [] =/= ktn_code:node_attr(guards, ClauseNode).
+
 %% @doc If guards are joined by ; or guard-expressions are joined by , ktn_code reports them
 %%      as lists of lists.
 %%      If they only use words, then we just have [[#{type := op, attrs := #{operation = '...'}}]]
 has_guard_defined_with_punctuation(ClauseNode) ->
     length(ktn_code:node_attr(guards, ClauseNode)) > 1 orelse
-        length(hd(ktn_code:node_attr(guards, ClauseNode))) > 1.
+        length(ktn_code:node_attr(guards, ClauseNode)) == 1 andalso
+            length(hd(ktn_code:node_attr(guards, ClauseNode))) > 1.
 
 has_guard_defined_with_words(ClauseNode) ->
     [] =/=
@@ -2041,11 +2042,17 @@ has_guard_defined_with_words(ClauseNode) ->
             GuardExpression
          || Guard <- ktn_code:node_attr(guards, ClauseNode),
             GuardExpression <- Guard,
-            op == ktn_code:type(GuardExpression),
-            lists:member(ktn_code:attr(operation, GuardExpression), [
-                'and', 'or', 'andalso', 'orelse'
-            ])
+            is_two_sided_boolean_op(GuardExpression)
         ].
+
+%% @doc This function returns true for X andalso Y, X orelse Y, X and Y, etc...
+%%      It also returns true for not not not not X andalso Y
+%%      But it returns false for not not not X.
+is_two_sided_boolean_op(Node) ->
+    op == ktn_code:type(Node) andalso
+        lists:member(ktn_code:attr(operation, Node), ['and', 'or', 'andalso', 'orelse']) orelse
+        ktn_code:attr(operation, Node) == 'not' andalso
+            is_two_sided_boolean_op(hd(ktn_code:content(Node))).
 
 param_pattern_matching(Rule, ElvisConfig) ->
     Side = elvis_rule:option(side, Rule),
@@ -2472,16 +2479,16 @@ character_at_location(
     case {ColToCheck, Position, length(TextLineStr)} of
         {0, _, _} when Text =/= ")" ->
             SpaceChar;
-        {_, right, LenLine} when How =:= should_have, ColToCheck > LenLine ->
+        {_, right, LenLine} when How =:= should_have andalso ColToCheck > LenLine ->
             SpaceChar;
-        {_, right, LenLine} when How =:= should_not_have, ColToCheck > LenLine ->
+        {_, right, LenLine} when How =:= should_not_have andalso ColToCheck > LenLine ->
             "";
-        _ when How =:= should_have; TextRegex =:= nomatch, ColToCheck > 1 ->
+        _ when How =:= should_have orelse TextRegex =:= nomatch andalso ColToCheck > 1 ->
             lists:nth(ColToCheck, TextLineStr);
         _ when
-            How =:= should_not_have,
-            ColToCheck > 1,
-            (Text =:= ":" orelse Text =:= "." orelse Text =:= ";")
+            How =:= should_not_have andalso
+                ColToCheck > 1 andalso
+                (Text =:= ":" orelse Text =:= "." orelse Text =:= ";")
         ->
             lists:nth(ColToCheck - 1, TextLineStr);
         _ ->

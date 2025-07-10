@@ -10,7 +10,8 @@
     if_clauses/3,
     receive_clauses/0,
     try_clauses/0,
-    catch_clauses/0
+    catch_clauses/0,
+    with_not/0
 ]).
 
 case_clauses() ->
@@ -171,5 +172,24 @@ catch_clauses() ->
             _:Z when Z == a orelse Z =< 10 -> {clause, 1};
             _:Z when Z == b orelse Z == 10 -> {clause, 2};
             _:Z when Z == c orelse Z == d orelse Z >= 10 -> {clause, 3}
+        end
+    }.
+
+with_not() ->
+    {
+        case first:expression() of
+            X when not X == a; not X =< 10 -> {clause, 1};
+            X when not not (not X == b orelse not X == 10) -> {clause, 2};
+            X when not not not (X == c orelse X == d); not X >= 10 -> {clause, 3}
+        end,
+        case second:expression() of
+            Y when not Y == a; not Y =< 10 -> {clause, 1};
+            Y when not Y == b; not not Y == 10 -> {clause, 2};
+            Y when not not not Y == c; not not not Y == d; not not not Y >= 10 -> {clause, 3}
+        end,
+        case third:expression() of
+            Z when not (Z == a andalso Z =< 10) -> {clause, 1};
+            Z when not not (not Z == b andalso not Z == 10) -> {clause, 2};
+            Z when not not not (Z == c andalso Z == d andalso Z >= 10) -> {clause, 3}
         end
     }.
