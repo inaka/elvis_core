@@ -17,6 +17,9 @@
 -type t() :: map().
 -export_type([t/0]).
 
+-type elvis() :: proplists:proplist().
+-export_type([elvis/0]).
+
 -type validation_error() :: empty_config.
 -export_type([validation_error/0]).
 
@@ -27,7 +30,12 @@
 fetch_elvis_config(AppConfig) ->
     ElvisConfig = from_static(elvis, {app, AppConfig}),
     elvis_ruleset:load(from_static(rulesets, {elvis, ElvisConfig})),
-    ElvisConfig.
+    case validate(elvis) of
+        {error, _Errors} = E ->
+            E;
+        ok ->
+            {ok, ElvisConfig}
+    end.
 
 from_static(Key, {Type, Config}) ->
     elvis_utils:output(debug, "fetching key ~p from ~p config.", [Key, Type]),
@@ -74,10 +82,10 @@ default(Key) ->
     end.
 
 for(Key) ->
-    ElvisDefault = default_for(elvis),
+    AppDefault = default_for(app),
     AppConfig =
         case consult_elvis_config("elvis.config") of
-            ElvisDefault ->
+            AppDefault ->
                 % This might happen whether we fail to parse the fail or it actually is []
                 elvis_utils:output(
                     debug, "elvis.config unusable; falling back to rebar.config", []
@@ -86,7 +94,8 @@ for(Key) ->
             AppConfig0 ->
                 AppConfig0
         end,
-    ElvisConfig = fetch_elvis_config(AppConfig),
+    % If we got this far, the config. is valid...
+    {ok, ElvisConfig} = fetch_elvis_config(AppConfig),
     from_static(Key, {elvis, ElvisConfig}).
 
 consult_elvis_config(File) ->
@@ -96,7 +105,7 @@ consult_elvis_config(File) ->
             AppConfig;
         _ ->
             elvis_utils:output(debug, "elvis.config unusable", []),
-            default_for(elvis)
+            default_for(app)
     end.
 
 consult_rebar_config(File) ->
@@ -106,19 +115,30 @@ consult_rebar_config(File) ->
             AppConfig0;
         _ ->
             elvis_utils:output(debug, "rebar.config unusable", []),
-            default_for(elvis)
+            default_for(app)
     end.
 
+-spec from_rebar(string()) -> {ok, elvis()} | {error, [validation_error()]}.
 from_rebar(File) ->
-    RebarConfig = consult_rebar_config(File),
-    ElvisConfig = fetch_elvis_config(RebarConfig),
-    from_static(config, {elvis, ElvisConfig}).
+    AppConfig = consult_rebar_config(File),
+    fetch_elvis_config_from(AppConfig).
 
+-spec from_file(string()) -> {ok, elvis()} | {error, [validation_error()]}.
 from_file(File) ->
     FileConfig = consult_elvis_config(File),
-    ElvisConfig = fetch_elvis_config(FileConfig),
-    from_static(config, {elvis, ElvisConfig}).
+    fetch_elvis_config_from(FileConfig).
 
+fetch_elvis_config_from(AppConfig) ->
+    case fetch_elvis_config(AppConfig) of
+        {error, _Errors} = E ->
+            E;
+        {ok, ElvisConfig} ->
+            {ok, from_static(config, {elvis, ElvisConfig})}
+    end.
+
+default_for(app) ->
+    % This is the top-level element, before 'elvis'
+    [];
 default_for(elvis) ->
     [];
 default_for(config) ->
