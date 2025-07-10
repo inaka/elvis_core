@@ -64,9 +64,7 @@
     verify_ms_transform_included/1,
     verify_no_boolean_in_comparison/1,
     verify_no_operation_on_same_value/1,
-    verify_no_receive_without_timeout/1,
-    verify_no_single_match_maybe/1,
-    verify_guard_operators/1
+    verify_no_receive_without_timeout/1
 ]).
 %% -elvis attribute
 -export([
@@ -103,7 +101,10 @@
 ]).
 
 -if(?OTP_RELEASE >= 27).
--export([]).
+-export([
+    verify_no_single_match_maybe/1,
+    verify_guard_operators/1
+]).
 
 -if(?OTP_RELEASE >= 28).
 -export([
@@ -2421,7 +2422,7 @@ verify_no_single_clause_case(Config) ->
             erl_files ->
                 [#{line_num := 6}, #{line_num := 14}, #{line_num := 16}] = R
         end.
-
+-if(?OTP_RELEASE >= 27).
 verify_no_single_match_maybe(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
@@ -2570,6 +2571,7 @@ verify_guard_operators(Config) ->
     ] = PerExpression,
     true = PerExpression =/= PerGuard,
     PerExpression = Default.
+-endif.
 
 verify_no_match_in_condition(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
