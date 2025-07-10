@@ -2422,6 +2422,7 @@ verify_no_single_clause_case(Config) ->
             erl_files ->
                 [#{line_num := 6}, #{line_num := 14}, #{line_num := 16}] = R
         end.
+
 -if(?OTP_RELEASE >= 27).
 verify_no_single_match_maybe(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
@@ -2571,6 +2572,7 @@ verify_guard_operators(Config) ->
     ] = PerExpression,
     true = PerExpression =/= PerGuard,
     PerExpression = Default.
+
 -endif.
 
 verify_no_match_in_condition(Config) ->
