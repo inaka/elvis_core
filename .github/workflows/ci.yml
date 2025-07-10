@@ -53,5 +53,3 @@ jobs:
         run: |
           rebar3 escriptize
           _build/default/bin/elvis_core
-        env:
-          ERL_FLAGS: "-args_file config/vm.args"
