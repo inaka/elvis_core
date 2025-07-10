@@ -30,6 +30,8 @@ start() ->
     {ok, _} = application:ensure_all_started(elvis_core),
     ok.
 
+%% In this context, `throw` means an error, e.g., validation or internal, not an actual
+%% call to `erlang:throw/1`.
 -spec rock([elvis_config:t()]) ->
     ok | {fail, [{throw, term()} | elvis_result:file() | elvis_result:rule()]}.
 rock(ElvisConfig) ->
@@ -70,6 +72,8 @@ rock_this(Path, ElvisConfig) ->
             elvis_result_status(Results)
     end.
 
+%% In this context, `throw` means an error, e.g., validation or internal, not an actual
+%% call to `erlang:throw/1`.
 -spec do_parallel_rock(elvis_config:t()) ->
     ok
     | {fail, [{throw, term()} | elvis_result:file() | elvis_result:rule()]}.
