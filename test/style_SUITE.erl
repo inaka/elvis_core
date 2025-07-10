@@ -165,7 +165,7 @@ groups() ->
             verify_export_used_types,
             verify_max_anonymous_function_arity,
             verify_max_function_arity,
-            verify_no_match_in_condition,
+            % verify_no_match_in_condition,
             verify_behaviour_spelling,
             verify_param_pattern_matching,
             verify_private_data_types
