@@ -115,13 +115,36 @@ escape_format_str(String) ->
     binary_to_list(ResultBin).
 
 -dialyzer({nowarn_function, output/3}).
--spec output(debug | info, Format :: io:format(), Data :: [term()]) -> ok.
+-spec output(debug | info | error, Format :: io:format(), Data :: [term()]) -> ok.
 output(debug, Format, Data) ->
-    rebar_api:debug("Elvis: " ++ Format, Data);
+    case erlang:function_exported(rebar_api, debug, 2) of
+        true ->
+            rebar_api:debug("Elvis: " ++ Format, Data);
+        false ->
+            ok
+    end;
 output(info, Format, Data) ->
-    rebar_api:info("Elvis: " ++ Format, Data).
+    case erlang:function_exported(rebar_api, info, 2) of
+        true ->
+            rebar_api:info("Elvis: " ++ Format, Data);
+        false ->
+            ok
+    end;
+output(error, Format, Data) ->
+    case erlang:function_exported(rebar_api, error, 2) of
+        true ->
+            rebar_api:error("Elvis: " ++ Format, Data);
+        false ->
+            ok
+    end.
 
 -dialyzer({nowarn_function, abort/2}).
 -spec abort(Format :: io:format(), Data :: [term()]) -> no_return().
 abort(Format, Data) ->
-    rebar_api:abort("Elvis: " ++ Format, [Data]).
+    case erlang:function_exported(rebar_api, abort, 2) of
+        true ->
+            rebar_api:abort("Elvis: " ++ Format, [Data]);
+        false ->
+            output(error, Format, Data),
+            throw(elvis_abort)
+    end.
