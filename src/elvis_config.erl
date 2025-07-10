@@ -169,7 +169,7 @@ do_validate(RuleGroup) ->
         ok ?= maybe_invalid_rules(RuleGroup)
     else
         {error, Error} ->
-            throw({invalid_config, Error})
+            {error, {invalid_config, Error}}
     end.
 
 maybe_missing_dirs(RuleGroup) ->
