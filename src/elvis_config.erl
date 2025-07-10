@@ -29,7 +29,7 @@
 
 fetch_elvis_config(AppConfig) ->
     ElvisConfig = from_static(elvis, {app, AppConfig}),
-    elvis_ruleset:load(from_static(rulesets, {elvis, ElvisConfig})),
+    elvis_ruleset:load_custom(from_static(rulesets, {elvis, ElvisConfig})),
     case validate(elvis) of
         {error, _Errors} = E ->
             E;
