@@ -64,7 +64,8 @@
     verify_ms_transform_included/1,
     verify_no_boolean_in_comparison/1,
     verify_no_operation_on_same_value/1,
-    verify_no_receive_without_timeout/1
+    verify_no_receive_without_timeout/1,
+    verify_simplify_anonymous_functions/1
 ]).
 %% -elvis attribute
 -export([
@@ -166,7 +167,8 @@ groups() ->
             verify_no_match_in_condition,
             verify_behaviour_spelling,
             verify_param_pattern_matching,
-            verify_private_data_types
+            verify_private_data_types,
+            verify_simplify_anonymous_functions
         ]}
     ].
 
@@ -1233,6 +1235,34 @@ verify_always_shortcircuit(Config) ->
     PathPass = "pass_always_shortcircuit." ++ Ext,
     [] = elvis_test_utils:elvis_core_apply_rule(
         Config, elvis_style, always_shortcircuit, #{}, PathPass
+    ).
+
+verify_simplify_anonymous_functions(Config) ->
+    Group = proplists:get_value(group, Config, erl_files),
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PathFail = "fail_simplify_anonymous_functions." ++ Ext,
+    Warnings =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, simplify_anonymous_functions, #{}, PathFail
+        ),
+
+    case Group of
+        beam_files ->
+            [_, _, _, _, _] = Warnings;
+        _ ->
+            [
+                #{line_num := 7},
+                #{line_num := 8},
+                #{line_num := 9},
+                #{line_num := 10},
+                #{line_num := 11}
+            ] = Warnings
+    end,
+
+    PathPass = "pass_simplify_anonymous_functions." ++ Ext,
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, simplify_anonymous_functions, #{}, PathPass
     ).
 
 verify_no_spec_with_records(Config) ->
