@@ -2211,13 +2211,14 @@ is_simple_anonymous_function(FunNode) ->
         })
     of
         {nodes, [Clause]} ->
-            case {ktn_code:node_attr(guards, Clause), ktn_code:content(Clause)} of
-                {[], [Expression]} ->
-                    ktn_code:type(Expression) =:= call andalso
+            case ktn_code:content(Clause) of
+                [Expression] ->
+                    ktn_code:node_attr(guards, Clause) =:= [] andalso
+                        ktn_code:type(Expression) =:= call andalso
                         nodes_same_except_location(
                             ktn_code:node_attr(pattern, Clause), ktn_code:content(Expression)
                         );
-                {_, _} ->
+                _ ->
                     false
             end;
         _ ->
