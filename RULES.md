@@ -76,6 +76,7 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [Param Pattern-Matching](doc_rules/elvis_style/param_pattern_matching.md)
 - [Prefer Unquoted Atoms](doc_rules/elvis_text_style/prefer_unquoted_atoms.md)
 - [Private Data Types](doc_rules/elvis_style/private_data_types.md)
+- [Simplify Anonymous Functions](doc_rules/elvis_style/simplify_anonymous_functions.md)
 - [State Record And Type](doc_rules/elvis_style/state_record_and_type.md)
 - [Variable Casing](doc_rules/elvis_style/variable_casing.md)
 - [Variable Naming Convention](doc_rules/elvis_style/variable_naming_convention.md)

@@ -57,7 +57,8 @@
     no_boolean_in_comparison/2,
     no_operation_on_same_value/2,
     no_receive_without_timeout/2,
-    guard_operators/2
+    guard_operators/2,
+    simplify_anonymous_functions/2
 ]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1544,7 +1545,7 @@ is_list_node(#{type := cons}) ->
 is_list_node(#{type := nil}) ->
     true;
 is_list_node(#{type := match, content := Content}) ->
-    lists:any(fun(Elem) -> is_list_node(Elem) end, Content);
+    lists:any(fun is_list_node/1, Content);
 is_list_node(_) ->
     false.
 
@@ -1666,6 +1667,10 @@ same_value_on_both_sides(Node) ->
             false
     end.
 
+nodes_same_except_location([_ | _], []) ->
+    false;
+nodes_same_except_location([], [_ | _]) ->
+    false;
 nodes_same_except_location([], []) ->
     true;
 nodes_same_except_location([LeftNode | LeftNodes], [RightNode | RigthNodes]) ->
@@ -2174,6 +2179,50 @@ always_shortcircuit(Rule, ElvisConfig) ->
         )
      || OpNode <- OpNodes
     ].
+
+simplify_anonymous_functions(Rule, ElvisConfig) ->
+    {nodes, FunNodes} = elvis_code:find(#{
+        of_types => ['fun'],
+        inside => elvis_code:root(Rule, ElvisConfig),
+        filtered_by => fun is_simple_anonymous_function/1,
+        traverse => all
+    }),
+
+    [
+        elvis_result:new_item(
+            "unneeded anonymous function wrapper was found; prefer 'fun M:F/A'",
+            [],
+            #{node => Fun}
+        )
+     || Fun <- FunNodes
+    ].
+
+%% @doc Has this anonymous function just one clause that is a call to a
+%%      regular function with the same args? i.e., something like
+%%      fun() -> x() end ; or
+%%      fun(A) -> some:funct(A) end ; or
+%%      fun(A, B, C) -> x:y(A, B, C) end
+%%      Note that we assume that FunNode is, in fact, an anonymous function node.
+is_simple_anonymous_function(FunNode) ->
+    case
+        elvis_code:find(#{
+            of_types => [clause],
+            inside => FunNode
+        })
+    of
+        {nodes, [Clause]} ->
+            case {ktn_code:node_attr(guards, Clause), ktn_code:content(Clause)} of
+                {[], [SingleExpression]} ->
+                    ktn_code:type(SingleExpression) =:= call andalso
+                        nodes_same_except_location(
+                            ktn_code:node_attr(pattern, Clause), ktn_code:content(SingleExpression)
+                        );
+                {_, _} ->
+                    false
+            end;
+        _ ->
+            false
+    end.
 
 export_used_types(Rule, ElvisConfig) ->
     Root = elvis_code:root(Rule, ElvisConfig),
