@@ -2,7 +2,7 @@
 
 -format(#{inline_items => none}).
 
--export([rules/1, load_custom/1, dump_custom/0]).
+-export([rules/1, load_custom/1, dump_custom/0, is_defined/1]).
 
 -ifdef(TEST).
 -export([drop_custom/0]).
@@ -33,6 +33,9 @@ dump_custom() ->
         _ ->
             ets:delete(Table)
     end.
+
+is_defined(Ruleset) ->
+    elvis_ruleset:rules(Ruleset) =/= [].
 
 -spec rules(Group :: atom()) -> [elvis_rule:t()].
 rules(gitignore) ->
