@@ -111,7 +111,7 @@ rock_with_list_config(_Config) ->
 
 rock_with_file_config(_Config) ->
     ConfigPath = "../../config/elvis.config",
-    {ok, ElvisConfig} = elvis_config:from_file(ConfigPath),
+    ElvisConfig = elvis_config:from_file(ConfigPath),
     Fun = fun() -> elvis_core:rock(ElvisConfig) end,
     Expected =
         "# \\.\\./\\.\\./_build/test/lib/elvis_core/test/" ++ "examples/.*\\.erl.*FAIL",
@@ -120,7 +120,7 @@ rock_with_file_config(_Config) ->
 
 rock_with_rebar_default_config(_Config) ->
     {ok, _} = file:copy("../../config/rebar.config", "rebar.config"),
-    {ok, ElvisConfig} = elvis_config:from_rebar("rebar.config"),
+    ElvisConfig = elvis_config:from_rebar("rebar.config"),
     [#{name := line_length}] =
         try
             {fail, Results} = elvis_core:rock(ElvisConfig),
@@ -205,7 +205,7 @@ rock_with_errors_has_output(_Config) ->
 
 rock_without_errors_has_no_output(_Config) ->
     ConfigPath = "../../config/test.pass.config",
-    {ok, ElvisConfig} = elvis_config:from_file(ConfigPath),
+    ElvisConfig = elvis_config:from_file(ConfigPath),
     Fun = fun() -> elvis_core:rock(ElvisConfig) end,
     Output = get_output(Fun),
     %% This is related to the test case `rock_with_non_parsable_file`,
@@ -318,7 +318,7 @@ rock_this_skipping_files(_Config) ->
     [File] = elvis_file:find_files(Dirs, "small.erl"),
     Path = elvis_file:path(File),
     ConfigPath = "../../config/elvis-test-pa.config",
-    {ok, ElvisConfig} = elvis_config:from_file(ConfigPath),
+    ElvisConfig = elvis_config:from_file(ConfigPath),
     ok = elvis_core:rock_this(Path, ElvisConfig),
     0 = meck:num_calls(elvis_file, load_file_data, '_'),
     meck:unload(elvis_file),
@@ -337,7 +337,7 @@ rock_this_not_skipping_files(_Config) ->
 
 rock_with_umbrella_apps(_Config) ->
     ElvisUmbrellaConfigFile = "../../config/elvis-umbrella.config",
-    {ok, ElvisConfig} = elvis_config:from_file(ElvisUmbrellaConfigFile),
+    ElvisConfig = elvis_config:from_file(ElvisUmbrellaConfigFile),
     {fail, [
         #{file := "../../_build/test/lib/elvis_core/test/dirs/test/dir_test.erl"},
         #{file := "../../_build/test/lib/elvis_core/test/dirs/src/dirs_src.erl"},
@@ -384,7 +384,7 @@ rock_with_invalid_rules(_Config) ->
 
 custom_ruleset(_Config) ->
     ConfigPath = "../../config/elvis-test-custom-ruleset.config",
-    {ok, ElvisConfig} = elvis_config:from_file(ConfigPath),
+    ElvisConfig = elvis_config:from_file(ConfigPath),
     NoTabs = elvis_rule:new(elvis_text_style, no_tabs),
     [[NoTabs]] = elvis_config:rules(ElvisConfig),
 
@@ -397,7 +397,7 @@ custom_ruleset(_Config) ->
 
 hrl_ruleset(_Config) ->
     ConfigPath = "../../config/elvis-test-hrl-files.config",
-    {ok, ElvisConfig} = elvis_config:from_file(ConfigPath),
+    ElvisConfig = elvis_config:from_file(ConfigPath),
     {fail, [
         #{file := "../../_build/test/lib/elvis_core/test/examples/test_good.hrl", rules := []},
         #{
