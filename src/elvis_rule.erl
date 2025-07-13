@@ -15,6 +15,7 @@
     execute/2,
     option/2,
     defmap/1,
+    defkeys/1,
     ignorable/1,
     same/2
 ]).
@@ -83,12 +84,7 @@ is_valid_from_tuple(Tuple) ->
             {false, "got an invalid tuple (is def. a map or 'disable'?)."};
         Rule ->
             NS = ns(Rule),
-            case is_atom(NS) of
-                true ->
-                    _ = code:ensure_loaded(NS);
-                false ->
-                    ok
-            end,
+            _ = maybe_ensure_loaded(NS),
             Name = name(Rule),
             ArityForExecute = 2,
             case
@@ -105,12 +101,17 @@ is_valid_from_tuple(Tuple) ->
             end
     end.
 
+maybe_ensure_loaded(NS) when not is_atom(NS) ->
+    ok;
+maybe_ensure_loaded(NS) ->
+    code:ensure_loaded(NS).
+
 % Module - invalid type
 is_ignorable(Module) when not is_tuple(Module) andalso not is_atom(Module) ->
     false;
 % Module - test if valid
 is_ignorable(Module) when is_atom(Module) ->
-    case code:ensure_loaded(Module) of
+    case maybe_ensure_loaded(Module) of
         {module, _} ->
             true;
         _ ->
@@ -129,7 +130,9 @@ is_ignorable({Module, Function}) ->
             false
     end;
 % {Module, Function, Arity} - invalid type
-is_ignorable({Module, Function, Arity}) when not is_atom(Module) orelse not is_atom(Function) orelse not is_integer(Arity) orelse Arity < 0 ->
+is_ignorable({Module, Function, Arity}) when
+    not is_atom(Module) orelse not is_atom(Function) orelse not is_integer(Arity) orelse Arity < 0
+->
     false;
 % {Module, Function, Arity} - test if valid
 is_ignorable({Module, Function, Arity}) ->
@@ -206,11 +209,23 @@ default(Rule) ->
 
 -spec default(NS :: module(), Name :: atom()) -> def().
 default(NS, Name) ->
-    NS:default(Name).
+    _ = maybe_ensure_loaded(NS),
+    ArityForDefault = 1,
+    case erlang:function_exported(NS, default, ArityForDefault) of
+        false ->
+            #{};
+        true ->
+            NS:default(Name)
+    end.
 
 -spec defmap(map()) -> def().
 defmap(Map) ->
     Map.
+
+-spec defkeys(t()) -> [atom()].
+defkeys(Rule) ->
+    Def = def(Rule),
+    maps:keys(Def).
 
 -spec ignorable(module() | {module(), atom()} | {module(), atom(), arity()}) -> ignorable().
 ignorable(Ignorable) ->
