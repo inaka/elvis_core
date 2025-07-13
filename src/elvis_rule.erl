@@ -4,6 +4,7 @@
     new/2, new/3,
     from_tuple/1,
     is_valid_from_tuple/1,
+    is_ignorable/1,
     ns/1,
     name/1,
     def/1,
@@ -102,6 +103,42 @@ is_valid_from_tuple(Tuple) ->
                             NS, Name, ArityForExecute
                         ])}
             end
+    end.
+
+% Module - invalid type
+is_ignorable(Module) when not is_tuple(Module) andalso not is_atom(Module) ->
+    false;
+% Module - test if valid
+is_ignorable(Module) when is_atom(Module) ->
+    case code:ensure_loaded(Module) of
+        {module, _} ->
+            true;
+        _ ->
+            false
+    end;
+% {Module, Function} - invalid type
+is_ignorable({Module, Function}) when not is_atom(Module) orelse not is_atom(Function) ->
+    false;
+% {Module, Function} - test if valid
+is_ignorable({Module, Function}) ->
+    case is_ignorable(Module) of
+        true ->
+            Exports = Module:module_info(exports),
+            proplists:get_value(Function, Exports) =/= undefined;
+        false ->
+            false
+    end;
+% {Module, Function, Arity} - invalid type
+is_ignorable({Module, Function, Arity}) when not is_atom(Module) orelse not is_atom(Function) orelse not is_integer(Arity) orelse Arity < 0 ->
+    false;
+% {Module, Function, Arity} - test if valid
+is_ignorable({Module, Function, Arity}) ->
+    case is_ignorable(Module) of
+        true ->
+            Exports = Module:module_info(exports),
+            proplists:get_value(Function, Exports) =:= Arity;
+        false ->
+            false
     end.
 
 -spec ns(t()) -> module().
