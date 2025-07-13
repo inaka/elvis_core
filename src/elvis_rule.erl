@@ -3,6 +3,7 @@
 -export([
     new/2, new/3,
     from_tuple/1,
+    is_valid_from_tuple/1,
     ns/1,
     name/1,
     def/1,
@@ -49,7 +50,7 @@ new(NS, Name, Def) ->
         ignores = maps:get(ignore, Def, [])
     }.
 
--spec from_tuple(Rule | NSName | NSNameDef) -> t() when
+-spec from_tuple(Rule | NSName | NSNameDef) -> t() | invalid_tuple when
     Rule :: t(),
     NSName :: {NS :: module(), Name :: atom()},
     NSNameDef :: {NS :: module(), Name :: atom(), Def :: disable | map()}.
@@ -57,7 +58,7 @@ from_tuple(Rule) when is_record(Rule, rule) ->
     Rule;
 from_tuple({NS, Name}) ->
     from_tuple({NS, Name, #{}});
-from_tuple({NS, Name, Def0}) ->
+from_tuple({NS, Name, Def0}) when is_map(Def0) orelse Def0 =:= disable ->
     {Def, Disable} =
         case Def0 of
             disable ->
@@ -71,6 +72,36 @@ from_tuple({NS, Name, Def0}) ->
             disable(Rule);
         false ->
             Rule
+    end;
+from_tuple(_) ->
+    invalid_tuple.
+
+is_valid_from_tuple(Tuple) ->
+    case from_tuple(Tuple) of
+        invalid_tuple ->
+            {false, "got an invalid tuple (is def. a map or 'disable'?)."};
+        Rule ->
+            NS = ns(Rule),
+            case is_atom(NS) of
+                true ->
+                    _ = code:ensure_loaded(NS);
+                false ->
+                    ok
+            end,
+            Name = name(Rule),
+            ArityForExecute = 2,
+            case
+                is_atom(NS) andalso is_atom(Name) andalso
+                    erlang:function_exported(NS, Name, ArityForExecute)
+            of
+                true ->
+                    {true, Rule};
+                _ ->
+                    {false,
+                        io_lib:format("got an unexpected/invalid ~p:~p/~p combo.", [
+                            NS, Name, ArityForExecute
+                        ])}
+            end
     end.
 
 -spec ns(t()) -> module().
