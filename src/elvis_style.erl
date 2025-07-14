@@ -1793,18 +1793,31 @@ no_import(Rule, ElvisConfig) ->
     ].
 
 no_catch_expressions(Rule, ElvisConfig) ->
-    {nodes, CatchExprNodes} = elvis_code:find(#{
+    {zippers, CatchExprZippers} = elvis_code:find(#{
         of_types => ['catch'],
-        inside => elvis_code:root(Rule, ElvisConfig)
+        inside => elvis_code:root(Rule, ElvisConfig),
+        filtered_from => zipper,
+        filtered_by => fun(Zipper) -> not result_discarded(Zipper) end
     }),
 
     [
         elvis_result:new_item(
             "an unexpected 'catch' expression was found; prefer a 'try' expression",
-            #{node => CatchExprNode}
+            #{node => zipper:node(CatchExprZipper)}
         )
-     || CatchExprNode <- CatchExprNodes
+     || CatchExprZipper <- lists:uniq(CatchExprZippers)
     ].
+
+%% @doc is this node in a _ = ... expression, where the result is explicitly discarded?
+result_discarded(Zipper) ->
+    Parent = zipper:node(zipper:up(Zipper)),
+    case ktn_code:type(Parent) of
+        match ->
+            [LeftSide | _] = ktn_code:content(Parent),
+            ktn_code:type(LeftSide) == var andalso ktn_code:attr(name, LeftSide) == '_';
+        _ ->
+            false
+    end.
 
 no_single_clause_case(Rule, ElvisConfig) ->
     {nodes, CaseExprs} = elvis_code:find(#{

@@ -21,6 +21,14 @@ risky_call() ->
     end.
 ```
 
+## Except
+
+```erlang
+ignore_results_and_errors() ->
+    _ = catch do_something(),
+    done.
+```
+
 ## Rationale
 
 The `catch` expression in Erlang catches all kinds of exceptions - including runtime errors,
@@ -28,6 +36,10 @@ The `catch` expression in Erlang catches all kinds of exceptions - including run
 making debugging and reasoning about failure states more difficult. In contrast, `try ... catch`
 allows finer-grained control over different types of exceptions and supports pattern matching on
 the reason and stack trace, enabling safer and more maintainable error handling.
+
+The only exception to this is when you want to evaluate an expression and discard all possible
+results of it, even if they are errors. You can signal that intention by preceding the expression
+with `_ =`, like it's shown in the example above.
 
 ## Options
 

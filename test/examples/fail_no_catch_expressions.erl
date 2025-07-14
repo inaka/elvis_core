@@ -1,8 +1,8 @@
 -module(fail_no_catch_expressions).
 
--export([catchf/0, try_catch/0, mixem/0]).
+-export([catchf/0, try_catch/0, mixem/0, discarded/0]).
 
--dialyzer({nowarn_function, [catchf/0, try_catch/0, mixem/0]}).
+-dialyzer({nowarn_function, [catchf/0, try_catch/0, mixem/0, discarded/0]}).
 
 catchf() ->
     F = fun (a) -> "catch" end,
@@ -25,3 +25,6 @@ mixem() ->
     catch _ ->
         catch F(a)
     end.
+
+discarded() ->
+    _ = catch this:should(be, fine).
