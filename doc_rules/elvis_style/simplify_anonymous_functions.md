@@ -1,7 +1,6 @@
 # Simplify Anonymous Functions [![](https://img.shields.io/badge/since-4.2.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.2.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
-Avoid anonymous functions that simply call a named function (with the same arguments in the same order)
-and can be more concisely expressed using the function reference syntax.
+Anonymous functions that simply call a named function (with the same arguments in the same order) should be avoided; they can be more concisely expressed using the function reference syntax.
 
 ## Avoid
 
