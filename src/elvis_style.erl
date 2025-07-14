@@ -2190,7 +2190,7 @@ simplify_anonymous_functions(Rule, ElvisConfig) ->
 
     [
         elvis_result:new_item(
-            "unneeded anonymous function wrapper was found; prefer 'fun M:F/A'",
+            "an unnecessary anonymous function wrapper was found; prefer 'fun M:F/A'",
             [],
             #{node => Fun}
         )
