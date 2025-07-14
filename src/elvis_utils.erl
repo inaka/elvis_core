@@ -4,9 +4,7 @@
 
 %% General
 -export([erlang_halt/1, to_str/1, split_all_lines/1, split_all_lines/2]).
-%% Output
--export([info/2, notice/2, error/2, error_prn/2, warn_prn/2]).
-%% rebar3
+%% Output / rebar3
 -export([output/3, abort/2]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -40,16 +38,6 @@ split_all_lines(Binary, Opts) ->
 info(Message, Args) ->
     ColoredMessage = Message ++ "{{reset}}~n",
     print_info(ColoredMessage, Args).
-
--spec notice(string(), [term()]) -> ok.
-notice(Message, Args) ->
-    ColoredMessage = "{{white-bold}}" ++ Message ++ "{{reset}}~n",
-    print_info(ColoredMessage, Args).
-
--spec error(string(), [term()]) -> ok.
-error(Message, Args) ->
-    ColoredMessage = "{{white-bold}}" ++ Message ++ "{{reset}}~n",
-    print(ColoredMessage, Args).
 
 -spec error_prn(string(), [term()]) -> ok.
 error_prn(Message, Args) ->
@@ -115,7 +103,7 @@ escape_format_str(String) ->
     binary_to_list(ResultBin).
 
 -dialyzer({nowarn_function, output/3}).
--spec output(debug | info | error, Format :: io:format(), Data :: [term()]) -> ok.
+-spec output(debug | info | warn | error, Format :: io:format(), Data :: [term()]) -> ok.
 output(debug, Format, Data) ->
     case erlang:function_exported(rebar_api, debug, 2) of
         true ->
@@ -128,14 +116,21 @@ output(info, Format, Data) ->
         true ->
             rebar_api:info("Elvis: " ++ Format, Data);
         false ->
-            ok
+            info(Format, Data)
+    end;
+output(warn, Format, Data) ->
+    case erlang:function_exported(rebar_api, warn, 2) of
+        true ->
+            rebar_api:warn("Elvis: " ++ Format, Data);
+        false ->
+            warn_prn(Format, Data)
     end;
 output(error, Format, Data) ->
     case erlang:function_exported(rebar_api, error, 2) of
         true ->
             rebar_api:error("Elvis: " ++ Format, Data);
         false ->
-            ok
+            error_prn(Format, Data)
     end.
 
 -dialyzer({nowarn_function, abort/2}).
