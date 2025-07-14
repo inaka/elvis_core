@@ -66,7 +66,7 @@ rock_this(Path, ElvisConfig) ->
         end,
     case lists:filter(FilterFun, ElvisConfig) of
         [] ->
-            elvis_utils:info("Skipping ~s", [Path]);
+            elvis_utils:output(info, "Skipping ~s", [Path]);
         FilteredElvisConfig ->
             LoadedFile = load_file_data(FilteredElvisConfig, File),
             ApplyRulesFun = fun(Cfg) -> apply_rules_and_print(Cfg, LoadedFile) end,
@@ -116,13 +116,13 @@ do_rock(File, ElvisConfig) ->
     elvis_file:t().
 load_file_data(ElvisConfig, File) ->
     Path = elvis_file:path(File),
-    elvis_utils:info("Loading ~s", [Path]),
+    elvis_utils:output(info, "Loading ~s", [Path]),
     try
         elvis_file:load_file_data(ElvisConfig, File)
     catch
         _:Reason ->
             Msg = "~p when loading file ~p.",
-            elvis_utils:error_prn(Msg, [Reason, Path]),
+            elvis_utils:output(error, Msg, [Reason, Path]),
             File
     end.
 

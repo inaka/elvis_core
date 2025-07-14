@@ -20,22 +20,15 @@
 -type elvis() :: proplists:proplist().
 -export_type([elvis/0]).
 
--type validation_error() :: empty_config.
--export_type([validation_error/0]).
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Public
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fetch_elvis_config(AppConfig) ->
     ElvisConfig = from_static(elvis, {app, AppConfig}),
-    elvis_ruleset:load_custom(from_static(rulesets, {elvis, ElvisConfig})),
-    case validate(elvis) of
-        {error, _Errors} = E ->
-            E;
-        ok ->
-            {ok, ElvisConfig}
-    end.
+    _ = validate({elvis, ElvisConfig}),
+    _ = elvis_ruleset:load_custom(from_static(rulesets, {elvis, ElvisConfig})),
+    ElvisConfig.
 
 from_static(Key, {Type, Config}) ->
     elvis_utils:output(debug, "fetching key ~p from ~p config.", [Key, Type]),
@@ -95,7 +88,7 @@ for(Key) ->
                 AppConfig0
         end,
     % If we got this far, the config. is valid...
-    {ok, ElvisConfig} = fetch_elvis_config(AppConfig),
+    ElvisConfig = fetch_elvis_config(AppConfig),
     from_static(Key, {elvis, ElvisConfig}).
 
 consult_elvis_config(File) ->
@@ -118,23 +111,17 @@ consult_rebar_config(File) ->
             default_for(app)
     end.
 
--spec from_rebar(string()) -> {ok, elvis()} | {error, [validation_error()]}.
 from_rebar(File) ->
     AppConfig = consult_rebar_config(File),
     fetch_elvis_config_from(AppConfig).
 
--spec from_file(string()) -> {ok, elvis()} | {error, [validation_error()]}.
 from_file(File) ->
     FileConfig = consult_elvis_config(File),
     fetch_elvis_config_from(FileConfig).
 
 fetch_elvis_config_from(AppConfig) ->
-    case fetch_elvis_config(AppConfig) of
-        {error, _Errors} = E ->
-            E;
-        {ok, ElvisConfig} ->
-            {ok, from_static(config, {elvis, ElvisConfig})}
-    end.
+    ElvisConfig = fetch_elvis_config(AppConfig),
+    from_static(config, {elvis, ElvisConfig}).
 
 default_for(app) ->
     % This is the top-level element, before 'elvis'
@@ -144,9 +131,22 @@ default_for(elvis) ->
 default_for(config) ->
     [
         #{
-            dirs => ["apps/*/src/**", "src/**"],
+            dirs => [
+                "apps/**/src/**",
+                "src/**"
+            ],
             filter => "*.erl",
             ruleset => erl_files
+        },
+        #{
+            dirs => [
+                "apps/**/src/**",
+                "src/**",
+                "apps/**/include/**",
+                "include/**"
+            ],
+            filter => "*.erl",
+            ruleset => hrl_files
         },
         #{
             dirs => ["."],
@@ -157,11 +157,6 @@ default_for(config) ->
             dirs => ["."],
             filter => ".gitignore",
             ruleset => gitignore
-        },
-        #{
-            dirs => ["."],
-            filter => "elvis.config",
-            ruleset => elvis_config
         }
     ];
 default_for(output_format) ->
@@ -173,73 +168,17 @@ default_for(no_output) ->
 default_for(parallel) ->
     1;
 default_for(rulesets) ->
-    #{}.
-
--spec validate(Config :: [t()]) -> [validation_error()].
-validate([]) ->
-    [empty_config];
-validate(Config) ->
-    lists:foreach(fun do_validate/1, Config),
+    #{};
+default_for([config, dirs]) ->
+    [];
+default_for([config, filter]) ->
+    "";
+default_for([config, ignore]) ->
+    [];
+default_for([config, ruleset]) ->
+    undefined;
+default_for([config, rules]) ->
     [].
-
-do_validate(RuleGroup) ->
-    maybe
-        ok ?= maybe_missing_dirs(RuleGroup),
-        ok ?= maybe_missing_filter(RuleGroup),
-        ok ?= maybe_missing_rules(RuleGroup),
-        ok ?= maybe_invalid_rules(RuleGroup)
-    else
-        {error, Error} ->
-            {error, {invalid_config, Error}}
-    end.
-
-maybe_missing_dirs(RuleGroup) ->
-    maybe_boolean_wrapper(
-        not (maps:is_key(dirs, RuleGroup) andalso not maps:is_key(filter, RuleGroup)), missing_dir
-    ).
-
-maybe_missing_filter(RuleGroup) ->
-    maybe_boolean_wrapper(
-        maps:is_key(dirs, RuleGroup), missing_filter
-    ).
-
-maybe_missing_rules(RuleGroup) ->
-    maybe_boolean_wrapper(
-        maps:is_key(rules, RuleGroup) orelse maps:is_key(ruleset, RuleGroup), missing_rules
-    ).
-
-maybe_boolean_wrapper(true, _Flag) -> ok;
-maybe_boolean_wrapper(false, Flag) -> {error, Flag}.
-
-maybe_invalid_rules(#{rules := Rules}) ->
-    case invalid_rules(Rules) of
-        [] -> ok;
-        InvalidRules -> {error, {invalid_rules, InvalidRules}}
-    end;
-maybe_invalid_rules(_) ->
-    ok.
-
-invalid_rules(Rules) ->
-    lists:filtermap(fun is_invalid_rule/1, Rules).
-
-is_invalid_rule({NS, Rule, _}) ->
-    is_invalid_rule({NS, Rule});
-is_invalid_rule({NS, Rule}) ->
-    maybe
-        {module, NS} ?= code:ensure_loaded(NS),
-        ExportedRules = erlang:get_module_info(NS, exports),
-        case lists:keymember(Rule, 1, ExportedRules) of
-            false -> {true, {invalid_rule, {NS, Rule}}};
-            _ -> false
-        end
-    else
-        {error, _} ->
-            elvis_utils:warn_prn(
-                "Invalid module (~p) specified in elvis.config.~n",
-                [NS]
-            ),
-            {true, {invalid_rule, {NS, Rule}}}
-    end.
 
 -spec dirs(Config :: [t()] | t()) -> [string()].
 dirs(Config) when is_list(Config) ->
@@ -303,22 +242,6 @@ resolve_files(RuleGroup, Files) ->
     Dirs = dirs(RuleGroup),
     Ignore = ignore(RuleGroup),
     FilteredFiles = elvis_file:filter_files(Files, Dirs, Filter, Ignore),
-    _ =
-        case FilteredFiles of
-            [] ->
-                Ruleset = maps:get(ruleset, RuleGroup, undefined),
-                Error =
-                    elvis_result:new(
-                        warn,
-                        "Searching for files in ~p, for ruleset ~p, "
-                        "with filter ~p, yielded none. "
-                        "Update your configuration",
-                        [Dirs, Ruleset, Filter]
-                    ),
-                ok = elvis_result:print_results([Error]);
-            _ ->
-                ok
-        end,
     RuleGroup#{files => FilteredFiles}.
 
 %% @doc Takes a configuration and finds all files according to its 'dirs'
@@ -407,37 +330,388 @@ is_rule_override(Rule, UserRules) ->
         UserRules
     ).
 
-%flag_validated(Option) ->
-%    Table = table(),
-%    _ = create_table(Table),
-%    Obj = validated_flag(Option),
-%    ets:insert(Table, Obj).
-%
-%is_validated(Option) ->
-%    Table = table(),
-%    case table_exists(Table) of
-%        false ->
-%            false;
-%        _ ->
-%            Obj = validated_flag(Option),
-%            ets:lookup(Table, Option) =:= [Obj]
-%    end.
-%
-%validated_flag(Option) ->
-%    {Option, validated}.
-%
-%create_table(Table) ->
-%    case table_exists(Table) of
-%        false ->
-%            _ = ets:new(Table, [public, named_table]);
-%        _ ->
-%            ok
-%    end.
-%
-%table() ->
-%    ?MODULE.
-%
-%table_exists(Table) ->
-%    ets:info(Table) =/= undefined.
-%
-%-spec default_config() -> [t()].
+validate({elvis = Option, ElvisConfig}) ->
+    case check_flag(validated(Option)) orelse check_flag(validation_started(Option)) of
+        true ->
+            ok;
+        false ->
+            do_validate({Option, ElvisConfig})
+    end.
+
+get_elvis_opt(OptName, ElvisConfig) ->
+    proplists:get_value(OptName, ElvisConfig, default_for(OptName)).
+
+do_validate({elvis = Option, ElvisConfig}) ->
+    maybe
+        ok = flag(validation_started(Option)),
+        ok ?= is_list("elvis", ElvisConfig),
+        ok ?=
+            proplist_keys_are_in("elvis", ElvisConfig, [
+                output_format, verbose, no_output, parallel, rulesets, config
+            ]),
+        OutputFormat = get_elvis_opt(output_format, ElvisConfig),
+        ok ?= is_one_of("elvis.output_format", OutputFormat, [colors, plain, parsable]),
+        Verbose = get_elvis_opt(verbose, ElvisConfig),
+        ok ?= is_boolean("elvis.verbose", Verbose),
+        NoOutput = get_elvis_opt(no_output, ElvisConfig),
+        ok ?= is_boolean("elvis.no_output", NoOutput),
+        Parallel = get_elvis_opt(parallel, ElvisConfig),
+        ok ?= is_pos_integer("elvis.parallel", Parallel),
+        Rulesets = get_elvis_opt(rulesets, ElvisConfig),
+        ok ?= is_valid_rulesets("elvis.rulesets", Rulesets),
+        Config = get_elvis_opt(config, ElvisConfig),
+        ok ?= is_valid_config("elvis.config", Rulesets, Config),
+        ok = flag(validated(Option))
+    else
+        {error, FormatData} ->
+            {Format, Data} =
+                case is_list(FormatData) of
+                    false ->
+                        FormatData;
+                    true ->
+                        % Get only first result, for now
+                        % If we wanna be smarter we need to start concatenating readable strings
+                        [{Format0, Data0} | _] = FormatData,
+                        {Format0, Data0}
+                end,
+            % on warnings_as_errors this'll throw an exception
+            %throw({invalid_config, io_lib:format(Format, Data)})
+            elvis_utils:output(warn, Format, Data)
+    end.
+
+is_list(What, List) ->
+    case is_list(List) of
+        true ->
+            ok;
+        _ ->
+            {error, {"~p is expected to be a list.", [What]}}
+    end.
+
+proplist_keys_are_in(What, List, Keys) ->
+    Filtered = [Element || {Element, _} <- List, not lists:member(Element, Keys)],
+    case Filtered of
+        [] ->
+            ok;
+        _ ->
+            {error, {"in ~p, the following keys are unknown: ~p.", [What, Filtered]}}
+    end.
+
+is_one_of(What, Value, Possibilities) ->
+    case lists:member(Value, Possibilities) of
+        true ->
+            ok;
+        _ ->
+            {error, {"~p is expected to be one of the following: ~p.", [What, Possibilities]}}
+    end.
+
+is_boolean(What, Value) ->
+    case is_boolean(Value) of
+        true ->
+            ok;
+        _ ->
+            {error, {"~p is expected to be a boolean.", [What]}}
+    end.
+
+is_pos_integer(What, Value) ->
+    case is_integer(Value) andalso Value > 0 of
+        true ->
+            ok;
+        _ ->
+            {error, {"~p is expected to be a positive integer.", [What]}}
+    end.
+
+is_valid_rulesets(What, Rulesets) ->
+    maybe
+        ok ?= is_map(What, Rulesets),
+        ok ?= all_map_keys_are_atoms(What, Rulesets),
+        ok ?= all_rulesets_have_valid_rules(What, Rulesets),
+        ok ?= no_rulesets_exist(What, Rulesets)
+    else
+        {error, FormatData} ->
+            {error, FormatData}
+    end.
+
+is_map(What, Value) ->
+    case is_map(Value) of
+        true ->
+            ok;
+        _ ->
+            {error, {"~p is expected to be a map.", [What]}}
+    end.
+
+all_map_keys_are_atoms(What, Map) ->
+    Filtered = [Key || Key <- maps:keys(Map), is_atom(Key)],
+    case Filtered of
+        [] ->
+            ok;
+        _ ->
+            {error, {"in ~p, keys are expected to be atoms.", [What]}}
+    end.
+
+all_rulesets_have_valid_rules(What, Rulesets) ->
+    AccOut = maps:fold(
+        fun(Ruleset, RuleTuples, AccInO) ->
+            lists:foldl(
+                fun(RuleTuple, AccInI) ->
+                    case elvis_rule:is_valid_from_tuple(RuleTuple) of
+                        {true, _Rule} ->
+                            AccInI;
+                        {false, ValidError} ->
+                            [{"in ~p, in ruleset ~p, " ++ ValidError, [What, Ruleset]} | AccInI]
+                    end
+                end,
+                AccInO,
+                RuleTuples
+            )
+        end,
+        [],
+        Rulesets
+    ),
+    case AccOut of
+        [] ->
+            ok;
+        _ ->
+            {error, lists:reverse(AccOut)}
+    end.
+
+no_rulesets_exist(What, Rulesets) ->
+    Filtered = [Ruleset || Ruleset <- maps:keys(Rulesets), not elvis_ruleset:is_defined(Ruleset)],
+    case Filtered of
+        [] ->
+            ok;
+        _ ->
+            {error,
+                {
+                    "in ~p, the following rulesets are not expected to be "
+                    "named after a default ruleset: ~p.",
+                    [
+                        What, Filtered
+                    ]
+                }}
+    end.
+
+is_valid_config(What, CustomRulesets, Configset0) ->
+    Configset = wrap_in_list(Configset0),
+    maybe
+        ok ?= is_list(What, Configset),
+        ok ?= all_configs_are_valid(What, CustomRulesets, Configset)
+    else
+        {error, FormatData} ->
+            {error, FormatData}
+    end.
+
+wrap_in_list(Term) when is_list(Term) ->
+    Term;
+wrap_in_list(Term) ->
+    [Term].
+
+all_configs_are_valid(What, CustomRulesets, Configset) ->
+    {_PosNumber, ValidErrors} = lists:foldl(
+        fun(Config, {PosNumber, AccIn}) ->
+            AccOut =
+                case config_is_valid(CustomRulesets, Config) of
+                    ok ->
+                        AccIn;
+                    {error, ValidError} ->
+                        [
+                            {"in ~p, at list position number ~p, " ++ ValidError, [What, PosNumber]}
+                            | AccIn
+                        ]
+                end,
+            {PosNumber + 1, AccOut}
+        end,
+        {1, []},
+        Configset
+    ),
+    case ValidErrors of
+        [] ->
+            ok;
+        _ ->
+            {error, lists:reverse(ValidErrors)}
+    end.
+
+get_config_opt(OptName, Config) ->
+    maps:get(OptName, Config, default_for([config, OptName])).
+
+config_is_valid(CustomRulesets, Config) ->
+    maybe
+        ok ?= map_keys_are_in(Config, [dirs, filter, ignore, ruleset, rules]),
+        Dirs = get_config_opt(dirs, Config),
+        ok ?= is_nonempty_list_of_dirs(dirs, Dirs),
+        Filter = get_config_opt(filter, Config),
+        ok ?= is_nonempty_string(filter, Filter),
+        ok ?= all_dirs_filter_combos_are_valid(Dirs, Filter),
+        Ignore = get_config_opt(ignore, Config),
+        ok ?= is_list_of_ignorables(ignore, Ignore),
+        Ruleset = get_config_opt(ruleset, Config),
+        ok ?= ruleset_is_custom_or_default(CustomRulesets, Ruleset),
+        Rules = get_config_opt(rules, Config),
+        ok ?= all_rules_are_valid(rules, Rules)
+    else
+        {error, ValidError} ->
+            {error, ValidError}
+    end.
+
+map_keys_are_in(Map, Keys) ->
+    Filtered = [Key || Key <- maps:keys(Map), not lists:member(Key, Keys)],
+    case Filtered of
+        [] ->
+            ok;
+        _ ->
+            {error, io_lib:format("the following keys are unknown: ~p.", [Filtered])}
+    end.
+
+is_nonempty_list_of_dirs(What, List) when not is_list(List) ->
+    {error, io_lib:format("~p is expected to be a list.", [What])};
+is_nonempty_list_of_dirs(What, [] = _List) ->
+    {error, io_lib:format("~p is expected to be a nonempty list.", [What])};
+is_nonempty_list_of_dirs(What, List) ->
+    Filtered = [
+        Element
+     || Element <- List, not io_lib:char_list(Element) orelse not filelib:is_dir(Element)
+    ],
+    case Filtered of
+        [] ->
+            ok;
+        _ ->
+            {error,
+                io_lib:format("in ~p, the following elements are not directories: ~p.", [
+                    What, Filtered
+                ])}
+    end.
+
+is_nonempty_string(What, String) ->
+    case io_lib:char_list(String) andalso length(String) > 0 of
+        true ->
+            ok;
+        _ ->
+            {error, io_lib:format("~p is expected to be a non-empty string.", [What])}
+    end.
+
+all_dirs_filter_combos_are_valid(Dirs, Filter) ->
+    AccOut = lists:foldl(
+        fun(Dir, AccIn) ->
+            case filelib:wildcard(filename:join(Dir, Filter)) of
+                [_ | _] ->
+                    AccIn;
+                _ ->
+                    [
+                        io_lib:format("dir + filter combo ~p + ~p yielded no files to analyse.", [
+                            Dir, Filter
+                        ])
+                        | AccIn
+                    ]
+            end
+        end,
+        [],
+        Dirs
+    ),
+    case AccOut of
+        [] ->
+            ok;
+        _ ->
+            {error, lists:reverse(AccOut)}
+    end.
+
+is_list_of_ignorables(What, List) when not is_list(List) ->
+    {error, io_lib:format("~p is expected to be a list.", [What])};
+is_list_of_ignorables(What, List) ->
+    Filtered = [Element || Element <- List, not elvis_rule:is_ignorable(Element)],
+    case Filtered of
+        [] ->
+            ok;
+        _ ->
+            {error,
+                io_lib:format("in ~p, the following elements are not ignorable: ~p.", [
+                    What, Filtered
+                ])}
+    end.
+
+ruleset_is_custom_or_default(CustomRulesets, Ruleset) ->
+    case
+        lists:member(Ruleset, maps:keys(CustomRulesets)) orelse elvis_ruleset:is_defined(Ruleset)
+    of
+        true ->
+            ok;
+        _ ->
+            {error,
+                io_lib:format("~p is expected to be either a custom or a default ruleset.", [
+                    Ruleset
+                ])}
+    end.
+
+all_rules_are_valid(What, RuleTuples) when not is_list(RuleTuples) ->
+    {error, io_lib:format("~p is expected to be a list.", [What])};
+all_rules_are_valid(What, RuleTuples) ->
+    AccOut = lists:foldl(
+        fun(RuleTuple, AccInI) ->
+            case elvis_rule:is_valid_from_tuple(RuleTuple) of
+                {true, Rule} ->
+                    check_rule_for_options(Rule, AccInI);
+                {false, ValidError} ->
+                    [io_lib:format("in ~p, " ++ ValidError, [What]) | AccInI]
+            end
+        end,
+        [],
+        RuleTuples
+    ),
+    case AccOut of
+        [] ->
+            ok;
+        _ ->
+            {error, lists:reverse(AccOut)}
+    end.
+
+check_rule_for_options(Rule, AccInI) ->
+    case elvis_rule:defkeys(Rule) of
+        [] ->
+            % No further validation possible.
+            AccInI;
+        DefKeysInput ->
+            NS = elvis_rule:ns(Rule),
+            Name = elvis_rule:name(Rule),
+            % Bypass new/ constraints.
+            DefKeys = maps:keys(NS:default(Name)) ++ [ignore],
+            case DefKeysInput -- DefKeys of
+                [] ->
+                    AccInI;
+                Extra ->
+                    [
+                        io_lib:format(
+                            "in rule ~p/~p, the following options are unknown: ~p.",
+                            [NS, Name, Extra]
+                        ),
+                        AccInI
+                    ]
+            end
+    end.
+
+flag({_Option, _What} = Obj) ->
+    Table = table(),
+    _ = create_table(Table),
+    true = ets:insert(Table, Obj),
+    ok.
+
+check_flag({Option, _What} = Obj) ->
+    Table = table(),
+    table_exists(Table) andalso ets:lookup(Table, Option) =:= [Obj].
+
+validated(Option) ->
+    {Option, validated}.
+
+validation_started(Option) ->
+    {Option, validation_started}.
+
+create_table(Table) ->
+    case table_exists(Table) of
+        false ->
+            _ = ets:new(Table, [public, named_table]);
+        _ ->
+            ok
+    end.
+
+table() ->
+    ?MODULE.
+
+table_exists(Table) ->
+    ets:info(Table) =/= undefined.
