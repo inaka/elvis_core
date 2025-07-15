@@ -21,6 +21,18 @@ risky_call() ->
     end.
 ```
 
+## Exceptions
+
+`catch` expressions where the result is explicitly discarded are allowed.
+When you want to evaluate an expression and discard all possible results of it, even the errors,
+you can signal that intention by preceding the expression with `_ =`, like in the following example:
+
+```erlang
+ignore_results_and_errors() ->
+    _ = catch do_something(),
+    done.
+```
+
 ## Rationale
 
 The `catch` expression in Erlang catches all kinds of exceptions - including runtime errors,
