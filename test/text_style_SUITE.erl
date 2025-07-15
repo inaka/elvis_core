@@ -142,13 +142,13 @@ verify_unquoted_atoms(Config) ->
     PassPath = "pass_unquoted_atoms." ++ "erl",
     [] =
         elvis_test_utils:elvis_core_apply_rule(
-            Config, elvis_text_style, prefer_unquoted_atoms, #{}, PassPath
+            Config, elvis_style, prefer_unquoted_atoms, #{}, PassPath
         ),
 
     FailPath = "fail_quoted_atoms." ++ "erl",
     [_, _] =
         elvis_test_utils:elvis_core_apply_rule(
-            Config, elvis_text_style, prefer_unquoted_atoms, #{}, FailPath
+            Config, elvis_style, prefer_unquoted_atoms, #{}, FailPath
         ).
 
 verify_redundant_blank_lines(Config) ->

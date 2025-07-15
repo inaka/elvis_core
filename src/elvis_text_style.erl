@@ -7,7 +7,6 @@
     line_length/2,
     no_tabs/2,
     no_trailing_whitespace/2,
-    prefer_unquoted_atoms/2,
     no_redundant_blank_lines/2
 ]).
 
@@ -61,37 +60,6 @@ no_trailing_whitespace(Rule, _ElvisConfig) ->
         end,
         elvis_rule:def(Rule)
     ).
-
-prefer_unquoted_atoms(Rule, ElvisConfig) ->
-    {nodes, AtomNodes} = elvis_code:find(#{
-        of_types => [atom],
-        inside => elvis_code:root(Rule, ElvisConfig),
-        filtered_by => fun doesnt_need_quotes/1,
-        traverse => all
-    }),
-
-    lists:map(
-        fun(AtomNode) ->
-            elvis_result:new_item(
-                "unnecessarily quoted atom ~s was found; prefer removing the quotes when "
-                "not syntactically required",
-                [ktn_code:attr(text, AtomNode)],
-                #{node => AtomNode}
-            )
-        end,
-        AtomNodes
-    ).
-
-doesnt_need_quotes(AtomNode) ->
-    AtomName0 = ktn_code:attr(text, AtomNode),
-    case re:run(AtomName0, "^'[a-z][a-zA-Z0-9_@]*'$", [{capture, none}]) of
-        match ->
-            AtomName = string:trim(AtomName0, both, "'"),
-            Atom = list_to_atom(AtomName),
-            Atom =/= 'maybe' andalso not erl_scan:f_reserved_word(Atom);
-        _ ->
-            false
-    end.
 
 no_redundant_blank_lines(Rule, _ElvisConfig) ->
     MaxLines = elvis_rule:option(max_lines, Rule) + 1,

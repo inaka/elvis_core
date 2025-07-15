@@ -57,6 +57,7 @@
     no_boolean_in_comparison/2,
     no_operation_on_same_value/2,
     no_receive_without_timeout/2,
+    prefer_unquoted_atoms/2,
     guard_operators/2,
     simplify_anonymous_functions/2
 ]).
@@ -1939,6 +1940,37 @@ numeric_format(Rule, ElvisConfig) ->
 is_not_acceptable_number(NumberNode, Regex) ->
     Number = ktn_code:attr(text, NumberNode),
     Number =/= undefined andalso re_run(Number, Regex) =:= nomatch.
+
+prefer_unquoted_atoms(Rule, ElvisConfig) ->
+    {nodes, AtomNodes} = elvis_code:find(#{
+        of_types => [atom],
+        inside => elvis_code:root(Rule, ElvisConfig),
+        filtered_by => fun doesnt_need_quotes/1,
+        traverse => all
+    }),
+
+    lists:map(
+        fun(AtomNode) ->
+            elvis_result:new_item(
+                "unnecessarily quoted atom ~s was found; prefer removing the quotes when "
+                "not syntactically required",
+                [ktn_code:attr(text, AtomNode)],
+                #{node => AtomNode}
+            )
+        end,
+        AtomNodes
+    ).
+
+doesnt_need_quotes(AtomNode) ->
+    AtomName0 = ktn_code:attr(text, AtomNode),
+    case re:run(AtomName0, "^'[a-z][a-zA-Z0-9_@]*'$", [{capture, none}]) of
+        match ->
+            AtomName = string:trim(AtomName0, both, "'"),
+            Atom = list_to_atom(AtomName),
+            Atom =/= 'maybe' andalso not erl_scan:f_reserved_word(Atom);
+        _ ->
+            false
+    end.
 
 behaviour_spelling(Rule, ElvisConfig) ->
     Spelling = elvis_rule:option(spelling, Rule),
