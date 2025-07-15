@@ -2,7 +2,7 @@
 
 -format(#{inline_items => none}).
 
--export([rules/1, load_custom/1, dump_custom/0, is_defined/1]).
+-export([rules/1, load_custom/1, dump_custom/0, is_defined/1, custom_names/0]).
 
 -ifdef(TEST).
 -export([drop_custom/0]).
@@ -23,6 +23,15 @@ load_custom(Rulesets) ->
             );
         true ->
             ok
+    end.
+
+custom_names() ->
+    Table = table(),
+    case ets:info(Table) of
+        undefined ->
+            [];
+        _ ->
+            proplists:get_keys(ets:tab2list(Table))
     end.
 
 dump_custom() ->
@@ -58,6 +67,14 @@ rules(erl_files_test) ->
     erl_files_test_rules();
 rules(Group) ->
     Table = table(),
+    case ets:info(Table) of
+        undefined ->
+            [];
+        _ ->
+            lookup(Table, Group)
+    end.
+
+lookup(Table, Group) ->
     case ets:lookup(Table, Group) of
         [{Group, Rules}] ->
             Rules;

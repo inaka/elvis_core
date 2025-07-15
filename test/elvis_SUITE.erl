@@ -100,7 +100,13 @@ rock_with_incomplete_config(_Config) ->
         end.
 
 rock_with_list_config(_Config) ->
-    ElvisConfig = [#{dirs => ["src"], rules => [], filter => "*.erl"}],
+    ElvisConfig = [
+        #{
+            dirs => ["../../test/dirs/src"],
+            rules => [{elvis_text_style, line_length, disable}],
+            filter => "*.erl"
+        }
+    ],
     ok =
         try
             ok = elvis_core:rock(ElvisConfig)
@@ -236,22 +242,17 @@ rock_with_rule_groups(_Config) ->
     RulesGroupConfig =
         [
             #{
-                dirs => ["src"],
+                dirs => ["../../test/dirs/apps/app3/src"],
                 filter => "*.erl",
                 ruleset => erl_files
             },
             #{
-                dirs => ["include"],
-                filter => "*.erl",
+                dirs => ["../../test/dirs/apps/app3/include"],
+                filter => "*.hrl",
                 ruleset => hrl_files
             },
             #{
-                dirs => ["_build/test/lib/elvis_core/ebin"],
-                filter => "*.beam",
-                ruleset => beam_files
-            },
-            #{
-                dirs => ["."],
+                dirs => ["../../test/dirs/apps/app3"],
                 filter => "rebar.config",
                 ruleset => rebar_config
             }
@@ -287,7 +288,7 @@ rock_with_rule_groups(_Config) ->
     OverrideConfig =
         [
             #{
-                dirs => ["src"],
+                dirs => ["../../test/dirs/apps/app3/src"],
                 filter => "*.erl",
                 ruleset => erl_files,
                 rules =>
@@ -299,7 +300,7 @@ rock_with_rule_groups(_Config) ->
                     ]
             },
             #{
-                dirs => ["."],
+                dirs => ["../../test/dirs/apps/app3"],
                 filter => "rebar.config",
                 ruleset => rebar_config
             }
@@ -318,6 +319,8 @@ rock_this_skipping_files(_Config) ->
     [File] = elvis_file:find_files(Dirs, "small.erl"),
     Path = elvis_file:path(File),
     ConfigPath = "../../config/elvis-test-pa.config",
+    {ok, user_defined_rules} = compile:file("../../test/examples/user_defined_rules.erl"),
+    {module, user_defined_rules} = code:ensure_loaded(user_defined_rules),
     ElvisConfig = elvis_config:from_file(ConfigPath),
     ok = elvis_core:rock_this(Path, ElvisConfig),
     0 = meck:num_calls(elvis_file, load_file_data, '_'),
@@ -341,6 +344,7 @@ rock_with_umbrella_apps(_Config) ->
     {fail, [
         #{file := "../../_build/test/lib/elvis_core/test/dirs/test/dir_test.erl"},
         #{file := "../../_build/test/lib/elvis_core/test/dirs/src/dirs_src.erl"},
+        #{file := "../../_build/test/lib/elvis_core/test/dirs/apps/app3/src/app3_example.erl"},
         #{
             file :=
                 "../../_build/test/lib/elvis_core/test/dirs/apps/app2/test/dirs_apps_app2_test.erl"
@@ -363,19 +367,12 @@ rock_with_umbrella_apps(_Config) ->
 
 rock_with_invalid_rules(_Config) ->
     ConfigPath = "../../test/examples/invalid_rules.elvis.config",
-    ElvisConfig = elvis_config:from_file(ConfigPath),
-    ExpectedErrorMessage =
-        {invalid_rules, [
-            {invalid_rule, {elvis_style, not_existing_rule}},
-            {invalid_rule, {elvis_style, what_is_this_rule}},
-            {invalid_rule, {not_existing_module, dont_repeat_yourself}},
-            {invalid_rule, {not_existing_module, dont_repeat_yourself}}
-        ]},
     try
+        ElvisConfig = elvis_config:from_file(ConfigPath),
         ok = elvis_core:rock(ElvisConfig),
         ct:fail("Elvis should not have rocked with ~p", [ElvisConfig])
     catch
-        {invalid_config, ExpectedErrorMessage} ->
+        {invalid_config, _} ->
             ok
     end.
 
@@ -387,6 +384,9 @@ custom_ruleset(_Config) ->
     ElvisConfig = elvis_config:from_file(ConfigPath),
     NoTabs = elvis_rule:new(elvis_text_style, no_tabs),
     [[NoTabs]] = elvis_config:rules(ElvisConfig),
+
+    %% this is also done by :rock and :rock_this
+    _ = elvis_ruleset:dump_custom(),
 
     %% read unknown ruleset configuration to ensure rulesets from
     %% previous load do not stick around

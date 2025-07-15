@@ -34,41 +34,6 @@ split_all_lines(Binary) ->
 split_all_lines(Binary, Opts) ->
     binary:split(Binary, [<<"\r\n">>, <<"\n">>], [global | Opts]).
 
--spec info(string(), [term()]) -> ok.
-info(Message, Args) ->
-    ColoredMessage = Message ++ "{{reset}}~n",
-    print_info(ColoredMessage, Args).
-
--spec error_prn(string(), [term()]) -> ok.
-error_prn(Message, Args) ->
-    ColoredMessage = "{{red}}Error: {{reset}}" ++ Message ++ "{{reset}}~n",
-    print(ColoredMessage, Args).
-
--spec warn_prn(string(), [term()]) -> ok.
-warn_prn(Message, Args) ->
-    ColoredMessage = "{{magenta}}Warning: {{reset}}" ++ Message ++ "{{reset}}~n",
-    print(ColoredMessage, Args).
-
--spec print_info(string(), [term()]) -> ok.
-print_info(Message, Args) ->
-    case elvis_config:verbose() of
-        true ->
-            print(Message, Args);
-        false ->
-            ok
-    end.
-
--spec print(string(), [term()]) -> ok.
-print(Message, Args) ->
-    case elvis_config:no_output() of
-        true ->
-            ok;
-        _ ->
-            Output = io_lib:format(Message, Args),
-            EscapedOutput = escape_format_str(Output),
-            io:format(parse_colors(EscapedOutput))
-    end.
-
 -spec parse_colors(string()) -> string().
 parse_colors(Message) ->
     Colors =
@@ -95,43 +60,54 @@ parse_colors(Message) ->
             lists:foldl(Fun, Message, maps:keys(Colors))
     end.
 
--spec escape_format_str(string()) -> string().
-escape_format_str(String) ->
+-spec escape_chars(string()) -> string().
+escape_chars(String) ->
     Binary = list_to_binary(String),
     Result = re:replace(Binary, "[^~]~", "~~", [global]),
     ResultBin = iolist_to_binary(Result),
     binary_to_list(ResultBin).
 
--dialyzer({nowarn_function, output/3}).
--spec output(debug | info | warn | error, Format :: io:format(), Data :: [term()]) -> ok.
-output(debug, Format, Data) ->
+-spec output(debug | info | notice | warn | error, Format :: io:format(), Data :: [term()]) -> ok.
+output(debug = _Type, Format, Data) ->
+    Chars = io_lib:format(Format, Data),
+    do_output(debug, Chars);
+output(Type, Format, Data) ->
+    Chars = io_lib:format(Format, Data),
+    EscapedChars = escape_chars(Chars),
+    ColorParsedChars = parse_colors(EscapedChars),
+    case elvis_config:no_output() of
+        true ->
+            ok;
+        _ ->
+            do_output(Type, ColorParsedChars)
+    end.
+
+-dialyzer({nowarn_function, do_output/2}).
+do_output(debug, Chars) ->
     case erlang:function_exported(rebar_api, debug, 2) of
         true ->
-            rebar_api:debug("Elvis: " ++ Format, Data);
+            rebar_api:debug("Elvis: " ++ Chars, []);
         false ->
             ok
     end;
-output(info, Format, Data) ->
-    case erlang:function_exported(rebar_api, info, 2) of
+do_output(info, Chars) ->
+    case elvis_config:verbose() of
         true ->
-            rebar_api:info("Elvis: " ++ Format, Data);
+            io:format(Chars ++ "{{reset}}~n");
         false ->
-            info(Format, Data)
+            ok
     end;
-output(warn, Format, Data) ->
-    case erlang:function_exported(rebar_api, warn, 2) of
+do_output(notice, Chars) ->
+    case elvis_config:verbose() of
         true ->
-            rebar_api:warn("Elvis: " ++ Format, Data);
+            io:format("{{white-bold}}" ++ Chars ++ "{{reset}}~n");
         false ->
-            warn_prn(Format, Data)
+            ok
     end;
-output(error, Format, Data) ->
-    case erlang:function_exported(rebar_api, error, 2) of
-        true ->
-            rebar_api:error("Elvis: " ++ Format, Data);
-        false ->
-            error_prn(Format, Data)
-    end.
+do_output(warn, Chars) ->
+    io:format("{{magenta}}Warning: {{reset}}" ++ Chars ++ "{{reset}}~n");
+do_output(error, Chars) ->
+    io:format("{{red}}Error: {{reset}}" ++ Chars ++ "{{reset}}~n").
 
 -dialyzer({nowarn_function, abort/2}).
 -spec abort(Format :: io:format(), Data :: [term()]) -> no_return().
