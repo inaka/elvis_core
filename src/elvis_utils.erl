@@ -7,6 +7,10 @@
 %% Output / rebar3
 -export([output/3, abort/2]).
 
+% These call (but verify if exported) rebar3-specific functions.
+-ignore_xref(do_output/2).
+-ignore_xref(abort/2).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Public
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
