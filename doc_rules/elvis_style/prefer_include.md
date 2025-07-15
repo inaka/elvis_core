@@ -24,8 +24,10 @@ include_lib("mydir/myinc.hrl")
 
 ## Rationale
 
-`-include("file.hrl")` is exactly equivalent to `-include_lib("file.hrl")`. The only difference is that `include_lib`
-can be used to include files from another directory than the default one.o, for example: `-include_lib("somewhere/header.hrl")`.
+`-include("file.hrl")` is exactly equivalent to `-include_lib("file.hrl")`.
+The only difference is that `include_lib`
+can be used to include files from another directory than the default one.o,
+for example: `-include_lib("somewhere/header.hrl")`.
 It will attempt to look the file up in the application directory of "somewhere".
 
 ## Options
