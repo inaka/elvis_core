@@ -2,8 +2,8 @@
 
 -feature(maybe_expr, enable).
 
--export([from_rebar/1, from_file/1]).
-%% Geters
+-export([from_rebar/1, from_file/1, validate_config/1, default/0]).
+%% Getters
 -export([dirs/1, ignore/1, filter/1, files/1, rules/1]).
 %% Files
 -export([resolve_files/1, resolve_files/2, apply_to_files/2]).
@@ -24,11 +24,17 @@
 %%% Public
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fetch_elvis_config(AppConfig) ->
-    ElvisConfig = from_static(elvis, {app, AppConfig}),
-    _ = validate({elvis, ElvisConfig}),
-    _ = elvis_ruleset:load_custom(from_static(rulesets, {elvis, ElvisConfig})),
-    ElvisConfig.
+fetch_elvis_config(Key, AppConfig) ->
+    Elvis = from_static(elvis, {app, AppConfig}),
+    _ =
+        case lists:member(Key, elvis_control_opts()) of
+            true ->
+                ok;
+            _ ->
+                do_validate({elvis, Elvis})
+        end,
+    _ = elvis_ruleset:load_custom(from_static(rulesets, {elvis, Elvis})),
+    Elvis.
 
 from_static(Key, {Type, Config}) ->
     elvis_utils:output(debug, "fetching key ~p from ~p config.", [Key, Type]),
@@ -88,8 +94,8 @@ for(Key) ->
                 AppConfig0
         end,
     % If we got this far, the config. is valid...
-    ElvisConfig = fetch_elvis_config(AppConfig),
-    from_static(Key, {elvis, ElvisConfig}).
+    Elvis = fetch_elvis_config(Key, AppConfig),
+    from_static(Key, {elvis, Elvis}).
 
 consult_elvis_config(File) ->
     case file:consult(File) of
@@ -116,12 +122,12 @@ from_rebar(File) ->
     fetch_elvis_config_from(AppConfig).
 
 from_file(File) ->
-    FileConfig = consult_elvis_config(File),
-    fetch_elvis_config_from(FileConfig).
+    AppConfig = consult_elvis_config(File),
+    fetch_elvis_config_from(AppConfig).
 
 fetch_elvis_config_from(AppConfig) ->
-    ElvisConfig = fetch_elvis_config(AppConfig),
-    from_static(config, {elvis, ElvisConfig}).
+    Elvis = fetch_elvis_config(undefined, AppConfig),
+    from_static(config, {elvis, Elvis}).
 
 default_for(app) ->
     % This is the top-level element, before 'elvis'
@@ -129,6 +135,29 @@ default_for(app) ->
 default_for(elvis) ->
     [];
 default_for(config) ->
+    [];
+default_for(output_format) ->
+    colors;
+default_for(verbose) ->
+    false;
+default_for(no_output) ->
+    false;
+default_for(parallel) ->
+    1;
+default_for(rulesets) ->
+    #{};
+default_for([config, dirs]) ->
+    [];
+default_for([config, filter]) ->
+    "";
+default_for([config, ignore]) ->
+    [];
+default_for([config, ruleset]) ->
+    undefined;
+default_for([config, rules]) ->
+    [].
+
+default() ->
     [
         #{
             dirs => [
@@ -158,27 +187,7 @@ default_for(config) ->
             filter => ".gitignore",
             ruleset => gitignore
         }
-    ];
-default_for(output_format) ->
-    colors;
-default_for(verbose) ->
-    false;
-default_for(no_output) ->
-    false;
-default_for(parallel) ->
-    1;
-default_for(rulesets) ->
-    #{};
-default_for([config, dirs]) ->
-    [];
-default_for([config, filter]) ->
-    "";
-default_for([config, ignore]) ->
-    [];
-default_for([config, ruleset]) ->
-    undefined;
-default_for([config, rules]) ->
-    [].
+    ].
 
 -spec dirs(Config :: [t()] | t()) -> [string()].
 dirs(Config) when is_list(Config) ->
@@ -253,7 +262,9 @@ resolve_files(#{files := _Files} = RuleGroup) ->
 resolve_files(#{dirs := Dirs} = RuleGroup) ->
     Filter = filter(RuleGroup),
     Files = elvis_file:find_files(Dirs, Filter),
-    resolve_files(RuleGroup, Files).
+    resolve_files(RuleGroup, Files);
+resolve_files(#{}) ->
+    [].
 
 %% @doc Takes a function and configuration and applies the function to all
 %%      file in the configuration.
@@ -290,7 +301,7 @@ merge_rules(UserRules, DefaultRules) ->
             % wants to override the rule.
             fun(Tuple) ->
                 Rule = elvis_rule:from_tuple(Tuple),
-                case not is_rule_override(Rule, UserRules) of
+                case not is_rule_override(Rule, UserRules) andalso not elvis_rule:disabled(Rule) of
                     true ->
                         {true, Rule};
                     false ->
@@ -330,62 +341,75 @@ is_rule_override(Rule, UserRules) ->
         UserRules
     ).
 
-validate({elvis = Option, ElvisConfig}) ->
-    case check_flag(validated(Option)) orelse check_flag(validation_started(Option)) of
-        true ->
-            ok;
-        false ->
-            do_validate({Option, ElvisConfig})
-    end.
+validate_config(ElvisConfig) ->
+    do_validate({config, ElvisConfig}).
 
-get_elvis_opt(OptName, ElvisConfig) ->
-    proplists:get_value(OptName, ElvisConfig, default_for(OptName)).
+get_elvis_opt(OptName, Elvis) ->
+    proplists:get_value(OptName, Elvis, default_for(OptName)).
 
-do_validate({elvis = Option, ElvisConfig}) ->
-    maybe
-        ok = flag(validation_started(Option)),
-        ok ?= is_list("elvis", ElvisConfig),
-        ok ?=
-            proplist_keys_are_in("elvis", ElvisConfig, [
-                output_format, verbose, no_output, parallel, rulesets, config
-            ]),
-        OutputFormat = get_elvis_opt(output_format, ElvisConfig),
-        ok ?= is_one_of("elvis.output_format", OutputFormat, [colors, plain, parsable]),
-        Verbose = get_elvis_opt(verbose, ElvisConfig),
-        ok ?= is_boolean("elvis.verbose", Verbose),
-        NoOutput = get_elvis_opt(no_output, ElvisConfig),
-        ok ?= is_boolean("elvis.no_output", NoOutput),
-        Parallel = get_elvis_opt(parallel, ElvisConfig),
-        ok ?= is_pos_integer("elvis.parallel", Parallel),
-        Rulesets = get_elvis_opt(rulesets, ElvisConfig),
-        ok ?= is_valid_rulesets("elvis.rulesets", Rulesets),
-        Config = get_elvis_opt(config, ElvisConfig),
-        ok ?= is_valid_config("elvis.config", Rulesets, Config),
-        ok = flag(validated(Option))
-    else
-        {error, FormatData} ->
-            {Format, Data} =
-                case is_list(FormatData) of
-                    false ->
-                        FormatData;
-                    true ->
-                        % Get only first result, for now
-                        % If we wanna be smarter we need to start concatenating readable strings
-                        [{Format0, Data0} | _] = FormatData,
-                        {Format0, Data0}
-                end,
-            % on warnings_as_errors this'll throw an exception
-            %throw({invalid_config, io_lib:format(Format, Data)})
-            elvis_utils:output(warn, Format, Data)
-    end.
+elvis_control_opts() ->
+    [output_format, verbose, no_output, parallel].
 
-is_list(What, List) ->
-    case is_list(List) of
+do_validate({elvis = Option, Elvis}) ->
+    case check_flag(validation_started(Option)) of
         true ->
             ok;
         _ ->
-            {error, {"~p is expected to be a list.", [What]}}
+            maybe
+                ok = flag(validation_started(Option)),
+                ok ?= is_nonempty_list("elvis", Elvis),
+                ok ?=
+                    proplist_keys_are_in(
+                        "elvis", Elvis, elvis_control_opts() ++ [rulesets, config]
+                    ),
+                OutputFormat = get_elvis_opt(output_format, Elvis),
+                ok ?= is_one_of("elvis.output_format", OutputFormat, [colors, plain, parsable]),
+                Verbose = get_elvis_opt(verbose, Elvis),
+                ok ?= is_boolean("elvis.verbose", Verbose),
+                NoOutput = get_elvis_opt(no_output, Elvis),
+                ok ?= is_boolean("elvis.no_output", NoOutput),
+                Parallel = get_elvis_opt(parallel, Elvis),
+                ok ?= is_pos_integer("elvis.parallel", Parallel),
+                CustomRulesets = get_elvis_opt(rulesets, Elvis),
+                ok ?= is_valid_rulesets("elvis.rulesets", CustomRulesets),
+                ElvisConfig = get_elvis_opt(config, Elvis),
+                ok ?= is_valid_config("elvis.config", maps:keys(CustomRulesets), ElvisConfig)
+            else
+                {error, FormatData} ->
+                    do_validate_results(FormatData)
+            end
+    end;
+do_validate({config = Option, ElvisConfig}) ->
+    case check_flag(validation_started(Option)) of
+        true ->
+            ok;
+        _ ->
+            maybe
+                ok ?= is_valid_config("elvis.config", elvis_ruleset:custom_names(), ElvisConfig)
+            else
+                {error, FormatData} ->
+                    do_validate_results(FormatData)
+            end
     end.
+
+-spec do_validate_results(_) -> no_return().
+do_validate_results(FormatData) ->
+    {Format, Data} =
+        case is_list(FormatData) of
+            false ->
+                FormatData;
+            true ->
+                % Get only first result, for now
+                % If we wanna be smarter we need to start concatenating readable strings
+                [{Format0, Data0} | _] = FormatData,
+                {Format0, Data0}
+        end,
+    throw({invalid_config, io_lib:format(Format, Data)}).
+
+is_nonempty_list(What, List) when not is_list(List) orelse List =:= [] ->
+    {error, {"~p is expected to be a non-empty list.", [What]}};
+is_nonempty_list(_What, _List) ->
+    ok.
 
 proplist_keys_are_in(What, List, Keys) ->
     Filtered = [Element || {Element, _} <- List, not lists:member(Element, Keys)],
@@ -404,43 +428,34 @@ is_one_of(What, Value, Possibilities) ->
             {error, {"~p is expected to be one of the following: ~p.", [What, Possibilities]}}
     end.
 
-is_boolean(What, Value) ->
-    case is_boolean(Value) of
-        true ->
-            ok;
-        _ ->
-            {error, {"~p is expected to be a boolean.", [What]}}
-    end.
+is_boolean(_What, Value) when is_boolean(Value) ->
+    ok;
+is_boolean(What, _Value) ->
+    {error, {"~p is expected to be a boolean.", [What]}}.
 
-is_pos_integer(What, Value) ->
-    case is_integer(Value) andalso Value > 0 of
-        true ->
-            ok;
-        _ ->
-            {error, {"~p is expected to be a positive integer.", [What]}}
-    end.
+is_pos_integer(_What, Value) when is_integer(Value) andalso Value > 0 ->
+    ok;
+is_pos_integer(What, _Value) ->
+    {error, {"~p is expected to be a positive integer.", [What]}}.
 
-is_valid_rulesets(What, Rulesets) ->
+is_valid_rulesets(What, CustomRulesets) ->
     maybe
-        ok ?= is_map(What, Rulesets),
-        ok ?= all_map_keys_are_atoms(What, Rulesets),
-        ok ?= all_rulesets_have_valid_rules(What, Rulesets),
-        ok ?= no_rulesets_exist(What, Rulesets)
+        ok ?= is_map(What, CustomRulesets),
+        ok ?= all_map_keys_are_atoms(What, CustomRulesets),
+        ok ?= all_custom_rulesets_have_valid_rules(What, CustomRulesets),
+        ok ?= no_default_ruleset_override(What, CustomRulesets)
     else
         {error, FormatData} ->
             {error, FormatData}
     end.
 
-is_map(What, Value) ->
-    case is_map(Value) of
-        true ->
-            ok;
-        _ ->
-            {error, {"~p is expected to be a map.", [What]}}
-    end.
+is_map(_What, Value) when is_map(Value) ->
+    ok;
+is_map(What, _Value) ->
+    {error, {"~p is expected to be a map.", [What]}}.
 
 all_map_keys_are_atoms(What, Map) ->
-    Filtered = [Key || Key <- maps:keys(Map), is_atom(Key)],
+    Filtered = [Key || Key <- maps:keys(Map), not is_atom(Key)],
     case Filtered of
         [] ->
             ok;
@@ -448,16 +463,19 @@ all_map_keys_are_atoms(What, Map) ->
             {error, {"in ~p, keys are expected to be atoms.", [What]}}
     end.
 
-all_rulesets_have_valid_rules(What, Rulesets) ->
+all_custom_rulesets_have_valid_rules(What, CustomRulesets) ->
     AccOut = maps:fold(
-        fun(Ruleset, RuleTuples, AccInO) ->
+        fun(CustomRuleset, RuleTuples, AccInO) ->
             lists:foldl(
                 fun(RuleTuple, AccInI) ->
                     case elvis_rule:is_valid_from_tuple(RuleTuple) of
                         {true, _Rule} ->
                             AccInI;
                         {false, ValidError} ->
-                            [{"in ~p, in ruleset ~p, " ++ ValidError, [What, Ruleset]} | AccInI]
+                            [
+                                {"in ~p, in ruleset ~p, " ++ ValidError, [What, CustomRuleset]}
+                                | AccInI
+                            ]
                     end
                 end,
                 AccInO,
@@ -465,7 +483,7 @@ all_rulesets_have_valid_rules(What, Rulesets) ->
             )
         end,
         [],
-        Rulesets
+        CustomRulesets
     ),
     case AccOut of
         [] ->
@@ -474,8 +492,11 @@ all_rulesets_have_valid_rules(What, Rulesets) ->
             {error, lists:reverse(AccOut)}
     end.
 
-no_rulesets_exist(What, Rulesets) ->
-    Filtered = [Ruleset || Ruleset <- maps:keys(Rulesets), not elvis_ruleset:is_defined(Ruleset)],
+no_default_ruleset_override(What, CustomRulesets) ->
+    Filtered = [
+        CustomRuleset
+     || CustomRuleset <- maps:keys(CustomRulesets), elvis_ruleset:is_defined(CustomRuleset)
+    ],
     case Filtered of
         [] ->
             ok;
@@ -490,11 +511,11 @@ no_rulesets_exist(What, Rulesets) ->
                 }}
     end.
 
-is_valid_config(What, CustomRulesets, Configset0) ->
+is_valid_config(What, CustomRulesetNames, Configset0) ->
     Configset = wrap_in_list(Configset0),
     maybe
-        ok ?= is_list(What, Configset),
-        ok ?= all_configs_are_valid(What, CustomRulesets, Configset)
+        ok ?= is_nonempty_list(What, Configset),
+        ok ?= all_configs_are_valid(What, CustomRulesetNames, Configset)
     else
         {error, FormatData} ->
             {error, FormatData}
@@ -505,11 +526,11 @@ wrap_in_list(Term) when is_list(Term) ->
 wrap_in_list(Term) ->
     [Term].
 
-all_configs_are_valid(What, CustomRulesets, Configset) ->
+all_configs_are_valid(What, CustomRulesetNames, Configset) ->
     {_PosNumber, ValidErrors} = lists:foldl(
         fun(Config, {PosNumber, AccIn}) ->
             AccOut =
-                case config_is_valid(CustomRulesets, Config) of
+                case config_is_valid(CustomRulesetNames, Config) of
                     ok ->
                         AccIn;
                     {error, ValidError} ->
@@ -533,7 +554,7 @@ all_configs_are_valid(What, CustomRulesets, Configset) ->
 get_config_opt(OptName, Config) ->
     maps:get(OptName, Config, default_for([config, OptName])).
 
-config_is_valid(CustomRulesets, Config) ->
+config_is_valid(CustomRulesetNames, Config) ->
     maybe
         ok ?= map_keys_are_in(Config, [dirs, filter, ignore, ruleset, rules]),
         Dirs = get_config_opt(dirs, Config),
@@ -544,9 +565,10 @@ config_is_valid(CustomRulesets, Config) ->
         Ignore = get_config_opt(ignore, Config),
         ok ?= is_list_of_ignorables(ignore, Ignore),
         Ruleset = get_config_opt(ruleset, Config),
-        ok ?= ruleset_is_custom_or_default(CustomRulesets, Ruleset),
+        ok ?= defined_ruleset_is_custom_or_default(CustomRulesetNames, Ruleset),
         Rules = get_config_opt(rules, Config),
-        ok ?= all_rules_are_valid(rules, Rules)
+        ok ?= all_rules_are_valid(rules, Rules),
+        ok ?= either_rules_is_nonempty_or_ruleset_is_defined(Rules, Ruleset)
     else
         {error, ValidError} ->
             {error, ValidError}
@@ -561,24 +583,28 @@ map_keys_are_in(Map, Keys) ->
             {error, io_lib:format("the following keys are unknown: ~p.", [Filtered])}
     end.
 
-is_nonempty_list_of_dirs(What, List) when not is_list(List) ->
-    {error, io_lib:format("~p is expected to be a list.", [What])};
-is_nonempty_list_of_dirs(What, [] = _List) ->
-    {error, io_lib:format("~p is expected to be a nonempty list.", [What])};
+is_nonempty_list_of_dirs(What, List) when not is_list(List) orelse List =:= [] ->
+    {error, io_lib:format("~p is expected to be a non-empty list.", [What])};
 is_nonempty_list_of_dirs(What, List) ->
     Filtered = [
         Element
-     || Element <- List, not io_lib:char_list(Element) orelse not filelib:is_dir(Element)
+     || Element <- List, not io_lib:char_list(Element) orelse not holds_dir(Element)
     ],
     case Filtered of
         [] ->
             ok;
         _ ->
             {error,
-                io_lib:format("in ~p, the following elements are not directories: ~p.", [
-                    What, Filtered
-                ])}
+                io_lib:format(
+                    "in ~p, the following elements are not (or don't contain) directories: ~p.",
+                    [What, Filtered]
+                )}
     end.
+
+holds_dir(Element) ->
+    Dirs = filelib:wildcard(Element),
+    Filtered = [Dir || Dir <- Dirs, filelib:is_dir(Dir)],
+    Filtered =/= [].
 
 is_nonempty_string(What, String) ->
     case io_lib:char_list(String) andalso length(String) > 0 of
@@ -627,10 +653,10 @@ is_list_of_ignorables(What, List) ->
                 ])}
     end.
 
-ruleset_is_custom_or_default(CustomRulesets, Ruleset) ->
-    case
-        lists:member(Ruleset, maps:keys(CustomRulesets)) orelse elvis_ruleset:is_defined(Ruleset)
-    of
+defined_ruleset_is_custom_or_default(_CustomRulesetNames, undefined = _Ruleset) ->
+    ok;
+defined_ruleset_is_custom_or_default(CustomRulesetNames, Ruleset) ->
+    case lists:member(Ruleset, CustomRulesetNames) orelse elvis_ruleset:is_defined(Ruleset) of
         true ->
             ok;
         _ ->
@@ -661,6 +687,13 @@ all_rules_are_valid(What, RuleTuples) ->
         _ ->
             {error, lists:reverse(AccOut)}
     end.
+
+either_rules_is_nonempty_or_ruleset_is_defined([_ | _] = _Rules, _Ruleset) ->
+    ok;
+either_rules_is_nonempty_or_ruleset_is_defined(_Rules, Ruleset) when Ruleset =/= undefined ->
+    ok;
+either_rules_is_nonempty_or_ruleset_is_defined(_Rules, _Ruleset) ->
+    io_lib:format("either rules or ruleset is expected to be defined.", []).
 
 check_rule_for_options(Rule, AccInI) ->
     case elvis_rule:defkeys(Rule) of
@@ -695,9 +728,6 @@ flag({_Option, _What} = Obj) ->
 check_flag({Option, _What} = Obj) ->
     Table = table(),
     table_exists(Table) andalso ets:lookup(Table, Option) =:= [Obj].
-
-validated(Option) ->
-    {Option, validated}.
 
 validation_started(Option) ->
     {Option, validation_started}.

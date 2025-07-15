@@ -184,7 +184,7 @@ print(Format, #{file := Path, rules := Rules}) ->
         _ ->
             case status(Rules) of
                 ok ->
-                    elvis_utils:output(warn, "# ~s [{{green-bold}}OK{{white-bold}}]", [Path]);
+                    elvis_utils:output(notice, "# ~s [{{green-bold}}OK{{white-bold}}]", [Path]);
                 fail ->
                     elvis_utils:output(error, "# ~s [{{red-bold}}FAIL{{white-bold}}]", [Path])
             end
