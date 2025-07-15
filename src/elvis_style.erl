@@ -2273,7 +2273,7 @@ is_simple_anonymous_function(FunNode) ->
 
 prefer_include(Rule, ElvisConfig) ->
     {nodes, FunNodes} = elvis_code:find(#{
-        of_types => ['include_lib'],
+        of_types => [include_lib],
         inside => elvis_code:root(Rule, ElvisConfig),
         filtered_by =>
             fun(#{attrs := #{value := Value}}) ->
@@ -2284,7 +2284,8 @@ prefer_include(Rule, ElvisConfig) ->
 
     [
         elvis_result:new_item(
-            "An invalid `include_lib` was found; prefer `include` if no directories was given in path",
+            "An invalid `include_lib` was found; prefer `include` if"
+            "no directories was given in path",
             [],
             #{node => Fun}
         )
