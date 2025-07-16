@@ -2,7 +2,7 @@
 
 -format(#{inline_items => none}).
 
--export([rules/1, load_custom/1, dump_custom/0, is_defined/1, custom_names/0]).
+-export([rules/1, load_custom/1, drop_custom/0, is_defined/1, custom_names/0]).
 
 -spec load_custom(#{atom() => list()}) -> ok.
 load_custom(Rulesets) ->
@@ -29,7 +29,7 @@ custom_names() ->
             proplists:get_keys(ets:tab2list(elvis_ruleset))
     end.
 
-dump_custom() ->
+drop_custom() ->
     case table_exists() of
         false ->
             ok;
