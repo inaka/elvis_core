@@ -114,12 +114,16 @@ do_parallel_rock(ElvisConfig0) ->
             {fail, [{T, E}]}
     end.
 
+-ifdef(TEST).
+
 -spec do_rock(elvis_file:t(), [elvis_config:t()] | elvis_config:t()) ->
     {ok, elvis_result:file()}.
 do_rock(File, ElvisConfig) ->
     LoadedFile = load_file_data(ElvisConfig, File),
     Results = apply_rules(ElvisConfig, LoadedFile),
     {ok, Results}.
+
+-endif.
 
 -spec load_file_data([elvis_config:t()] | elvis_config:t(), elvis_file:t()) ->
     elvis_file:t().
