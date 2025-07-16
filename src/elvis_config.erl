@@ -37,17 +37,17 @@ fetch_elvis_config(Key, AppConfig) ->
     Elvis.
 
 from_static(Key, {Type, Config}) ->
-    elvis_utils:output(debug, "fetching key ~p from ~p config.", [Key, Type]),
+    elvis_utils:output(debug, "fetching key ~p from ~p configuration", [Key, Type]),
     case proplists:get_value(Key, Config) of
         undefined ->
             elvis_utils:output(
-                debug, "no value for config. key ~p found in ~p config.; going with default", [
+                debug, "no value for key ~p found in ~p configuration; going with default", [
                     Key, Type
                 ]
             ),
             default(Key);
         Value ->
-            elvis_utils:output(debug, "value for config. key ~p found in ~p config.", [Key, Type]),
+            elvis_utils:output(debug, "value for key ~p found in ~p configuration", [Key, Type]),
             Value
     end.
 
@@ -71,12 +71,12 @@ default(Key) ->
         undefined ->
             elvis_utils:output(
                 debug,
-                "no value for config. key ~p found in application env.; going with default",
+                "no value for key ~p found in application environment; going with default",
                 [Key]
             ),
             default_for(Key);
         {ok, Value} ->
-            elvis_utils:output(debug, "value for config. key ~p found in application env.", [Key]),
+            elvis_utils:output(debug, "value for key ~p found in application environment", [Key]),
             Value
     end.
 
@@ -93,7 +93,7 @@ for(Key) ->
             AppConfig0 ->
                 AppConfig0
         end,
-    % If we got this far, the config. is valid...
+    % If we got this far, the configuration is valid...
     Elvis = fetch_elvis_config(Key, AppConfig),
     from_static(Key, {elvis, Elvis}).
 
