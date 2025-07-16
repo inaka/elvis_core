@@ -4,6 +4,8 @@
 
 -export([rock/1, rock_this/2]).
 -export([start/0]).
+%% for internal use only
+-export([do_rock/2]).
 %% for eating our own dogfood
 -export([main/1]).
 
@@ -11,14 +13,16 @@
 
 -ifdef(TEST).
 
--export([do_rock/2, apply_rule/2]).
+-export([apply_rule/2]).
 % For tests (we can't Xref the tests because rebar3 fails to compile some files).
--ignore_xref([do_rock/2, apply_rule/2]).
+-ignore_xref([apply_rule/2]).
 
 -endif.
 
 % For eating our own dogfood.
 -ignore_xref([main/1]).
+% For internal use only
+-ignore_xref([do_rock/2]).
 % For shell usage.
 -ignore_xref([start/0]).
 % API exports, not consumed locally.
@@ -37,7 +41,7 @@ start() ->
     {ok, _} = application:ensure_all_started(elvis_core),
     ok.
 
-validate_config_or_throw(ElvisConfig) ->
+validate_config(ElvisConfig) ->
     try elvis_config:validate_config(ElvisConfig) of
         ok ->
             ok
@@ -51,7 +55,7 @@ validate_config_or_throw(ElvisConfig) ->
 -spec rock([elvis_config:t()]) ->
     ok | {fail, [{throw, term()} | elvis_result:file() | elvis_result:rule()]}.
 rock(ElvisConfig) ->
-    case validate_config_or_throw(ElvisConfig) of
+    case validate_config(ElvisConfig) of
         ok ->
             elvis_ruleset:dump_custom(),
             Results = lists:map(fun do_parallel_rock/1, ElvisConfig),
@@ -67,7 +71,7 @@ rock_this(Module, ElvisConfig) when is_atom(Module) ->
     Path = proplists:get_value(source, ModuleInfo),
     rock_this(Path, ElvisConfig);
 rock_this(Path, ElvisConfig) ->
-    case validate_config_or_throw(ElvisConfig) of
+    case validate_config(ElvisConfig) of
         ok ->
             elvis_ruleset:dump_custom(),
             Dirname = filename:dirname(Path),
@@ -131,16 +135,12 @@ do_parallel_rock(ElvisConfig0) ->
             {fail, [{T, E}]}
     end.
 
--ifdef(TEST).
-
 -spec do_rock(elvis_file:t(), [elvis_config:t()] | elvis_config:t()) ->
     {ok, elvis_result:file()}.
 do_rock(File, ElvisConfig) ->
     LoadedFile = load_file_data(ElvisConfig, File),
     Results = apply_rules(ElvisConfig, LoadedFile),
     {ok, Results}.
-
--endif.
 
 -spec load_file_data([elvis_config:t()] | elvis_config:t(), elvis_file:t()) ->
     elvis_file:t().
