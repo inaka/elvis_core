@@ -11,7 +11,7 @@
     no_macros/2,
     no_specs/2,
     no_types/2,
-    no_nested_hrls/2,
+    no_includes/2,
     no_block_expressions/2,
     operator_spaces/2,
     no_space/2,
@@ -554,7 +554,7 @@ no_types(Rule, ElvisConfig) ->
      || TypeAttrNode <- TypeAttrNodes
     ].
 
-no_nested_hrls(Rule, ElvisConfig) ->
+no_includes(Rule, ElvisConfig) ->
     {nodes, IncludeNodes} = elvis_code:find(#{
         of_types => [include, include_lib],
         inside => elvis_code:root(Rule, ElvisConfig)
