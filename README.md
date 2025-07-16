@@ -123,6 +123,32 @@ An `elvis.config` file looks something like this:
 ]}].
 ```
 
+To look at what is considered the "current default" configuration, do:
+
+```console
+rebar3 shell
+...
+1> elvis_config:default().
+[#{filter => "*.erl",
+   dirs => ["apps/**/src/**","src/**"],
+   ruleset => erl_files},
+ #{filter => "*.erl",
+   dirs =>
+       ["apps/**/src/**","src/**","apps/**/include/**",
+        "include/**"],
+   ruleset => hrl_files},
+ #{filter => "rebar.config",
+   dirs => ["."],
+   ruleset => rebar_config},
+ #{filter => ".gitignore",
+   dirs => ["."],
+   ruleset => gitignore}]
+2>
+```
+
+**Note**: this element might change with time. The above was what was generated when this
+documentation was updated.
+
 ### Files, rules and rulesets
 
 The `dirs` key is a list that tells `elvis_core` where it should look for the files that match
