@@ -1,34 +1,28 @@
 # Prefer Include [![](https://img.shields.io/badge/since-4.2.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.2.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
-Using `include_lib("myinc.hrl")` is unnecessary if the parameter is a single file.
-In that case, using `include("myinc.hrl")` is exactly the same.
-This rule prefers `include` over `include_lib` to make them consistent.
+Using `-include_lib("myinc.hrl").` when including a single file, should be avoided.
 
 ## Avoid
 
 ```erlang
-include_lib("myinc.hrl")
+-include_lib("myinc.hrl").
 ```
 
 ## Prefer
 
 ```erlang
-include("myinc.hrl")
-```
-
-or
-
-```erlang
-include_lib("mydir/myinc.hrl")
+-include("myinc.hrl").
 ```
 
 ## Rationale
 
-`-include("file.hrl")` is exactly equivalent to `-include_lib("file.hrl")`.
-The only difference is that `include_lib`
-can be used to include files from another directory than the default one.o,
-for example: `-include_lib("somewhere/header.hrl")`.
-It will attempt to look the file up in the application directory of "somewhere".
+`-include("myinc.hrl").` and `-include_lib("myinc.hrl").` are functionally equivalent when referencing files in the same application.
+The primary difference is that `-include_lib` allows inclusion of headers from other applications by resolving the path relative to the
+specified application's ebin directory. For example, `-include_lib("elsewhere/theirinc.hrl").` will search for `theirinc.hrl` in the elsewhere
+application's include path.
+
+When including headers within the same application, using `-include` is simpler and avoids unnecessary indirection.
+This improves readability and reduces confusion about file location.
 
 ## Options
 

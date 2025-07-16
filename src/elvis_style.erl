@@ -2277,15 +2277,14 @@ prefer_include(Rule, ElvisConfig) ->
         inside => elvis_code:root(Rule, ElvisConfig),
         filtered_by =>
             fun(#{attrs := #{value := Value}}) ->
-                not lists:member($/, Value)
+                filename:basename(Value) == Value
             end,
         traverse => all
     }),
 
     [
         elvis_result:new_item(
-            "An invalid `include_lib` was found; prefer `include` if"
-            "no directories was given in path",
+            "an unexpected `include_lib` was found; prefer `include`",
             [],
             #{node => Fun}
         )
