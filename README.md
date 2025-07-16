@@ -58,7 +58,9 @@ current directory.
 
 If `elvis.config` is not present, the application will fall back to searching for configuration
 parameters in `rebar.config`. If `rebar.config` is also unavailable, the application proceeds to
-perform a tertiary lookup within the `app/sys.config` file for the required settings.
+perform a tertiary lookup within its application environment (which can also be set via the
+`app/sys.config` file, or e.g., via `application:set_env(elvis_core, Key, Value).` for the required
+settings.
 
 #### Providing configuration as a value
 
