@@ -720,28 +720,23 @@ check_rule_for_options(Rule, AccInI) ->
     end.
 
 flag({_Option, _What} = Obj) ->
-    Table = table(),
-    _ = create_table(Table),
-    true = ets:insert(Table, Obj),
+    _ = create_table(elvis_config),
+    true = ets:insert(elvis_config, Obj),
     ok.
 
 check_flag({Option, _What} = Obj) ->
-    Table = table(),
-    table_exists(Table) andalso ets:lookup(Table, Option) =:= [Obj].
+    table_exists() andalso ets:lookup(elvis_config, Option) =:= [Obj].
 
 validation_started(Option) ->
     {Option, validation_started}.
 
 create_table(Table) ->
-    case table_exists(Table) of
+    case table_exists() of
         false ->
             _ = ets:new(Table, [public, named_table]);
         _ ->
             ok
     end.
 
-table() ->
-    ?MODULE.
-
-table_exists(Table) ->
-    ets:info(Table) =/= undefined.
+table_exists() ->
+    ets:info(elvis_config) =/= undefined.
