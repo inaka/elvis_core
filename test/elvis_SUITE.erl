@@ -61,43 +61,18 @@ end_per_suite(Config) ->
 %%% Rocking
 
 rock_with_empty_map_config(_Config) ->
-    ok =
-        try
-            ok = elvis_core:rock([#{}]),
-            fail
-        catch
-            {invalid_config, _} ->
-                ok
-        end,
-    ok =
-        try
-            ok = elvis_core:rock([#{} || X <- lists:seq(1, 10), X < 1]),
-            fail
-        catch
-            {invalid_config, _} ->
-                ok
-        end.
+    {fail, [{throw, {invalid_config, _}}]} = elvis_core:rock([#{}]),
+    {fail, [{throw, {invalid_config, _}}]} = elvis_core:rock([]),
+    ok.
 
 rock_with_empty_list_config(_Config) ->
-    ok =
-        try
-            ok = elvis_core:rock([#{}, #{}]),
-            fail
-        catch
-            {invalid_config, _} ->
-                ok
-        end.
+    {fail, [{throw, {invalid_config, _}}]} = elvis_core:rock([#{}, #{}]),
+    ok.
 
 rock_with_incomplete_config(_Config) ->
     ElvisConfig = [#{dirs => ["src"]}],
-    ok =
-        try
-            ok = elvis_core:rock(ElvisConfig),
-            fail
-        catch
-            {invalid_config, _} ->
-                ok
-        end.
+    {fail, [{throw, {invalid_config, _}}]} = elvis_core:rock(ElvisConfig),
+    ok.
 
 rock_with_list_config(_Config) ->
     ElvisConfig = [
@@ -107,13 +82,7 @@ rock_with_list_config(_Config) ->
             filter => "*.erl"
         }
     ],
-    ok =
-        try
-            ok = elvis_core:rock(ElvisConfig)
-        catch
-            {invalid_config, _} ->
-                fail
-        end.
+    ok = elvis_core:rock(ElvisConfig).
 
 rock_with_file_config(_Config) ->
     ConfigPath = "../../config/elvis.config",
@@ -257,13 +226,7 @@ rock_with_rule_groups(_Config) ->
                 ruleset => rebar_config
             }
         ],
-    ok =
-        try
-            ok = elvis_core:rock(RulesGroupConfig)
-        catch
-            {invalid_config, _} ->
-                fail
-        end,
+    ok = elvis_core:rock(RulesGroupConfig),
     % Override default elvis_core rules without ruleset should fail.
     OverrideFailConfig =
         [
@@ -276,14 +239,7 @@ rock_with_rule_groups(_Config) ->
                     ]
             }
         ],
-    ok =
-        try
-            _ = elvis_core:rock(OverrideFailConfig),
-            fail
-        catch
-            {invalid_config, _} ->
-                ok
-        end,
+    {fail, [{throw, {invalid_config, _}}]} = elvis_core:rock(OverrideFailConfig),
     % Override default elvis_core rules.
     OverrideConfig =
         [
@@ -305,13 +261,7 @@ rock_with_rule_groups(_Config) ->
                 ruleset => rebar_config
             }
         ],
-    ok =
-        try
-            ok = elvis_core:rock(OverrideConfig)
-        catch
-            {invalid_config, _} ->
-                fail
-        end.
+    ok = elvis_core:rock(OverrideConfig).
 
 rock_this_skipping_files(_Config) ->
     meck:new(elvis_file, [passthrough]),
@@ -367,14 +317,8 @@ rock_with_umbrella_apps(_Config) ->
 
 rock_with_invalid_rules(_Config) ->
     ConfigPath = "../../test/examples/invalid_rules.elvis.config",
-    try
-        ElvisConfig = elvis_config:from_file(ConfigPath),
-        ok = elvis_core:rock(ElvisConfig),
-        ct:fail("Elvis should not have rocked with ~p", [ElvisConfig])
-    catch
-        {invalid_config, _} ->
-            ok
-    end.
+    {fail, [{throw, {invalid_config, _}}]} = elvis_config:from_file(ConfigPath),
+    ok.
 
 %%%%%%%%%%%%%%%
 %%% Utils
@@ -411,16 +355,8 @@ hrl_ruleset(_Config) ->
 throw_configuration(_Config) ->
     Filename = "./elvis.config",
     ok = file:write_file(Filename, <<"-">>),
-    ok =
-        try
-            _ = elvis_config:from_file(Filename),
-            fail
-        catch
-            _ ->
-                ok
-        after
-            file:delete(Filename)
-        end.
+    {fail, [{throw, {invalid_config, _}}]} = elvis_config:from_file(Filename),
+    _ = file:delete(Filename).
 
 find_file_and_check_src(_Config) ->
     Dirs = ["../../test/examples"],

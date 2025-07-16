@@ -129,8 +129,13 @@ from_file(File) ->
     fetch_elvis_config_from(AppConfig).
 
 fetch_elvis_config_from(AppConfig) ->
-    Elvis = fetch_elvis_config(undefined, AppConfig),
-    from_static(config, {elvis, Elvis}).
+    try fetch_elvis_config(undefined, AppConfig) of
+        Elvis ->
+            from_static(config, {elvis, Elvis})
+    catch
+        {invalid_config, _} = Caught ->
+            {fail, [{throw, Caught}]}
+    end.
 
 default_for(app) ->
     % This is the top-level element, before 'elvis'

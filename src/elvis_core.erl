@@ -37,15 +37,28 @@ start() ->
     {ok, _} = application:ensure_all_started(elvis_core),
     ok.
 
+validate_config_or_throw(ElvisConfig) ->
+    try elvis_config:validate_config(ElvisConfig) of
+        ok ->
+            ok
+    catch
+        {invalid_config, _} = Caught ->
+            {error, {fail, [{throw, Caught}]}}
+    end.
+
 %% In this context, `throw` means an error, e.g., validation or internal, not an actual
 %% call to `erlang:throw/1`.
 -spec rock([elvis_config:t()]) ->
     ok | {fail, [{throw, term()} | elvis_result:file() | elvis_result:rule()]}.
 rock(ElvisConfig) ->
-    ok = elvis_config:validate_config(ElvisConfig),
-    elvis_ruleset:dump_custom(),
-    Results = lists:map(fun do_parallel_rock/1, ElvisConfig),
-    lists:foldl(fun combine_results/2, ok, Results).
+    case validate_config_or_throw(ElvisConfig) of
+        ok ->
+            elvis_ruleset:dump_custom(),
+            Results = lists:map(fun do_parallel_rock/1, ElvisConfig),
+            lists:foldl(fun combine_results/2, ok, Results);
+        {error, Error} ->
+            Error
+    end.
 
 -spec rock_this(target(), [elvis_config:t()]) ->
     ok | {fail, [elvis_result:file() | elvis_result:rule()]}.
@@ -54,33 +67,37 @@ rock_this(Module, ElvisConfig) when is_atom(Module) ->
     Path = proplists:get_value(source, ModuleInfo),
     rock_this(Path, ElvisConfig);
 rock_this(Path, ElvisConfig) ->
-    ok = elvis_config:validate_config(ElvisConfig),
-    elvis_ruleset:dump_custom(),
-    Dirname = filename:dirname(Path),
-    Filename = filename:basename(Path),
-    File =
-        case elvis_file:find_files([Dirname], Filename) of
-            [] ->
-                throw({enoent, Path});
-            [File0] ->
-                File0
-        end,
+    case validate_config_or_throw(ElvisConfig) of
+        ok ->
+            elvis_ruleset:dump_custom(),
+            Dirname = filename:dirname(Path),
+            Filename = filename:basename(Path),
+            File =
+                case elvis_file:find_files([Dirname], Filename) of
+                    [] ->
+                        throw({enoent, Path});
+                    [File0] ->
+                        File0
+                end,
 
-    FilterFun =
-        fun(Cfg) ->
-            Filter = elvis_config:filter(Cfg),
-            Dirs = elvis_config:dirs(Cfg),
-            IgnoreList = elvis_config:ignore(Cfg),
-            [] =/= elvis_file:filter_files([File], Dirs, Filter, IgnoreList)
-        end,
-    case lists:filter(FilterFun, ElvisConfig) of
-        [] ->
-            elvis_utils:output(info, "Skipping ~s", [Path]);
-        FilteredElvisConfig ->
-            LoadedFile = load_file_data(FilteredElvisConfig, File),
-            ApplyRulesFun = fun(Cfg) -> apply_rules_and_print(Cfg, LoadedFile) end,
-            Results = lists:map(ApplyRulesFun, FilteredElvisConfig),
-            elvis_result_status(Results)
+            FilterFun =
+                fun(Cfg) ->
+                    Filter = elvis_config:filter(Cfg),
+                    Dirs = elvis_config:dirs(Cfg),
+                    IgnoreList = elvis_config:ignore(Cfg),
+                    [] =/= elvis_file:filter_files([File], Dirs, Filter, IgnoreList)
+                end,
+            case lists:filter(FilterFun, ElvisConfig) of
+                [] ->
+                    elvis_utils:output(info, "Skipping ~s", [Path]);
+                FilteredElvisConfig ->
+                    LoadedFile = load_file_data(FilteredElvisConfig, File),
+                    ApplyRulesFun = fun(Cfg) -> apply_rules_and_print(Cfg, LoadedFile) end,
+                    Results = lists:map(ApplyRulesFun, FilteredElvisConfig),
+                    elvis_result_status(Results)
+            end;
+        {error, Error} ->
+            Error
     end.
 
 %% In this context, `throw` means an error, e.g., validation or internal, not an actual
