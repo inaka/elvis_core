@@ -191,11 +191,11 @@ elvis_style_rules() ->
 
 erl_files_test_rules() ->
     trim(
+        elvis_style_rules(),
         [
             elvis_rule:new(elvis_style, dont_repeat_yourself),
             elvis_rule:new(elvis_style, no_god_modules)
-        ],
-        elvis_style_rules()
+        ]
     ).
 
 elvis_text_style_rules() ->
