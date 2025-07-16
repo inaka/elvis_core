@@ -57,7 +57,7 @@ validate_config(ElvisConfig) ->
 rock(ElvisConfig) ->
     case validate_config(ElvisConfig) of
         ok ->
-            elvis_ruleset:dump_custom(),
+            elvis_ruleset:drop_custom(),
             Results = lists:map(fun do_parallel_rock/1, ElvisConfig),
             lists:foldl(fun combine_results/2, ok, Results);
         {error, Error} ->
@@ -73,7 +73,7 @@ rock_this(Module, ElvisConfig) when is_atom(Module) ->
 rock_this(Path, ElvisConfig) ->
     case validate_config(ElvisConfig) of
         ok ->
-            elvis_ruleset:dump_custom(),
+            elvis_ruleset:drop_custom(),
             Dirname = filename:dirname(Path),
             Filename = filename:basename(Path),
             File =

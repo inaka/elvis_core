@@ -330,7 +330,7 @@ custom_ruleset(_Config) ->
     [[NoTabs]] = elvis_config:rules(ElvisConfig),
 
     %% this is also done by :rock and :rock_this
-    _ = elvis_ruleset:dump_custom(),
+    _ = elvis_ruleset:drop_custom(),
 
     %% read unknown ruleset configuration to ensure rulesets from
     %% previous load do not stick around
