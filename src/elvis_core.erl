@@ -162,7 +162,7 @@ main([]) ->
     {module, _} = code:ensure_loaded(elvis_style),
     case rock(elvis_config:config()) of
         ok -> true;
-        _ -> halt(1)
+        _ -> elvis_utils:erlang_halt(1)
     end.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
