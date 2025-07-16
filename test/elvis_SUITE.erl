@@ -238,7 +238,7 @@ rock_without_errors_and_with_verbose_has_output(_Config) ->
 
 rock_with_rule_groups(_Config) ->
     % elvis_config will load default elvis_core rules for every
-    % rule_group in the config.
+    % rule_group in the configuration
     RulesGroupConfig =
         [
             #{
