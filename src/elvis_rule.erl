@@ -8,7 +8,6 @@
     ns/1,
     name/1,
     def/1,
-    ignores/1,
     disabled/1,
     file/1, file/2,
     ignored/2,
@@ -182,7 +181,7 @@ disable(Rule) ->
 
 -spec ignored(Needle :: ignorable(), t()) -> boolean().
 ignored(Needle, Rule) ->
-    lists:member(Needle, Rule#rule.ignores).
+    lists:member(Needle, ignores(Rule)).
 
 -spec execute(t(), ElvisConfig) -> Results when
     ElvisConfig :: elvis_config:t(),

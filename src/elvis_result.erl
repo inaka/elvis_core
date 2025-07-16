@@ -16,6 +16,9 @@
 %% Types
 -export_type([item/0, rule/0, file/0, elvis_error/0, elvis_warn/0, attrs/0]).
 
+% API exports, not consumed locally.
+-ignore_xref([get_path/1, get_rules/1, get_items/1, get_message/1, get_info/1, get_line_num/1]).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Records
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

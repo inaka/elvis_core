@@ -5,6 +5,9 @@
 
 -export([no_branch_deps/2, protocol_for_deps/2]).
 
+% The whole file is considered to have either callback functions or rules.
+-ignore_xref(elvis_project).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

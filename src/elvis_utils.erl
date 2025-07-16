@@ -11,11 +11,13 @@
 -ignore_xref(do_output/2).
 -ignore_xref(abort/2).
 
+% API exports, not consumed locally.
+-ignore_xref([erlang_halt/1]).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Public
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% @doc This is defined so that it can be mocked for tests.
 -spec erlang_halt(integer()) -> no_return().
 erlang_halt(Code) ->
     halt(Code).
