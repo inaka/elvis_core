@@ -20,6 +20,9 @@
 -type elvis() :: proplists:proplist().
 -export_type([elvis/0]).
 
+% API exports, not consumed locally.
+-ignore_xref([from_rebar/1, from_file/1, default/0, resolve_files/2, apply_to_files/2]).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Public
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -4,8 +4,6 @@
 
 -export([rock/1, rock_this/2]).
 -export([start/0]).
-%% for internal use only
--export([do_rock/2]).
 %% for eating our own dogfood
 -export([main/1]).
 
@@ -13,9 +11,18 @@
 
 -ifdef(TEST).
 
--export([apply_rule/2]).
+-export([do_rock/2, apply_rule/2]).
+% For tests (we can't Xref the tests because rebar3 fails to compile some files).
+-ignore_xref([do_rock/2, apply_rule/2]).
 
 -endif.
+
+% For eating our own dogfood.
+-ignore_xref([main/1]).
+% For shell usage.
+-ignore_xref([start/0]).
+% API exports, not consumed locally.
+-ignore_xref([rock/1, rock_this/2]).
 
 -type source_filename() :: nonempty_string().
 -type target() :: source_filename() | module().
