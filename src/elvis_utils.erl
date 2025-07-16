@@ -5,7 +5,7 @@
 %% General
 -export([erlang_halt/1, to_str/1, split_all_lines/1, split_all_lines/2]).
 %% Output / rebar3
--export([output/3, abort/2]).
+-export([debug/2, info/2, notice/2, warn/2, error/2, abort/2]).
 
 % These call (but verify if exported) rebar3-specific functions.
 -ignore_xref(do_output/2).
@@ -73,6 +73,21 @@ escape_chars(String) ->
     ResultBin = iolist_to_binary(Result),
     binary_to_list(ResultBin).
 
+debug(Format, Data) ->
+    output(debug, "Elvis: " ++ Format, Data).
+
+info(Format, Data) ->
+    output(info, Format ++ "{{reset}}~n", Data).
+
+notice(Format, Data) ->
+    output(notice, "{{white-bold}}" ++ Format ++ "{{reset}}~n", Data).
+
+warn(Format, Data) ->
+    output(warn, "{{magenta}}Warning: {{reset}}" ++ Format ++ "{{reset}}~n", Data).
+
+error(Format, Data) ->
+    output(error, "{{red}}Error: {{reset}}" ++ Format ++ "{{reset}}~n", Data).
+
 -spec output(debug | info | notice | warn | error, Format :: io:format(), Data :: [term()]) -> ok.
 output(debug = _Type, Format, Data) ->
     Chars = io_lib:format(Format, Data),
@@ -92,28 +107,28 @@ output(Type, Format, Data) ->
 do_output(debug, Chars) ->
     case erlang:function_exported(rebar_api, debug, 2) of
         true ->
-            rebar_api:debug("Elvis: " ++ Chars, []);
+            rebar_api:debug(Chars, []);
         false ->
             ok
     end;
 do_output(info, Chars) ->
     case elvis_config:verbose() of
         true ->
-            io:format(Chars ++ "{{reset}}~n");
+            io:format(Chars);
         false ->
             ok
     end;
 do_output(notice, Chars) ->
     case elvis_config:verbose() of
         true ->
-            io:format("{{white-bold}}" ++ Chars ++ "{{reset}}~n");
+            io:format(Chars);
         false ->
             ok
     end;
 do_output(warn, Chars) ->
-    io:format("{{magenta}}Warning: {{reset}}" ++ Chars ++ "{{reset}}~n");
+    io:format(Chars);
 do_output(error, Chars) ->
-    io:format("{{red}}Error: {{reset}}" ++ Chars ++ "{{reset}}~n").
+    io:format(Chars).
 
 -dialyzer({nowarn_function, abort/2}).
 -spec abort(Format :: io:format(), Data :: [term()]) -> no_return().

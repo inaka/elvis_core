@@ -187,9 +187,9 @@ print(Format, #{file := Path, rules := Rules}) ->
         _ ->
             case status(Rules) of
                 ok ->
-                    elvis_utils:output(notice, "# ~s [{{green-bold}}OK{{white-bold}}]", [Path]);
+                    elvis_utils:notice("# ~s [{{green-bold}}OK{{white-bold}}]", [Path]);
                 fail ->
-                    elvis_utils:output(error, "# ~s [{{red-bold}}FAIL{{white-bold}}]", [Path])
+                    elvis_utils:error("# ~s [{{red-bold}}FAIL{{white-bold}}]", [Path])
             end
     end,
     print_rules(Format, Path, Rules);
@@ -216,8 +216,7 @@ print_rules(
         parsable ->
             ok;
         _ ->
-            elvis_utils:output(
-                error,
+            elvis_utils:error(
                 "  - ~p "
                 "(https://github.com/inaka/elvis_core/tree/main/doc_rules/~p/~p.md)",
                 [Name, Scope, Name]
@@ -249,7 +248,7 @@ print_item(
             FMsg = io_lib:format(Msg, Info),
             io:format("~s:~p:~p:~s~n", [File, Ln, Name, FMsg]);
         _ ->
-            elvis_utils:output(error, "    - " ++ Msg, Info)
+            elvis_utils:error("    - " ++ Msg, Info)
     end,
     print_item(Format, File, Name, Items);
 print_item(Format, File, Name, [Error | Items]) ->
@@ -259,9 +258,9 @@ print_item(_Format, _File, _Name, []) ->
     ok.
 
 print_error(#{error_msg := Msg, info := Info}) ->
-    elvis_utils:output(error, Msg, Info);
+    elvis_utils:error(Msg, Info);
 print_error(#{warn_msg := Msg, info := Info}) ->
-    elvis_utils:output(warn, Msg, Info).
+    elvis_utils:warn(Msg, Info).
 
 -spec status([file() | rule()]) -> ok | fail.
 status([]) ->
