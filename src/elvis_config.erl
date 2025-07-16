@@ -371,7 +371,7 @@ do_validate({elvis = Option, Elvis}) ->
                 Parallel = get_elvis_opt(parallel, Elvis),
                 ok ?= is_pos_integer("elvis.parallel", Parallel),
                 CustomRulesets = get_elvis_opt(rulesets, Elvis),
-                ok ?= is_valid_rulesets("elvis.rulesets", CustomRulesets),
+                ok ?= are_valid_rulesets("elvis.rulesets", CustomRulesets),
                 ElvisConfig = get_elvis_opt(config, Elvis),
                 ok ?= is_valid_config("elvis.config", maps:keys(CustomRulesets), ElvisConfig)
             else
@@ -438,7 +438,7 @@ is_pos_integer(_What, Value) when is_integer(Value) andalso Value > 0 ->
 is_pos_integer(What, _Value) ->
     {error, {"~p is expected to be a positive integer.", [What]}}.
 
-is_valid_rulesets(What, CustomRulesets) ->
+are_valid_rulesets(What, CustomRulesets) ->
     maybe
         ok ?= is_map(What, CustomRulesets),
         ok ?= all_map_keys_are_atoms(What, CustomRulesets),
