@@ -4,10 +4,6 @@
 
 -export([rules/1, load_custom/1, dump_custom/0, is_defined/1, custom_names/0]).
 
--ifdef(TEST).
--export([drop_custom/0]).
--endif.
-
 -spec load_custom(#{atom() => list()}) -> ok.
 load_custom(Rulesets) ->
     {Existed, Tid} = ensure_table(),
@@ -86,12 +82,6 @@ ensure_table() ->
         _ ->
             {true, elvis_ruleset}
     end.
-
--ifdef(TEST).
-drop_custom() ->
-    Table = table(),
-    ets:delete(Table).
--endif.
 
 table_exists() ->
     ets:info(elvis_ruleset) =/= undefined.
