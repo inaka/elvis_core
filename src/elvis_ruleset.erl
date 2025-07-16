@@ -26,21 +26,19 @@ load_custom(Rulesets) ->
     end.
 
 custom_names() ->
-    Table = table(),
-    case ets:info(Table) of
-        undefined ->
+    case table_exists() of
+        false ->
             [];
         _ ->
-            proplists:get_keys(ets:tab2list(Table))
+            proplists:get_keys(ets:tab2list(elvis_ruleset))
     end.
 
 dump_custom() ->
-    Table = table(),
-    case ets:info(Table) of
-        undefined ->
+    case table_exists() of
+        false ->
             ok;
         _ ->
-            ets:delete(Table)
+            ets:delete(elvis_ruleset)
     end.
 
 is_defined(Ruleset) ->
@@ -66,12 +64,11 @@ rules(rebar_config) ->
 rules(erl_files_test) ->
     erl_files_test_rules();
 rules(Group) ->
-    Table = table(),
-    case ets:info(Table) of
-        undefined ->
+    case table_exists() of
+        false ->
             [];
         _ ->
-            lookup(Table, Group)
+            lookup(elvis_ruleset, Group)
     end.
 
 lookup(Table, Group) ->
@@ -83,22 +80,21 @@ lookup(Table, Group) ->
     end.
 
 ensure_table() ->
-    Table = table(),
-    case ets:info(Table) of
-        undefined ->
-            {false, ets:new(Table, [set, named_table, {keypos, 1}, public])};
+    case table_exists() of
+        false ->
+            {false, ets:new(elvis_ruleset, [set, named_table, {keypos, 1}, public])};
         _ ->
-            {true, Table}
+            {true, elvis_ruleset}
     end.
-
-table() ->
-    ?MODULE.
 
 -ifdef(TEST).
 drop_custom() ->
     Table = table(),
     ets:delete(Table).
 -endif.
+
+table_exists() ->
+    ets:info(elvis_ruleset) =/= undefined.
 
 gitignore_rules() ->
     [
