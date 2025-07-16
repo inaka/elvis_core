@@ -12,6 +12,7 @@
 
 %% Options
 -export([config/0, output_format/0, verbose/0, no_output/0, parallel/0]).
+-export([set_output_format/1, set_verbose/1, set_no_output/1, set_parallel/1]).
 
 % Corresponds to the 'config' key.
 -type t() :: map().
@@ -22,6 +23,7 @@
 
 % API exports, not consumed locally.
 -ignore_xref([from_rebar/1, from_file/1, default/0, resolve_files/2, apply_to_files/2]).
+-ignore_xref([set_output_format/1, set_verbose/1, set_no_output/1, set_parallel/1]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Public
@@ -68,6 +70,21 @@ no_output() ->
 
 parallel() ->
     for(parallel).
+
+set_output_format(OutputFormat) ->
+    set_env(output_format, OutputFormat).
+
+set_verbose(Verbose) ->
+    set_env(verbose, Verbose).
+
+set_no_output(NoOutput) ->
+    set_env(no_output, NoOutput).
+
+set_parallel(Parallel) ->
+    set_env(parallel, Parallel).
+
+set_env(Key, Value) ->
+    application:set_env(elvis_core, Key, Value).
 
 default(Key) ->
     case application:get_env(elvis_core, Key) of
