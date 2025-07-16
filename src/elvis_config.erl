@@ -40,17 +40,17 @@ fetch_elvis_config(Key, AppConfig) ->
     Elvis.
 
 from_static(Key, {Type, Config}) ->
-    elvis_utils:output(debug, "fetching key ~p from ~p configuration", [Key, Type]),
+    elvis_utils:debug("fetching key ~p from ~p configuration", [Key, Type]),
     case proplists:get_value(Key, Config) of
         undefined ->
-            elvis_utils:output(
-                debug, "no value for key ~p found in ~p configuration; going with default", [
+            elvis_utils:debug(
+                "no value for key ~p found in ~p configuration; going with default", [
                     Key, Type
                 ]
             ),
             default(Key);
         Value ->
-            elvis_utils:output(debug, "value for key ~p found in ~p configuration", [Key, Type]),
+            elvis_utils:debug("value for key ~p found in ~p configuration", [Key, Type]),
             Value
     end.
 
@@ -72,14 +72,13 @@ parallel() ->
 default(Key) ->
     case application:get_env(elvis_core, Key) of
         undefined ->
-            elvis_utils:output(
-                debug,
+            elvis_utils:debug(
                 "no value for key ~p found in application environment; going with default",
                 [Key]
             ),
             default_for(Key);
         {ok, Value} ->
-            elvis_utils:output(debug, "value for key ~p found in application environment", [Key]),
+            elvis_utils:debug("value for key ~p found in application environment", [Key]),
             Value
     end.
 
@@ -89,9 +88,7 @@ for(Key) ->
         case consult_elvis_config("elvis.config") of
             AppDefault ->
                 % This might happen whether we fail to parse the file or it actually is []
-                elvis_utils:output(
-                    debug, "elvis.config unusable; falling back to rebar.config", []
-                ),
+                elvis_utils:debug("elvis.config unusable; falling back to rebar.config", []),
                 consult_rebar_config("rebar.config");
             AppConfig0 ->
                 AppConfig0
@@ -103,20 +100,20 @@ for(Key) ->
 consult_elvis_config(File) ->
     case file:consult(File) of
         {ok, [AppConfig]} ->
-            elvis_utils:output(debug, "elvis.config usable; using it", []),
+            elvis_utils:debug("elvis.config usable; using it", []),
             AppConfig;
         _ ->
-            elvis_utils:output(debug, "elvis.config unusable", []),
+            elvis_utils:debug("elvis.config unusable", []),
             default_for(app)
     end.
 
 consult_rebar_config(File) ->
     case file:consult(File) of
         {ok, AppConfig0} ->
-            elvis_utils:output(debug, "rebar.config usable; using it", []),
+            elvis_utils:debug("rebar.config usable; using it", []),
             AppConfig0;
         _ ->
-            elvis_utils:output(debug, "rebar.config unusable", []),
+            elvis_utils:debug("rebar.config unusable", []),
             default_for(app)
     end.
 

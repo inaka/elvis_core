@@ -9,7 +9,7 @@ load_custom(Rulesets) ->
     {Existed, Tid} = ensure_table(),
     case Existed of
         false ->
-            elvis_utils:output(debug, "loading custom rulesets into state", []),
+            elvis_utils:debug("loading custom rulesets into state", []),
             lists:foreach(
                 fun({Ruleset, NSNameDefs}) ->
                     Rules = [elvis_rule:from_tuple(NSNameDef) || NSNameDef <- NSNameDefs],
