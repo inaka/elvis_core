@@ -85,7 +85,7 @@ for(Key) ->
     AppConfig =
         case consult_elvis_config("elvis.config") of
             AppDefault ->
-                % This might happen whether we fail to parse the fail or it actually is []
+                % This might happen whether we fail to parse the file or it actually is []
                 elvis_utils:output(
                     debug, "elvis.config unusable; falling back to rebar.config", []
                 ),
