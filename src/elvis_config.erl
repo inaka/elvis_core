@@ -117,10 +117,12 @@ consult_rebar_config(File) ->
             default_for(app)
     end.
 
+-spec from_rebar(File :: string()) -> t().
 from_rebar(File) ->
     AppConfig = consult_rebar_config(File),
     fetch_elvis_config_from(AppConfig).
 
+-spec from_file(File :: string()) -> t().
 from_file(File) ->
     AppConfig = consult_elvis_config(File),
     fetch_elvis_config_from(AppConfig).
