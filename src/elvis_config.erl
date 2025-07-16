@@ -198,7 +198,7 @@ default() ->
                 "apps/**/include/**",
                 "include/**"
             ],
-            filter => "*.erl",
+            filter => "*.hrl",
             ruleset => hrl_files
         },
         #{
