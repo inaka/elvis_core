@@ -390,7 +390,7 @@ do_validate({elvis = Option, Elvis}) ->
                 ok ?= is_nonempty_list(elvis, Elvis),
                 ok ?=
                     proplist_keys_are_in(
-                        'elvis', Elvis, elvis_control_opts() ++ [rulesets, config]
+                        elvis, Elvis, elvis_control_opts() ++ [rulesets, config]
                     ),
                 OutputFormat = get_elvis_opt(output_format, Elvis),
                 ok ?= is_one_of('elvis.output_format', OutputFormat, [colors, plain, parsable]),
