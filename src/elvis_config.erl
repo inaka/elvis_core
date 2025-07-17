@@ -57,7 +57,12 @@ from_static(Key, {Type, Config}) ->
     end.
 
 config() ->
-    for(config).
+    try
+        for(config)
+    catch
+        {invalid_config, _} = Caught ->
+            {fail, [{throw, Caught}]}
+    end.
 
 output_format() ->
     for(output_format).
