@@ -42,9 +42,8 @@ start() ->
     ok.
 
 validate_config(ElvisConfig) ->
-    try elvis_config:validate_config(ElvisConfig) of
-        ok ->
-            ok
+    try
+        elvis_config:validate_config(ElvisConfig)
     catch
         {invalid_config, _} = Caught ->
             {error, {fail, [{throw, Caught}]}}
