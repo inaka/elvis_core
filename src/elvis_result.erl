@@ -16,6 +16,9 @@
 %% Types
 -export_type([item/0, rule/0, file/0, elvis_error/0, elvis_warn/0, attrs/0]).
 
+% API exports, not consumed locally.
+-ignore_xref([get_path/1, get_rules/1, get_items/1, get_message/1, get_info/1, get_line_num/1]).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Records
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -167,7 +170,7 @@ get_line_num(#{line_num := LineNum}) ->
 
 -spec print_results(file() | [elvis_warn()]) -> ok.
 print_results(Results) ->
-    Format = elvis_config:from_application_or_config(output_format, colors),
+    Format = elvis_config:output_format(),
     print(Format, Results).
 
 -spec print(plain | colors | parsable, [file()] | file()) -> ok.
@@ -255,9 +258,9 @@ print_item(_Format, _File, _Name, []) ->
     ok.
 
 print_error(#{error_msg := Msg, info := Info}) ->
-    elvis_utils:error_prn(Msg, Info);
+    elvis_utils:error(Msg, Info);
 print_error(#{warn_msg := Msg, info := Info}) ->
-    elvis_utils:warn_prn(Msg, Info).
+    elvis_utils:warn(Msg, Info).
 
 -spec status([file() | rule()]) -> ok | fail.
 status([]) ->

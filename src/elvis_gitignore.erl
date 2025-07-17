@@ -5,6 +5,9 @@
 
 -export([required_patterns/2, forbidden_patterns/2]).
 
+% The whole file is considered to have either callback functions or rules.
+-ignore_xref(elvis_gitignore).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
