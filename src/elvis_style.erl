@@ -59,7 +59,8 @@
     no_receive_without_timeout/2,
     prefer_unquoted_atoms/2,
     guard_operators/2,
-    simplify_anonymous_functions/2
+    simplify_anonymous_functions/2,
+    prefer_include/2
 ]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2269,6 +2270,26 @@ is_simple_anonymous_function(FunNode) ->
         _ ->
             false
     end.
+
+prefer_include(Rule, ElvisConfig) ->
+    {nodes, FunNodes} = elvis_code:find(#{
+        of_types => [include_lib],
+        inside => elvis_code:root(Rule, ElvisConfig),
+        filtered_by =>
+            fun(#{attrs := #{value := Value}}) ->
+                filename:basename(Value) == Value
+            end,
+        traverse => all
+    }),
+
+    [
+        elvis_result:new_item(
+            "an unexpected '-include_lib' was found; prefer '-include'",
+            [],
+            #{node => Fun}
+        )
+     || Fun <- FunNodes
+    ].
 
 export_used_types(Rule, ElvisConfig) ->
     Root = elvis_code:root(Rule, ElvisConfig),
