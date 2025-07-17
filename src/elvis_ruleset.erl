@@ -62,7 +62,7 @@ hrl_files_rules() ->
 
 hrl_only_files_rules() ->
     [
-        elvis_rule:new(elvis_style, no_nested_hrls),
+        elvis_rule:new(elvis_style, no_includes),
         elvis_rule:new(elvis_style, no_specs),
         elvis_rule:new(elvis_style, no_types)
     ].
