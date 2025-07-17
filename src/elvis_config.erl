@@ -587,7 +587,10 @@ get_config_opt(OptName, Config) ->
 
 config_is_valid(CustomRulesetNames, Config) ->
     maybe
-        ok ?= map_keys_are_in(Config, [dirs, filter, ignore, ruleset, rules]),
+        % We're keeping files, for the time being, because of elvis
+        % and the fact it knows about elvis_core's internals, but we
+        % should shortly revisit this
+        ok ?= map_keys_are_in(Config, [dirs, filter, ignore, ruleset, rules, files]),
         Dirs = get_config_opt(dirs, Config),
         ok ?= is_nonempty_list_of_dirs(dirs, Dirs),
         Filter = get_config_opt(filter, Config),
@@ -655,7 +658,7 @@ all_dirs_filter_combos_are_valid(Dirs, Filter) ->
                     [
                         io_lib:format(
                             "'<dir>' + '<filter>' combo '~s' + '~s' yielded no files to analyse.", [
-                            Dir, Filter
+                                Dir, Filter
                             ]
                         )
                         | AccIn
