@@ -122,7 +122,7 @@ for(Key) ->
 
 consult_elvis_config(File) ->
     case file:consult(File) of
-        {ok, [AppConfig]} ->
+        {ok, [AppConfig]} when is_list(AppConfig) ->
             elvis_utils:debug("elvis.config consultable; using it", []),
             AppConfig;
         _ ->
@@ -132,7 +132,7 @@ consult_elvis_config(File) ->
 
 consult_rebar_config(File) ->
     case file:consult(File) of
-        {ok, AppConfig0} ->
+        {ok, AppConfig0} when is_list(AppConfig0) ->
             elvis_utils:debug("rebar.config consultable; using it", []),
             AppConfig0;
         _ ->
@@ -437,7 +437,7 @@ do_validate_throw(FormatData) ->
     throw({invalid_config, io_lib:format(Format, Data)}).
 
 is_nonempty_list(What, List) when not is_list(List) orelse List =:= [] ->
-    {error, {"'~s' is expected to be a non-empty list.", [What]}};
+    {error, {"'~s' is expected to exist and be a non-empty list.", [What]}};
 is_nonempty_list(_What, _List) ->
     ok.
 
