@@ -123,20 +123,20 @@ for(Key) ->
 consult_elvis_config(File) ->
     case file:consult(File) of
         {ok, [AppConfig]} ->
-            elvis_utils:debug("elvis.config usable; using it", []),
+            elvis_utils:debug("elvis.config consultable; using it", []),
             AppConfig;
         _ ->
-            elvis_utils:debug("elvis.config unusable", []),
+            elvis_utils:debug("elvis.config unconsultable", []),
             default_for(app)
     end.
 
 consult_rebar_config(File) ->
     case file:consult(File) of
         {ok, AppConfig0} ->
-            elvis_utils:debug("rebar.config usable; using it", []),
+            elvis_utils:debug("rebar.config consultable; using it", []),
             AppConfig0;
         _ ->
-            elvis_utils:debug("rebar.config unusable", []),
+            elvis_utils:debug("rebar.config unconsultable", []),
             default_for(app)
     end.
 
