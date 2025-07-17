@@ -18,8 +18,8 @@
 -type t() :: map().
 -export_type([t/0]).
 
--type elvis() :: proplists:proplist().
--export_type([elvis/0]).
+-type fail_validation() :: {fail, [{throw, {invalid_config, Message :: string()}}]}.
+-export_type([fail_validation/0]).
 
 % API exports, not consumed locally.
 -ignore_xref([from_rebar/1, from_file/1, default/0, resolve_files/2, apply_to_files/2]).
@@ -56,6 +56,7 @@ from_static(Key, {Type, Config}) ->
             Value
     end.
 
+-spec config() -> [t()] | fail_validation().
 config() ->
     try
         for(config)
@@ -139,12 +140,12 @@ consult_rebar_config(File) ->
             default_for(app)
     end.
 
--spec from_rebar(File :: string()) -> [t()].
+-spec from_rebar(File :: string()) -> [t()] | fail_validation().
 from_rebar(File) ->
     AppConfig = consult_rebar_config(File),
     fetch_elvis_config_from(AppConfig).
 
--spec from_file(File :: string()) -> [t()].
+-spec from_file(File :: string()) -> [t()] | fail_validation().
 from_file(File) ->
     AppConfig = consult_elvis_config(File),
     fetch_elvis_config_from(AppConfig).
