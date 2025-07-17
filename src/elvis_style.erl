@@ -2284,7 +2284,7 @@ prefer_include(Rule, ElvisConfig) ->
 
     [
         elvis_result:new_item(
-            "an unexpected `include_lib` was found; prefer `include`",
+            "an unexpected '-include_lib' was found; prefer '-include'",
             [],
             #{node => Fun}
         )
