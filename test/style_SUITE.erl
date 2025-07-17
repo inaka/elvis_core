@@ -65,7 +65,8 @@
     verify_no_boolean_in_comparison/1,
     verify_no_operation_on_same_value/1,
     verify_no_receive_without_timeout/1,
-    verify_simplify_anonymous_functions/1
+    verify_simplify_anonymous_functions/1,
+    verify_prefer_include/1
 ]).
 %% -elvis attribute
 -export([
@@ -1263,6 +1264,26 @@ verify_simplify_anonymous_functions(Config) ->
     PathPass = "pass_simplify_anonymous_functions." ++ Ext,
     [] = elvis_test_utils:elvis_core_apply_rule(
         Config, elvis_style, simplify_anonymous_functions, #{}, PathPass
+    ).
+
+verify_prefer_include(Config) ->
+    Group = proplists:get_value(group, Config, erl_files),
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PathFail = "fail_prefer_include." ++ Ext,
+    Warnings =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, prefer_include, #{}, PathFail
+        ),
+
+    case Group of
+        beam_files -> [_] = Warnings;
+        _ -> [#{line_num := 3}] = Warnings
+    end,
+
+    PathPass = "pass_prefer_include." ++ Ext,
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, prefer_include, #{}, PathPass
     ).
 
 verify_no_spec_with_records(Config) ->
