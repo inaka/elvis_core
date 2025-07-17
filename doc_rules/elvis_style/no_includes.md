@@ -5,9 +5,6 @@
 
 `-include` and `-include_lib` attributes **in header files** should be avoided.
 
-> [!NOTE]
-> While this rule would work on `erl` or `beam` files, it's intended mainly for `hrl` ones.
-
 ## Quick fix
 
 Move the `-include[_lib]` attributes to the modules that actually need them.
