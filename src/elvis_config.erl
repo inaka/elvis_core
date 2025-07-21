@@ -191,18 +191,18 @@ default() ->
     [
         #{
             dirs => [
-                "apps/**/src/**",
-                "src/**"
+                "apps/**/src",
+                "src"
             ],
             filter => "*.erl",
             ruleset => erl_files
         },
         #{
             dirs => [
-                "apps/**/src/**",
-                "src/**",
-                "apps/**/include/**",
-                "include/**"
+                "apps/**/src",
+                "src",
+                "apps/**/include",
+                "include"
             ],
             filter => "*.hrl",
             ruleset => hrl_files
