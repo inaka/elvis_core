@@ -447,7 +447,10 @@ proplist_keys_are_in(What, List, Keys) ->
         [] ->
             ok;
         _ ->
-            {error, {"in '~s', the following keys are unknown: ~s.", [What, elvis_utils:list_to_str(Filtered)]}}
+            {error,
+                {"in '~s', the following keys are unknown: ~s.", [
+                    What, elvis_utils:list_to_str(Filtered)
+                ]}}
     end.
 
 is_one_of(What, Value, Possibilities) ->
@@ -455,7 +458,10 @@ is_one_of(What, Value, Possibilities) ->
         true ->
             ok;
         _ ->
-            {error, {"'~s' is expected to be one of the following: ~s.", [What, elvis_utils:list_to_str(Possibilities)]}}
+            {error,
+                {"'~s' is expected to be one of the following: ~s.", [
+                    What, elvis_utils:list_to_str(Possibilities)
+                ]}}
     end.
 
 is_boolean(_What, Value) when is_boolean(Value) ->
@@ -615,7 +621,10 @@ map_keys_are_in(Map, Keys) ->
         [] ->
             ok;
         _ ->
-            {error, io_lib:format("the following keys are unknown: ~s.", [elvis_utils:list_to_str(Filtered)])}
+            {error,
+                io_lib:format("the following keys are unknown: ~s.", [
+                    elvis_utils:list_to_str(Filtered)
+                ])}
     end.
 
 is_nonempty_list_of_dirs(What, List) when not is_list(List) orelse List =:= [] ->

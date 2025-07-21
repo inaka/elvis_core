@@ -185,9 +185,12 @@ print(Format, #{file := Path, rules := Rules}) ->
         parsable ->
             ok;
         _ ->
+            Verbose = elvis_config:verbose(),
             case status(Rules) of
-                ok ->
+                ok when Verbose ->
                     elvis_utils:notice("# ~s [{{green-bold}}OK{{white-bold}}]", [Path]);
+                ok ->
+                    ok;
                 fail ->
                     elvis_utils:notice("# ~s [{{red-bold}}FAIL{{white-bold}}]", [Path])
             end

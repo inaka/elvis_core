@@ -35,12 +35,13 @@ list_to_str(What) ->
 list_to_str([], Acc) ->
     "[" ++ string:join(Acc, ", ") ++ "]";
 list_to_str([H0 | T], Acc) ->
-    H = case is_list(H0) of
-        true ->
-            "\"" ++ H0 ++ "\"";
-        _ ->
-            H0
-    end,
+    H =
+        case is_list(H0) of
+            true ->
+                "\"" ++ H0 ++ "\"";
+            _ ->
+                H0
+        end,
     list_to_str(T, [to_str(H) | Acc]).
 
 -spec split_all_lines(binary()) -> [binary(), ...].
@@ -130,12 +131,7 @@ do_output(info, Chars) ->
             ok
     end;
 do_output(notice, Chars) ->
-    case elvis_config:verbose() of
-        true ->
-            io:format(Chars);
-        false ->
-            ok
-    end;
+    io:format(Chars);
 do_output(warn, Chars) ->
     io:format(Chars);
 do_output(error, Chars) ->
