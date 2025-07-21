@@ -73,12 +73,12 @@ no_branch_deps(Rule, _ElvisConfig) ->
                 true ->
                     false;
                 false ->
-                    {true, [
+                    {true,
                         elvis_result:new_item(
                             "Dependency '~s' uses a branch; prefer a tag or a specific commit",
                             [AppName]
                         )
-                    ]}
+                    }
             end
         end,
         BadDeps
