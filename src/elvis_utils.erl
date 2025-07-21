@@ -139,10 +139,11 @@ do_output(error, Chars) ->
 
 -dialyzer({nowarn_function, abort/2}).
 -spec abort(Format :: io:format(), Data :: [term()]) -> no_return().
-abort(Format, Data) ->
+abort(Format0, Data) ->
+    Format = "Elvis: " ++ Format0 ++ "~n",
     case erlang:function_exported(rebar_api, abort, 2) of
         true ->
-            rebar_api:abort("Elvis: " ++ Format, [Data]);
+            rebar_api:abort(Format, [Data]);
         false ->
             output(error, Format, Data),
             throw(elvis_abort)
