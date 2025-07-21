@@ -3,7 +3,7 @@
 -compile({no_auto_import, [error/2]}).
 
 %% General
--export([erlang_halt/1, to_str/1, split_all_lines/1, split_all_lines/2]).
+-export([erlang_halt/1, list_to_str/1, to_str/1, split_all_lines/1, split_all_lines/2]).
 %% Output / rebar3
 -export([debug/2, info/2, notice/2, warn/2, error/2, abort/2]).
 
@@ -28,6 +28,20 @@ to_str(Arg) when is_integer(Arg) ->
     integer_to_list(Arg);
 to_str(Arg) when is_list(Arg) ->
     Arg.
+
+list_to_str(What) ->
+    list_to_str(What, []).
+
+list_to_str([], Acc) ->
+    "[" ++ string:join(Acc, ", ") ++ "]";
+list_to_str([H0 | T], Acc) ->
+    H = case is_list(H0) of
+        true ->
+            "\"" ++ H0 ++ "\"";
+        _ ->
+            H0
+    end,
+    list_to_str(T, [to_str(H) | Acc]).
 
 -spec split_all_lines(binary()) -> [binary(), ...].
 split_all_lines(Binary) ->

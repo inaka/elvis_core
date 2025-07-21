@@ -447,7 +447,7 @@ proplist_keys_are_in(What, List, Keys) ->
         [] ->
             ok;
         _ ->
-            {error, {"in '~s', the following keys are unknown: ~p.", [What, Filtered]}}
+            {error, {"in '~s', the following keys are unknown: ~s.", [What, elvis_utils:list_to_str(Filtered)]}}
     end.
 
 is_one_of(What, Value, Possibilities) ->
@@ -455,7 +455,7 @@ is_one_of(What, Value, Possibilities) ->
         true ->
             ok;
         _ ->
-            {error, {"'~s' is expected to be one of the following: ~p.", [What, Possibilities]}}
+            {error, {"'~s' is expected to be one of the following: ~s.", [What, elvis_utils:list_to_str(Possibilities)]}}
     end.
 
 is_boolean(_What, Value) when is_boolean(Value) ->
@@ -534,9 +534,9 @@ no_default_ruleset_override(What, CustomRulesets) ->
             {error,
                 {
                     "in '~s', the following rulesets are not expected to be "
-                    "named after a default ruleset: ~p.",
+                    "named after a default ruleset: ~s.",
                     [
-                        What, Filtered
+                        What, elvis_utils:list_to_str(Filtered)
                     ]
                 }}
     end.
@@ -565,7 +565,7 @@ all_configs_are_valid(What, CustomRulesetNames, Configset) ->
                         AccIn;
                     {error, ValidError} ->
                         [
-                            {"in '~s', at list position number ~p, " ++ ValidError, [
+                            {"in '~s', at list position number ~w, " ++ ValidError, [
                                 What, PosNumber
                             ]}
                             | AccIn
@@ -615,7 +615,7 @@ map_keys_are_in(Map, Keys) ->
         [] ->
             ok;
         _ ->
-            {error, io_lib:format("the following keys are unknown: ~p.", [Filtered])}
+            {error, io_lib:format("the following keys are unknown: ~s.", [elvis_utils:list_to_str(Filtered)])}
     end.
 
 is_nonempty_list_of_dirs(What, List) when not is_list(List) orelse List =:= [] ->
@@ -631,8 +631,8 @@ is_nonempty_list_of_dirs(What, List) ->
         _ ->
             {error,
                 io_lib:format(
-                    "in '~s', the following elements are not (or don't contain) directories: ~p.",
-                    [What, Filtered]
+                    "in '~s', the following elements are not (or don't contain) directories: ~s.",
+                    [What, elvis_utils:list_to_str(Filtered)]
                 )}
     end.
 
@@ -685,8 +685,8 @@ is_list_of_ignorables(What, List) ->
             ok;
         _ ->
             {error,
-                io_lib:format("in '~s', the following elements are not ignorable: ~p.", [
-                    What, Filtered
+                io_lib:format("in '~s', the following elements are not ignorable: ~s.", [
+                    What, elvis_utils:list_to_str(Filtered)
                 ])}
     end.
 
@@ -748,8 +748,8 @@ check_rule_for_options(Rule, AccInI) ->
                 Extra ->
                     [
                         io_lib:format(
-                            "in rule ~p/~p, the following options are unknown: ~p.",
-                            [NS, Name, Extra]
+                            "in rule ~w/~w, the following options are unknown: ~s.",
+                            [NS, Name, elvis_utils:list_to_str(Extra)]
                         ),
                         AccInI
                     ]
