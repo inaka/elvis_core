@@ -3,7 +3,6 @@ _build/
 doc/
 /rebar3.crashdump
 .rebar3/
-logs
 test/**/*.beam
 test/logs/
 _checkouts/

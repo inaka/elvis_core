@@ -25,18 +25,19 @@ end_per_suite(Config) ->
 
 % Tests
 rock_with_file_config(_Config) ->
-    ConfigPath = "../../config/elvis.config",
+    ConfigPath = "../../../../config/elvis.config",
     ElvisConfig = elvis_config:from_file(ConfigPath),
     Fun = fun() -> elvis_core:rock(ElvisConfig) end,
     Expected =
-        "# \\.\\./\\.\\./_build/test/lib/elvis_core/test/" ++ "examples/.*\\.erl.*FAIL",
+        "# \\.\\./\\.\\./\\.\\./\\.\\./_build/test/lib/elvis_core/test/" ++
+            "examples/.*\\.erl.*FAIL",
     [_ | _] = elvis_test_utils:check_some_line_output(
         Fun, Expected, fun elvis_test_utils:matches_regex/2
     ),
     ok.
 
 rock_with_rebar_default_config(_Config) ->
-    {ok, _} = file:copy("../../config/rebar.config", "rebar.config"),
+    {ok, _} = file:copy("../../../../config/rebar.config", "rebar.config"),
     ElvisConfig = elvis_config:from_rebar("rebar.config"),
     [#{name := line_length}] =
         try
