@@ -1,6 +1,13 @@
 -module(elvis_test_utils).
 
--export([config/0, config/1, find_file/2, elvis_core_apply_rule/5, excluded_funs_all/0]).
+-export([
+    config/0, config/1,
+    find_file/2,
+    elvis_core_apply_rule/5,
+    excluded_funs_all/0,
+    check_some_line_output/3,
+    matches_regex/2
+]).
 
 excluded_funs_all() ->
     [
@@ -43,4 +50,20 @@ elvis_core_apply_rule(Config, Module, Function, RuleConfig, Filename) ->
             ct:fail(Msg, Info);
         #{items := Items} ->
             Items
+    end.
+
+check_some_line_output(Fun, Expected, FilterFun) ->
+    _ = ct:capture_start(),
+    _ = Fun(),
+    _ = ct:capture_stop(),
+    Lines = ct:capture_get([]),
+    ListFun = fun(Line) -> FilterFun(Line, Expected) end,
+    [_ | _] = lists:filter(ListFun, Lines).
+
+matches_regex(Result, Regex) ->
+    case re:run(Result, Regex) of
+        {match, _} ->
+            true;
+        nomatch ->
+            false
     end.

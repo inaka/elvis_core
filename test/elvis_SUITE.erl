@@ -8,8 +8,6 @@
     rock_with_empty_list_config/1,
     rock_with_incomplete_config/1,
     rock_with_list_config/1,
-    rock_with_file_config/1,
-    rock_with_rebar_default_config/1,
     rock_this/1,
     rock_without_colors/1,
     rock_with_parsable/1,
@@ -24,7 +22,6 @@
     rock_with_umbrella_apps/1,
     custom_ruleset/1,
     hrl_ruleset/1,
-    throw_configuration/1,
     find_file_and_check_src/1,
     find_file_with_ignore/1,
     invalid_file/1,
@@ -84,27 +81,6 @@ rock_with_list_config(_Config) ->
     ],
     ok = elvis_core:rock(ElvisConfig).
 
-rock_with_file_config(_Config) ->
-    ConfigPath = "../../config/elvis.config",
-    ElvisConfig = elvis_config:from_file(ConfigPath),
-    Fun = fun() -> elvis_core:rock(ElvisConfig) end,
-    Expected =
-        "# \\.\\./\\.\\./_build/test/lib/elvis_core/test/" ++ "examples/.*\\.erl.*FAIL",
-    [_ | _] = check_some_line_output(Fun, Expected, fun matches_regex/2),
-    ok.
-
-rock_with_rebar_default_config(_Config) ->
-    {ok, _} = file:copy("../../config/rebar.config", "rebar.config"),
-    ElvisConfig = elvis_config:from_rebar("rebar.config"),
-    [#{name := line_length}] =
-        try
-            {fail, Results} = elvis_core:rock(ElvisConfig),
-            [Rule || #{rules := [Rule]} <- Results]
-        after
-            file:delete("rebar.config")
-        end,
-    ok.
-
 rock_this(_Config) ->
     ElvisConfig = elvis_test_utils:config(),
     ok = elvis_core:rock_this(elvis_core, ElvisConfig),
@@ -127,7 +103,11 @@ rock_without_colors(_Config) ->
     Fun = fun() -> elvis_core:rock(ElvisConfig) end,
     Expected = "\\e.*?m",
     ok =
-        try check_some_line_output(Fun, Expected, fun matches_regex/2) of
+        try
+            elvis_test_utils:check_some_line_output(
+                Fun, Expected, fun elvis_test_utils:matches_regex/2
+            )
+        of
             Result ->
                 ct:fail("Unexpected result ~p", [Result])
         catch
@@ -142,7 +122,11 @@ rock_with_parsable(_Config) ->
     Fun = fun() -> elvis_core:rock(ElvisConfig) end,
     Expected = ".*\\.erl:\\d:[a-zA-Z0-9_]+:.*",
     ok =
-        try check_some_line_output(Fun, Expected, fun matches_regex/2) of
+        try
+            elvis_test_utils:check_some_line_output(
+                Fun, Expected, fun elvis_test_utils:matches_regex/2
+            )
+        of
             Result ->
                 io:format("~p~n", [Result])
         catch
@@ -175,7 +159,9 @@ rock_with_errors_has_output(_Config) ->
     ElvisConfig = elvis_test_utils:config(),
     Fun = fun() -> elvis_core:rock(ElvisConfig) end,
     Expected = "FAIL",
-    [_ | _] = check_some_line_output(Fun, Expected, fun matches_regex/2),
+    [_ | _] = elvis_test_utils:check_some_line_output(
+        Fun, Expected, fun elvis_test_utils:matches_regex/2
+    ),
     ok.
 
 rock_without_errors_has_no_output(_Config) ->
@@ -201,7 +187,9 @@ rock_without_errors_and_with_verbose_has_output(_Config) ->
     ElvisConfig = elvis_test_utils:config(),
     Fun = fun() -> elvis_core:rock(ElvisConfig) end,
     Expected = "OK",
-    [_ | _] = check_some_line_output(Fun, Expected, fun matches_regex/2),
+    [_ | _] = elvis_test_utils:check_some_line_output(
+        Fun, Expected, fun elvis_test_utils:matches_regex/2
+    ),
     application:unset_env(elvis_core, verbose),
     ok.
 
@@ -352,12 +340,6 @@ hrl_ruleset(_Config) ->
         elvis_core:rock(ElvisConfig),
     ok.
 
-throw_configuration(_Config) ->
-    Filename = "./elvis.config",
-    ok = file:write_file(Filename, <<"-">>),
-    {fail, [{throw, {invalid_config, _}}]} = elvis_config:from_file(Filename),
-    _ = file:delete(Filename).
-
 find_file_and_check_src(_Config) ->
     Dirs = ["../../test/examples"],
 
@@ -432,24 +414,8 @@ chunk_fold_task(Elem, Multiplier) ->
 %%% Private
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-check_some_line_output(Fun, Expected, FilterFun) ->
-    _ = ct:capture_start(),
-    _ = Fun(),
-    _ = ct:capture_stop(),
-    Lines = ct:capture_get([]),
-    ListFun = fun(Line) -> FilterFun(Line, Expected) end,
-    [_ | _] = lists:filter(ListFun, Lines).
-
 get_output(Fun) ->
     _ = ct:capture_start(),
     _ = Fun(),
     _ = ct:capture_stop(),
     ct:capture_get([]).
-
-matches_regex(Result, Regex) ->
-    case re:run(Result, Regex) of
-        {match, _} ->
-            true;
-        nomatch ->
-            false
-    end.
