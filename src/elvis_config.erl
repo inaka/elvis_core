@@ -741,7 +741,7 @@ either_rules_is_nonempty_or_ruleset_is_defined([_ | _] = _Rules, _Ruleset) ->
 either_rules_is_nonempty_or_ruleset_is_defined(_Rules, Ruleset) when Ruleset =/= undefined ->
     ok;
 either_rules_is_nonempty_or_ruleset_is_defined(_Rules, _Ruleset) ->
-    io_lib:format("either rules or ruleset is expected to be defined.", []).
+    {error, io_lib:format("either rules or ruleset is expected to be defined.", [])}.
 
 check_rule_for_options(Rule, AccInI) ->
     case elvis_rule:defkeys(Rule) of
