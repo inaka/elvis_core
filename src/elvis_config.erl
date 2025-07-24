@@ -155,8 +155,8 @@ fetch_elvis_config_from(AppConfig) ->
         Elvis ->
             from_static(config, {elvis, Elvis})
     catch
-        {invalid_config, _} = Caught ->
-            {fail, [{throw, Caught}]}
+        {invalid_config, Message} ->
+            {fail, [{throw, {invalid_config, lists:flatten(Message)}}]}
     end.
 
 default_for(app) ->
@@ -548,9 +548,9 @@ no_default_ruleset_override(What, CustomRulesets) ->
     end.
 
 is_valid_config(What, CustomRulesetNames, Configset0) ->
-    Configset = wrap_in_list(Configset0),
     maybe
-        ok ?= is_nonempty_list(What, Configset),
+        ok ?= is_nonempty_list(What, Configset0),
+        Configset = wrap_in_list(Configset0),
         ok ?= all_configs_are_valid(What, CustomRulesetNames, Configset)
     else
         {error, FormatData} ->
@@ -615,6 +615,8 @@ config_is_valid(CustomRulesetNames, Config) ->
             {error, ValidError}
     end.
 
+map_keys_are_in(Map, _Keys) when not is_map(Map) ->
+    {error, "element is expected to be a map."};
 map_keys_are_in(Map, Keys) ->
     Filtered = [Key || Key <- maps:keys(Map), not lists:member(Key, Keys)],
     case Filtered of
