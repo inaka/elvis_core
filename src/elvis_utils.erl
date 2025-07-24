@@ -36,13 +36,15 @@ list_to_str([], Acc) ->
     "[" ++ string:join(Acc, ", ") ++ "]";
 list_to_str([H0 | T], Acc) ->
     H =
-        case is_list(H0) of
-            true ->
+        case H0 of
+            H0 when is_list(H0) ->
                 "\"" ++ H0 ++ "\"";
+            H0 when is_binary(H0) ->
+                "<<\"" ++ to_str(H0) ++ "\">>";
             _ ->
-                H0
+                to_str(H0)
         end,
-    list_to_str(T, [to_str(H) | Acc]).
+    list_to_str(T, [H | Acc]).
 
 -spec split_all_lines(binary()) -> [binary(), ...].
 split_all_lines(Binary) ->
