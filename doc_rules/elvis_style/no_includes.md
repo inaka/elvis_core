@@ -1,4 +1,7 @@
-# No Nested Header Files [![](https://img.shields.io/badge/since-4.1.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.1.0) ![](https://img.shields.io/badge/HRL--only-yes-magenta)
+# No Includes [![](https://img.shields.io/badge/since-4.1.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.1.0) ![](https://img.shields.io/badge/HRL--only-yes-magenta)
+
+> [!NOTE]
+> This rule was named `no_nested_hrls` before [4.2.0](https://github.com/inaka/elvis_core/releases/tag/4.2.0).
 
 `-include` and `-include_lib` attributes **in header files** should be avoided.
 
@@ -28,5 +31,5 @@ The code becomes unnecessarily complex and harder to maintain.
 ## Example configuration
 
 ```erlang
-{elvis_style, no_nested_hrls, #{}}
+{elvis_style, no_includes, #{}}
 ```

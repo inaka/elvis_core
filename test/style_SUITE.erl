@@ -53,7 +53,7 @@
     verify_always_shortcircuit/1,
     verify_consistent_generic_type/1,
     verify_no_types/1,
-    verify_no_nested_hrls/1,
+    verify_no_includes/1,
     verify_no_specs/1,
     verify_export_used_types/1,
     verify_consistent_variable_casing/1,
@@ -472,14 +472,14 @@ verify_no_types(Config) ->
     PathPass = "pass_no_types.hrl",
     [] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, no_types, #{}, PathPass).
 
-verify_no_nested_hrls(Config) ->
-    PathFail = "fail_no_nested_hrls.hrl",
+verify_no_includes(Config) ->
+    PathFail = "fail_no_includes.hrl",
     [#{line_num := 1}, #{line_num := 2}] = elvis_test_utils:elvis_core_apply_rule(
-        Config, elvis_style, no_nested_hrls, #{}, PathFail
+        Config, elvis_style, no_includes, #{}, PathFail
     ),
 
-    PathPass = "pass_no_nested_hrls.hrl",
-    [] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, no_nested_hrls, #{}, PathPass).
+    PathPass = "pass_no_includes.hrl",
+    [] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, no_includes, #{}, PathPass).
 
 verify_no_specs(Config) ->
     PathFail = "fail_no_specs.hrl",
