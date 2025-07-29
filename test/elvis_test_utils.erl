@@ -61,9 +61,4 @@ check_some_line_output(Fun, Expected, FilterFun) ->
     [_ | _] = lists:filter(ListFun, Lines).
 
 matches_regex(Result, Regex) ->
-    case re:run(Result, Regex) of
-        {match, _} ->
-            true;
-        nomatch ->
-            false
-    end.
+    nomatch =/= re:run(Result, Regex).
