@@ -125,6 +125,15 @@ consult_elvis_config(File) ->
         {ok, [AppConfig]} when is_list(AppConfig) ->
             elvis_utils:debug("elvis.config consultable; using it", []),
             AppConfig;
+        {error, {Line, Mod, Term}} ->
+            % In this very specific case we prefer to throw, since we make efforts
+            % to provide a valid config., but we also need to make sure the file
+            % is readable
+            exit(
+                lists:flatten(
+                    io_lib:format("elvis.config unconsultable: ~p, ~p, ~p", [Line, Mod, Term])
+                )
+            );
         _ ->
             elvis_utils:debug("elvis.config unconsultable", []),
             default_for(app)

@@ -51,5 +51,12 @@ rock_with_rebar_default_config(_Config) ->
 throw_configuration(_Config) ->
     Filename = "./elvis.config",
     ok = file:write_file(Filename, <<"-">>),
-    {fail, [{throw, {invalid_config, _}}]} = elvis_config:from_file(Filename),
+    ok =
+        try
+            elvis_config:from_file(Filename),
+            fail
+        catch
+            exit:"elvis.config unconsultable: 1, erl_parse, [\"syntax error before: \",[]]" ->
+                ok
+        end,
     _ = file:delete(Filename).
