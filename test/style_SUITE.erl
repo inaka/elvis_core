@@ -34,6 +34,8 @@
     verify_max_module_length/1,
     verify_max_anonymous_function_arity/1,
     verify_max_function_arity/1,
+    verify_max_anonymous_function_length/1,
+    verify_max_anonymous_function_clause_length/1,
     verify_max_function_length/1,
     verify_max_function_clause_length/1,
     verify_no_debug_call/1,
@@ -80,6 +82,7 @@
     verify_elvis_attr_macro_names/1,
     verify_elvis_attr_max_anonymous_function_arity/1,
     verify_elvis_attr_max_function_arity/1,
+    verify_elvis_attr_max_anonymous_function_length/1,
     verify_elvis_attr_max_function_length/1,
     verify_elvis_attr_max_module_length/1,
     verify_elvis_attr_module_naming_convention/1,
@@ -1573,6 +1576,173 @@ verify_max_anonymous_function_arity(Config) ->
 
     ok.
 
+verify_max_anonymous_function_length(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PathFail = "fail_max_anonymous_function_length." ++ Ext,
+
+    CountAllRuleConfig = #{count_comments => true, count_whitespace => true},
+
+    ct:comment("Count whitespace and comment lines"),
+    RuleConfig = CountAllRuleConfig#{max_length => 4},
+    [_, _, _] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_anonymous_function_length, RuleConfig, PathFail
+        ),
+
+    RuleConfig1 = CountAllRuleConfig#{max_length => 9},
+    [_, _] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_anonymous_function_length, RuleConfig1, PathFail
+        ),
+
+    RuleConfig2 = CountAllRuleConfig#{max_length => 14},
+    [_] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_anonymous_function_length, RuleConfig2, PathFail
+        ),
+
+    RuleConfig3 = CountAllRuleConfig#{max_length => 15},
+    [] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_anonymous_function_length, RuleConfig3, PathFail
+        ),
+
+    ct:comment("Don't count whitespace lines"),
+    WhitespaceRuleConfig = CountAllRuleConfig#{count_whitespace => false},
+
+    RuleConfig4 = WhitespaceRuleConfig#{max_length => 3},
+    [_, _, _] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_anonymous_function_length, RuleConfig4, PathFail
+        ),
+
+    RuleConfig5 = WhitespaceRuleConfig#{max_length => 7},
+    [_, _] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_anonymous_function_length, RuleConfig5, PathFail
+        ),
+
+    RuleConfig6 = WhitespaceRuleConfig#{max_length => 8},
+    [_] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_anonymous_function_length, RuleConfig6, PathFail
+        ),
+
+    RuleConfig7 = WhitespaceRuleConfig#{max_length => 11},
+    [_] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_anonymous_function_length, RuleConfig7, PathFail
+        ),
+
+    RuleConfig8 = WhitespaceRuleConfig#{max_length => 12},
+    [] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_anonymous_function_length, RuleConfig8, PathFail
+        ),
+
+    ct:comment("Don't count comment or whitespace lines"),
+    NoCountRuleConfig = WhitespaceRuleConfig#{count_comments => false},
+
+    RuleConfig9 = NoCountRuleConfig#{max_length => 1},
+    [_, _, _] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_anonymous_function_length, RuleConfig9, PathFail
+        ),
+
+    RuleConfig10 = NoCountRuleConfig#{max_length => 2},
+    [] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_anonymous_function_length, RuleConfig10, PathFail
+        ),
+
+    {comment, ""}.
+
+verify_max_anonymous_function_clause_length(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PathFail = "fail_max_anonymous_function_clause_length." ++ Ext,
+
+    CountAllRuleConfig = #{count_comments => true, count_whitespace => true},
+    RuleConfig = CountAllRuleConfig#{max_length => 10},
+
+    ct:comment("Count whitespace and comment lines"),
+    [_, _, _] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config,
+            elvis_style,
+            max_anonymous_function_clause_length,
+            RuleConfig,
+            PathFail
+        ),
+
+    PathSuccess = "pass_max_anonymous_function_clause_length." ++ Ext,
+
+    [] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config,
+            elvis_style,
+            max_anonymous_function_clause_length,
+            RuleConfig,
+            PathSuccess
+        ),
+
+    RuleConfig2 = CountAllRuleConfig#{max_length => 15},
+    PathExtraSuccess = "fail_max_anonymous_function_length." ++ Ext,
+
+    [] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config,
+            elvis_style,
+            max_anonymous_function_clause_length,
+            RuleConfig2,
+            PathExtraSuccess
+        ),
+
+    RuleConfig3 = CountAllRuleConfig#{max_length => 1},
+
+    [_, _, _, _, _, _, _, _, _, _] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config,
+            elvis_style,
+            max_anonymous_function_clause_length,
+            RuleConfig3,
+            PathFail
+        ),
+
+    RuleConfig4 = CountAllRuleConfig#{max_length => 1},
+    PathClauseNumbers = "anonymous_function_clause_numbers." ++ Ext,
+
+    Result =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config,
+            elvis_style,
+            max_anonymous_function_clause_length,
+            RuleConfig4,
+            PathClauseNumbers
+        ),
+
+    Numbers = [Number || #{info := [Number, _]} <- Result],
+
+    [
+        "1st",
+        "5th",
+        "6th",
+        "7th",
+        "11th",
+        "13th",
+        "19th",
+        "20th",
+        "21st",
+        "29th",
+        "30th",
+        "31st",
+        "33rd"
+    ] =
+        Numbers,
+
+    {comment, ""}.
+
 verify_max_function_length(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -1744,7 +1914,9 @@ verify_max_function_clause_length(Config) ->
         "31st",
         "33rd"
     ] =
-        Numbers.
+        Numbers,
+
+    {comment, ""}.
 
 verify_no_debug_call(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
@@ -2902,6 +3074,9 @@ verify_elvis_attr_max_function_arity(Config) ->
 
 verify_elvis_attr_max_anonymous_function_arity(Config) ->
     verify_elvis_attr(Config, "pass_max_anonymous_function_arity_elvis_attr").
+
+verify_elvis_attr_max_anonymous_function_length(Config) ->
+    verify_elvis_attr(Config, "pass_max_anonymous_function_length_elvis_attr").
 
 verify_elvis_attr_max_function_length(Config) ->
     verify_elvis_attr(Config, "pass_max_function_length_elvis_attr").
