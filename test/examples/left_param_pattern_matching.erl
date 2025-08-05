@@ -11,7 +11,7 @@ multiple(Multiple = Assignments = {on, the, left, side}) ->
     end.
 
 different_param(happens_on, TheSecond = #{param := of_the}, function) ->
-    fun(happens_on, TheSecondToo = #{param := of_the}, function) -> TheSecond == TheSecondToo
+    fun NamedFun(happens_on, TheSecondToo = #{param := of_the}, function) -> NamedFun(TheSecond, TheSecondToo, param)
     end.
 
 different_clause("it doesn't happen on the first clause") ->

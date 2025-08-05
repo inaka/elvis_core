@@ -2113,7 +2113,7 @@ param_pattern_matching(Rule, ElvisConfig) ->
         inside => elvis_code:root(Rule, ElvisConfig),
         filtered_by =>
             fun(ClauseZipper) ->
-                is_function_clause(ClauseZipper, [function, 'fun'])
+                is_function_clause(ClauseZipper, [function, 'fun', named_fun])
             end,
         filtered_from => zipper,
         traverse => all
