@@ -5,10 +5,13 @@
 f() ->
     fun() ->
        fun(_) ->
-          fun(_, _) ->
-             fun(_, _, _) ->
-                three_arguments
-             end
+          fun NamedFun(_, _) ->
+            NamedFun(
+               fun(_, _, _) ->
+                  three_arguments
+               end,
+               two_arguments
+            )
           end
        end
     end.
