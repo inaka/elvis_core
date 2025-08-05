@@ -15,7 +15,7 @@ focused logic and makes it easier to navigate the codebase.
 ## Options
 
 - `max_length :: non_neg_integer()`
-  - default: `10`
+  - default: `30`
 - `count_comments :: boolean()`
   - default: `false`
 - `count_whitespace :: boolean()`
