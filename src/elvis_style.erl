@@ -1090,7 +1090,7 @@ max_anonymous_function_arity(Rule, ElvisConfig) ->
     MaxArity = elvis_rule:option(max_arity, Rule),
 
     {nodes, FunNodes} = elvis_code:find(#{
-        of_types => ['fun'],
+        of_types => ['fun', named_fun],
         inside => elvis_code:root(Rule, ElvisConfig),
         filtered_by => fun has_clauses/1
     }),
