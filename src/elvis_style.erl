@@ -1090,7 +1090,7 @@ max_anonymous_function_arity(Rule, ElvisConfig) ->
     MaxArity = elvis_rule:option(max_arity, Rule),
 
     {nodes, FunNodes} = elvis_code:find(#{
-        of_types => ['fun'],
+        of_types => ['fun', named_fun],
         inside => elvis_code:root(Rule, ElvisConfig),
         filtered_by => fun has_clauses/1
     }),
@@ -2113,7 +2113,7 @@ param_pattern_matching(Rule, ElvisConfig) ->
         inside => elvis_code:root(Rule, ElvisConfig),
         filtered_by =>
             fun(ClauseZipper) ->
-                is_function_clause(ClauseZipper, [function, 'fun'])
+                is_function_clause(ClauseZipper, [function, 'fun', named_fun])
             end,
         filtered_from => zipper,
         traverse => all
