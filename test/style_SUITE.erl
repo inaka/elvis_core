@@ -66,7 +66,8 @@
     verify_no_operation_on_same_value/1,
     verify_no_receive_without_timeout/1,
     verify_simplify_anonymous_functions/1,
-    verify_prefer_include/1
+    verify_prefer_include/1,
+    verify_strict_term_equivalence/1
 ]).
 %% -elvis attribute
 -export([
@@ -2078,6 +2079,28 @@ verify_no_operation_on_same_value(Config) ->
     ] =
         elvis_test_utils:elvis_core_apply_rule(
             Config, elvis_style, no_operation_on_same_value, #{operations => ['--', '++']}, FailPath
+        ).
+
+verify_strict_term_equivalence(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PassPath = "pass_strict_term_equivalence." ++ Ext,
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, strict_term_equivalence, #{}, PassPath
+    ),
+
+    FailPath = "fail_strict_term_equivalence." ++ Ext,
+    [
+        #{line_num := 6},
+        #{line_num := 7},
+        #{line_num := 10},
+        #{line_num := 11},
+        #{line_num := 15},
+        #{line_num := 16},
+        #{line_num := 16}
+    ] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, strict_term_equivalence, #{}, FailPath
         ).
 
 verify_no_boolean_in_comparison(Config) ->

@@ -60,7 +60,8 @@
     prefer_unquoted_atoms/2,
     guard_operators/2,
     simplify_anonymous_functions/2,
-    prefer_include/2
+    prefer_include/2,
+    strict_term_equivalence/2
 ]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1638,6 +1639,31 @@ is_receive_without_timeout(Receive) ->
         inside => Receive
     }),
     ReceiveAfterNodes =:= [].
+
+strict_term_equivalence(Rule, ElvisConfig) ->
+    Operators = #{'==' => '=:=', '/=' => '=/='},
+
+    {nodes, OpNodes} = elvis_code:find(#{
+        of_types => [op],
+        inside => elvis_code:root(Rule, ElvisConfig),
+        filtered_by =>
+            fun(OpNode) ->
+                is_op(OpNode, maps:keys(Operators))
+            end,
+        traverse => all
+    }),
+
+    [
+        elvis_result:new_item(
+            "unexpected non-shortcircuiting operator ~p was found; prefer ~p",
+            [
+                ktn_code:attr(operation, OpNode),
+                maps:get(ktn_code:attr(operation, OpNode), Operators)
+            ],
+            #{node => OpNode}
+        )
+     || OpNode <- OpNodes
+    ].
 
 no_operation_on_same_value(Rule, ElvisConfig) ->
     InterestingOps = elvis_rule:option(operations, Rule),
