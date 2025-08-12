@@ -1655,7 +1655,7 @@ strict_term_equivalence(Rule, ElvisConfig) ->
 
     [
         elvis_result:new_item(
-            "unexpected non-shortcircuiting operator ~p was found; prefer ~p",
+            "unexpected weak comparison operator ~p was found; prefer ~p",
             [
                 ktn_code:attr(operation, OpNode),
                 maps:get(ktn_code:attr(operation, OpNode), Operators)
@@ -1842,7 +1842,7 @@ result_discarded(Zipper) ->
     case ktn_code:type(Parent) of
         match ->
             [LeftSide | _] = ktn_code:content(Parent),
-            ktn_code:type(LeftSide) == var andalso ktn_code:attr(name, LeftSide) == '_';
+            ktn_code:type(LeftSide) =:= var andalso ktn_code:attr(name, LeftSide) =:= '_';
         _ ->
             false
     end.
@@ -2110,7 +2110,7 @@ has_guards(ClauseNode) ->
 %%      If they only use words, then we just have [[#{type := op, attrs := #{operation = '...'}}]]
 has_guard_defined_with_punctuation(ClauseNode) ->
     length(ktn_code:node_attr(guards, ClauseNode)) > 1 orelse
-        length(ktn_code:node_attr(guards, ClauseNode)) == 1 andalso
+        length(ktn_code:node_attr(guards, ClauseNode)) =:= 1 andalso
             length(hd(ktn_code:node_attr(guards, ClauseNode))) > 1.
 
 has_guard_defined_with_words(ClauseNode) ->
@@ -2126,9 +2126,9 @@ has_guard_defined_with_words(ClauseNode) ->
 %%      It also returns true for not not not not X andalso Y
 %%      But it returns false for not not not X.
 is_two_sided_boolean_op(Node) ->
-    op == ktn_code:type(Node) andalso
+    op =:= ktn_code:type(Node) andalso
         lists:member(ktn_code:attr(operation, Node), ['and', 'or', 'andalso', 'orelse']) orelse
-        ktn_code:attr(operation, Node) == 'not' andalso
+        ktn_code:attr(operation, Node) =:= 'not' andalso
             is_two_sided_boolean_op(hd(ktn_code:content(Node))).
 
 param_pattern_matching(Rule, ElvisConfig) ->
@@ -2303,7 +2303,7 @@ prefer_include(Rule, ElvisConfig) ->
         inside => elvis_code:root(Rule, ElvisConfig),
         filtered_by =>
             fun(#{attrs := #{value := Value}}) ->
-                filename:basename(Value) == Value
+                filename:basename(Value) =:= Value
             end,
         traverse => all
     }),
