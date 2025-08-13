@@ -29,6 +29,8 @@
     max_module_length/2,
     max_anonymous_function_arity/2,
     max_function_arity/2,
+    max_anonymous_function_length/2,
+    max_anonymous_function_clause_length/2,
     max_function_length/2,
     max_function_clause_length/2,
     no_call/2,
@@ -200,6 +202,18 @@ default(max_function_arity) ->
     elvis_rule:defmap(#{
         max_arity => 8,
         non_exported_max_arity => 10
+    });
+default(max_anonymous_function_length) ->
+    elvis_rule:defmap(#{
+        max_length => 30,
+        count_comments => false,
+        count_whitespace => false
+    });
+default(max_anonymous_function_clause_length) ->
+    elvis_rule:defmap(#{
+        max_length => 30,
+        count_comments => false,
+        count_whitespace => false
     });
 default(max_function_length) ->
     elvis_rule:defmap(#{
@@ -1189,6 +1203,41 @@ is_exported_function(FunctionNode, ExportedFunctions) ->
     Arity = ktn_code:attr(arity, FunctionNode),
     lists:member({Name, Arity}, ExportedFunctions).
 
+max_anonymous_function_clause_length(Rule, ElvisConfig) ->
+    MaxLength = elvis_rule:option(max_length, Rule),
+    CountComments = elvis_rule:option(count_comments, Rule),
+    CountWhitespace = elvis_rule:option(count_whitespace, Rule),
+
+    {Src, _} = elvis_file:src(elvis_rule:file(Rule)),
+    Lines = elvis_utils:split_all_lines(Src, [trim]),
+
+    {zippers, ClauseZippers} = elvis_code:find(#{
+        of_types => [clause],
+        inside => elvis_code:root(Rule, ElvisConfig),
+        filtered_by =>
+            fun(ClauseZipper) ->
+                is_function_clause(ClauseZipper, ['fun', named_fun])
+            end,
+        filtered_from => zipper,
+        traverse => all
+    }),
+
+    BigClauses = big_clauses(ClauseZippers, Lines, CountComments, CountWhitespace, MaxLength),
+
+    lists:map(
+        fun({ClauseZipper, ClauseNum, LineLen}) ->
+            FunctionNode = zipper:node(zipper:up(ClauseZipper)),
+
+            elvis_result:new_item(
+                "the code for the ~s clause of the anonymous function has ~p lines, "
+                "which is higher than the configured limit",
+                [parse_clause_num(ClauseNum), LineLen],
+                #{node => FunctionNode, limit => MaxLength}
+            )
+        end,
+        lists:reverse(BigClauses)
+    ).
+
 max_function_clause_length(Rule, ElvisConfig) ->
     MaxLength = elvis_rule:option(max_length, Rule),
     CountComments = elvis_rule:option(count_comments, Rule),
@@ -1273,6 +1322,34 @@ parse_clause_num(Num) when Num rem 10 =:= 3 ->
     integer_to_list(Num) ++ "rd";
 parse_clause_num(Num) ->
     integer_to_list(Num) ++ "th".
+
+max_anonymous_function_length(Rule, ElvisConfig) ->
+    MaxLength = elvis_rule:option(max_length, Rule),
+    CountComments = elvis_rule:option(count_comments, Rule),
+    CountWhitespace = elvis_rule:option(count_whitespace, Rule),
+
+    {Src, _} = elvis_file:src(elvis_rule:file(Rule)),
+    Lines = elvis_utils:split_all_lines(Src, [trim]),
+
+    {nodes, FunctionNodes} = elvis_code:find(#{
+        of_types => ['fun', named_fun],
+        inside => elvis_code:root(Rule, ElvisConfig),
+        traverse => all
+    }),
+
+    BigFunctions = big_functions(FunctionNodes, Lines, CountComments, CountWhitespace, MaxLength),
+
+    lists:map(
+        fun({FunctionNode, LineLen}) ->
+            elvis_result:new_item(
+                "the code for the anonymous function has ~p lines, which is higher than the "
+                "configured limit",
+                [LineLen],
+                #{node => FunctionNode, limit => MaxLength}
+            )
+        end,
+        BigFunctions
+    ).
 
 max_function_length(Rule, ElvisConfig) ->
     MaxLength = elvis_rule:option(max_length, Rule),
@@ -1394,13 +1471,6 @@ is_successive_map(MapExprNode) ->
     ktn_code:type(InnerVar) =:= map.
 
 atom_naming_convention(Rule, ElvisConfig) ->
-    Regex = elvis_rule:option(regex, Rule),
-    ForbiddenRegex = elvis_rule:option(forbidden_regex, Rule),
-    RegexEnclosed0 = elvis_rule:option(enclosed_atoms, Rule),
-    RegexEnclosed = specific_or_default(RegexEnclosed0, Regex),
-    ForbiddenEnclosedRegex0 = elvis_rule:option(forbidden_enclosed_regex, Rule),
-    ForbiddenEnclosedRegex = specific_or_default(ForbiddenEnclosedRegex0, ForbiddenRegex),
-
     {zippers, AtomZippers} = elvis_code:find(#{
         of_types => [atom],
         inside => elvis_code:root(Rule, ElvisConfig),
@@ -1411,68 +1481,68 @@ atom_naming_convention(Rule, ElvisConfig) ->
 
     lists:filtermap(
         fun(AtomZipper) ->
-            {AtomName0, AtomNodeValue} = atom_name_and_node_value(AtomZipper),
-            {IsEnclosed, AtomName} = string_strip_enclosed(AtomName0),
-            IsExceptionClass = is_exception_or_non_reversible(AtomNodeValue),
-
-            RegexAllow = re_compile_for_atom_type(
-                IsEnclosed, Regex, RegexEnclosed
-            ),
-            RegexBlock = re_compile_for_atom_type(
-                IsEnclosed, ForbiddenRegex, ForbiddenEnclosedRegex
-            ),
-
-            AtomNameUnicode = unicode:characters_to_list(AtomName),
-
-            case re_run(AtomNameUnicode, RegexAllow) of
-                _ when IsExceptionClass, not IsEnclosed ->
+            case atom_name_matches_regexes(AtomZipper, Rule) of
+                ok ->
                     false;
-                nomatch when not IsEnclosed ->
+                {not_acceptable, Kind, AtomName, RegexAllow} ->
                     {true,
                         elvis_result:new_item(
-                            "the name of atom ~p is not acceptable by regular "
+                            "the name of ~ts ~p is not acceptable by regular "
                             "expression '~s'",
-                            [AtomName, RegexAllow],
+                            [Kind, AtomName, RegexAllow],
                             #{zipper => AtomZipper}
                         )};
-                nomatch when IsEnclosed ->
+                {blocked, Kind, AtomName, RegexBlock} ->
                     {true,
                         elvis_result:new_item(
-                            "the name of enclosed atom ~p is not acceptable by regular "
+                            "the name of ~ts ~p is forbidden by regular "
                             "expression '~s'",
-                            [AtomName, RegexAllow],
+                            [Kind, AtomName, RegexBlock],
                             #{zipper => AtomZipper}
-                        )};
-                {match, _Captured} when RegexBlock =/= undefined ->
-                    % We check for forbidden names only after accepted names
-                    case re_run(AtomNameUnicode, RegexBlock) of
-                        _ when IsExceptionClass, not IsEnclosed ->
-                            false;
-                        {match, _} when not IsEnclosed ->
-                            {true,
-                                elvis_result:new_item(
-                                    "the name of atom ~p is forbidden by regular "
-                                    "expression '~s'",
-                                    [AtomName, RegexBlock],
-                                    #{zipper => AtomZipper}
-                                )};
-                        {match, _} when IsEnclosed ->
-                            {true,
-                                elvis_result:new_item(
-                                    "the name of enclosed atom ~p is forbidden by regular "
-                                    "expression '~s'",
-                                    [AtomName, RegexBlock],
-                                    #{zipper => AtomZipper}
-                                )};
-                        _ ->
-                            false
-                    end;
-                _ ->
-                    false
+                        )}
             end
         end,
         AtomZippers
     ).
+
+atom_name_matches_regexes(AtomZipper, Rule) ->
+    Regex = elvis_rule:option(regex, Rule),
+    ForbiddenRegex = elvis_rule:option(forbidden_regex, Rule),
+    RegexEnclosed0 = elvis_rule:option(enclosed_atoms, Rule),
+    RegexEnclosed = specific_or_default(RegexEnclosed0, Regex),
+    ForbiddenEnclosedRegex0 = elvis_rule:option(forbidden_enclosed_regex, Rule),
+    ForbiddenEnclosedRegex = specific_or_default(ForbiddenEnclosedRegex0, ForbiddenRegex),
+
+    {AtomName0, AtomNodeValue} = atom_name_and_node_value(AtomZipper),
+    {IsEnclosed, AtomName} = string_strip_enclosed(AtomName0),
+    IsExceptionClass = is_exception_or_non_reversible(AtomNodeValue),
+
+    RegexAllow = re_compile_for_atom_type(IsEnclosed, Regex, RegexEnclosed),
+    RegexBlock = re_compile_for_atom_type(IsEnclosed, ForbiddenRegex, ForbiddenEnclosedRegex),
+
+    AtomNameUnicode = unicode:characters_to_list(AtomName),
+    case re_run(AtomNameUnicode, RegexAllow) of
+        _ when IsExceptionClass, not IsEnclosed ->
+            ok;
+        nomatch when not IsEnclosed ->
+            {not_acceptable, "atom", AtomName, RegexAllow};
+        nomatch when IsEnclosed ->
+            {not_acceptable, "enclosed atom", AtomName, RegexAllow};
+        {match, _Captured} when RegexBlock =/= undefined ->
+            % We check for forbidden names only after accepted names
+            case re_run(AtomNameUnicode, RegexBlock) of
+                _ when IsExceptionClass, not IsEnclosed ->
+                    ok;
+                {match, _} when not IsEnclosed ->
+                    {blocked, "atom", AtomName, RegexBlock};
+                {match, _} when IsEnclosed ->
+                    {blocked, "enclosed atom", AtomName, RegexBlock};
+                _ ->
+                    ok
+            end;
+        _ ->
+            ok
+    end.
 
 atom_name_and_node_value(AtomZipper) ->
     AtomNode = zipper:node(AtomZipper),

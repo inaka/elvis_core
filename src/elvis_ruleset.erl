@@ -79,6 +79,8 @@ doesnt_work_on_hrl_files() ->
         elvis_rule:new(elvis_style, no_god_modules),
         elvis_rule:new(elvis_style, no_invalid_dynamic_calls),
         elvis_rule:new(elvis_style, max_anonymous_function_arity),
+        elvis_rule:new(elvis_style, max_anonymous_function_clause_length),
+        elvis_rule:new(elvis_style, max_anonymous_function_length),
         elvis_rule:new(elvis_style, max_function_clause_length),
         elvis_rule:new(elvis_style, max_function_length),
         elvis_rule:new(elvis_style, ms_transform_included),
@@ -163,6 +165,8 @@ elvis_style_stricter_rules() ->
     [
         elvis_rule:new(elvis_style, always_shortcircuit),
         elvis_rule:new(elvis_style, generic_type),
+        elvis_rule:new(elvis_style, max_anonymous_function_clause_length),
+        elvis_rule:new(elvis_style, max_anonymous_function_length),
         elvis_rule:new(elvis_style, max_function_clause_length),
         elvis_rule:new(elvis_style, max_function_length),
         elvis_rule:new(elvis_style, max_module_length),
@@ -194,6 +198,8 @@ doesnt_work_on_beam_files() ->
 not_on_beam() ->
     [
         elvis_rule:new(elvis_style, macro_naming_convention),
+        elvis_rule:new(elvis_style, max_anonymous_function_clause_length),
+        elvis_rule:new(elvis_style, max_anonymous_function_length),
         elvis_rule:new(elvis_style, max_function_clause_length),
         elvis_rule:new(elvis_style, max_function_length),
         elvis_rule:new(elvis_style, max_module_length),
