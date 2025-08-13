@@ -60,7 +60,8 @@
     prefer_unquoted_atoms/2,
     guard_operators/2,
     simplify_anonymous_functions/2,
-    prefer_include/2
+    prefer_include/2,
+    strict_term_equivalence/2
 ]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1639,6 +1640,31 @@ is_receive_without_timeout(Receive) ->
     }),
     ReceiveAfterNodes =:= [].
 
+strict_term_equivalence(Rule, ElvisConfig) ->
+    Operators = #{'==' => '=:=', '/=' => '=/='},
+
+    {nodes, OpNodes} = elvis_code:find(#{
+        of_types => [op],
+        inside => elvis_code:root(Rule, ElvisConfig),
+        filtered_by =>
+            fun(OpNode) ->
+                is_op(OpNode, maps:keys(Operators))
+            end,
+        traverse => all
+    }),
+
+    [
+        elvis_result:new_item(
+            "unexpected weak comparison operator ~p was found; prefer ~p",
+            [
+                ktn_code:attr(operation, OpNode),
+                maps:get(ktn_code:attr(operation, OpNode), Operators)
+            ],
+            #{node => OpNode}
+        )
+     || OpNode <- OpNodes
+    ].
+
 no_operation_on_same_value(Rule, ElvisConfig) ->
     InterestingOps = elvis_rule:option(operations, Rule),
 
@@ -1816,7 +1842,7 @@ result_discarded(Zipper) ->
     case ktn_code:type(Parent) of
         match ->
             [LeftSide | _] = ktn_code:content(Parent),
-            ktn_code:type(LeftSide) == var andalso ktn_code:attr(name, LeftSide) == '_';
+            ktn_code:type(LeftSide) =:= var andalso ktn_code:attr(name, LeftSide) =:= '_';
         _ ->
             false
     end.
@@ -2084,7 +2110,7 @@ has_guards(ClauseNode) ->
 %%      If they only use words, then we just have [[#{type := op, attrs := #{operation = '...'}}]]
 has_guard_defined_with_punctuation(ClauseNode) ->
     length(ktn_code:node_attr(guards, ClauseNode)) > 1 orelse
-        length(ktn_code:node_attr(guards, ClauseNode)) == 1 andalso
+        length(ktn_code:node_attr(guards, ClauseNode)) =:= 1 andalso
             length(hd(ktn_code:node_attr(guards, ClauseNode))) > 1.
 
 has_guard_defined_with_words(ClauseNode) ->
@@ -2100,9 +2126,9 @@ has_guard_defined_with_words(ClauseNode) ->
 %%      It also returns true for not not not not X andalso Y
 %%      But it returns false for not not not X.
 is_two_sided_boolean_op(Node) ->
-    op == ktn_code:type(Node) andalso
+    op =:= ktn_code:type(Node) andalso
         lists:member(ktn_code:attr(operation, Node), ['and', 'or', 'andalso', 'orelse']) orelse
-        ktn_code:attr(operation, Node) == 'not' andalso
+        ktn_code:attr(operation, Node) =:= 'not' andalso
             is_two_sided_boolean_op(hd(ktn_code:content(Node))).
 
 param_pattern_matching(Rule, ElvisConfig) ->
@@ -2277,7 +2303,7 @@ prefer_include(Rule, ElvisConfig) ->
         inside => elvis_code:root(Rule, ElvisConfig),
         filtered_by =>
             fun(#{attrs := #{value := Value}}) ->
-                filename:basename(Value) == Value
+                filename:basename(Value) =:= Value
             end,
         traverse => all
     }),

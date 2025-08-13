@@ -118,7 +118,7 @@ filter_files(Files, Dirs, Filter, IgnoreList) ->
 
     lists:filter(
         fun(#{path := Path}) ->
-            MatchesPath = fun(Regex) -> match == re:run(Path, Regex, [{capture, none}]) end,
+            MatchesPath = fun(Regex) -> match =:= re:run(Path, Regex, [{capture, none}]) end,
             not lists:any(MatchesPath, IgnoreList)
         end,
         FoundUnique

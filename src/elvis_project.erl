@@ -132,7 +132,7 @@ is_hex_dep(_) ->
     false.
 
 is_not_git_dep({_AppName, {_SCM, Url, _Branch}}, Regex) ->
-    nomatch == re:run(Url, Regex, []);
+    nomatch =:= re:run(Url, Regex, []);
 is_not_git_dep(
     {_AppName, {git_subdir, Url, {BranchTagOrRefType, _BranchTagOrRef}, _SubDir}},
     Regex
@@ -141,20 +141,20 @@ is_not_git_dep(
     BranchTagOrRefType =:= tag;
     BranchTagOrRefType =:= ref
 ->
-    nomatch == re:run(Url, Regex, []);
+    nomatch =:= re:run(Url, Regex, []);
 %% Specific to plugin rebar_raw_resource
 is_not_git_dep({AppName, {raw, DepResourceSpecification}}, Regex) ->
     is_not_git_dep({AppName, DepResourceSpecification}, Regex);
 %% Alternative formats, backwards compatible declarations
 is_not_git_dep({_AppName, {_SCM, Url}}, Regex) ->
-    nomatch == re:run(Url, Regex, []);
+    nomatch =:= re:run(Url, Regex, []);
 is_not_git_dep({_AppName, _Vsn, {_SCM, Url}}, Regex) ->
-    nomatch == re:run(Url, Regex, []);
+    nomatch =:= re:run(Url, Regex, []);
 is_not_git_dep({_AppName, _Vsn, {_SCM, Url, _Branch}}, Regex) ->
-    nomatch == re:run(Url, Regex, []);
+    nomatch =:= re:run(Url, Regex, []);
 is_not_git_dep({_AppName, _Vsn, {_SCM, Url, {BranchTagOrRefType, _Branch}}, _Opts}, Regex) when
     BranchTagOrRefType =:= branch;
     BranchTagOrRefType =:= tag;
     BranchTagOrRefType =:= ref
 ->
-    nomatch == re:run(Url, Regex, []).
+    nomatch =:= re:run(Url, Regex, []).
