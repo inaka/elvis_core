@@ -2097,6 +2097,7 @@ verify_strict_term_equivalence(Config) ->
         #{line_num := 11},
         #{line_num := 15},
         #{line_num := 16},
+        #{line_num := 16},
         #{line_num := 16}
     ] =
         elvis_test_utils:elvis_core_apply_rule(

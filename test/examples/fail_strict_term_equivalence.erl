@@ -13,5 +13,5 @@ guards(A, B) when A /= B -> different.
 body(A, B) ->
     case A of
         B -> #a_record{equals = A == B};
-        _ -> A /= B orelse A == B
+        C -> A /= B orelse (A == B) == C
     end.

@@ -14,5 +14,5 @@ body(A, B) ->
     case A of
         as_an_atom -> #{"this is valid" => '==', "This /= is also valid" => '/='};
         B -> #a_record{equals = A =:= B};
-        _ -> A =/= B orelse A =:= B
+        C -> A =/= B orelse (A =:= B) =:= C
     end.
