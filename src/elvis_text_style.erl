@@ -86,7 +86,7 @@ no_redundant_blank_lines(Rule, _ElvisConfig) ->
 redundant_blank_lines([], {_, Result}) ->
     Result;
 redundant_blank_lines(Lines, {CurrentLineNum, ResultList}) ->
-    BlankLines = lists:takewhile(fun(X) -> X == <<>> end, Lines),
+    BlankLines = lists:takewhile(fun(X) -> X =:= <<>> end, Lines),
     BlankElements = length(BlankLines),
     Index =
         case BlankElements of

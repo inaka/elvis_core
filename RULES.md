@@ -81,6 +81,7 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [Private Data Types](doc_rules/elvis_style/private_data_types.md)
 - [Simplify Anonymous Functions](doc_rules/elvis_style/simplify_anonymous_functions.md)
 - [State Record And Type](doc_rules/elvis_style/state_record_and_type.md)
+- [Strict Term Equivalence](doc_rules/elvis_style/strict_term_equivalence.md)
 - [Variable Casing](doc_rules/elvis_style/variable_casing.md)
 - [Variable Naming Convention](doc_rules/elvis_style/variable_naming_convention.md)
 
