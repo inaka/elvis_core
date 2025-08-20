@@ -30,6 +30,8 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [Macro Module Names - *deprecated*](doc_rules/elvis_style/macro_module_names.md)
 - [Macro Naming Convention](doc_rules/elvis_style/macro_naming_convention.md)
 - [Max Anonymous Function Arity](doc_rules/elvis_style/max_anonymous_function_arity.md)
+- [Max Anonymous Function Clause Length](doc_rules/elvis_style/max_anonymous_function_clause_length.md)
+- [Max Anonymous Function Length](doc_rules/elvis_style/max_anonymous_function_length.md)
 - [Max Function Arity](doc_rules/elvis_style/max_function_arity.md)
 - [Max Function Clause Length](doc_rules/elvis_style/max_function_clause_length.md)
 - [Max Function Length](doc_rules/elvis_style/max_function_length.md)
