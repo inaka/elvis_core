@@ -5,13 +5,13 @@ Term [non-]equivalence (`=:=`, `=/=`) should be used instead of term [non-]equal
 ## Avoid
 
 ```erlang
-Expr1 == Expr2 and Expr3 /= Expr4
+Expr1 == Expr2 andalso Expr3 /= Expr4
 ```
 
 ## Prefer
 
 ```erlang
-Expr1 =:= Expr2 and Expr3 =/= Expr4
+Expr1 =:= Expr2 andalso Expr3 =/= Expr4
 ```
 
 ## Rationale
@@ -30,5 +30,5 @@ and their representation, while encouraging explicit handling of mismatched type
 ## Example configuration
 
 ```erlang
-{elvis_style, strict_term_equality, #{}}
+{elvis_style, strict_term_equivalence, #{}}
 ```
