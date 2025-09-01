@@ -14,8 +14,19 @@
 -ifdef(TEST).
 
 -export([apply_rule/2]).
+% For tests (we can't Xref the tests because rebar3 fails to compile some files).
+-ignore_xref([apply_rule/2]).
 
 -endif.
+
+% For eating our own dogfood.
+-ignore_xref([main/1]).
+% For internal use only
+-ignore_xref([do_rock/2]).
+% For shell usage.
+-ignore_xref([start/0]).
+% API exports, not consumed locally.
+-ignore_xref([rock/1, rock_this/2]).
 
 -type source_filename() :: nonempty_string().
 -type target() :: source_filename() | module().
@@ -30,12 +41,27 @@ start() ->
     {ok, _} = application:ensure_all_started(elvis_core),
     ok.
 
+validate_config(ElvisConfig) ->
+    try
+        elvis_config:validate_config(ElvisConfig)
+    catch
+        {invalid_config, _} = Caught ->
+            {error, {fail, [{throw, Caught}]}}
+    end.
+
+%% In this context, `throw` means an error, e.g., validation or internal, not an actual
+%% call to `erlang:throw/1`.
 -spec rock([elvis_config:t()]) ->
     ok | {fail, [{throw, term()} | elvis_result:file() | elvis_result:rule()]}.
 rock(ElvisConfig) ->
-    ok = elvis_config:validate(ElvisConfig),
-    Results = lists:map(fun do_parallel_rock/1, ElvisConfig),
-    lists:foldl(fun combine_results/2, ok, Results).
+    case validate_config(ElvisConfig) of
+        ok ->
+            elvis_ruleset:drop_custom(),
+            Results = lists:map(fun do_parallel_rock/1, ElvisConfig),
+            lists:foldl(fun combine_results/2, ok, Results);
+        {error, Error} ->
+            Error
+    end.
 
 -spec rock_this(target(), [elvis_config:t()]) ->
     ok | {fail, [elvis_result:file() | elvis_result:rule()]}.
@@ -44,39 +70,46 @@ rock_this(Module, ElvisConfig) when is_atom(Module) ->
     Path = proplists:get_value(source, ModuleInfo),
     rock_this(Path, ElvisConfig);
 rock_this(Path, ElvisConfig) ->
-    elvis_config:validate(ElvisConfig),
-    Dirname = filename:dirname(Path),
-    Filename = filename:basename(Path),
-    File =
-        case elvis_file:find_files([Dirname], Filename) of
-            [] ->
-                throw({enoent, Path});
-            [File0] ->
-                File0
-        end,
+    case validate_config(ElvisConfig) of
+        ok ->
+            elvis_ruleset:drop_custom(),
+            Dirname = filename:dirname(Path),
+            Filename = filename:basename(Path),
+            File =
+                case elvis_file:find_files([Dirname], Filename) of
+                    [] ->
+                        throw({enoent, Path});
+                    [File0] ->
+                        File0
+                end,
 
-    FilterFun =
-        fun(Cfg) ->
-            Filter = elvis_config:filter(Cfg),
-            Dirs = elvis_config:dirs(Cfg),
-            IgnoreList = elvis_config:ignore(Cfg),
-            [] =/= elvis_file:filter_files([File], Dirs, Filter, IgnoreList)
-        end,
-    case lists:filter(FilterFun, ElvisConfig) of
-        [] ->
-            elvis_utils:info("Skipping ~s", [Path]);
-        FilteredElvisConfig ->
-            LoadedFile = load_file_data(FilteredElvisConfig, File),
-            ApplyRulesFun = fun(Cfg) -> apply_rules_and_print(Cfg, LoadedFile) end,
-            Results = lists:map(ApplyRulesFun, FilteredElvisConfig),
-            elvis_result_status(Results)
+            FilterFun =
+                fun(Cfg) ->
+                    Filter = elvis_config:filter(Cfg),
+                    Dirs = elvis_config:dirs(Cfg),
+                    IgnoreList = elvis_config:ignore(Cfg),
+                    [] =/= elvis_file:filter_files([File], Dirs, Filter, IgnoreList)
+                end,
+            case lists:filter(FilterFun, ElvisConfig) of
+                [] ->
+                    elvis_utils:info("Skipping ~s", [Path]);
+                FilteredElvisConfig ->
+                    LoadedFile = load_file_data(FilteredElvisConfig, File),
+                    ApplyRulesFun = fun(Cfg) -> apply_rules_and_print(Cfg, LoadedFile) end,
+                    Results = lists:map(ApplyRulesFun, FilteredElvisConfig),
+                    elvis_result_status(Results)
+            end;
+        {error, Error} ->
+            Error
     end.
 
+%% In this context, `throw` means an error, e.g., validation or internal, not an actual
+%% call to `erlang:throw/1`.
 -spec do_parallel_rock(elvis_config:t()) ->
     ok
     | {fail, [{throw, term()} | elvis_result:file() | elvis_result:rule()]}.
 do_parallel_rock(ElvisConfig0) ->
-    Parallel = elvis_config:from_application_or_config(parallel, 1),
+    Parallel = elvis_config:parallel(),
     ElvisConfig = elvis_config:resolve_files(ElvisConfig0),
     Files = elvis_config:files(ElvisConfig),
 
@@ -118,7 +151,7 @@ load_file_data(ElvisConfig, File) ->
     catch
         _:Reason ->
             Msg = "~p when loading file ~p.",
-            elvis_utils:error_prn(Msg, [Reason, Path]),
+            elvis_utils:error(Msg, [Reason, Path]),
             File
     end.
 
@@ -126,9 +159,9 @@ load_file_data(ElvisConfig, File) ->
 main([]) ->
     ok = application:load(elvis_core),
     {module, _} = code:ensure_loaded(elvis_style),
-    case rock(elvis_config:from_file("elvis.config")) of
+    case rock(elvis_config:config()) of
         ok -> true;
-        _ -> halt(1)
+        _ -> elvis_utils:erlang_halt(1)
     end.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
