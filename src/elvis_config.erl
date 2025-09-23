@@ -1,7 +1,5 @@
 -module(elvis_config).
 
--feature(maybe_expr, enable).
-
 -export([
     from_rebar/1,
     from_file/1,
@@ -74,13 +72,13 @@ validate(Config) ->
     lists:foreach(fun do_validate/1, Config).
 
 do_validate(RuleGroup) ->
-    maybe
-        ok ?= maybe_missing_dirs(RuleGroup),
-        ok ?= maybe_missing_filter(RuleGroup),
-        ok ?= maybe_missing_rules(RuleGroup),
-        ok ?= maybe_invalid_rules(RuleGroup)
-    else
-        {error, Error} ->
+    try
+        ok = maybe_missing_dirs(RuleGroup),
+        ok = maybe_missing_filter(RuleGroup),
+        ok = maybe_missing_rules(RuleGroup),
+        ok = maybe_invalid_rules(RuleGroup)
+    catch
+        _:{badmatch, {error, Error}}:_ ->
             throw({invalid_config, Error})
     end.
 
@@ -116,15 +114,15 @@ invalid_rules(Rules) ->
 is_invalid_rule({NS, Rule, _}) ->
     is_invalid_rule({NS, Rule});
 is_invalid_rule({NS, Rule}) ->
-    maybe
-        {module, NS} ?= code:ensure_loaded(NS),
+    try
+        {module, NS} = code:ensure_loaded(NS),
         ExportedRules = erlang:get_module_info(NS, exports),
         case lists:keymember(Rule, 1, ExportedRules) of
             false -> {true, {invalid_rule, {NS, Rule}}};
             _ -> false
         end
-    else
-        {error, _} ->
+    catch
+        _:{badmatch, {error, _}} ->
             elvis_utils:warn_prn(
                 "Invalid module (~p) specified in elvis.config.~n",
                 [NS]

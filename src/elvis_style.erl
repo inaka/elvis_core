@@ -389,7 +389,7 @@ variable_casing(Rule, ElvisConfig) ->
         traverse => all
     }),
 
-    GroupedZippers = maps:groups_from_list(fun canonical_variable_name_up/1, VarZippers),
+    GroupedZippers = groups_from_list(fun canonical_variable_name_up/1, VarZippers),
 
     lists:filtermap(
         fun({_CanonicalVariableName, [FirstVarZipper | OtherVarZippers]}) ->
@@ -411,6 +411,21 @@ variable_casing(Rule, ElvisConfig) ->
         end,
         maps:to_list(GroupedZippers)
     ).
+
+%% Brought from OTP28's maps module
+groups_from_list(Fun, List0) ->
+    groups_from_list(Fun, lists:reverse(List0), #{}).
+
+groups_from_list(Fun, [H | Tail], Acc) ->
+    K = Fun(H),
+    NewAcc =
+        case Acc of
+            #{K := Vs} -> Acc#{K := [H | Vs]};
+            #{} -> Acc#{K => [H]}
+        end,
+    groups_from_list(Fun, Tail, NewAcc);
+groups_from_list(_Fun, [], Acc) ->
+    Acc.
 
 unique_other_names(OtherVarZippers, FirstName) ->
     lists:usort([
@@ -494,7 +509,6 @@ macro_naming_convention(Rule, ElvisConfig) ->
         inside => elvis_code:root(Rule, ElvisConfig),
         traverse => all
     }),
-
     lists:filtermap(
         fun(MacroNode) ->
             MacroName = stripped_macro_name_from(MacroNode),
@@ -1669,7 +1683,7 @@ no_boolean_in_comparison(Rule, ElvisConfig) ->
             "an avoidable comparison to boolean was found",
             #{node => OpNode}
         )
-     || OpNode <- lists:uniq(OpNodes)
+     || OpNode <- lists:usort(OpNodes)
     ].
 
 is_boolean_in_comparison(OpNode) ->
@@ -1754,7 +1768,7 @@ no_operation_on_same_value(Rule, ElvisConfig) ->
             [atom_to_list(ktn_code:attr(operation, OpNode))],
             #{node => OpNode}
         )
-     || OpNode <- lists:uniq(OpNodes)
+     || OpNode <- lists:usort(OpNodes)
     ].
 
 same_value_on_both_sides(Node) ->
@@ -1903,7 +1917,7 @@ no_catch_expressions(Rule, ElvisConfig) ->
             "an unexpected 'catch' expression was found; prefer a 'try' expression",
             #{node => zipper:node(CatchExprZipper)}
         )
-     || CatchExprZipper <- lists:uniq(CatchExprZippers)
+     || CatchExprZipper <- lists:usort(CatchExprZippers)
     ].
 
 %% @doc is this node in a _ = ... expression, where the result is explicitly discarded?
@@ -2064,10 +2078,40 @@ doesnt_need_quotes(AtomNode) ->
         match ->
             AtomName = string:trim(AtomName0, both, "'"),
             Atom = list_to_atom(AtomName),
-            Atom =/= 'maybe' andalso not erl_scan:f_reserved_word(Atom);
+            Atom =/= 'maybe' andalso not f_reserved_word(Atom);
         _ ->
             false
     end.
+
+%% Brought from OTP28's erl_scan
+f_reserved_word('after') -> true;
+f_reserved_word('begin') -> true;
+f_reserved_word('case') -> true;
+f_reserved_word('try') -> true;
+f_reserved_word('cond') -> true;
+f_reserved_word('catch') -> true;
+f_reserved_word('andalso') -> true;
+f_reserved_word('orelse') -> true;
+f_reserved_word('end') -> true;
+f_reserved_word('fun') -> true;
+f_reserved_word('if') -> true;
+f_reserved_word('let') -> true;
+f_reserved_word('of') -> true;
+f_reserved_word('receive') -> true;
+f_reserved_word('when') -> true;
+f_reserved_word('bnot') -> true;
+f_reserved_word('not') -> true;
+f_reserved_word('div') -> true;
+f_reserved_word('rem') -> true;
+f_reserved_word('band') -> true;
+f_reserved_word('and') -> true;
+f_reserved_word('bor') -> true;
+f_reserved_word('bxor') -> true;
+f_reserved_word('bsl') -> true;
+f_reserved_word('bsr') -> true;
+f_reserved_word('or') -> true;
+f_reserved_word('xor') -> true;
+f_reserved_word(_) -> false.
 
 behaviour_spelling(Rule, ElvisConfig) ->
     Spelling = elvis_rule:option(spelling, Rule),
@@ -2151,7 +2195,7 @@ check_guard_operators(per_clause, ClauseNodes) ->
         has_guard_defined_with_words(ClauseNode)
     ];
 check_guard_operators(per_expression, ExpressionNodes) ->
-    lists:uniq([
+    lists:usort([
         elvis_result:new_item(
             "an unexpected combination of punctuation and shortcircuit operators was found",
             [],
@@ -3044,7 +3088,11 @@ re_run(Subject, RE) ->
     re_run(Subject, RE, []).
 
 re_run(Subject, RE, Options) ->
-    re:run(Subject, RE, Options).
+    try
+        re:run(Subject, RE, Options)
+    catch
+        _:badarg -> re:run(unicode:characters_to_binary(Subject), RE, Options)
+    end.
 
 re_compile(Regexp) ->
     re_compile(Regexp, [unicode]).

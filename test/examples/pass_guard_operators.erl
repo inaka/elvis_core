@@ -1,7 +1,5 @@
 -module(pass_guard_operators).
 
--feature(maybe_expr, enable).
-
 -export([
     case_clauses/0,
     else_clauses/0,
@@ -31,16 +29,16 @@ case_clauses() ->
 
 else_clauses() ->
     {
-        maybe
+        try
             first:expression()
-        else
+        catch
             X when X == a; X =< 10 -> {clause, 1};
             X when X == b; X == 10 -> {clause, 2};
             X when X == c; X == d; X >= 10 -> {clause, 3}
         end,
-        maybe
+        try
             second:expression()
-        else
+        catch
             Y when Y == a orelse Y =< 10 -> {clause, 1};
             Y when Y == b orelse Y == 10 -> {clause, 2};
             Y when Y == c orelse Y == d orelse Y >= 10 -> {clause, 3}

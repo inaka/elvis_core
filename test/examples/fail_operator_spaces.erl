@@ -2,8 +2,6 @@
 %% Another initial comment
 -module(fail_operator_spaces).
 
--feature(maybe_expr, enable).
-
 -dialyzer({nowarn_function, function7/0}).
 
 -export([ function1/2
@@ -159,10 +157,10 @@ fail_no_space_excl() ->
     self()!'a'.
 
 fail_maybe() ->
-    maybe
+    try
         A = 2,
-        A?=throw(error)
-    else
-        _ ->
+        A = throw(error)
+    catch
+        _:_ ->
             ok
     end.

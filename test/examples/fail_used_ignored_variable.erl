@@ -1,7 +1,5 @@
 -module(fail_used_ignored_variable).
 
--feature(maybe_expr, enable).
-
 -export([ use_ignored_var/2
         , use_ignored_var_in_fun/2
         , no_used_ignored_vars_here/2, handle_call/3
@@ -13,10 +11,12 @@
 -export([no_used_ignored_vars_in_maybe/2]).
 
 no_used_ignored_vars_in_maybe(One, _Two) ->
-    maybe
-        _ ?= do:something(One),
-        {ok, _Foo} ?= no:used_ignored_vars(here),
+    try
+        _ = do:something(One),
+        {ok, _Foo} = no:used_ignored_vars(here),
         One
+    catch
+        _:_ -> ok
     end.
 
 use_ignored_var(_One, Two) ->

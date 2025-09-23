@@ -107,7 +107,6 @@
 ]).
 
 -export([
-    verify_no_single_match_maybe/1,
     verify_guard_operators/1
 ]).
 
@@ -622,9 +621,7 @@ verify_operator_spaces(Config) ->
         #{info := [right, "|" | _]},
         #{info := [left, "|" | _]},
         #{info := [right, "!" | _]},
-        #{info := [left, "!" | _]},
-        #{info := [right, "?=" | _]},
-        #{info := [left, "?=" | _]}
+        #{info := [left, "!" | _]}
     ] =
         elvis_test_utils:elvis_core_apply_rule(
             Config, elvis_style, operator_spaces, DefaultOptions, Path
@@ -2335,8 +2332,6 @@ verify_atom_naming_convention(Config) ->
     PassPath = atom_to_list(PassModule) ++ "." ++ Ext,
     PassModule2 = pass_atom_naming_convention_exception_class,
     PassPath2 = atom_to_list(PassModule2) ++ "." ++ Ext,
-    PassModule3 = pass_maybe,
-    PassPath3 = atom_to_list(PassModule3) ++ "." ++ Ext,
 
     [] =
         elvis_test_utils:elvis_core_apply_rule(
@@ -2353,14 +2348,6 @@ verify_atom_naming_convention(Config) ->
             atom_naming_convention,
             #{regex => "^[^xwyhr]*$"},
             PassPath2
-        ),
-    [] =
-        elvis_test_utils:elvis_core_apply_rule(
-            Config,
-            elvis_style,
-            atom_naming_convention,
-            #{regex => "^^[a-z]([a-zA-Z0-9@]*_?)*(_SUITE)?$"},
-            PassPath3
         ),
 
     % fail
@@ -2668,28 +2655,6 @@ verify_no_single_clause_case(Config) ->
                 [#{line_num := 6}, #{line_num := 14}, #{line_num := 16}] = R
         end.
 
-verify_no_single_match_maybe(Config) ->
-    Group = proplists:get_value(group, Config, erl_files),
-    Ext = proplists:get_value(test_file_ext, Config, "erl"),
-
-    PassPath = "pass_no_single_match_maybe." ++ Ext,
-    [] = elvis_test_utils:elvis_core_apply_rule(
-        Config, elvis_style, no_single_match_maybe, #{}, PassPath
-    ),
-
-    FailPath = "fail_no_single_match_maybe." ++ Ext,
-
-    R = elvis_test_utils:elvis_core_apply_rule(
-        Config, elvis_style, no_single_match_maybe, #{}, FailPath
-    ),
-    _ =
-        case Group of
-            beam_files ->
-                [_, _, _] = R;
-            erl_files ->
-                [#{line_num := 8}, #{line_num := 16}, #{line_num := 17}] = R
-        end.
-
 %% erlfmt:ignore Lists of 40 elements are just too large to put each one on its own row
 verify_guard_operators(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
@@ -2817,7 +2782,7 @@ verify_guard_operators(Config) ->
     ] = PerGuard,
     [
         #{line_num := 19},
-        #{line_num := 40},
+        #{line_num := 38},
         #{line_num := 61},
         #{line_num := 73},
         #{line_num := 92},

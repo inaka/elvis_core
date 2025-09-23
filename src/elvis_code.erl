@@ -1,5 +1,7 @@
 -module(elvis_code).
 
+-dialyzer({nowarn_function, otp24_hack/1}).
+
 %% General
 -export([
     find/1,
@@ -50,7 +52,7 @@ find(#{of_types := OfTypes, inside := Inside} = Options) ->
                         Zipper = NodeOrZipper,
                         zipper:node(Zipper)
                 end,
-            OfTypes =:= undefined orelse lists:member(ktn_code:type(Node), OfTypes)
+            OfTypes =:= undefined orelse lists:member(otp24_hack(ktn_code:type(Node)), OfTypes)
         end,
         Inside,
         FilteredFrom,
@@ -71,6 +73,10 @@ find(#{of_types := OfTypes, inside := Inside} = Options) ->
         zipper ->
             {zippers, Results}
     end.
+
+otp24_hack({atom, _, 'if'}) -> attr_if;
+otp24_hack({atom, _, Type}) -> Type;
+otp24_hack(Type) -> Type.
 
 %% @doc Find all nodes in the tree for which the predicate function returns
 %%      `true'. The options map has two keys:
