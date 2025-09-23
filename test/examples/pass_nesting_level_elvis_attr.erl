@@ -1,6 +1,6 @@
 -module(pass_nesting_level_elvis_attr).
 
--elvis([{elvis_style, nesting_level, #{level => 5}}, {elvis_style, no_if_expression, disable}]).
+-elvis([{elvis_style, no_deep_nesting, #{level => 5}}, {elvis_style, no_if_expression, disable}]).
 -elvis([{elvis_text_style, line_length, #{limit => 100}}]).
 -elvis([{elvis_style, no_catch_expressions, disable}]).
 -dialyzer(no_match).
@@ -134,6 +134,7 @@ exceed_with_receive() ->
                          false -> false
                      end;
                  4 -> ok
+             after 1000 -> ok
              end;
         3 -> 3
     end.
@@ -181,6 +182,7 @@ exceed_with_list_compr() ->
                        end
                        || X <- [1, 2, 3]];
                  4 -> ok
+             after 1000 -> ok
              end;
         3 -> 3
     end.
@@ -193,6 +195,7 @@ exceed_with_fun() ->
                  2 -> ok;
                  3 -> fun() -> ok end;
                  4 -> ok
+             after 1000 -> ok
              end;
         3 -> 3
     end.
@@ -205,6 +208,7 @@ dont_exceed_with_fun() ->
                  2 -> ok;
                  3 -> fun erlang:display/1;
                  4 -> ok
+             after 1000 -> ok
              end;
         3 -> 3
     end.

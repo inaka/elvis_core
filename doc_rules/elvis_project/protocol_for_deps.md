@@ -1,25 +1,42 @@
-# Protocol for deps
+# Protocol For Deps [![](https://img.shields.io/badge/since-2.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/2.0.0)
 
-Use a specific protocol for `deps`.
+`rebar.config` dependencies should use known protocols.
 
-This rule was called `protocol_for_deps_rebar` before
-[2.0.0](https://github.com/inaka/elvis_core/releases/tag/2.0.0).
+## Avoid
+
+```erlang
+{deps, [
+    {elvis_core, {git, "git@github.com:inaka/elvis_core.git", {tag, "4.0.0"}}}
+]}.
+```
+
+## Prefer
+
+```erlang
+{deps, [
+    {elvis_core, {git, "https://github.com/inaka/elvis_core.git", {tag, "4.0.0"}}}
+]}.
+```
+
+## Rationale
+
+Using an unknown or incorrect protocol (e.g., `foo`) might cause `rebar3` to fail during dependency
+resolution. Ensuring that only recognized protocols are used makes builds reliable and avoids
+obscure errors during fetching or compilation. It also increases consistency across your codebase.
 
 ## Options
 
-- `regex :: string()`.
-  - default: `^(https://|git://|\\d+(\\.\\d+)*)`.
+- `regex :: string()`
+  - default: `"^(https://|git://|\\d+(\\.\\d+)*)"`
+- `ignore :: [atom()]`
+  - default: `[]`
 
-## Example
+`regex` was
+`"https://.*|[0-9]+([.][0-9]+)*)"` until [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0).
 
-- before [2.0.0](https://github.com/inaka/elvis_core/releases/tag/2.0.0)
-
-```erlang
-{elvis_project, protocol_for_deps_rebar, #{ regex => "(https://.*|[0-9]+([.][0-9]+)*)" }}
-```
-
-- since [2.0.0](https://github.com/inaka/elvis_core/releases/tag/2.0.0)
+## Example configuration
 
 ```erlang
-{elvis_project, protocol_for_deps, #{ regex => "^(https://|git://|\\d+(\\.\\d+)*)" }}
+{elvis_project, protocol_for_deps, #{ regex => "^(https://|git://|\\d+(\\.\\d+)*)"
+                                    , ignore => [] }}
 ```

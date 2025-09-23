@@ -13,12 +13,16 @@ assignees: ''
 
 ### Brief Description
 
-[//]:# (What will Elvis try to detect?)
+[//]:# (What will Elvis try to detect? What should be avoided?)
 
-### Reasoning
+### Problematic code
 
-[//]:# (Why is this an example of a bad practice?)
+[//]:# (Give an example of a bad practice)
 
-### Refactoring Proposal
+### Correct code
 
-[//]:# (If applicable, describe what users should do when Elvis detects this kind of code)
+[//]:# (Give an example of a fix for that bad practice)
+
+### Rationale
+
+[//]:# (Why is this an example of a bad practice? Add more details...)

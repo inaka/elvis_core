@@ -1,0 +1,1 @@
+-define(PREFER_INCLUDE_LIB, ok).

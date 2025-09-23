@@ -1,66 +1,40 @@
 -module(fail_invalid_dynamic_call).
 
--elvis([{elvis_style, no_catch_expressions, disable}]).
--dialyzer(no_match).
+-define(MACRO_CALL(M, F, A), M:F(A)).
+
+-define(A_MODULE, a_module).
 
 -export([
-         dynamic_module_name_call/0,
-         dynamic_function_name_call/0,
-         another_dynamic_module_name_call/0,
-         dynamic_module_name_call_in_case/0,
-         dynamic_module_name_call_in_try_of/0,
-         dynamic_module_name_call_in_try_catch/0,
-         dynamic_module_name_call_in_catch/0
+         variable_module_name_call/1,
+         variable_function_name_call/2,
+         macro_module_name_call/0,
+         macro_function_name_call/0,
+         call_module_name_call/0,
+         call_function_name_call/0,
+         macro_call/3
         ]).
 
-dynamic_module_name_call() ->
-    normal:call(),
-    Module = a_module,
+variable_module_name_call(Module) ->
     Module:call().
 
-dynamic_function_name_call() ->
-    normal:call(),
-    Function = a_function,
-    a_module:Function(),
-    normal:call().
+variable_function_name_call(Module, Function) ->
+    module:Function(),
+    Module:Function().
 
-another_dynamic_module_name_call() ->
-    normal:call(),
-    another_normal:call(),
-    Module = another_module,
-    Module:call_to_function(),
-    Module:call_to__another_function().
+macro_module_name_call() ->
+    ?A_MODULE:call().
 
-dynamic_module_name_call_in_case() ->
-    normal:call(),
-    another_normal:call(),
-    case 1 of
-        1 ->
-            Module = another_module,
-            Module:call_to_function();
-        2 -> ok
-    end.
+macro_function_name_call() ->
+    module:?FUNCTION_NAME(),
+    ?A_MODULE:?FUNCTION_NAME().
 
-dynamic_module_name_call_in_try_of() ->
-    normal:call(),
-    another_normal:call(),
-    Module = yam,
-    try Module:call_to_function() of
-        a -> ok
-    catch _:_ ->
-        ok
-    end.
+call_module_name_call() ->
+    (get:the_module()):call().
 
-dynamic_module_name_call_in_try_catch() ->
-    normal:call(),
-    another_normal:call(),
-    Module = yamm,
-    try
-        Module:call_to_function()
-    catch _:_ ->
-        ok
-    end.
+call_function_name_call() ->
+    module:(get:the_function())(),
+    (get:the_module()):(get:the_function())().
 
-dynamic_module_name_call_in_catch() ->
-    Module = yammm,
-    catch Module:call_to_function().
+%% @doc This one only fails in beam files.
+macro_call(M, F, A) ->
+    ?MACRO_CALL(M, F, A).

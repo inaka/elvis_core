@@ -1,22 +1,25 @@
-# No Specs
+# No Specs [![](https://img.shields.io/badge/since-3.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/3.0.0) ![](https://img.shields.io/badge/HRL--only-yes-magenta)
 
-(since [3.0.0](https://github.com/inaka/elvis_core/releases/tag/3.0.0))
+`-spec` attributes **in header files** should be avoided.
 
-Avoid `-spec` attributes.
+## Quick fix
 
-This rule is meant to be used in header files only.
-Defining specs in public header files (especially those intended for inclusion via `-include_lib(...)`)
-might lead to spec clashes between projects and even a single big project's modules.
-Instead, specs should be defined next to the functions they're specifying.
+Move the `-spec` next to the function it pertains to.
 
-> Works on `.beam` file? Yes, but it's not useful there. This rule is meant to be used for header files.
+## Rationale
+
+Placing `-spec` attributes in header files (`.hrl`) can lead to inconsistencies and maintenance
+issues, especially when the same header is included in multiple modules. Specs belong with the
+function implementation to ensure they stay in sync and reflect the function's actual interface.
+Keeping `-specs` in implementation (`.erl`) files improves maintainability, avoids duplication,
+and ensures tools like Dialyzer have accurate, module-specific context for analysis.
 
 ## Options
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
-{elvis_style, no_specs}
+{elvis_style, no_specs, #{}}
 ```

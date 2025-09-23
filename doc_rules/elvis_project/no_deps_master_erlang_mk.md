@@ -1,15 +1,15 @@
-# No deps master erlang.mk
+# No Deps `master` `erlang.mk` [![](https://img.shields.io/badge/until-1.4.0-red)](https://github.com/inaka/elvis_core/releases/tag/1.4.0)
 
-(not available since [2.0.0](https://github.com/inaka/elvis_core/releases/tag/2.0.0))
+Dependencies in `erlang.mk` should not use branch `master`.
 
-Don't use branch `master` as the origin of your dependency; use specific tags - or commits -
-instead.
+> [!WARNING]
+> This rule is now deprecated, as is the support for `erlang.mk`.
 
 ## Options
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_project, no_deps_master_erlang_mk, #{}}

@@ -1,7 +1,4 @@
-# elvis_core
-
-[![GitHub Actions CI](https://github.com/inaka/elvis_core/workflows/build/badge.svg)](https://github.com/inaka/elvis_core)
-[![Erlang Support](https://img.shields.io/badge/Erlang/OTP-24+-blue)](https://www.erlang.org)
+# `elvis_core` [![GitHub Actions CI](https://github.com/inaka/elvis_core/workflows/build/badge.svg)](https://github.com/inaka/elvis_core/actions) [![Erlang Support](https://img.shields.io/badge/Erlang/OTP-26+-blue)](https://www.erlang.org)
 
 `elvis_core` is the core library for the [`elvis`](https://github.com/inaka/elvis) Erlang style
 reviewer. It is also used by [`rebar3_lint`](https://github.com/project-fifo/rebar3_lint) for easier
@@ -81,15 +78,12 @@ We have only presented results where all files were well-behaved (i.e. they resp
 so here's an example of how the output looks when files break some of the rules:
 
 ```shell
-# ../../test/examples/fail_line_length.erl [FAIL]
-  - line_length
-    - Line 14 is too long: "    io:format(\"This line is 81 characters long and should be detected, yeah!!!\").".
-    - Line 20 is too long: "    io:format(\"This line is 90 characters long and should be detected!!!!!!!!!!!!!!!!!!\").".
-# ../../test/examples/fail_no_tabs.erl [FAIL]
-  - no_tabs
-    - Line 6 has a tab at column 0.
-    - Line 15 has a tab at column 0.
-# ../../test/examples/small.erl [OK]
+# test/examples/british_behaviour_spelling.erl [FAIL]
+  - state_record_and_type (https://github.com/inaka/elvis_core/tree/main/doc_rules/elvis_style/state_record_and_type.md)
+    - This module implements an OTP behavior but is missing a '#state{}' record.
+# test/examples/fail_always_shortcircuit.erl [FAIL]
+  - always_shortcircuit (https://github.com/inaka/elvis_core/tree/main/doc_rules/elvis_style/always_shortcircuit.md)
+    - At line 5, column 45, unexpected non-shortcircuiting operator 'or' was found; prefer 'orelse'.
 ```
 
 ## Configuration
@@ -108,9 +102,6 @@ An `elvis.config` file looks something like this:
       , #{ dirs    => ["."]
          , filter  => "rebar.config"
          , ruleset => rebar_config }
-      , #{ dirs    => ["."]
-         , filter  => "elvis.config"
-         , ruleset => elvis_config }
     ]}
     % output_format (optional): how to format the output.
     % Possible values are 'plain', 'colors' or 'parsable' (default='colors').
@@ -136,9 +127,12 @@ The `dirs` key is a list that tells `elvis_core` where it should look for the fi
 
 If you want to override the [pre-defined rules](#pre-defined-rules), for a given ruleset, you need
 to specify them in a `rules` key which is a list of items with the following structure
-`{Module, Function, RuleConfig}`, or `{Module, Function}` - if the rule takes no configuration
+`{RuleNamespace, Rule, RuleConfig}`, or `{RuleNamespace, Rule}` - if the rule takes no configuration
 values. You can also `disable` certain rules if you want to, by specifying them in the `rules` key
-and passing `disable` as a third parameter.
+and passing `disable` as a third argument.
+
+`RuleNamespace` is an Erlang module that implements the `elvis_rule` behaviour.
+`Rule` is a function exported from `RuleNamespace`.
 
 #### Disabling Rules
 
@@ -193,10 +187,8 @@ to the one presented by `dialyzer`, like `<file>:<line>:<rule>:<message>`:
 
 <!-- markdownlint-disable MD013 -->
 ```shell
-src/example.erl:1:god_modules:This module has too many functions (56). Consider breaking it into a number of modules.
-src/example_a.erl:341:no_debug_call:Remove the debug call to io:format/2 on line 341.
-src/example_a.erl:511:used_ignored_variable:Ignored variable is being used on line 511 and column 54.
-src/example_a.erl:1252:used_ignored_variable:Ignored variable is being used on line 1252 and column 21.
+test/examples/british_behaviour_spelling.erl:-1:state_record_and_type:This module implements an OTP behavior but is missing a '#state{}' record.```
+test/examples/fail_always_shortcircuit.erl:5:always_shortcircuit:At line 5, column 45, unexpected non-shortcircuiting operator ''or'' was found; prefer 'orelse'.
 ```
 <!-- markdownlint-enable MD013 -->
 
@@ -243,12 +235,11 @@ found in this repository's [RULES.md](https://github.com/inaka/elvis_core/blob/m
 
 ### User-defined rules
 
-The implementation of a new rule is a function that takes 3 arguments in the following order:
+The implementation of a new rule is a function that takes 2 arguments in the following order:
 
+1. `t:elvis_rule:t()`: the opaque rule to implement
 1. `t:elvis_config:config()`: the value of option `config` as found in the
 [configuration](#configuration),
-1. `t:elvis_file:file()`: the file to be analyzed,
-1. `t:erlang:map()`: a configuration map specific to your user-defined rule.
 
 This means you can define rules of your own (user-defined rules) as long as the functions that
 implement them respect this interface.

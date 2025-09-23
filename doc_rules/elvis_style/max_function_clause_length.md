@@ -1,10 +1,16 @@
-# Max Function Clause Length
+# Max Function Clause Length [![](https://img.shields.io/badge/since-4.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.0.0)
 
-This specifies an upper bound on function clause **line** length. Lines that are comments and/or whitespace
-can be either included or excluded from the line count.
+The number of lines in a function clause definition should be limited to a defined maximum.
 
-> Works on `.beam` file? Not really! (it consumes results Ok, but these might be unexpected, since
-the files are pre-processed)
+Lines containing only comments or whitespace may be either included or excluded from the line
+count, depending on the configuration
+
+## Rationale
+
+Limiting the number of lines in function clauses improves readability and maintainability.
+Function clauses with too many lines tend to become more complex and harder to understand,
+increasing the likelihood of introducing bugs. Keeping function clauses concise encourages clear,
+focused logic and makes it easier to navigate the codebase.
 
 ## Options
 
@@ -15,13 +21,11 @@ the files are pre-processed)
 - `count_whitespace :: boolean()`
   - default: `false`
 
-## Example
+## Example configuration
 
 ```erlang
-{elvis_style, max_function_clause_length}
-%% or
 {elvis_style, max_function_clause_length, #{ max_length => 30
                                            , count_comments => false
                                            , count_whitespace => false
-                                    }}
+                                           }}
 ```

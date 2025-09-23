@@ -5,8 +5,8 @@
 %% @doc chunk_fold evaluates apply(Module, Function, [Elem|ExtrArgs]) for
 %% every element Elem in JobItemList in parallel with max concurrcy factor
 %% equal to Concurrency. On successful evaluation FunAcc function is called
-%% with the result of successful execution as a first parameter and accumulator
-%% as a second parameter.
+%% with the result of successful execution as a first argument and accumulator
+%% as a second argument.
 -spec chunk_fold(
     FunWork :: {Module :: module(), Function :: atom()},
     FunAcc :: fun((NewElem :: term(), Acc :: term()) -> Acc :: term()),
@@ -22,7 +22,8 @@ chunk_fold({M, F} = FunWork, FunAcc, InitialAcc, ExtraArgs, List, ChunkSize) whe
     is_function(FunAcc, 2),
     is_list(ExtraArgs),
     is_list(List),
-    is_integer(ChunkSize) andalso ChunkSize > 0
+    is_integer(ChunkSize),
+    ChunkSize > 0
 ->
     try
         Term =

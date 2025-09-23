@@ -1,22 +1,50 @@
-# Private Data Types
+# Private Data Types [![](https://img.shields.io/badge/since-3.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/3.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
-(since [3.0.0](https://github.com/inaka/elvis_core/releases/tag/3.0.0))
-
-Exporting functions' internally-defined data types, in order to consume those
-types externally, results in tightly-coupled code. Modules should be responsible
-for defining their own internal data types. If these are needed outside the
-modules, they should be made
+Types based on records, maps or tuples should be exported as
 [opaque](https://www.erlang.org/doc/reference_manual/opaques.html).
 
-> Works on `.beam` file? Yes!
+## Avoid
+
+```erlang
+-type person_rec() :: #person{name :: string(), age :: integer()}.
+-type person_map() :: #{ name := string(), age := integer() }.
+
+-export_type([person_rec/0]).
+-export_type([person_map/0]).
+```
+
+## Prefer
+
+**Note**: replace `-type` with `-opaque`
+
+```erlang
+-opaque person_rec() :: #person{name :: string(), age :: integer()}.
+-opaque person_map() :: #{ name := string(), age := integer() }.
+
+-export_type([person_rec/0]).
+-export_type([person_map/0]).
+```
+
+## Rationale
+
+Types based on records, maps, or tuples expose the internal structure of the data, which can
+compromise modularity and flexibility. By marking these types as opaque, we prevent external
+modules from directly accessing or modifying the underlying data structure. This enhances
+encapsulation, making it clear that the structure should only be manipulated via provided
+functions, rather than allowing direct access to its internals.
+
+This approach is especially useful when types are defined using records or maps, which are often
+used to represent complex data structures. By exporting them as opaque, we protect the module’s
+internal details and can later refactor the underlying implementation without breaking the public
+API.
 
 ## Options
 
 - `apply_to :: [record | map | tuple]`
-  - default: `record`.
+  - default: `[record]`
 
-## Example
+## Example configuration
 
 ```erlang
-{elvis_style, private_data_types}
+{elvis_style, private_data_types, #{ apply_to => [record] }}
 ```

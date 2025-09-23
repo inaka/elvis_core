@@ -1,30 +1,41 @@
-# No Space after `#`
+# No Space After `#` [![](https://img.shields.io/badge/since-3.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/3.0.0)
 
-(since [3.0.0](https://github.com/inaka/elvis_core/releases/tag/3.0.0))
+Spaces after the `#` symbol in maps or records should be avoided.
 
-There should be no spaces after the `#` symbol for maps or records.
+## Quick fix
 
-In Erlang, using spaces after the `#` symbol when dealing with maps or records, is valid.
-Still, it should be discouraged.
+Use an Erlang code formatter that enforces strict spacing.
 
-## Examples
+## Avoid
 
 ```erlang
-BadMap = #   {this => map, has => spaces, after => pound}.
-BadRecord =     #      this_record{has = spaces, after = pound}.
-
-GoodMap = #{this => map, has => no_spaces, after => pound}.
-GoodRecord =     #this_record{has = no_spaces, after = pound}.
+BadMap = #   {this => map, has => spaces, af_ter => pound}.
+BadRecord =     #      this_record{has = spaces, af_ter = pound}.
 ```
 
-> Works on `.beam` file? No.
+## Prefer
+
+```erlang
+GoodMap = #{this => map, has => no_spaces, af_ter => pound}.
+GoodRecord =     #this_record{has = no_spaces, af_ter = pound}.
+```
+
+## Rationale
+
+The `#` symbol is used for both records (`#record{}`) and maps (`#{}`).
+
+While adding a space after `#` is not syntactically incorrect, it introduces visual ambiguity and
+reduces code readability. Inconsistent formatting can make it harder to distinguish between
+records, maps, and general usage, especially in larger codebases. Enforcing no space after `#`
+promotes consistency, improves clarity, and avoids potential confusion during code reviews or
+maintenance.
 
 ## Options
 
 - None
 
-## Example
+## Example configuration
 
 ```erlang
-{elvis_style, no_space_after_pound}
+{elvis_style, no_space_after_pound, #{}}
 ```

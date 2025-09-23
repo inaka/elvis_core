@@ -1,26 +1,35 @@
-# No Spec With Records
+# No Spec With Records ![](https://img.shields.io/badge/BEAM-yes-orange)
 
-Don't use records in `-spec(_).`s; use types that map to records instead.
+Records should not be used in `-spec` declarations; use types that map to records instead.
+
+## Avoid
 
 ```erlang
-%% Don't do
 -spec some_function(#rec{}) -> ok.
-
-%% Do
--type rec() :: #rec{}.
--spec some_function(rec()) -> ok.
+some_function(_Rec) -> ok.
 ```
 
-> Works on `.beam` file? Yes!
+## Prefer
+
+```erlang
+-type rec() :: #rec{}.
+-spec some_function(rec()) -> ok.
+some_function(_Rec) -> ok.
+```
+
+## Rationale
+
+Using records in `-spec` declarations can introduce unnecessary dependencies and complexity, as it
+forces importing the record definitions into the module. This undermines the principle of
+abstraction, as the implementation details of records should be hidden behind functions that create
+or manipulate them.
 
 ## Options
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
-{elvis_style, no_spec_with_records}
-%% or
 {elvis_style, no_spec_with_records, #{}}
 ```

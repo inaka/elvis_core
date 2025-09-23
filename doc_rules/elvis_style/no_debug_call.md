@@ -1,28 +1,41 @@
-# No debug call
+# No Debug Call ![](https://img.shields.io/badge/BEAM-yes-orange)
 
-Don't leave debugging function calls, such as `io:format/1` or `ct:pal/1,2,3,4,5`, in your source
-code.
-The functions listed in option `debug_functions` are the ones you want the rule to warn you about.
+Use of functions that are intended primarily for debugging should be avoided.
 
-> Works on `.beam` file? Yes!
+## Rationale
+
+Debug-specific functions - such as `io:format/2`, and `erlang:display/1`, are often used temporarily
+during development or testing to trace execution or inspect values. However, they may be
+inadvertently left behind in code that is later deployed. Their presence in production code can
+lead to performance degradation, unwanted output, or inconsistent logging behavior.
+
+**Note**: the specific functions to flag are configured via the `debug_functions` option.
 
 ## Options
 
-- `debug_functions :: [{module(), function(), arity()} | {module(), function()}]`.
+- `debug_functions :: [{module(), function(), arity()} | {module(), function()}]`
   - default: `[{ct, pal}, {ct, print}, {io, format, 1}, {io, format, 2}, {erlang, display, 1},
-    {io, put_chars, 1}, {io, put_chars, 2}]`
-  (`{erlang, display, 1}` is only included since
-  [1.5.0](https://github.com/inaka/elvis_core/releases/tag/1.5.0)).
+    {io, put_chars, 1}, {io, put_chars, 2}, {dbg, '_'}, {dyntrace, '_'}, {instrument, '_'}]`
 
-## Example
+`{erlang, display, 1}` was added in [1.5.0](https://github.com/inaka/elvis_core/releases/tag/1.5.0).
+
+`{io, put_chars, 1}, {io, put_chars, 2}` was added in [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0).
+
+`{dbg, '_'}, {dyntrace, '_'}, {instrument, '_'}` was added in [4.1.0](https://github.com/inaka/elvis_core/releases/tag/4.1.0).
+
+## Example configuration
 
 ```erlang
-{elvis_style, no_debug_call}
-%% or
 {elvis_style, no_debug_call, #{ debug_functions => [{ct, pal}
                                                   , {ct, print}
                                                   , {io, format, 1}
                                                   , {io, format, 2}
+                                                  , {erlang, display, 1}
+                                                  , {io, put_chars, 1}
+                                                  , {io, put_chars, 2},
+                                                  , {dbg, '_'},
+                                                  , {dyntrace, '_'}
+                                                  , {instrument, '_'}
                                                    ]
                               }}
 ```

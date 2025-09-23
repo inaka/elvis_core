@@ -1,19 +1,51 @@
-# Function Naming Convention
+# Function Naming Convention [![](https://img.shields.io/badge/since-2.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/2.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
-All functions should be named according to the provided regular expression,
-except if they match with a defined `forbidden_regex`.
+All functions should conform to the pattern defined by the `regex` option pattern, unless they match
+the `forbidden_regex` option pattern, in which case they are disallowed.
 
-> Works on `.beam` file? Yes!
+## Avoid
+
+> This is a convention aimed at ensuring consistency, rather than a coding issue.
+
+```erlang
+a____function() -> ok.
+
+...
+
+another___function() ->
+    ...
+    ok.
+```
+
+## Prefer
+
+```erlang
+a_function() -> ok.
+
+...
+
+another_function() ->
+    ...
+    ok.
+```
+
+## Rationale
+
+By defining a regular expression for naming functions you increase consistency across your codebase.
 
 ## Options
 
-- `regex :: string()`.
-  - default: `"^[a-z](_?[a-z0-9]+)*$"`.
-- `forbidden_regex :: string() | undefined`.
-  - default: `undefined`.
+- `regex :: string()`
+  - default: `"^[a-z](_?[a-z0-9]+)*(_test_)?$"`
+- `forbidden_regex :: string() | undefined` [![](https://img.shields.io/badge/since-4.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.0.0)
+  - default: `undefined`
 
-## Example
+`regex` was `"^([a-z][a-z0-9]*_?)*(_SUITE)?$"` until [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0).
+
+## Example configuration
 
 ```erlang
-{elvis_style, function_naming_convention, #{ regex => "^([a-z][a-z0-9]*_?)*$" }}
+{elvis_style, function_naming_convention, #{ regex => "^[a-z](_?[a-z0-9]+)*(_test_)?$"
+                                           , forbidden_regex => undefined
+                                           }}
 ```

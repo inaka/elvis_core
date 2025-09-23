@@ -1,8 +1,8 @@
-# No Match in Condition
+# No Match In Condition [![](https://img.shields.io/badge/since-3.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/3.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
-(since [3.0.0](https://github.com/inaka/elvis_core/releases/tag/3.0.0))
+Pattern-matching in `case` expressions should be avoided.
 
-Don't write code like this:
+## Avoid
 
 ```erlang
 case #{a := A} = do:something() of
@@ -11,7 +11,9 @@ case #{a := A} = do:something() of
 end
 ```
 
-Do the matching in the clause heads (i.e., outside of the `case` condition):
+## Prefer
+
+Prefer pattern-matching in the clause heads:
 
 ```erlang
 case do:something() of
@@ -20,16 +22,19 @@ case do:something() of
 end
 ```
 
-While the code as written in the first example is valid, it's much harder to understand
-(particularly for large statements) than the one from the second example.
+## Rationale
 
-> Works on `.beam` file? Yes!
+Pattern matching directly in the `case` expression can lead to fragile or misleading code,
+especially when multiple branches depend on specific data structures or values. This approach
+can obscure the control flow and increase the risk of runtime errors due to unmatched patterns.
+Instead, perform pattern matching in case clauses.
+This improves readability, debuggability, and the clarity of intent.
 
 ## Options
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_match_in_condition, #{}}

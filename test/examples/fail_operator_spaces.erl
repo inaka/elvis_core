@@ -21,6 +21,7 @@
         , pass_more_operators/0
         , fail_more_operators/0
         , fail_no_space_excl/0
+        , fail_maybe/0
         ]).
 
 %% No space before and after coma,on a comment.
@@ -65,7 +66,7 @@ function8() ->
 function9() ->
     [X|| X <- [fail]] ++ [X ||X <- [fail]] ++ [X || X <- [notfail]].
 
-tag_filters(DocName, #{conn := Conn} = State) ->
+tag_filters(DocName, #{conn := Conn} = State) when is_list(DocName);is_binary(DocName) ->
   TableName = atom_to_list(DocName),
   Sql = ["SELECT "
          " 'tag' AS \"type\", "
@@ -79,10 +80,10 @@ tag_filters(DocName, #{conn := Conn} = State) ->
          "ORDER BY tag_name "],
   Values = [],
   case {Conn, Sql, Values} of
-    {ok, Maps, _} ->
+    {ok, Maps, _} when Maps=:=#{};Conn=:=established ->
       {ok, {raw, Maps}, State};
     {error, Error, _} ->
-      {error, Error, State}
+      {error, Error, State};{finally, this, _} -> nok
   end.
 
 unicode_characters() ->
@@ -154,3 +155,12 @@ fail_more_operators()->
 
 fail_no_space_excl() ->
     self()!'a'.
+
+fail_maybe() ->
+    try
+        A = 2,
+        A = throw(error)
+    catch
+        _:_ ->
+            ok
+    end.

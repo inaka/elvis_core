@@ -1,8 +1,8 @@
-# No Single-Clause Case Statements
+# No Single-Clause Case Expressions [![](https://img.shields.io/badge/since-3.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/3.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
-(since [3.0.0](https://github.com/inaka/elvis_core/releases/tag/3.0.0))
+Single-clause case expressions should be avoided.
 
-Don't write code like this:
+## Avoid
 
 ```erlang
 case do:something() of
@@ -10,20 +10,25 @@ case do:something() of
 end
 ```
 
-Use pattern-matching instead:
+## Prefer
 
 ```erlang
 {ok, Result} = do:something(),
 do:something("else")
 ```
 
-> Works on `.beam` file? Yes!
+## Rationale
+
+Using a `case` expression with only one clause is unnecessary and reduces code clarity. It adds
+syntactic overhead without providing meaningful branching logic. In such cases, a let-style
+assignment or direct pattern matching is typically more appropriate and idiomatic. Removing
+single-clause case expressions also improves readability and simplifies the control flow.
 
 ## Options
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
 {elvis_style, no_single_clause_case, #{}}

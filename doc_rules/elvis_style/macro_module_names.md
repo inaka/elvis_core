@@ -1,19 +1,42 @@
 # Macro Module Names
 
-Macros should not be used in dynamic calls, either in the module position
-(i.e. `?SOME_MACRO:function_name()`) or the function position (i.e. `module_name:?FUNCTION()`). An
-exception to this is the usage of the `?MODULE` macro in the module position.
+The use of macros in dynamic function calls should be avoided.
 
-> Works on `.beam` file? Not really! (it consumes results Ok, but these might be unexpected)
+> [!WARNING]
+> This rule is deprecated since [4.1.0](https://github.com/inaka/elvis_core/releases/tag/4.1.0).
+
+## Exceptions
+
+The use of `?MODULE` is permitted in the form `?MODULE:func()` because it's the common idiom for
+functions that should always pick up the latest version of the module when doing hot-code reloading.
+
+## Avoid
+
+```erlang
+?MYMOD:myfunc()
+
+mymod:?MYFUNC()
+```
+
+## Prefer
+
+```erlang
+mymod:myfunc()
+```
+
+## Rationale
+
+Using macros in dynamic function calls can obscure the intent of the code and hinder readability,
+static analysis, and refactoring tools. Macros expand at compile time and may introduce complexity
+or unexpected behavior when used as dynamic module or function references, making the code harder
+to reason about and debug.
 
 ## Options
 
 - None.
 
-## Example
+## Example configuration
 
 ```erlang
-{elvis_style, macro_module_names}
-%% or
 {elvis_style, macro_module_names, #{}}
 ```

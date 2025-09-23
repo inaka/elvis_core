@@ -1,6 +1,8 @@
 -module(pass_no_operation_on_same_value).
 
--export([boolean_ops/2, meaningless_ops/1, without_variables/0, other_operators/0]).
+-export([boolean_ops/2, meaningless_ops/1, without_variables/0, other_operators/0, operation_on_records/0]).
+
+-record(a_record, {a_field}).
 
 boolean_ops(A, B) ->
     #{
@@ -47,3 +49,8 @@ other_operators() ->
         A * A,
         [A] ++ [A]
     ].
+
+operation_on_records() ->
+    One = #a_record{a_field = 1},
+    Two = #a_record{a_field = 2},
+    One#a_record.a_field < Two#a_record.a_field.
