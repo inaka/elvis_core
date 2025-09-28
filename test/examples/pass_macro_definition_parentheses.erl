@@ -1,4 +1,4 @@
--module(pass_parentheses_in_macro_defs).
+-module(pass_macro_definition_parentheses).
 
 -export([get_attr/1]).
 
