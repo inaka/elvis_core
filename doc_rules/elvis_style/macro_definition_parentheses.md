@@ -20,7 +20,8 @@ macros that represent a constan, should not.
 
 ## Rationale
 
-Parentheses can help the reader to identify if there is a single value hiding behind the macro key or if it's meant to replace some sort of code execution.
+Parentheses can help the reader to identify if there is a single value
+hiding behind the macro key or if it's meant to replace some sort of code execution.
 
 ## Options
 
