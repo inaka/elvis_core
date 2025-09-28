@@ -2552,7 +2552,8 @@ macro_attrs({_, Attrs, _, _}) ->
     Attrs.
 
 is_stringified_function(Tree) ->
-    re:run(Tree, "^[a-zA-Z_][a-zA-Z0-9_]*\\([^)]*\\)$", [{capture, none}]) =:= match.
+    re:run(Tree, "^[a-zA-Z_][a-zA-Z0-9_]* ?:? ?[a-zA-Z0-9_]*\\([^)]*\\)$", [{capture, none}]) =:=
+        match.
 
 get_tree_content({tree, text, _, Content}) ->
     Content.

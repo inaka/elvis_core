@@ -3084,7 +3084,7 @@ verify_macro_definition_parentheses(Config) ->
     FailModule = fail_macro_definition_parentheses,
     FailPath = atom_to_list(FailModule) ++ "." ++ Ext,
 
-    [#{line_num := 5}, #{line_num := 6}, #{line_num := 7}] =
+    [#{line_num := 5}, #{line_num := 6}, #{line_num := 7}, #{line_num := 8}] =
         elvis_test_utils:elvis_core_apply_rule(
             Config, elvis_style, macro_definition_parentheses, #{}, FailPath
         ).
