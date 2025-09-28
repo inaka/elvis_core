@@ -3,6 +3,7 @@
 -export([get_attr/1]).
 
 -define(CONSTANT, test).
+-define(CONSTANTaa, 5).
 -define(GET_NAME(), get_attr(name)).
 -define(GET_AGE(), get_attr(age)).
 
