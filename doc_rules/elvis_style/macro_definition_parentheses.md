@@ -1,4 +1,4 @@
-# Parentheses in Macro Definitions
+# Macro Definition Parentheses
 
 Parentheses should be used propely to increase readability.
 Macros that represents a function, should contains parentheses,
@@ -25,5 +25,5 @@ Parentheses can help the reader to identify the value hiding behind the macro ke
 - None.
 
 ```erlang
-{elvis_style, parantheses_in_macro_defs, #{}}
+{elvis_style, macro_definition_parentheses, #{}}
 ```
