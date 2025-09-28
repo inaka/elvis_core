@@ -1,6 +1,5 @@
 # Macro Definition Parentheses
 
-
 Parentheses should be used propely to increase readability.
 Macros that represents a function, should contains parentheses,
 macros that represents a constan, shouldn't.
