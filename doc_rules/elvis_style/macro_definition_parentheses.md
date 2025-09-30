@@ -2,7 +2,7 @@
 
 Parentheses should be used propely to increase readability.
 Macros that represent a function, should contains parentheses,
-macros that represent a constan, should not.
+macros that represent a constant, should not.
 
 ## Avoid
 
