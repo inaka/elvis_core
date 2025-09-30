@@ -2525,13 +2525,12 @@ macro_definition_parentheses(Rule, ElvisConfig) ->
     }),
 
     lists:map(
-        fun(#{attrs := #{value := [Elem1, _Elem2]}}) ->
-            {Line, Column} = proplists:get_value(location, macro_attrs(Elem1)),
+        fun(Node) ->
             elvis_result:new_item(
                 "Invalid parenthesis at a macro definition in line ~p"
                 "Functions should contain parenthesis, constants should not",
                 [],
-                #{line => Line, column => Column}
+                #{node => Node}
             )
         end,
         InvalidMacroNodes
@@ -2541,15 +2540,6 @@ macro_attr_type({Type, _, _}) ->
     Type;
 macro_attr_type({Type, _, _, _}) ->
     Type.
-
-macro_attrs({_, Attrs, _}) ->
-    Attrs;
-macro_attrs({tree, _, {_, Attrs, _, _}, _}) ->
-    Attrs;
-macro_attrs({tree, _, {_, Attrs, _}, _}) ->
-    Attrs;
-macro_attrs({_, Attrs, _, _}) ->
-    Attrs.
 
 is_stringified_function(Tree) ->
     re:run(Tree, "^[a-zA-Z_][a-zA-Z0-9_]* ?:? ?[a-zA-Z0-9_]*\\([^)]*\\)$", [{capture, none}]) =:=
