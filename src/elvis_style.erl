@@ -2527,7 +2527,7 @@ macro_definition_parentheses(Rule, ElvisConfig) ->
     lists:map(
         fun(Node) ->
             elvis_result:new_item(
-                "Invalid parenthesis at a macro definition in line ~p"
+                "Invalid parenthesis at a macro definition."
                 "Functions should contain parenthesis, constants should not",
                 [],
                 #{node => Node}
