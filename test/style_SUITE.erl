@@ -69,7 +69,8 @@
     verify_no_receive_without_timeout/1,
     verify_simplify_anonymous_functions/1,
     verify_prefer_include/1,
-    verify_strict_term_equivalence/1
+    verify_strict_term_equivalence/1,
+    verify_macro_definition_parentheses/1
 ]).
 %% -elvis attribute
 -export([
@@ -3070,6 +3071,25 @@ oddities(_Config) ->
         ],
     {fail, [#{rules := [_, _, _, _]}]} = elvis_core:rock(ElvisConfig),
     true.
+
+verify_macro_definition_parentheses(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PassModule = pass_macro_definition_parentheses,
+    PassPath = atom_to_list(PassModule) ++ "." ++ Ext,
+
+    [] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, macro_definition_parentheses, #{}, PassPath
+        ),
+
+    FailModule = fail_macro_definition_parentheses,
+    FailPath = atom_to_list(FailModule) ++ "." ++ Ext,
+
+    [#{line_num := 5}, #{line_num := 6}, #{line_num := 7}, #{line_num := 8}] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, macro_definition_parentheses, #{}, FailPath
+        ).
 
 verify_elvis_attr_atom_naming_convention(Config) ->
     verify_elvis_attr(Config, "pass_atom_naming_convention_elvis_attr").

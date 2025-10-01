@@ -178,7 +178,8 @@ elvis_style_stricter_rules() ->
         elvis_rule:new(elvis_style, prefer_unquoted_atoms),
         elvis_rule:new(elvis_style, state_record_and_type),
         elvis_rule:new(elvis_style, prefer_include),
-        elvis_rule:new(elvis_style, strict_term_equivalence)
+        elvis_rule:new(elvis_style, strict_term_equivalence),
+        elvis_rule:new(elvis_style, macro_definition_parentheses)
     ].
 
 elvis_text_style_stricter_rules() ->

@@ -63,7 +63,8 @@
     guard_operators/2,
     simplify_anonymous_functions/2,
     prefer_include/2,
-    strict_term_equivalence/2
+    strict_term_equivalence/2,
+    macro_definition_parentheses/2
 ]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2499,6 +2500,53 @@ is_public_data_type_in(TypesToCheck, TypeAttrNode) ->
     TypeAttrNodeType = ktn_code:node_attr(type, TypeAttrNode),
     TypeAttrNodeType =/= undefined andalso
         lists:member(ktn_code:attr(name, TypeAttrNodeType), TypesToCheck).
+
+macro_definition_parentheses(Rule, ElvisConfig) ->
+    TypeMismatchingDefine =
+        fun(#{attrs := #{value := [Elem1, Elem2]}}) ->
+            case {macro_attr_type(Elem1), macro_attr_type(Elem2)} of
+                {call, call} ->
+                    false;
+                {call, _} ->
+                    true;
+                {var, tree} ->
+                    is_stringified_function(
+                        get_tree_content(Elem2)
+                    );
+                _ ->
+                    false
+            end
+        end,
+
+    {nodes, InvalidMacroNodes} = elvis_code:find(#{
+        of_types => [define],
+        inside => elvis_code:root(Rule, ElvisConfig),
+        filtered_by => TypeMismatchingDefine
+    }),
+
+    lists:map(
+        fun(Node) ->
+            elvis_result:new_item(
+                "Invalid parenthesis at a macro definition."
+                "Functions should contain parenthesis, constants should not",
+                [],
+                #{node => Node}
+            )
+        end,
+        InvalidMacroNodes
+    ).
+
+macro_attr_type({Type, _, _}) ->
+    Type;
+macro_attr_type({Type, _, _, _}) ->
+    Type.
+
+is_stringified_function(Tree) ->
+    re:run(Tree, "^[a-zA-Z_][a-zA-Z0-9_]* ?:? ?[a-zA-Z0-9_]*\\([^)]*\\)$", [{capture, none}]) =:=
+        match.
+
+get_tree_content({tree, text, _, Content}) ->
+    Content.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
