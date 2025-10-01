@@ -1,5 +1,7 @@
 -module(fail_nesting_level).
 
+-feature(maybe_expr, enable).
+
 -dialyzer(no_match).
 
 %% Used so that the line positions don't change for tests.
@@ -194,5 +196,19 @@ dont_exceed_with_fun() ->
                  3 -> fun erlang:display/1;
                  4 -> ok
              end;
+        3 -> 3
+    end.
+
+exceed_with_maybe() ->
+    case 1 of
+        1 -> ok;
+        2 ->
+            maybe
+                1 ?= 2,
+                fun() -> ok end
+            else
+                false ->
+                    notok
+            end;
         3 -> 3
     end.

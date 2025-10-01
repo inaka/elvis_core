@@ -2730,7 +2730,7 @@ level_increment(#{type := 'fun', content := _}) ->
 level_increment(#{type := 'fun'}) ->
     0;
 level_increment(#{type := Type}) ->
-    IncrementOne = [function, 'case', 'if', try_case, try_catch, named_fun, receive_case],
+    IncrementOne = [function, 'case', 'if', try_case, try_catch, named_fun, receive_case, 'maybe'],
     case lists:member(Type, IncrementOne) of
         true ->
             1;

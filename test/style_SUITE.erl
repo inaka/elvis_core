@@ -742,21 +742,23 @@ verify_nesting_level(Config) ->
                     #{line_num := 69},
                     #{line_num := 108},
                     #{line_num := 153},
-                    #{line_num := 170}
+                    #{line_num := 170},
+                    _
                 ] =
                     elvis_test_utils:elvis_core_apply_rule(
                         Config, elvis_style, no_deep_nesting, #{level => 3}, Path
                     );
             erl_files ->
                 [
-                    #{line_num := 11},
-                    #{line_num := 18},
-                    #{line_num := 30},
-                    #{line_num := 45},
-                    #{line_num := 78},
-                    #{line_num := 120},
-                    #{line_num := 166},
-                    #{line_num := 182}
+                    #{line_num := 13},
+                    #{line_num := 20},
+                    #{line_num := 32},
+                    #{line_num := 47},
+                    #{line_num := 80},
+                    #{line_num := 122},
+                    #{line_num := 168},
+                    #{line_num := 184},
+                    _
                 ] =
                     elvis_test_utils:elvis_core_apply_rule(
                         Config, elvis_style, no_deep_nesting, #{level => 3}, Path
