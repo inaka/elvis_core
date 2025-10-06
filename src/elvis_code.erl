@@ -93,7 +93,11 @@ find(#{of_types := OfTypes, inside := Inside} = Options) ->
 find(Pred, Root, FilteredFrom, Traverse) ->
     Zipper = zipper(Root, Traverse),
     Results = find_with_zipper(Pred, Zipper, [], FilteredFrom),
-    lists:reverse(Results).
+    %% Note: I'm not sure why, sometimes, traversing a zipper may result in going through the same
+    %%       node twice, but it has happened. If you remove the call to lists:uniq/1 in the next
+    %%       line, you can see it for yourself: Just run the tests and the one for
+    %%       simplify_anonymous_functions will fail because it will emit duplicate results.
+    lists:reverse(lists:uniq(Results)).
 
 -spec zipper(tree_node()) -> tree_node_zipper().
 zipper(Root) ->

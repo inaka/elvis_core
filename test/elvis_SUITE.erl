@@ -213,7 +213,7 @@ rock_without_errors_has_no_output(_Config) ->
     %% and CT will capture it.
     %% Thus, we remove it from the list of captures before doing the actual check
     RemoveSearchPattern = "fail_non_parsable_file.erl",
-    ct:pal("Output=~p~n", [Output]),
+    ct:log("Output=~p~n", [Output]),
     [] =
         lists:filter(
             fun(String) -> string:find(String, RemoveSearchPattern) == nomatch end,

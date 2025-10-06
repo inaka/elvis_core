@@ -1257,14 +1257,15 @@ verify_simplify_anonymous_functions(Config) ->
 
     case Group of
         beam_files ->
-            [_, _, _, _, _] = Warnings;
+            [_, _, _, _, _, _] = Warnings;
         _ ->
             [
                 #{line_num := 7},
                 #{line_num := 8},
                 #{line_num := 9},
                 #{line_num := 10},
-                #{line_num := 11}
+                #{line_num := 11},
+                #{line_num := 12}
             ] = Warnings
     end,
 
