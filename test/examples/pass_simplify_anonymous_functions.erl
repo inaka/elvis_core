@@ -17,7 +17,8 @@ functions() ->
         with_guards => fun(X) when is_binary(X) -> binary_to_list(X) end,
         with_matching => fun(<<X/binary>>) -> erlang:binary_to_atom(X) end,
         multiple_clauses => fun (x) -> atom_to_list(x); (X) -> binary_to_list(X) end,
-        ignored_arg => fun(X, _) -> erlang:display(X) end
+        ignored_arg => fun(X, _) -> erlang:display(X) end,
+        in_a_case => case spawn(fun erlang:halt/0) of Pid -> Pid end
     }.
 
 local() -> local.
