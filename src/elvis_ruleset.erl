@@ -171,6 +171,7 @@ elvis_style_stricter_rules() ->
         elvis_rule:new(elvis_style, max_function_length),
         elvis_rule:new(elvis_style, max_module_length),
         elvis_rule:new(elvis_style, max_record_fields),
+        elvis_rule:new(elvis_style, max_map_type_keys),
         elvis_rule:new(elvis_style, ms_transform_included),
         elvis_rule:new(elvis_style, no_call),
         elvis_rule:new(elvis_style, no_common_caveats_call),
