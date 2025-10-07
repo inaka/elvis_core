@@ -38,6 +38,7 @@
     verify_max_anonymous_function_clause_length/1,
     verify_max_function_length/1,
     verify_max_function_clause_length/1,
+    verify_max_record_fields/1,
     verify_no_debug_call/1,
     verify_no_common_caveats_call/1,
     verify_no_call/1,
@@ -86,6 +87,7 @@
     verify_elvis_attr_max_function_arity/1,
     verify_elvis_attr_max_anonymous_function_length/1,
     verify_elvis_attr_max_function_length/1,
+    verify_elvis_attr_max_record_fields/1,
     verify_elvis_attr_max_module_length/1,
     verify_elvis_attr_module_naming_convention/1,
     verify_elvis_attr_nesting_level/1,
@@ -1838,6 +1840,43 @@ verify_max_function_length(Config) ->
 
     {comment, ""}.
 
+verify_max_record_fields(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PathFail = "fail_max_record_fields." ++ Ext,
+
+    [_, _, _, _, _] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_record_fields, #{max_fields => 1}, PathFail
+        ),
+
+    [_, _, _, _] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_record_fields, #{max_fields => 2}, PathFail
+        ),
+
+    [_, _, _] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_record_fields, #{max_fields => 3}, PathFail
+        ),
+
+    [_, _] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_record_fields, #{max_fields => 6}, PathFail
+        ),
+
+    [_] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_record_fields, #{}, PathFail
+        ),
+
+    [] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_record_fields, #{max_fields => 30}, PathFail
+        ),
+
+    {comment, ""}.
+
 verify_max_function_clause_length(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -3130,6 +3169,9 @@ verify_elvis_attr_max_function_length(Config) ->
 
 verify_elvis_attr_max_module_length(Config) ->
     verify_elvis_attr(Config, "pass_max_module_length_elvis_attr").
+
+verify_elvis_attr_max_record_fields(Config) ->
+    verify_elvis_attr(Config, "pass_max_record_fields_elvis_attr").
 
 verify_elvis_attr_module_naming_convention(Config) ->
     verify_elvis_attr(Config, "pass_module_naming-convention_elvis_attr").
