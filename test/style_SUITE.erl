@@ -3064,7 +3064,7 @@ oddities(_Config) ->
     ElvisConfig =
         [
             #{
-                dirs => ["../../_build/test/lib/elvis_core/test/examples"],
+                dirs => ["../../../../_build/test/lib/elvis_core/test/examples"],
                 filter => "odditiesß.erl",
                 ruleset => erl_files,
                 rules => [{elvis_style, no_god_modules, #{limit => 0}}]
