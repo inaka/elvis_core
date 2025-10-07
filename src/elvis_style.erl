@@ -1415,7 +1415,7 @@ max_record_fields(Rule, ElvisConfig) ->
     [
         elvis_result:new_item(
             "record ~p has ~p fields, which is higher than the configured limit",
-            [ktn_code:attr(name, LargeRecordNode)],
+            [ktn_code:attr(name, LargeRecordNode), length(ktn_code:content(LargeRecordNode))],
             #{node => LargeRecordNode, limit => MaxFields}
         )
      || LargeRecordNode <- LargeRecordNodes
