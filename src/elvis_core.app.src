@@ -2,7 +2,7 @@
     {pkg_name, elvis_core},
     {description, "Core library for the Erlang style reviewer"},
     {vsn, git},
-    {applications, [kernel, stdlib, zipper, katana_code]},
+    {applications, [kernel, stdlib, zipper, katana_code, syntax_tools]},
     {modules, [elvis_core, elvis_config, elvis_result, elvis_utils, elvis_style]},
     {licenses, ["Apache-2.0"]},
     {links, [{"GitHub", "https://github.com/inaka/elvis_core"}]},

@@ -1442,7 +1442,10 @@ max_map_type_keys_on_types(Root, MaxFields) ->
     [
         elvis_result:new_item(
             "map type ~p has ~p fields, which is higher than the configured limit",
-            [ktn_code:attr(name, MapTypeNode), length(ktn_code:content(ktn_code:node_attr(type, MapTypeNode)))],
+            [
+                ktn_code:attr(name, MapTypeNode),
+                length(ktn_code:content(ktn_code:node_attr(type, MapTypeNode)))
+            ],
             #{node => MapTypeNode, limit => MaxFields}
         )
      || MapTypeNode <- MapTypeNodes,
@@ -1451,10 +1454,22 @@ max_map_type_keys_on_types(Root, MaxFields) ->
 
 is_map_type_with_atom_keys(TypeAttrNode) ->
     TypeNode = ktn_code:node_attr(type, TypeAttrNode),
-    ktn_code:attr(name, TypeNode) =:= map andalso all_type_keys_are_atoms(ktn_code:content(TypeNode)).
+    ktn_code:attr(name, TypeNode) =:= map andalso
+        all_type_keys_are_atoms(ktn_code:content(TypeNode)).
 
 all_type_keys_are_atoms(TypeNodes) ->
-    lists:all(fun(TypeNode) -> ktn_code:type(hd(ktn_code:content(TypeNode))) =:= atom end, TypeNodes).
+    lists:all(
+        fun(TypeNode) ->
+            case ktn_code:content(TypeNode) of
+                [] ->
+                    %% -type t() :: map().
+                    false;
+                [KeyType | _] ->
+                    ktn_code:type(KeyType) =:= atom
+            end
+        end,
+        TypeNodes
+    ).
 
 max_map_type_keys_on_opaques(Root, MaxFields) ->
     {nodes, MapOpaqueNodes} =
@@ -1484,12 +1499,15 @@ is_map_opaque_with_atom_keys(OpaqueNode) ->
         all_opaque_keys_are_atoms(erl_syntax:type_application_arguments(TypeAST)).
 
 all_opaque_keys_are_atoms(OpaqueASTs) ->
-    lists:all(
-        fun(OpaqueAST) ->
-            erl_syntax:type(hd(erl_syntax:type_application_arguments(OpaqueAST))) =:= atom
-        end,
-        OpaqueASTs
-    ).
+    %% for -opaque t() :: map()., OpaqueASTs =:= any.
+    is_list(OpaqueASTs) andalso
+        lists:all(
+            fun(OpaqueAST) ->
+                [KeyType | _] = erl_syntax:type_application_arguments(OpaqueAST),
+                erl_syntax:type(KeyType) =:= atom
+            end,
+            OpaqueASTs
+        ).
 
 no_call(Rule, ElvisConfig) ->
     DefaultFns = elvis_rule:option(no_call_functions, Rule),

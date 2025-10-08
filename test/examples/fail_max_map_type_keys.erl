@@ -1,6 +1,22 @@
 -module(fail_max_map_type_keys).
 
--export_type([t1/0, o2/0, t3/0, o5/0, t25/0, o26/0, t_good/0, t_not_map/0, t_inf_map/0, t_inf_map2/0, o_with_params/1]).
+-export_type([
+    t1/0,
+    o2/0,
+    t3/0,
+    o5/0,
+    t25/0,
+    o26/0,
+    t_good/0,
+    t_not_map/0,
+    t_inf_map/0,
+    t_inf_map2/0,
+    o_with_params/1,
+    t_simple/0,
+    o_simple/0,
+    t_empty/0,
+    o_empty/0
+]).
 
 -type t1() :: #{one := field}.
 
@@ -107,3 +123,11 @@
 -opaque o_with_params(Param) :: #{
     Param := this | should | also | be | ignored
 }.
+
+-type t_simple() :: map().
+
+-opaque o_simple() :: map().
+
+-type t_empty() :: #{}.
+
+-opaque o_empty() :: #{}.
