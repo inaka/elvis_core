@@ -33,6 +33,7 @@
     max_anonymous_function_clause_length/2,
     max_function_length/2,
     max_function_clause_length/2,
+    max_record_fields/2,
     no_call/2,
     no_debug_call/2,
     no_common_caveats_call/2,
@@ -227,6 +228,10 @@ default(max_function_clause_length) ->
         max_length => 30,
         count_comments => false,
         count_whitespace => false
+    });
+default(max_record_fields) ->
+    elvis_rule:defmap(#{
+        max_fields => 25
     });
 default(no_call) ->
     elvis_rule:defmap(#{
@@ -1394,6 +1399,27 @@ big_functions(FunctionNodes, Lines, CountComments, CountWhitespace, MaxLength) -
         end,
         FunctionNodes
     ).
+
+max_record_fields(Rule, ElvisConfig) ->
+    Root = elvis_code:root(Rule, ElvisConfig),
+
+    MaxFields = elvis_rule:option(max_fields, Rule),
+
+    {nodes, LargeRecordNodes} =
+        elvis_code:find(#{
+            of_types => [record_attr],
+            inside => Root,
+            filtered_by => fun(RecordNode) -> length(ktn_code:content(RecordNode)) > MaxFields end
+        }),
+
+    [
+        elvis_result:new_item(
+            "record ~p has ~p fields, which is higher than the configured limit",
+            [ktn_code:attr(name, LargeRecordNode), length(ktn_code:content(LargeRecordNode))],
+            #{node => LargeRecordNode, limit => MaxFields}
+        )
+     || LargeRecordNode <- LargeRecordNodes
+    ].
 
 no_call(Rule, ElvisConfig) ->
     DefaultFns = elvis_rule:option(no_call_functions, Rule),
