@@ -2,7 +2,9 @@
 
 -elvis([{elvis_style, max_map_type_keys, #{max_keys => 30}}]).
 
--export_type([t1/0, t2/0, t3/0, t5/0, t25/0, t26/0, t_good/0, t_not_map/0, t_inf_map/0]).
+-export_type(
+    [t1/0, t2/0, t3/0, t5/0, t25/0, t26/0, t_good/0, t_not_map/0, t_inf_map/0]
+).
 
 -type t1() :: #{one := field}.
 
@@ -81,7 +83,14 @@
         map => with:many(keys),
         but => it,
         is => embedded,
-        in => #{a => larger, map => so, it := is, not_affected := by, the := rule, _ => _}
+        in => #{
+            a => larger,
+            map => so,
+            it := is,
+            not_affected := by,
+            the := rule,
+            _ => _
+        }
     }
 }.
 

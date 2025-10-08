@@ -1,14 +1,14 @@
 -module(fail_max_map_type_keys).
 
--export_type([t1/0, t2/0, t3/0, t5/0, t25/0, t26/0, t_good/0, t_not_map/0, t_inf_map/0, t_inf_map2/0]).
+-export_type([t1/0, o2/0, t3/0, o5/0, t25/0, o26/0, t_good/0, t_not_map/0, t_inf_map/0, t_inf_map2/0, o_with_params/1]).
 
 -type t1() :: #{one := field}.
 
--opaque t2() :: #{one := field, two := fields}.
+-opaque o2() :: #{one := field, two := fields}.
 
 -type t3() :: #{one := field, two := fields, three := fields}.
 
--opaque t5() :: #{
+-opaque o5() :: #{
     f1 => optional_field,
     f2 => optional_field,
     f3 => optional_field,
@@ -44,7 +44,7 @@
     f25 := field
 }.
 
--opaque t26() :: #{
+-opaque o26() :: #{
     f01 := field,
     f02 := field,
     f03 := field,
@@ -102,4 +102,8 @@
     is => not_affected,
     by => the_rule,
     _ => term()
+}.
+
+-opaque o_with_params(Param) :: #{
+    Param := this | should | also | be | ignored
 }.

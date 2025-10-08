@@ -1456,8 +1456,40 @@ is_map_type_with_atom_keys(TypeAttrNode) ->
 all_type_keys_are_atoms(TypeNodes) ->
     lists:all(fun(TypeNode) -> ktn_code:type(hd(ktn_code:content(TypeNode))) =:= atom end, TypeNodes).
 
-max_map_type_keys_on_opaques(_Root, _MaxFields) ->
-    [].
+max_map_type_keys_on_opaques(Root, MaxFields) ->
+    {nodes, MapOpaqueNodes} =
+        elvis_code:find(#{
+            of_types => [opaque],
+            inside => Root,
+            filtered_by => fun is_map_opaque_with_atom_keys/1
+        }),
+
+    [
+        elvis_result:new_item(
+            "map type ~p has ~p fields, which is higher than the configured limit",
+            [
+                MapOpaqueName,
+                length(erl_syntax:type_application_arguments(MapOpaqueTypeAST))
+            ],
+            #{node => MapOpaqueNode, limit => MaxFields}
+        )
+     || MapOpaqueNode <- MapOpaqueNodes,
+        {MapOpaqueName, MapOpaqueTypeAST, _} <- [ktn_code:attr(value, MapOpaqueNode)],
+        length(erl_syntax:type_application_arguments(MapOpaqueTypeAST)) > MaxFields
+    ].
+
+is_map_opaque_with_atom_keys(OpaqueNode) ->
+    {_Name, TypeAST, _Params} = ktn_code:attr(value, OpaqueNode),
+    erl_syntax:type(TypeAST) =:= map_type andalso
+        all_opaque_keys_are_atoms(erl_syntax:type_application_arguments(TypeAST)).
+
+all_opaque_keys_are_atoms(OpaqueASTs) ->
+    lists:all(
+        fun(OpaqueAST) ->
+            erl_syntax:type(hd(erl_syntax:type_application_arguments(OpaqueAST))) =:= atom
+        end,
+        OpaqueASTs
+    ).
 
 no_call(Rule, ElvisConfig) ->
     DefaultFns = elvis_rule:option(no_call_functions, Rule),
