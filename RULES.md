@@ -37,6 +37,7 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [Max Function Length](doc_rules/elvis_style/max_function_length.md)
 - [Max Module Length](doc_rules/elvis_style/max_module_length.md)
 - [Max Record Fields](doc_rules/elvis_style/max_record_fields.md)
+- [Max Map Type Keys](doc_rules/elvis_style/max_map_type_keys.md)
 - [Module Naming Convention](doc_rules/elvis_style/module_naming_convention.md)
 <!-- markdownlint-disable MD033 -->
 - [No <code>$&nbsp;</code>](doc_rules/elvis_style/no_dollar_space.md)

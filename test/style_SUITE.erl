@@ -39,6 +39,7 @@
     verify_max_function_length/1,
     verify_max_function_clause_length/1,
     verify_max_record_fields/1,
+    verify_max_map_type_keys/1,
     verify_no_debug_call/1,
     verify_no_common_caveats_call/1,
     verify_no_call/1,
@@ -88,6 +89,7 @@
     verify_elvis_attr_max_anonymous_function_length/1,
     verify_elvis_attr_max_function_length/1,
     verify_elvis_attr_max_record_fields/1,
+    verify_elvis_attr_max_map_type_keys/1,
     verify_elvis_attr_max_module_length/1,
     verify_elvis_attr_module_naming_convention/1,
     verify_elvis_attr_nesting_level/1,
@@ -1877,6 +1879,43 @@ verify_max_record_fields(Config) ->
 
     {comment, ""}.
 
+verify_max_map_type_keys(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PathFail = "fail_max_map_type_keys." ++ Ext,
+
+    [_, _, _, _, _] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_map_type_keys, #{max_keys => 1}, PathFail
+        ),
+
+    [_, _, _, _] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_map_type_keys, #{max_keys => 2}, PathFail
+        ),
+
+    [_, _, _] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_map_type_keys, #{max_keys => 3}, PathFail
+        ),
+
+    [_, _] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_map_type_keys, #{max_keys => 6}, PathFail
+        ),
+
+    [_] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_map_type_keys, #{}, PathFail
+        ),
+
+    [] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_map_type_keys, #{max_keys => 30}, PathFail
+        ),
+
+    {comment, ""}.
+
 verify_max_function_clause_length(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -3172,6 +3211,9 @@ verify_elvis_attr_max_module_length(Config) ->
 
 verify_elvis_attr_max_record_fields(Config) ->
     verify_elvis_attr(Config, "pass_max_record_fields_elvis_attr").
+
+verify_elvis_attr_max_map_type_keys(Config) ->
+    verify_elvis_attr(Config, "pass_max_map_type_keys_elvis_attr").
 
 verify_elvis_attr_module_naming_convention(Config) ->
     verify_elvis_attr(Config, "pass_module_naming-convention_elvis_attr").
