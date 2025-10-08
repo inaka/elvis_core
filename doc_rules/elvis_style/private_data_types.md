@@ -41,7 +41,7 @@ API.
 ## Options
 
 - `apply_to :: [record | map | tuple]`
-  - default: `[record]`
+  - default: `[record | map | tuple]`
 
 ## Example configuration
 

@@ -20,22 +20,22 @@
 %% Records
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--type item() ::
+-opaque item() ::
     #{
         message => string(),
         info => [term()],
         line_num => -1 | non_neg_integer(),
         column_num => -1 | non_neg_integer()
     }.
--type rule() ::
+-opaque rule() ::
     #{
         ns => atom(),
         name => atom(),
         items => [item()]
     }.
--type file() :: #{file => string(), rules => [rule()]}.
+-opaque file() :: #{file => string(), rules => [rule()]}.
 -type elvis_error() :: #{error_msg => string(), info => list()}.
--type elvis_warn() :: #{warn_msg => string(), info => list()}.
+-opaque elvis_warn() :: #{warn_msg => string(), info => list()}.
 -type attrs() :: #{
     node => ktn_code:tree_node(),
     zipper => zipper:zipper(ktn_code:tree_node()),
