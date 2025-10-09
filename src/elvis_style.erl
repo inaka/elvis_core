@@ -307,7 +307,7 @@ default(generic_type) ->
     });
 default(private_data_types) ->
     elvis_rule:defmap(#{
-        apply_to => [record]
+        apply_to => [record, map, tuple]
     });
 default(no_operation_on_same_value) ->
     elvis_rule:defmap(#{
