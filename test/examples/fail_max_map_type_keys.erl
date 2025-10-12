@@ -1,5 +1,8 @@
 -module(fail_max_map_type_keys).
 
+-elvis([{elvis_style, private_data_types,
+        #{apply_to => [record]}}]).
+
 -export_type([
     t1/0,
     o2/0,
