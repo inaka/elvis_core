@@ -26,6 +26,7 @@ default(_RuleName) ->
 %% Rules
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+-spec protocol_for_deps(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 protocol_for_deps(Rule, _ElvisConfig) ->
     IgnoreDeps = elvis_rule:option(ignore, Rule),
     Regex = elvis_rule:option(regex, Rule),
@@ -58,6 +59,7 @@ appname_from_line({AppName, _, _GitInfo}) ->
 appname_from_line({AppName, _Vsn, _GitInfo, _Opts}) ->
     AppName.
 
+-spec no_branch_deps(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_branch_deps(Rule, _ElvisConfig) ->
     IgnoreDeps = elvis_rule:option(ignore, Rule),
     Deps = get_deps(elvis_rule:file(Rule)),

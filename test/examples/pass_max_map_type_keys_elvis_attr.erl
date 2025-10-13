@@ -6,13 +6,13 @@
     [t1/0, t2/0, t3/0, t5/0, t25/0, t26/0, t_good/0, t_not_map/0, t_inf_map/0]
 ).
 
--type t1() :: #{one := field}.
+-opaque t1() :: #{one := field}.
 
--type t2() :: #{one := field, two := fields}.
+-opaque t2() :: #{one := field, two := fields}.
 
--type t3() :: #{one := field, two := fields, three := fields}.
+-opaque t3() :: #{one := field, two := fields, three := fields}.
 
--type t5() :: #{
+-opaque t5() :: #{
     f1 => optional_field,
     f2 => optional_field,
     f3 => optional_field,
@@ -20,7 +20,7 @@
     f5 => field
 }.
 
--type t25() :: #{
+-opaque t25() :: #{
     f01 := field,
     f02 := field,
     f03 := field,
@@ -48,7 +48,7 @@
     f25 := field
 }.
 
--type t26() :: #{
+-opaque t26() :: #{
     f01 := field,
     f02 := field,
     f03 := field,
@@ -77,7 +77,7 @@
     f26 := field
 }.
 
--type t_good() :: #{
+-opaque t_good() :: #{
     this => #{
         is => a,
         map => with:many(keys),
@@ -94,9 +94,9 @@
     }
 }.
 
--type t_not_map() :: {this, is, not_a_map}.
+-opaque t_not_map() :: {this, is, not_a_map}.
 
--type t_inf_map() :: #{
+-opaque t_inf_map() :: #{
     this := map,
     has := potentially,
     infinite => fields,

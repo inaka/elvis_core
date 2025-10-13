@@ -9,7 +9,7 @@
     validate/1
 ]).
 %% Geters
--export([dirs/1, ignore/1, filter/1, files/1, rules/1]).
+-export([dirs/1, ignore/1, filter/1, files/1, rules/1, ruleset/1]).
 %% Files
 -export([resolve_files/1, resolve_files/2, apply_to_files/2]).
 %% Rules
@@ -17,7 +17,7 @@
 
 -export_type([t/0]).
 
--type t() :: map().
+-opaque t() :: map().
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Public
@@ -178,6 +178,10 @@ rules(#{ruleset := Ruleset}) ->
     elvis_ruleset:rules(Ruleset);
 rules(#{}) ->
     [].
+
+-spec ruleset(t()) -> Ruleset :: atom() | undefined.
+ruleset(ElvisConfig) ->
+    maps:get(ruleset, ElvisConfig, undefined).
 
 %% @doc Takes a configuration and a list of files, filtering some
 %%      of them according to the 'filter' key, or if not specified
