@@ -9,7 +9,7 @@ set_rulesets(Rulesets) ->
     Tid = ensure_clean_table(),
     lists:foreach(
         fun({Ruleset, NSNameDefs}) ->
-            Rules = [elvis_rule:from_tuple(NSNameDef) || NSNameDef <:- NSNameDefs],
+            Rules = [elvis_rule:from_tuple(NSNameDef) || NSNameDef <- NSNameDefs],
             true = ets:insert(Tid, {Ruleset, Rules})
         end,
         maps:to_list(Rulesets)

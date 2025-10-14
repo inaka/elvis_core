@@ -1,5 +1,7 @@
 -module(pass_prefer_strict_generators).
 
+-if(?OTP_RELEASE >= 28).
+
 -export([bitstrings/1, lists/1, maps/1, edge_cases/0]).
 
 bitstrings(Input) ->
@@ -33,3 +35,5 @@ edge_cases() ->
              || Keys := Values <:- key:values()
             }
     }.
+
+-endif.

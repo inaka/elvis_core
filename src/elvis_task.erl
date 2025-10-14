@@ -58,7 +58,7 @@ do_in_parallel(FunWork, FunAcc, ExtraArgs, List, MaxW, RemainW, AccR, AccG) ->
                 {List, []}
         end,
 
-    WrkRefs = [start_worker(FunWork, ExtraArgs, WorkPiece) || WorkPiece <:- WorkToBeDone],
+    WrkRefs = [start_worker(FunWork, ExtraArgs, WorkPiece) || WorkPiece <- WorkToBeDone],
     do_in_parallel(FunWork, FunAcc, ExtraArgs, WorkRemain, MaxW, 0, AccR, WrkRefs ++ AccG).
 
 start_worker(FunWork, ExtraArgs, Arg) ->
@@ -110,7 +110,7 @@ accumulate(AccF, AccR, Res, AccG) ->
     end.
 
 cleanup(AccG) ->
-    [demonitor_and_exit(MRef, Pid) || {Pid, MRef} <:- AccG].
+    [demonitor_and_exit(MRef, Pid) || {Pid, MRef} <- AccG].
 
 demonitor_and_exit(MRef, Pid) ->
     erlang:demonitor(MRef, [flush]),
