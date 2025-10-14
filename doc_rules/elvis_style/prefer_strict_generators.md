@@ -21,7 +21,8 @@ Within comprehensions, avoid `<-` and `<=` in favor of `<:-` and `<:=`.
 ## Rationale
 
 Quoting OTP's official documentation:
-> Using strict generators is a better practice when either strict or relaxed generators work. More details are in [Programming Examples](https://www.erlang.org/doc/system/list_comprehensions).
+> Using strict generators is a better practice when either strict or relaxed generators work.
+> More details are in [Programming Examples](https://www.erlang.org/doc/system/list_comprehensions).
 
 ## Options
 
