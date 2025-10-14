@@ -177,7 +177,7 @@ merge_rules({file, ParseTree}, ElvisConfigRules) ->
 elvis_attr_rules([] = _ElvisAttrs) ->
     [];
 elvis_attr_rules(ElvisAttrs) ->
-    [Rule || ElvisAttr <- ElvisAttrs, Rule <- ktn_code:attr(value, ElvisAttr)].
+    [Rule || ElvisAttr <:- ElvisAttrs, Rule <:- ktn_code:attr(value, ElvisAttr)].
 
 -spec apply_rule(Rule, {Results, ElvisConfig, File}) -> Result when
     Rule :: elvis_rule:t(),

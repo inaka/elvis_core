@@ -71,6 +71,7 @@
     verify_no_receive_without_timeout/1,
     verify_simplify_anonymous_functions/1,
     verify_prefer_include/1,
+    verify_prefer_strict_generators/1,
     verify_strict_term_equivalence/1,
     verify_macro_definition_parentheses/1
 ]).
@@ -1296,6 +1297,45 @@ verify_prefer_include(Config) ->
     PathPass = "pass_prefer_include." ++ Ext,
     [] = elvis_test_utils:elvis_core_apply_rule(
         Config, elvis_style, prefer_include, #{}, PathPass
+    ).
+
+verify_prefer_strict_generators(Config) ->
+    Group = proplists:get_value(group, Config, erl_files),
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PathFail = "fail_prefer_strict_generators." ++ Ext,
+    Warnings =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, prefer_strict_generators, #{}, PathFail
+        ),
+
+    case Group of
+        beam_files ->
+            [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _] = Warnings;
+        _ ->
+            [
+                #{line_num := 7},
+                #{line_num := 8},
+                #{line_num := 9},
+                #{line_num := 9},
+                #{line_num := 14},
+                #{line_num := 15},
+                #{line_num := 16},
+                #{line_num := 16},
+                #{line_num := 21},
+                #{line_num := 22},
+                #{line_num := 23},
+                #{line_num := 23},
+                #{line_num := 29},
+                #{line_num := 32},
+                #{line_num := 32},
+                #{line_num := 33}
+            ] = Warnings
+    end,
+
+    PathPass = "pass_prefer_strict_generators." ++ Ext,
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, prefer_strict_generators, #{}, PathPass
     ).
 
 verify_no_spec_with_records(Config) ->

@@ -65,6 +65,7 @@
     guard_operators/2,
     simplify_anonymous_functions/2,
     prefer_include/2,
+    prefer_strict_generators/2,
     strict_term_equivalence/2,
     macro_definition_parentheses/2
 ]).
@@ -426,7 +427,7 @@ variable_casing(Rule, ElvisConfig) ->
 unique_other_names(OtherVarZippers, FirstName) ->
     lists:usort([
         OtherName
-     || OtherVarZipper <- OtherVarZippers,
+     || OtherVarZipper <:- OtherVarZippers,
         (OtherName = canonical_variable_name(OtherVarZipper)) =/= FirstName
     ]).
 
@@ -558,7 +559,7 @@ no_macros(Rule, ElvisConfig) ->
             [ktn_code:attr(name, MacroNode)],
             #{node => MacroNode}
         )
-     || MacroNode <- MacroNodes
+     || MacroNode <:- MacroNodes
     ].
 
 is_allowed_macro(MacroNode, AllowedMacros) ->
@@ -578,7 +579,7 @@ no_types(Rule, ElvisConfig) ->
             [ktn_code:attr(name, TypeAttrNode)],
             #{node => TypeAttrNode}
         )
-     || TypeAttrNode <- TypeAttrNodes
+     || TypeAttrNode <:- TypeAttrNodes
     ].
 
 no_includes(Rule, ElvisConfig) ->
@@ -594,7 +595,7 @@ no_includes(Rule, ElvisConfig) ->
             [ktn_code:attr(value, IncludeNode)],
             #{node => IncludeNode}
         )
-     || IncludeNode <- IncludeNodes
+     || IncludeNode <:- IncludeNodes
     ].
 
 no_specs(Rule, ElvisConfig) ->
@@ -609,7 +610,7 @@ no_specs(Rule, ElvisConfig) ->
             [ktn_code:attr(name, SpecNode)],
             #{node => SpecNode}
         )
-     || SpecNode <- SpecNodes
+     || SpecNode <:- SpecNodes
     ].
 
 no_block_expressions(Rule, ElvisConfig) ->
@@ -624,7 +625,7 @@ no_block_expressions(Rule, ElvisConfig) ->
             "an avoidable block expression ('begin...end') was found",
             #{node => BlockExpr}
         )
-     || BlockExpr <- BlockExprs
+     || BlockExpr <:- BlockExprs
     ].
 
 eep_predef_macros() ->
@@ -833,7 +834,7 @@ no_if_expression(Rule, ElvisConfig) ->
             "an unexpected 'if' expression was found",
             #{node => IfExprNode}
         )
-     || IfExprNode <- IfExprNodes
+     || IfExprNode <:- IfExprNodes
     ].
 
 no_invalid_dynamic_calls(Rule, ElvisConfig) ->
@@ -859,7 +860,7 @@ no_invalid_dynamic_calls(Rule, ElvisConfig) ->
             "making dynamic calls only in modules that define callbacks",
             #{node => InvalidCallNode}
         )
-     || InvalidCallNode <- InvalidCallNodes
+     || InvalidCallNode <:- InvalidCallNodes
     ].
 
 has_callbacks(Root) ->
@@ -882,7 +883,7 @@ no_used_ignored_variables(Rule, ElvisConfig) ->
             "an unexpected use of an ignored variable was found",
             #{zipper => IgnoredVarZipper}
         )
-     || IgnoredVarZipper <- IgnoredVarZippers
+     || IgnoredVarZipper <:- IgnoredVarZippers
     ].
 
 no_behavior_info(Rule, ElvisConfig) ->
@@ -898,7 +899,7 @@ no_behavior_info(Rule, ElvisConfig) ->
             "attributes",
             #{node => BehaviourInfoNode}
         )
-     || BehaviourInfoNode <- BehaviourInfoNodes
+     || BehaviourInfoNode <:- BehaviourInfoNodes
     ].
 
 has_behavior_info(FunctionNode) ->
@@ -1034,7 +1035,7 @@ no_spec_with_records(Rule, ElvisConfig) ->
             "using that",
             #{node => SpecWithRecordNode}
         )
-     || SpecWithRecordNode <- SpecWithRecordNodes
+     || SpecWithRecordNode <:- SpecWithRecordNodes
     ].
 
 spec_has_records(SpecNode) ->
@@ -1061,12 +1062,12 @@ dont_repeat_yourself(Rule, ElvisConfig) ->
             "The code in the following (<line>, <column>) locations has the same structure: ~ts",
             [comma_separate_repetitions(NodeWithRepeat)]
         )
-     || NodeWithRepeat <- NodesWithRepeat
+     || NodeWithRepeat <:- NodesWithRepeat
     ].
 
 comma_separate_repetitions(NodeWithRepeat) ->
     string:join(
-        [io_lib:format("(~p, ~p)", [Line, Col]) || {Line, Col} <- NodeWithRepeat],
+        [io_lib:format("(~p, ~p)", [Line, Col]) || {Line, Col} <:- NodeWithRepeat],
         ", "
     ).
 
@@ -1142,7 +1143,7 @@ max_anonymous_function_arity(Rule, ElvisConfig) ->
             [Arity],
             #{node => Fun, limit => MaxArity}
         )
-     || {Fun, Arity} <- FunArities
+     || {Fun, Arity} <:- FunArities
     ].
 
 has_clauses(FunNode) ->
@@ -1197,7 +1198,7 @@ max_function_arity(Rule, ElvisConfig) ->
             [ktn_code:attr(name, FunctionNode), ktn_code:attr(arity, FunctionNode)],
             #{node => FunctionNode, limit => MaxArity}
         )
-     || {FunctionNode, MaxArity} <- FunctionNodeMaxArities
+     || {FunctionNode, MaxArity} <:- FunctionNodeMaxArities
     ].
 
 arity_for_function_exports(Root, FunctionNode, ExportedMaxArity, NonExportedMaxArity) ->
@@ -1423,7 +1424,7 @@ max_record_fields(Rule, ElvisConfig) ->
             [ktn_code:attr(name, LargeRecordNode), length(ktn_code:content(LargeRecordNode))],
             #{node => LargeRecordNode, limit => MaxFields}
         )
-     || LargeRecordNode <- LargeRecordNodes
+     || LargeRecordNode <:- LargeRecordNodes
     ].
 
 max_map_type_keys(Rule, ElvisConfig) ->
@@ -1448,7 +1449,7 @@ max_map_type_keys_on_types(Root, MaxFields) ->
             ],
             #{node => MapTypeNode, limit => MaxFields}
         )
-     || MapTypeNode <- MapTypeNodes,
+     || MapTypeNode <:- MapTypeNodes,
         length(ktn_code:content(ktn_code:node_attr(type, MapTypeNode))) > MaxFields
     ].
 
@@ -1488,7 +1489,7 @@ max_map_type_keys_on_opaques(Root, MaxFields) ->
             ],
             #{node => MapOpaqueNode, limit => MaxFields}
         )
-     || MapOpaqueNode <- MapOpaqueNodes,
+     || MapOpaqueNode <:- MapOpaqueNodes,
         {MapOpaqueName, MapOpaqueTypeAST, _} <- [ktn_code:attr(value, MapOpaqueNode)],
         length(erl_syntax:type_application_arguments(MapOpaqueTypeAST)) > MaxFields
     ].
@@ -1554,14 +1555,14 @@ no_nested_try_catch(Rule, ElvisConfig) ->
             "an unexpected nested 'try...catch' expression was found",
             #{node => InnerTryExprNode}
         )
-     || InnerTryExprNode <- InnerTryExprNodes
+     || InnerTryExprNode <:- InnerTryExprNodes
     ].
 
 inner_try_exprs(TryExprNodes) ->
     [
         TryExprContentNode
-     || TryExprNode <- TryExprNodes,
-        TryExprContentNode <- ktn_code:content(TryExprNode),
+     || TryExprNode <:- TryExprNodes,
+        TryExprContentNode <:- ktn_code:content(TryExprNode),
         ktn_code:type(TryExprContentNode) =:= 'try'
     ].
 
@@ -1578,7 +1579,7 @@ no_successive_maps(Rule, ElvisConfig) ->
             "an unexpected map update after map construction/update was found",
             #{node => MapExprNode}
         )
-     || MapExprNode <- MapExprNodes
+     || MapExprNode <:- MapExprNodes
     ].
 
 is_successive_map(MapExprNode) ->
@@ -1701,7 +1702,7 @@ no_init_lists(Rule, ElvisConfig) ->
             "or records",
             #{node => InitClauseNode}
         )
-     || InitClauseNode <- InitClauseNodes
+     || InitClauseNode <:- InitClauseNodes
     ].
 
 is_init_1(FunctionNode) ->
@@ -1756,7 +1757,7 @@ ms_transform_included(Rule, ElvisConfig) ->
                     "'-include_lib(\"stdlib/include/ms_transform.hrl\").'",
                     #{node => FunctionNode}
                 )
-             || FunctionNode <- FunctionNodes
+             || FunctionNode <:- FunctionNodes
             ]
     end.
 
@@ -1784,7 +1785,7 @@ no_boolean_in_comparison(Rule, ElvisConfig) ->
             "an avoidable comparison to boolean was found",
             #{node => OpNode}
         )
-     || OpNode <- lists:uniq(OpNodes)
+     || OpNode <:- lists:uniq(OpNodes)
     ].
 
 is_boolean_in_comparison(OpNode) ->
@@ -1815,7 +1816,7 @@ no_receive_without_timeout(Rule, ElvisConfig) ->
             "prefer to include 'after' in 'receive' expressions",
             #{node => ReceiveExprNode}
         )
-     || ReceiveExprNode <- ReceiveExprNodes
+     || ReceiveExprNode <:- ReceiveExprNodes
     ].
 
 is_receive_without_timeout(Receive) ->
@@ -1847,7 +1848,7 @@ strict_term_equivalence(Rule, ElvisConfig) ->
             ],
             #{node => OpNode}
         )
-     || OpNode <- OpNodes
+     || OpNode <:- OpNodes
     ].
 
 no_operation_on_same_value(Rule, ElvisConfig) ->
@@ -1869,7 +1870,7 @@ no_operation_on_same_value(Rule, ElvisConfig) ->
             [atom_to_list(ktn_code:attr(operation, OpNode))],
             #{node => OpNode}
         )
-     || OpNode <- lists:uniq(OpNodes)
+     || OpNode <:- lists:uniq(OpNodes)
     ].
 
 same_value_on_both_sides(Node) ->
@@ -1947,7 +1948,7 @@ no_throw(Rule, ElvisConfig) ->
             "an avoidable call to 'throw/1' was found; prefer 'exit/1' or 'error/1'",
             #{node => ThrowNode}
         )
-     || ThrowNode <- ThrowNodes
+     || ThrowNode <:- ThrowNodes
     ].
 
 is_throw(OpNode) ->
@@ -1971,7 +1972,7 @@ no_dollar_space(Rule, ElvisConfig) ->
             "unexpected character '$ ' was found; prefer $\\s",
             #{node => CharNode}
         )
-     || CharNode <- CharNodes
+     || CharNode <:- CharNodes
     ].
 
 is_dollar_space(CharNode) ->
@@ -1988,7 +1989,7 @@ no_author(Rule, ElvisConfig) ->
             "avoidable attribute '-author' was found",
             #{node => AuthorNode}
         )
-     || AuthorNode <- AuthorNodes
+     || AuthorNode <:- AuthorNodes
     ].
 
 no_import(Rule, ElvisConfig) ->
@@ -2002,7 +2003,7 @@ no_import(Rule, ElvisConfig) ->
             "unexpected attribute '-import' was found",
             #{node => ImportNode}
         )
-     || ImportNode <- ImportNodes
+     || ImportNode <:- ImportNodes
     ].
 
 no_catch_expressions(Rule, ElvisConfig) ->
@@ -2018,7 +2019,7 @@ no_catch_expressions(Rule, ElvisConfig) ->
             "an unexpected 'catch' expression was found; prefer a 'try' expression",
             #{node => zipper:node(CatchExprZipper)}
         )
-     || CatchExprZipper <- lists:uniq(CatchExprZippers)
+     || CatchExprZipper <:- lists:uniq(CatchExprZippers)
     ].
 
 %% @doc is this node in a _ = ... expression, where the result is explicitly discarded?
@@ -2044,7 +2045,7 @@ no_single_clause_case(Rule, ElvisConfig) ->
             "an avoidable single-clause 'case' expression was found",
             #{node => CaseExpr}
         )
-     || CaseExpr <- CaseExprs
+     || CaseExpr <:- CaseExprs
     ].
 
 is_single_clause_case(CaseExpr) ->
@@ -2053,9 +2054,9 @@ is_single_clause_case(CaseExpr) ->
 case_clauses_in(Node) ->
     [
         Clause
-     || SubNode <- ktn_code:content(Node),
+     || SubNode <:- ktn_code:content(Node),
         ktn_code:type(SubNode) =:= case_clauses,
-        Clause <- ktn_code:content(SubNode)
+        Clause <:- ktn_code:content(SubNode)
     ].
 
 no_single_match_maybe(Rule, ElvisConfig) ->
@@ -2070,7 +2071,7 @@ no_single_match_maybe(Rule, ElvisConfig) ->
             "an avoidable single-match 'maybe' block was found",
             #{node => MaybeNode}
         )
-     || MaybeNode <- MaybeNodes
+     || MaybeNode <:- MaybeNodes
     ].
 
 is_single_match_maybe(MaybeNode) ->
@@ -2092,7 +2093,7 @@ no_match_in_condition(Rule, ElvisConfig) ->
             "in 'case' clauses",
             #{node => CaseExprNode}
         )
-     || CaseExprNode <- CaseExprNodes
+     || CaseExprNode <:- CaseExprNodes
     ].
 
 is_match(Node) ->
@@ -2146,7 +2147,7 @@ numeric_format(Rule, ElvisConfig) ->
             [ktn_code:attr(text, NumberNode), Regex],
             #{node => NumberNode}
         )
-     || NumberNode <- IntegerNodes ++ FloatNodes
+     || NumberNode <:- IntegerNodes ++ FloatNodes
     ].
 
 is_not_acceptable_number(NumberNode, Regex) ->
@@ -2202,7 +2203,7 @@ behaviour_spelling(Rule, ElvisConfig) ->
             [Spelling],
             #{node => BehaviourNode}
         )
-     || BehaviourNode <- BehaviourNodes
+     || BehaviourNode <:- BehaviourNodes
     ].
 
 guard_operators(Rule, ElvisConfig) ->
@@ -2221,7 +2222,7 @@ guard_operators(Rule, ElvisConfig) ->
             GuardedExpressionNodes =
                 [
                     zipper:node(zipper:up(GuardedClauseZipper))
-                 || GuardedClauseZipper <- GuardedClauseZippers
+                 || GuardedClauseZipper <:- GuardedClauseZippers
                 ],
             check_guard_operators(per_expression, GuardedExpressionNodes);
         PreferredSyntax ->
@@ -2240,7 +2241,7 @@ check_guard_operators(punctuation, ClauseNodes) ->
             [],
             #{node => ClauseNode}
         )
-     || ClauseNode <- ClauseNodes,
+     || ClauseNode <:- ClauseNodes,
         has_guard_defined_with_words(ClauseNode)
     ];
 check_guard_operators(words, ClauseNodes) ->
@@ -2251,7 +2252,7 @@ check_guard_operators(words, ClauseNodes) ->
             [],
             #{node => ClauseNode}
         )
-     || ClauseNode <- ClauseNodes,
+     || ClauseNode <:- ClauseNodes,
         has_guard_defined_with_punctuation(ClauseNode)
     ];
 check_guard_operators(per_clause, ClauseNodes) ->
@@ -2261,7 +2262,7 @@ check_guard_operators(per_clause, ClauseNodes) ->
             [],
             #{node => ClauseNode}
         )
-     || ClauseNode <- ClauseNodes,
+     || ClauseNode <:- ClauseNodes,
         has_guard_defined_with_punctuation(ClauseNode),
         has_guard_defined_with_words(ClauseNode)
     ];
@@ -2272,7 +2273,7 @@ check_guard_operators(per_expression, ExpressionNodes) ->
             [],
             #{node => ExpressionNode}
         )
-     || ExpressionNode <- ExpressionNodes,
+     || ExpressionNode <:- ExpressionNodes,
         {nodes, []} =/=
             elvis_code:find(#{
                 of_types => [clause],
@@ -2302,8 +2303,8 @@ has_guard_defined_with_words(ClauseNode) ->
     [] =/=
         [
             GuardExpression
-         || Guard <- ktn_code:node_attr(guards, ClauseNode),
-            GuardExpression <- Guard,
+         || Guard <:- ktn_code:node_attr(guards, ClauseNode),
+            GuardExpression <:- Guard,
             is_two_sided_boolean_op(GuardExpression)
         ].
 
@@ -2340,7 +2341,7 @@ param_pattern_matching(Rule, ElvisConfig) ->
             [atom_to_list(ktn_code:attr(name, Var)), Side],
             #{node => Match}
         )
-     || {Match, Var} <- MatchVars
+     || {Match, Var} <:- MatchVars
     ].
 
 match_vars_at(Side, MatchesInFunctionClauses) ->
@@ -2404,7 +2405,7 @@ generic_type(Rule, ElvisConfig) ->
             [ktn_code:attr(name, TypeNode), PreferredType],
             #{node => TypeNode}
         )
-     || TypeNode <- TypeNodes
+     || TypeNode <:- TypeNodes
     ].
 
 is_inconsistent_generic_type(TypeNode, PreferredType) ->
@@ -2434,7 +2435,7 @@ always_shortcircuit(Rule, ElvisConfig) ->
             ],
             #{node => OpNode}
         )
-     || OpNode <- OpNodes
+     || OpNode <:- OpNodes
     ].
 
 simplify_anonymous_functions(Rule, ElvisConfig) ->
@@ -2451,7 +2452,7 @@ simplify_anonymous_functions(Rule, ElvisConfig) ->
             [],
             #{node => Fun}
         )
-     || Fun <- FunNodes
+     || Fun <:- FunNodes
     ].
 
 %% @doc Has this anonymous function just one clause that is a call to a
@@ -2482,6 +2483,28 @@ is_simple_anonymous_function(FunNode) ->
             false
     end.
 
+prefer_strict_generators(Rule, ElvisConfig) ->
+    WeakGenerators = #{b_generate => '<=', generate => '<-', m_generate => '<-'},
+    StrictGenerators = #{b_generate => '<:=', generate => '<:-', m_generate => '<:-'},
+
+    {nodes, GenNodes} = elvis_code:find(#{
+        of_types => maps:keys(WeakGenerators),
+        inside => elvis_code:root(Rule, ElvisConfig),
+        traverse => all
+    }),
+
+    [
+        elvis_result:new_item(
+            "unexpected weak generator ~p was found; prefer ~p",
+            [
+                maps:get(ktn_code:type(GenNode), WeakGenerators),
+                maps:get(ktn_code:type(GenNode), StrictGenerators)
+            ],
+            #{node => GenNode}
+        )
+     || GenNode <:- GenNodes
+    ].
+
 prefer_include(Rule, ElvisConfig) ->
     {nodes, FunNodes} = elvis_code:find(#{
         of_types => [include_lib],
@@ -2499,7 +2522,7 @@ prefer_include(Rule, ElvisConfig) ->
             [],
             #{node => Fun}
         )
-     || Fun <- FunNodes
+     || Fun <:- FunNodes
     ].
 
 export_used_types(Rule, ElvisConfig) ->
@@ -3041,7 +3064,7 @@ remove_attrs_zipper(Zipper, TypeAttrs) ->
 -spec remove_attrs(ktn_code:tree_node() | [ktn_code:tree_node()], map()) ->
     ktn_code:tree_node().
 remove_attrs(Nodes, TypeAttrs) when is_list(Nodes) ->
-    [remove_attrs(Node, TypeAttrs) || Node <- Nodes];
+    [remove_attrs(Node, TypeAttrs) || Node <:- Nodes];
 remove_attrs(
     #{
         attrs := Attrs,
@@ -3056,7 +3079,7 @@ remove_attrs(
     NodeAttrsNoLoc =
         [
             {Key, remove_attrs_zipper(elvis_code:zipper(Value), TypeAttrs)}
-         || {Key, Value} <- maps:to_list(NodeAttrs)
+         || {Key, Value} <:- maps:to_list(NodeAttrs)
         ],
 
     Node#{attrs => AttrsNoLoc, node_attrs => maps:from_list(NodeAttrsNoLoc)};
@@ -3070,7 +3093,7 @@ remove_attrs(Node, _TypeAttrs) ->
 -spec filter_repeated(map()) -> map().
 filter_repeated(NodesLocs) ->
     NotRepeated =
-        [Node || {Node, LocationSet} <- maps:to_list(NodesLocs), sets:size(LocationSet) =:= 1],
+        [Node || {Node, LocationSet} <:- maps:to_list(NodesLocs), sets:size(LocationSet) =:= 1],
 
     RepeatedMap = maps:without(NotRepeated, NodesLocs),
 
@@ -3078,8 +3101,8 @@ filter_repeated(NodesLocs) ->
     Nested =
         [
             Node
-         || Node <- RepeatedNodes,
-            Parent <- RepeatedNodes,
+         || Node <:- RepeatedNodes,
+            Parent <:- RepeatedNodes,
             Node =/= Parent,
             is_children(Parent, Node)
         ],
@@ -3196,7 +3219,7 @@ ignore_bin_parts_1([{Start, Len} | T], Prev, Src) ->
     Src :: binary(),
     Parts :: [binary_part()].
 bin_parts_to_iolist(Src, Parts) when is_binary(Src), is_list(Parts) ->
-    [binary_part(Src, Start, Len) || {Start, Len} <- Parts].
+    [binary_part(Src, Start, Len) || {Start, Len} <:- Parts].
 
 line(Node) ->
     {Line, _} = ktn_code:attr(location, Node),

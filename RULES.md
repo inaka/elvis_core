@@ -79,6 +79,7 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [Operator Spaces](doc_rules/elvis_style/operator_spaces.md)
 - [Param Pattern-Matching](doc_rules/elvis_style/param_pattern_matching.md)
 - [Prefer Include](doc_rules/elvis_style/prefer_include.md)
+- [Prefer Strict Generators](doc_rules/elvis_style/prefer_strict_generators.md)
 - [Prefer Unquoted Atoms](doc_rules/elvis_style/prefer_unquoted_atoms.md)
 - [Private Data Types](doc_rules/elvis_style/private_data_types.md)
 - [Simplify Anonymous Functions](doc_rules/elvis_style/simplify_anonymous_functions.md)

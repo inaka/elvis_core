@@ -62,7 +62,7 @@ find(#{of_types := OfTypes, inside := Inside} = Options) ->
             undefined ->
                 NonFilteredResults;
             _ ->
-                [Result || Result <- NonFilteredResults, FilteredBy(Result)]
+                [Result || Result <:- NonFilteredResults, FilteredBy(Result)]
         end,
 
     case FilteredFrom of
