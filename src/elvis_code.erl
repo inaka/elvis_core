@@ -171,9 +171,9 @@ find_with_zipper(Pred, Zipper, Results, Mode) ->
     Res :: ktn_code:tree_node().
 root(Rule, ElvisConfig) ->
     {Root0, File0} = elvis_file:parse_tree(Rule, ElvisConfig),
-    case maps:get(ruleset, ElvisConfig, undefined) of
+    case elvis_config:ruleset(ElvisConfig) of
         Ruleset when Ruleset =:= beam_files; Ruleset =:= beam_files_strict ->
-            maps:get(abstract_parse_tree, File0);
+            elvis_file:get_abstract_parse_tree(File0);
         _ ->
             Root0
     end.

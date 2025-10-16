@@ -2,17 +2,19 @@
 
 -export([
     src/1,
+    encoding/1,
     path/1,
     parse_tree/2,
     load_file_data/2,
     find_files/2,
     filter_files/4,
-    module/1
+    module/1,
+    get_abstract_parse_tree/1
 ]).
 
 -export_type([t/0]).
 
--type t() ::
+-opaque t() ::
     #{
         path => string(),
         content => binary(),
@@ -39,6 +41,11 @@ src(#{path := Path} = File) ->
     end;
 src(File) ->
     throw({invalid_file, File}).
+
+%% @doc Returns the file encoding.
+-spec encoding(t()) -> atom().
+encoding(#{encoding := Encoding}) -> Encoding;
+encoding(_) -> undefined.
 
 %% @doc Given a t() returns its path.
 -spec path(t()) -> string().
@@ -130,6 +137,10 @@ module(#{path := Path}) ->
         [".hrl", ".erl", ".beam"]
     ),
     list_to_atom(Stripped).
+
+-spec get_abstract_parse_tree(t()) -> ktn_code:tree_node().
+get_abstract_parse_tree(File) ->
+    maps:get(abstract_parse_tree, File).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private

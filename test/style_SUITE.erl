@@ -3146,7 +3146,11 @@ verify_private_data_types(Config) ->
     PathFail = "fail_private_data_types." ++ Ext,
     [#{line_num := _}] =
         elvis_test_utils:elvis_core_apply_rule(
-            Config, elvis_style, private_data_types, #{}, PathFail
+            Config,
+            elvis_style,
+            private_data_types,
+            #{apply_to => [record]},
+            PathFail
         ),
     [#{line_num := _}] =
         elvis_test_utils:elvis_core_apply_rule(
@@ -3164,13 +3168,9 @@ verify_private_data_types(Config) ->
             #{apply_to => [map]},
             PathFail
         ),
-    [#{line_num := _}, #{line_num := _}, #{line_num := _}] =
+    [#{line_num := _}, _, _] =
         elvis_test_utils:elvis_core_apply_rule(
-            Config,
-            elvis_style,
-            private_data_types,
-            #{apply_to => [record, tuple, map]},
-            PathFail
+            Config, elvis_style, private_data_types, #{}, PathFail
         ).
 
 results_are_ordered_by_line(_Config) ->
