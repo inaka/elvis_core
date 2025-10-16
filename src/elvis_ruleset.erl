@@ -177,6 +177,7 @@ elvis_style_stricter_rules() ->
         elvis_rule:new(elvis_style, no_common_caveats_call),
         elvis_rule:new(elvis_style, no_init_lists),
         elvis_rule:new(elvis_style, no_macros),
+        elvis_rule:new(elvis_style, prefer_strict_generators),
         elvis_rule:new(elvis_style, prefer_unquoted_atoms),
         elvis_rule:new(elvis_style, state_record_and_type),
         elvis_rule:new(elvis_style, prefer_include),

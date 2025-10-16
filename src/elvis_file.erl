@@ -98,13 +98,7 @@ find_files(Dirs, Pattern) ->
             filename:join(Dir, Pattern)
         )
     end,
-    [
-        #{path => Path}
-     || Path <-
-            lists:usort(
-                lists:flatmap(Fun, Dirs)
-            )
-    ].
+    [#{path => Path} || Path <- lists:usort(lists:flatmap(Fun, Dirs))].
 
 dir_to(Filter, ".") ->
     Filter;
