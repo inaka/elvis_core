@@ -65,6 +65,7 @@
     guard_operators/2,
     simplify_anonymous_functions/2,
     prefer_include/2,
+    prefer_strict_generators/2,
     strict_term_equivalence/2,
     macro_definition_parentheses/2
 ]).
@@ -2481,6 +2482,28 @@ is_simple_anonymous_function(FunNode) ->
         _ ->
             false
     end.
+
+prefer_strict_generators(Rule, ElvisConfig) ->
+    WeakGenerators = #{b_generate => '<=', generate => '<-', m_generate => '<-'},
+    StrictGenerators = #{b_generate => '<:=', generate => '<:-', m_generate => '<:-'},
+
+    {nodes, GenNodes} = elvis_code:find(#{
+        of_types => maps:keys(WeakGenerators),
+        inside => elvis_code:root(Rule, ElvisConfig),
+        traverse => all
+    }),
+
+    [
+        elvis_result:new_item(
+            "unexpected weak generator ~p was found; prefer ~p",
+            [
+                maps:get(ktn_code:type(GenNode), WeakGenerators),
+                maps:get(ktn_code:type(GenNode), StrictGenerators)
+            ],
+            #{node => GenNode}
+        )
+     || GenNode <- GenNodes
+    ].
 
 prefer_include(Rule, ElvisConfig) ->
     {nodes, FunNodes} = elvis_code:find(#{
