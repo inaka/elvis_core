@@ -8,7 +8,8 @@
     load_file_data/2,
     find_files/2,
     filter_files/4,
-    module/1
+    module/1,
+    get_abstract_parse_tree/1
 ]).
 
 -export_type([t/0]).
@@ -142,6 +143,10 @@ module(#{path := Path}) ->
         [".hrl", ".erl", ".beam"]
     ),
     list_to_atom(Stripped).
+
+-spec get_abstract_parse_tree(t()) -> map().
+get_abstract_parse_tree(File) ->
+    maps:get(abstract_parse_tree, File).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
