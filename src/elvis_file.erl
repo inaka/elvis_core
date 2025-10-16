@@ -2,6 +2,7 @@
 
 -export([
     src/1,
+    encoding/1,
     path/1,
     parse_tree/2,
     load_file_data/2,
@@ -12,7 +13,7 @@
 
 -export_type([t/0]).
 
--type t() ::
+-opaque t() ::
     #{
         path => string(),
         content => binary(),
@@ -39,6 +40,11 @@ src(#{path := Path} = File) ->
     end;
 src(File) ->
     throw({invalid_file, File}).
+
+%% @doc Returns the file encoding.
+-spec encoding(t()) -> atom().
+encoding(#{encoding := Encoding}) -> Encoding;
+encoding(_) -> undefined.
 
 %% @doc Given a t() returns its path.
 -spec path(t()) -> string().
