@@ -1,4 +1,4 @@
--module pass_export_used_types.
+-module(pass_export_used_types).
 
 -define(TYPE_CONSTANT, type_constant).
 
@@ -8,7 +8,8 @@
 
 -export [my_fun/1, fun_using_type_constant/0].
 
--spec my_fun(my_type()) -> my_type().
+%% Usage of ?MODULE here to check issue #539
+-spec my_fun(my_type()) -> ?MODULE:my_type().
 my_fun(my) -> type;
 my_fun(type) ->
     private_fun(none),
