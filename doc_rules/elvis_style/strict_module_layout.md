@@ -43,5 +43,5 @@ liking your code by making it easier to follow.
 
 ```erlang
 {elvis_style, strict_module_layout,
-  #{order => [module, inclue, dialyzer, type, export_type, export, function_call]}}
+  #{order => [module, include, dialyzer, type, export_type, export, function_call]}}
 ```
