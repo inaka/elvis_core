@@ -2774,6 +2774,7 @@ strict_module_layout(Rule, ElvisConfig) ->
         inside => elvis_code:root(Rule, ElvisConfig)
     }),
 
+    % drop consecutives
     {_, NodeTypeList} = lists:foldr(
         fun(Node, {Prev, Result}) ->
             Type = ktn_code:type(Node),
@@ -2786,7 +2787,8 @@ strict_module_layout(Rule, ElvisConfig) ->
         Nodes
     ),
 
-    FilteredTypeList = lists:filter(
+    % drop unused ones
+    FilteredOrderList = lists:filter(
         fun(Type) ->
             lists:keymember(Type, 1, NodeTypeList)
         end,
@@ -2806,7 +2808,7 @@ strict_module_layout(Rule, ElvisConfig) ->
                         #{node => Node}
                     )}
         end,
-        lists:zip(NodeTypeList, FilteredTypeList, {pad, {nil, nil}})
+        lists:zip(NodeTypeList, FilteredOrderList, {pad, {nil, nil}})
     ).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
