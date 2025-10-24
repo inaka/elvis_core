@@ -67,7 +67,8 @@
     prefer_include/2,
     prefer_strict_generators/2,
     strict_term_equivalence/2,
-    macro_definition_parentheses/2
+    macro_definition_parentheses/2,
+    strict_module_layout/2
 ]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -333,6 +334,12 @@ default(no_operation_on_same_value) ->
 default(no_macros) ->
     elvis_rule:defmap(#{
         allow => []
+    });
+default(strict_module_layout) ->
+    elvis_rule:defmap(#{
+        order => [
+            module, include, dialyzer, elvis, mixin, type_attr, export_type, export, function
+        ]
     });
 default(_RuleName) ->
     elvis_rule:defmap(#{}).
@@ -2759,6 +2766,53 @@ macro_definition_parentheses(Rule, ElvisConfig) ->
         InvalidMacroNodes
     ).
 
+-spec strict_module_layout(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
+strict_module_layout(Rule, ElvisConfig) ->
+    Types = elvis_rule:option(order, Rule),
+    {nodes, Nodes} = elvis_code:find(#{
+        of_types => Types,
+        inside => elvis_code:root(Rule, ElvisConfig)
+    }),
+
+    {_, NodeTypeList} = lists:foldr(
+        fun(Node, {Prev, Result}) ->
+            Type = ktn_code:type(Node),
+            case Type =:= Prev of
+                true -> {Prev, Result};
+                false -> {Type, [{Type, Node} | Result]}
+            end
+        end,
+        {nil, []},
+        Nodes
+    ),
+
+    FilteredTypeList = lists:filter(
+        fun(Type) ->
+            lists:keymember(Type, 1, NodeTypeList)
+        end,
+        Types
+    ),
+
+    lists:filtermap(
+        fun
+            ({{NodeType, _}, NodeType}) ->
+                false;
+            ({{_, Node}, _}) ->
+                {true,
+                    elvis_result:new_item(
+                        "Invalid section"
+                        "Module parts should be in the defined order",
+                        [],
+                        #{node => Node}
+                    )}
+        end,
+        lists:zip(NodeTypeList, FilteredTypeList, {pad, {nil, nil}})
+    ).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Private
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 macro_attr_type({Type, _, _}) ->
     Type;
 macro_attr_type({Type, _, _, _}) ->
@@ -2770,10 +2824,6 @@ is_stringified_function(Tree) ->
 
 get_tree_content({tree, text, _, Content}) ->
     Content.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Private
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 -spec map_type_declarations_to_location(ktn_code:tree_node()) ->
     #{{atom(), number()} => number()}.

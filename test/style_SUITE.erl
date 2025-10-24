@@ -73,7 +73,8 @@
     verify_prefer_include/1,
     verify_prefer_strict_generators/1,
     verify_strict_term_equivalence/1,
-    verify_macro_definition_parentheses/1
+    verify_macro_definition_parentheses/1,
+    verify_strict_module_layout/1
 ]).
 %% -elvis attribute
 -export([
@@ -3208,6 +3209,40 @@ verify_macro_definition_parentheses(Config) ->
     [#{line_num := 5}, #{line_num := 6}, #{line_num := 7}, #{line_num := 8}] =
         elvis_test_utils:elvis_core_apply_rule(
             Config, elvis_style, macro_definition_parentheses, #{}, FailPath
+        ).
+
+verify_strict_module_layout(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+    #{order := Order} = elvis_style:default(strict_module_layout),
+
+    PassModule = pass_strict_module_layout,
+    PassPath = atom_to_list(PassModule) ++ "." ++ Ext,
+
+    [_, _] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, strict_module_layout, #{order => Order}, PassPath
+        ),
+
+    FailModule = fail_strict_module_layout,
+    FailPath = atom_to_list(FailModule) ++ "." ++ Ext,
+
+    [_, _, _, _, _, _] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, strict_module_layout, #{order => Order}, FailPath
+        ),
+
+    [] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, strict_module_layout, #{order => [module]}, FailPath
+        ),
+
+    [] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config,
+            elvis_style,
+            strict_module_layout,
+            #{order => [module, export, function]},
+            FailPath
         ).
 
 verify_elvis_attr_atom_naming_convention(Config) ->
