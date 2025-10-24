@@ -1,4 +1,4 @@
-# Strict Module Layout ![](https://img.shields.io/badge/BEAM-yes-orange)
+# Strict Module Layout [![](https://img.shields.io/badge/since-4.2.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.2.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Prefer sticking an exact order of the different parts in a module.
 
