@@ -11,6 +11,7 @@ Prefer sticking an exact order of the different parts in a module.
 
 -include[_lib](…).
 ```
+
 > with a configuration that describes an order: [module, include, dialyzer]
 
 ## Prefer
@@ -22,11 +23,13 @@ Prefer sticking an exact order of the different parts in a module.
 
 -dialyzer(…).
 ```
+
 > with a configuration that describes an order: [module, include, dialyzer]
 
 ## Rationale
 
-This is a readability issue. It can improve the odds of others reading and liking your code by making it easier to follow.
+This is a readability issue. It can improve the odds of others reading and
+liking your code by making it easier to follow.
 
 ## Options
 
@@ -39,5 +42,6 @@ This is a readability issue. It can improve the odds of others reading and likin
 ## Example configuration
 
 ```erlang
-{elvis_style, strict_module_layout, #{order => [module, inclue, dialyzer, type, export_type, export, function_call]}}
+{elvis_style, strict_module_layout,
+  #{order => [module, inclue, dialyzer, type, export_type, export, function_call]}}
 ```
