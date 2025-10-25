@@ -140,7 +140,6 @@ elvis_style_rules() ->
         elvis_rule:new(elvis_style, variable_naming_convention),
         elvis_rule:new(elvis_style, guard_operators),
         elvis_rule:new(elvis_style, simplify_anonymous_functions)
-        % elvis_rule:new(elvis_style, strict_module_layout)
     ].
 
 erl_files_test_rules() ->
@@ -183,7 +182,8 @@ elvis_style_stricter_rules() ->
         elvis_rule:new(elvis_style, state_record_and_type),
         elvis_rule:new(elvis_style, prefer_include),
         elvis_rule:new(elvis_style, strict_term_equivalence),
-        elvis_rule:new(elvis_style, macro_definition_parentheses)
+        elvis_rule:new(elvis_style, macro_definition_parentheses),
+        elvis_rule:new(elvis_style, strict_module_layout)
     ].
 
 elvis_text_style_stricter_rules() ->
