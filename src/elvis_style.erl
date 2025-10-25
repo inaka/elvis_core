@@ -67,7 +67,8 @@
     prefer_include/2,
     prefer_strict_generators/2,
     strict_term_equivalence/2,
-    macro_definition_parentheses/2
+    macro_definition_parentheses/2,
+    strict_module_layout/2
 ]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -333,6 +334,12 @@ default(no_operation_on_same_value) ->
 default(no_macros) ->
     elvis_rule:defmap(#{
         allow => []
+    });
+default(strict_module_layout) ->
+    elvis_rule:defmap(#{
+        order => [
+            module, includes, custom, types, exports, defines, body
+        ]
     });
 default(_RuleName) ->
     elvis_rule:defmap(#{}).
@@ -2759,6 +2766,77 @@ macro_definition_parentheses(Rule, ElvisConfig) ->
         InvalidMacroNodes
     ).
 
+-spec strict_module_layout(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
+strict_module_layout(Rule, ElvisConfig) ->
+    Nodes = ktn_code:content(elvis_code:root(Rule, ElvisConfig)),
+
+    NotInPlace =
+        fun(Node, {Prev, Result}) ->
+            Order = elvis_rule:option(order, Rule),
+
+            Type = ktn_code:type(Node),
+            Category = get_category(Type),
+
+            case not ignore(Type, Category, Order) of
+                true -> valid_order(Category, Prev, Node, Result, Order);
+                false -> {Prev, Result}
+            end
+        end,
+
+    {_, ResultNodes} = lists:foldl(NotInPlace, {nil, []}, Nodes),
+
+    lists:map(
+        fun({CorrectPrev, ActualPrev, NodeTypeCategory, Node}) ->
+            elvis_result:new_item(
+                "A ~p type element was found after a ~p type element,"
+                "but it should follow a type ~p",
+                [NodeTypeCategory, ActualPrev, CorrectPrev],
+                #{node => Node}
+            )
+        end,
+        ResultNodes
+    ).
+
+valid_order(Category, Prev, Node, Result, Order) ->
+    OrderWithPreviousElements =
+        lists:zip(Order, [nil | Order], {pad, {nil, nil}}),
+
+    CorrectPrev = proplists:get_value(Category, OrderWithPreviousElements, nil),
+    case
+        CorrectPrev =:= nil orelse
+            CorrectPrev =:= Prev orelse
+            Category =:= Prev
+    of
+        true -> {Category, Result};
+        false -> {Category, [{CorrectPrev, Prev, Category, Node} | Result]}
+    end.
+
+ignore(Type, Category, Order) ->
+    lists:member(Type, [comment, ifdef, ifndef, 'else', 'if', elif, endif]) orelse
+        not lists:member(Category, Order).
+
+get_category(Type) ->
+    Categories = [
+        {module, module},
+        {function, body},
+        {include, includes},
+        {include_lib, includes},
+        {type_attr, types},
+        {opaque, types},
+        {nominal, types},
+        {function, body},
+        {spec, body},
+        {export, exports},
+        {export_type, exports},
+        {define, defines},
+        {comment, comment}
+    ],
+    proplists:get_value(Type, Categories, custom).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Private
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 macro_attr_type({Type, _, _}) ->
     Type;
 macro_attr_type({Type, _, _, _}) ->
@@ -2770,10 +2848,6 @@ is_stringified_function(Tree) ->
 
 get_tree_content({tree, text, _, Content}) ->
     Content.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Private
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 -spec map_type_declarations_to_location(ktn_code:tree_node()) ->
     #{{atom(), number()} => number()}.
