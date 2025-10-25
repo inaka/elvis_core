@@ -2812,7 +2812,7 @@ valid_order(Category, Prev, Node, Result, Order) ->
     end.
 
 ignore(Type, Category, Order) ->
-    lists:member(Type, [comment, ifdef, ifndef, 'else', 'if', elif, endif]) orelse
+    lists:member(Type, [comment, ifdef, ifndef, else, 'if', elif, endif]) orelse
         not lists:member(Category, Order).
 
 get_category(Type) ->
