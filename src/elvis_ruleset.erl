@@ -139,8 +139,8 @@ elvis_style_rules() ->
         elvis_rule:new(elvis_style, no_used_ignored_variables),
         elvis_rule:new(elvis_style, variable_naming_convention),
         elvis_rule:new(elvis_style, guard_operators),
-        elvis_rule:new(elvis_style, simplify_anonymous_functions),
-        elvis_rule:new(elvis_style, strict_module_layout)
+        elvis_rule:new(elvis_style, simplify_anonymous_functions)
+        % elvis_rule:new(elvis_style, strict_module_layout)
     ].
 
 erl_files_test_rules() ->

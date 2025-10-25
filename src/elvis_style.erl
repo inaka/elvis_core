@@ -338,7 +338,7 @@ default(no_macros) ->
 default(strict_module_layout) ->
     elvis_rule:defmap(#{
         order => [
-            module, include, dialyzer, elvis, mixin, type_attr, export_type, export, function
+            module, includes, custom, types, exports, defines, body
         ]
     });
 default(_RuleName) ->
@@ -2768,48 +2768,70 @@ macro_definition_parentheses(Rule, ElvisConfig) ->
 
 -spec strict_module_layout(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 strict_module_layout(Rule, ElvisConfig) ->
-    Types = elvis_rule:option(order, Rule),
-    {nodes, Nodes} = elvis_code:find(#{
-        of_types => Types,
-        inside => elvis_code:root(Rule, ElvisConfig)
-    }),
+    Nodes = ktn_code:content(elvis_code:root(Rule, ElvisConfig)),
 
-    % drop consecutives
-    {_, NodeTypeList} = lists:foldr(
+    NotInPlace =
         fun(Node, {Prev, Result}) ->
+            Order = elvis_rule:option(order, Rule),
+
             Type = ktn_code:type(Node),
-            case Type =:= Prev of
-                true -> {Prev, Result};
-                false -> {Type, [{Type, Node} | Result]}
+            Category = get_category(Type),
+
+            case not ignore(Type, Category, Order) of
+                true -> valid_order(Category, Prev, Node, Result, Order);
+                false -> {Prev, Result}
             end
         end,
-        {nil, []},
-        Nodes
-    ),
 
-    % drop unused ones
-    FilteredOrderList = lists:filter(
-        fun(Type) ->
-            lists:keymember(Type, 1, NodeTypeList)
-        end,
-        Types
-    ),
+    {_, ResultNodes} = lists:foldl(NotInPlace, {nil, []}, Nodes),
 
-    lists:filtermap(
-        fun
-            ({{NodeType, _}, NodeType}) ->
-                false;
-            ({{_, Node}, _}) ->
-                {true,
-                    elvis_result:new_item(
-                        "Invalid section"
-                        "Module parts should be in the defined order",
-                        [],
-                        #{node => Node}
-                    )}
+    lists:map(
+        fun({CorrectPrev, ActualPrev, NodeTypeCategory, Node}) ->
+            elvis_result:new_item(
+                "A ~p type element was found after a ~p type element,"
+                "but it should follow a type ~p",
+                [NodeTypeCategory, ActualPrev, CorrectPrev],
+                #{node => Node}
+            )
         end,
-        lists:zip(NodeTypeList, FilteredOrderList, {pad, {nil, nil}})
+        ResultNodes
     ).
+
+valid_order(Category, Prev, Node, Result, Order) ->
+    OrderWithPreviousElements =
+        lists:zip(Order, [nil | Order], {pad, {nil, nil}}),
+
+    CorrectPrev = proplists:get_value(Category, OrderWithPreviousElements, nil),
+    case
+        CorrectPrev =:= nil orelse
+            CorrectPrev =:= Prev orelse
+            Category =:= Prev
+    of
+        true -> {Category, Result};
+        false -> {Category, [{CorrectPrev, Prev, Category, Node} | Result]}
+    end.
+
+ignore(Type, Category, Order) ->
+    lists:member(Type, [comment, ifdef, ifndef, 'else', 'if', elif, endif]) orelse
+        not lists:member(Category, Order).
+
+get_category(Type) ->
+    Categories = [
+        {module, module},
+        {function, body},
+        {include, includes},
+        {include_lib, includes},
+        {type_attr, types},
+        {opaque, types},
+        {nominal, types},
+        {function, body},
+        {spec, body},
+        {export, exports},
+        {export_type, exports},
+        {define, defines},
+        {comment, comment}
+    ],
+    proplists:get_value(Type, Categories, custom).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private

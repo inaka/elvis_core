@@ -3218,7 +3218,7 @@ verify_strict_module_layout(Config) ->
     PassModule = pass_strict_module_layout,
     PassPath = atom_to_list(PassModule) ++ "." ++ Ext,
 
-    [_, _] =
+    [] =
         elvis_test_utils:elvis_core_apply_rule(
             Config, elvis_style, strict_module_layout, #{order => Order}, PassPath
         ),
@@ -3241,7 +3241,7 @@ verify_strict_module_layout(Config) ->
             Config,
             elvis_style,
             strict_module_layout,
-            #{order => [module, export, function]},
+            #{order => [module, exports, body]},
             FailPath
         ).
 
