@@ -2788,9 +2788,9 @@ strict_module_layout(Rule, ElvisConfig) ->
     lists:map(
         fun({CorrectPrev, ActualPrev, NodeTypeCategory, Node}) ->
             elvis_result:new_item(
-                "A ~p type element was found after a ~p type element,"
-                "but it should follow a type ~p",
-                [NodeTypeCategory, ActualPrev, CorrectPrev],
+                "A ~p type element was found after a ~p type element."
+                " That doesn't respect the expected module layout: ~p",
+                [NodeTypeCategory, ActualPrev, Order],
                 #{node => Node}
             )
         end,
