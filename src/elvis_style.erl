@@ -2769,15 +2769,14 @@ macro_definition_parentheses(Rule, ElvisConfig) ->
 -spec strict_module_layout(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 strict_module_layout(Rule, ElvisConfig) ->
     Nodes = ktn_code:content(elvis_code:root(Rule, ElvisConfig)),
+    Order = elvis_rule:option(order, Rule),
 
     NotInPlace =
         fun(Node, {Prev, Result}) ->
-            Order = elvis_rule:option(order, Rule),
-
             Type = ktn_code:type(Node),
             Category = get_category(Type),
 
-            case not ignore(Type, Category, Order) of
+            case not ignore_category(Type, Category, Order) of
                 true -> valid_order(Category, Prev, Node, Result, Order);
                 false -> {Prev, Result}
             end
@@ -2786,7 +2785,7 @@ strict_module_layout(Rule, ElvisConfig) ->
     {_, ResultNodes} = lists:foldl(NotInPlace, {nil, []}, Nodes),
 
     lists:map(
-        fun({CorrectPrev, ActualPrev, NodeTypeCategory, Node}) ->
+        fun({ActualPrev, NodeTypeCategory, Node}) ->
             elvis_result:new_item(
                 "A ~p type element was found after a ~p type element."
                 " That doesn't respect the expected module layout: ~p",
@@ -2808,11 +2807,11 @@ valid_order(Category, Prev, Node, Result, Order) ->
             Category =:= Prev
     of
         true -> {Category, Result};
-        false -> {Category, [{CorrectPrev, Prev, Category, Node} | Result]}
+        false -> {Category, [{Prev, Category, Node} | Result]}
     end.
 
-ignore(Type, Category, Order) ->
-    lists:member(Type, [comment, ifdef, ifndef, 'else', 'if', elif, endif]) orelse
+ignore_category(Type, Category, Order) ->
+    lists:member(Type, [comment, ifdef, ifndef, else_attr, 'if', elif, endif]) orelse
         not lists:member(Category, Order).
 
 get_category(Type) ->
@@ -2827,9 +2826,16 @@ get_category(Type) ->
         {function, body},
         {spec, body},
         {export, exports},
-        {export_type, exports},
+        {export_type, export_types},
         {define, defines},
-        {comment, comment}
+        {comment, comment},
+        {doc, comment},
+        {moduledoc, moduledoc},
+        {import, import},
+        {compile, compile},
+        {vsn, vsn},
+        {behaviour, behaviour},
+        {record, record}
     ],
     proplists:get_value(Type, Categories, custom).
 
