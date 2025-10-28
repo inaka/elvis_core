@@ -1,5 +1,10 @@
 -module(elvis_code).
 
+-type tree_node() :: ktn_code:tree_node().
+-type tree_node_zipper() :: zipper:zipper(tree_node()).
+
+-export_type([tree_node/0, tree_node_zipper/0]).
+
 %% General
 -export([
     find/1,
@@ -15,11 +20,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Public API
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
--type tree_node() :: ktn_code:tree_node().
--type tree_node_zipper() :: zipper:zipper(tree_node()).
-
--export_type([tree_node/0, tree_node_zipper/0]).
 
 -spec find(Options) -> {nodes, [Node]} | {zippers, [Zipper]} when
     Options :: #{
