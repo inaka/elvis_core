@@ -4,7 +4,7 @@
 
 -export([from_rebar/1, from_file/1, validate_config/1, default/0]).
 %% Getters
--export([dirs/1, ignore/1, filter/1, files/1, rules/1]).
+-export([dirs/1, ignore/1, filter/1, files/1, rules/1, ruleset/1]).
 %% Files
 -export([resolve_files/1, resolve_files/2, apply_to_files/2]).
 %% Rules
@@ -15,7 +15,7 @@
 -export([set_output_format/1, set_verbose/1, set_no_output/1, set_parallel/1]).
 
 % Corresponds to the 'config' key.
--type t() :: map().
+-opaque t() :: map().
 -export_type([t/0]).
 
 -type fail_validation() :: {fail, [{throw, {invalid_config, Message :: string()}}]}.
@@ -274,6 +274,10 @@ rules(#{ruleset := Ruleset}) ->
     elvis_ruleset:rules(Ruleset);
 rules(#{}) ->
     [].
+
+-spec ruleset(t()) -> Ruleset :: atom() | undefined.
+ruleset(ElvisConfig) ->
+    maps:get(ruleset, ElvisConfig, undefined).
 
 %% @doc Takes a configuration and a list of files, filtering some
 %%      of them according to the 'filter' key, or if not specified
