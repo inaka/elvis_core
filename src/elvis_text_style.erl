@@ -41,18 +41,22 @@ default(_RuleName) ->
 
 %% @doc File can be either a filename or the
 %% name of a module.
+-spec line_length(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 line_length(Rule, _ElvisConfig) ->
     Limit = elvis_rule:option(limit, Rule),
     SkipComments = elvis_rule:option(skip_comments, Rule),
     NoWhitespace = elvis_rule:option(no_whitespace_after_limit, Rule),
-    {Src, #{encoding := Encoding}} = elvis_file:src(elvis_rule:file(Rule)),
+    {Src, File} = elvis_file:src(elvis_rule:file(Rule)),
+    Encoding = elvis_file:encoding(File),
     Args = [Limit, SkipComments, Encoding, NoWhitespace],
     check_lines(Src, fun check_line_length/3, Args).
 
+-spec no_tabs(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_tabs(Rule, _ElvisConfig) ->
     {Src, _} = elvis_file:src(elvis_rule:file(Rule)),
     check_lines(Src, fun check_no_tabs/2, []).
 
+-spec no_trailing_whitespace(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_trailing_whitespace(Rule, _ElvisConfig) ->
     {Src, _} = elvis_file:src(elvis_rule:file(Rule)),
     IgnoreEmptyLines = elvis_rule:option(ignore_empty_lines, Rule),
@@ -64,6 +68,7 @@ no_trailing_whitespace(Rule, _ElvisConfig) ->
         elvis_rule:def(Rule)
     ).
 
+-spec no_redundant_blank_lines(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_redundant_blank_lines(Rule, _ElvisConfig) ->
     MaxLines = elvis_rule:option(max_lines, Rule) + 1,
     {Src, _} = elvis_file:src(elvis_rule:file(Rule)),
@@ -89,7 +94,7 @@ no_redundant_blank_lines(Rule, _ElvisConfig) ->
 redundant_blank_lines([], {_, Result}) ->
     Result;
 redundant_blank_lines(Lines, {CurrentLineNum, ResultList}) ->
-    BlankLines = lists:takewhile(fun(X) -> X == <<>> end, Lines),
+    BlankLines = lists:takewhile(fun(X) -> X =:= <<>> end, Lines),
     BlankElements = length(BlankLines),
     Index =
         case BlankElements of
@@ -176,6 +181,7 @@ check_no_tabs(Line, Num) ->
             {ok,
                 elvis_result:new_item(
                     "an unexpected tab character was found; prefer spaces",
+                    [],
                     #{line => Num, column => Index}
                 )}
     end.
@@ -201,6 +207,7 @@ check_no_trailing_whitespace(Line, Num, IgnoreEmptyLines) ->
             {ok,
                 elvis_result:new_item(
                     "unexpected trailing whitespace was found",
+                    [],
                     #{line => Num}
                 )}
     end.

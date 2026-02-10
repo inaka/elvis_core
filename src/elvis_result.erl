@@ -14,7 +14,7 @@
 ]).
 
 %% Types
--export_type([item/0, rule/0, file/0, elvis_error/0, elvis_warn/0, attrs/0]).
+-export_type([item/0, rule/0, file/0, elvis_error/0, elvis_warn/0]).
 
 % API exports, not consumed locally.
 -ignore_xref([get_path/1, get_rules/1, get_items/1, get_message/1, get_info/1, get_line_num/1]).
@@ -23,29 +23,22 @@
 %% Records
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--type item() ::
+-opaque item() ::
     #{
         message => string(),
         info => [term()],
         line_num => -1 | non_neg_integer(),
         column_num => -1 | non_neg_integer()
     }.
--type rule() ::
+-opaque rule() ::
     #{
         ns => atom(),
         name => atom(),
         items => [item()]
     }.
--type file() :: #{file => string(), rules => [rule()]}.
--type elvis_error() :: #{error_msg => string(), info => list()}.
--type elvis_warn() :: #{warn_msg => string(), info => list()}.
--type attrs() :: #{
-    node => ktn_code:tree_node(),
-    zipper => zipper:zipper(ktn_code:tree_node()),
-    line => -1 | non_neg_integer(),
-    column => -1 | non_neg_integer(),
-    limit => -1 | non_neg_integer()
-}.
+-opaque file() :: #{file => string(), rules => [rule()]}.
+-opaque elvis_error() :: #{error_msg => string(), info => list()}.
+-opaque elvis_warn() :: #{warn_msg => string(), info => list()}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Public
@@ -57,19 +50,19 @@
 new_item(Format) ->
     new_item(Format, []).
 
--spec new_item(Format :: string(), DataOrAttrs :: [term()] | attrs()) -> item().
+-spec new_item(Format :: string(), Data :: [term()]) -> item().
 new_item(Format, Data) ->
     new_item(Format, Data, #{}).
 
--spec new_item(Format :: string(), DataOrAttrs :: [term()] | attrs(), Attrs :: attrs()) -> item().
-new_item(Format, Data0, Attrs0) ->
-    {Data, Attrs} =
-        case is_map(Data0) of
-            true ->
-                {[], maps:merge(Data0, Attrs0)};
-            _ ->
-                {Data0, Attrs0}
-        end,
+-spec new_item(Format :: string(), Data :: [term()], Attrs) -> item() when
+    Attrs :: #{
+        node => ktn_code:tree_node(),
+        zipper => zipper:zipper(ktn_code:tree_node()),
+        line => -1 | non_neg_integer(),
+        column => -1 | non_neg_integer(),
+        limit => -1 | non_neg_integer()
+    }.
+new_item(Format, Data, Attrs) ->
     Attrs1 = extend_attrs_with_line_and_column(Attrs),
     Line = maps:get(line, Attrs1, -1),
     Limit = maps:get(limit, Attrs1, -1),
@@ -173,7 +166,7 @@ print_results(Results) ->
     Format = elvis_config:output_format(),
     print(Format, Results).
 
--spec print(plain | colors | parsable, [file()] | file()) -> ok.
+-spec print(plain | colors | parsable, [file() | elvis_warn()] | file()) -> ok.
 print(_, []) ->
     ok;
 print(Format, [Result | Results]) ->

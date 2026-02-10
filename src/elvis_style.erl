@@ -11,7 +11,7 @@
     no_macros/2,
     no_specs/2,
     no_types/2,
-    no_nested_hrls/2,
+    no_includes/2,
     no_block_expressions/2,
     operator_spaces/2,
     no_space/2,
@@ -29,8 +29,12 @@
     max_module_length/2,
     max_anonymous_function_arity/2,
     max_function_arity/2,
+    max_anonymous_function_length/2,
+    max_anonymous_function_clause_length/2,
     max_function_length/2,
     max_function_clause_length/2,
+    max_record_fields/2,
+    max_map_type_keys/2,
     no_call/2,
     no_debug_call/2,
     no_common_caveats_call/2,
@@ -60,7 +64,10 @@
     prefer_unquoted_atoms/2,
     guard_operators/2,
     simplify_anonymous_functions/2,
-    prefer_include/2
+    prefer_include/2,
+    prefer_strict_generators/2,
+    strict_term_equivalence/2,
+    macro_definition_parentheses/2
 ]).
 
 % The whole file is considered to have either callback functions or rules.
@@ -203,6 +210,18 @@ default(max_function_arity) ->
         max_arity => 8,
         non_exported_max_arity => 10
     });
+default(max_anonymous_function_length) ->
+    elvis_rule:defmap(#{
+        max_length => 30,
+        count_comments => false,
+        count_whitespace => false
+    });
+default(max_anonymous_function_clause_length) ->
+    elvis_rule:defmap(#{
+        max_length => 30,
+        count_comments => false,
+        count_whitespace => false
+    });
 default(max_function_length) ->
     elvis_rule:defmap(#{
         max_length => 30,
@@ -214,6 +233,14 @@ default(max_function_clause_length) ->
         max_length => 30,
         count_comments => false,
         count_whitespace => false
+    });
+default(max_record_fields) ->
+    elvis_rule:defmap(#{
+        max_fields => 25
+    });
+default(max_map_type_keys) ->
+    elvis_rule:defmap(#{
+        max_keys => 25
     });
 default(no_call) ->
     elvis_rule:defmap(#{
@@ -284,7 +311,7 @@ default(generic_type) ->
     });
 default(private_data_types) ->
     elvis_rule:defmap(#{
-        apply_to => [record]
+        apply_to => [record, map, tuple]
     });
 default(no_operation_on_same_value) ->
     elvis_rule:defmap(#{
@@ -319,6 +346,7 @@ default(_RuleName) ->
 
 -type binary_part() :: {Start :: non_neg_integer(), Length :: integer()}.
 
+-spec function_naming_convention(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 function_naming_convention(Rule, ElvisConfig) ->
     Regex = elvis_rule:option(regex, Rule),
     ForbiddenRegex = elvis_rule:option(forbidden_regex, Rule),
@@ -366,6 +394,7 @@ function_name(FunctionNode) ->
     FunctionName = ktn_code:attr(name, FunctionNode),
     unicode:characters_to_list(atom_to_list(FunctionName)).
 
+-spec variable_casing(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 variable_casing(Rule, ElvisConfig) ->
     Root = elvis_code:root(Rule, ElvisConfig),
 
@@ -420,6 +449,7 @@ canonical_variable_name(VarZipper) ->
 canonical_variable_name_up(VarZipper) ->
     string:uppercase(canonical_variable_name(VarZipper)).
 
+-spec variable_naming_convention(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 variable_naming_convention(Rule, ElvisConfig) ->
     Regex = elvis_rule:option(regex, Rule),
     ForbiddenRegex = elvis_rule:option(forbidden_regex, Rule),
@@ -470,6 +500,7 @@ variable_name(VarZipper) ->
     VarNode = zipper:node(VarZipper),
     atom_to_list(ktn_code:attr(name, VarNode)).
 
+-spec macro_naming_convention(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 macro_naming_convention(Rule, ElvisConfig) ->
     Regex = elvis_rule:option(regex, Rule),
     ForbiddenRegex = elvis_rule:option(forbidden_regex, Rule),
@@ -517,6 +548,7 @@ macro_naming_convention(Rule, ElvisConfig) ->
         MacroNodes
     ).
 
+-spec no_macros(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_macros(Rule, ElvisConfig) ->
     AllowedMacros = elvis_rule:option(allow, Rule) ++ eep_predef_macros() ++ logger_macros(),
 
@@ -542,6 +574,7 @@ is_allowed_macro(MacroNode, AllowedMacros) ->
     Macro = list_to_atom(ktn_code:attr(name, MacroNode)),
     not lists:member(Macro, AllowedMacros).
 
+-spec no_types(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_types(Rule, ElvisConfig) ->
     {nodes, TypeAttrNodes} = elvis_code:find(#{
         of_types => [type_attr],
@@ -558,7 +591,8 @@ no_types(Rule, ElvisConfig) ->
      || TypeAttrNode <- TypeAttrNodes
     ].
 
-no_nested_hrls(Rule, ElvisConfig) ->
+-spec no_includes(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
+no_includes(Rule, ElvisConfig) ->
     {nodes, IncludeNodes} = elvis_code:find(#{
         of_types => [include, include_lib],
         inside => elvis_code:root(Rule, ElvisConfig)
@@ -574,6 +608,7 @@ no_nested_hrls(Rule, ElvisConfig) ->
      || IncludeNode <- IncludeNodes
     ].
 
+-spec no_specs(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_specs(Rule, ElvisConfig) ->
     {nodes, SpecNodes} = elvis_code:find(#{
         of_types => [spec],
@@ -589,6 +624,7 @@ no_specs(Rule, ElvisConfig) ->
      || SpecNode <- SpecNodes
     ].
 
+-spec no_block_expressions(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_block_expressions(Rule, ElvisConfig) ->
     {nodes, BlockExprs} = elvis_code:find(#{
         of_types => ['begin'],
@@ -599,6 +635,7 @@ no_block_expressions(Rule, ElvisConfig) ->
     [
         elvis_result:new_item(
             "an avoidable block expression ('begin...end') was found",
+            [],
             #{node => BlockExpr}
         )
      || BlockExpr <- BlockExprs
@@ -636,6 +673,7 @@ logger_macros() ->
         'LOG_WARNING'
     ].
 
+-spec no_space_after_pound(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_space_after_pound(Rule, ElvisConfig) ->
     {nodes, TextNodes} = elvis_code:find(#{
         of_types => undefined,
@@ -647,9 +685,11 @@ no_space_after_pound(Rule, ElvisConfig) ->
     generate_space_check_results({Lines, Encoding}, TextNodes, {right, "#"}, {should_not_have, []}).
 
 lines_in(File) ->
-    {Src, #{encoding := Encoding}} = elvis_file:src(File),
+    {Src, File1} = elvis_file:src(File),
+    Encoding = elvis_file:encoding(File1),
     {elvis_utils:split_all_lines(Src), Encoding}.
 
+-spec operator_spaces(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 operator_spaces(Rule, ElvisConfig) ->
     OptRules = elvis_rule:option(rules, Rule),
 
@@ -698,6 +738,7 @@ is_operator_node(Node) ->
 match_operators() ->
     [match, maybe_match].
 
+-spec no_space(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_space(Rule, ElvisConfig) ->
     OptRules = elvis_rule:option(rules, Rule),
 
@@ -730,6 +771,7 @@ escape_regex(Text) ->
 is_text_node(Node) ->
     ktn_code:attr(text, Node) =/= "".
 
+-spec no_deep_nesting(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_deep_nesting(Rule, ElvisConfig) ->
     MaxLevel = elvis_rule:option(level, Rule),
 
@@ -755,6 +797,7 @@ no_deep_nesting(Rule, ElvisConfig) ->
         ParentNodes
     ).
 
+-spec no_god_modules(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_god_modules(Rule, ElvisConfig) ->
     Limit = elvis_rule:option(limit, Rule),
 
@@ -799,6 +842,7 @@ exported_types(Root) ->
         ExportNodes
     ).
 
+-spec no_if_expression(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_if_expression(Rule, ElvisConfig) ->
     {nodes, IfExprNodes} = elvis_code:find(#{
         of_types => ['if'],
@@ -808,11 +852,13 @@ no_if_expression(Rule, ElvisConfig) ->
     [
         elvis_result:new_item(
             "an unexpected 'if' expression was found",
+            [],
             #{node => IfExprNode}
         )
      || IfExprNode <- IfExprNodes
     ].
 
+-spec no_invalid_dynamic_calls(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_invalid_dynamic_calls(Rule, ElvisConfig) ->
     Root = elvis_code:root(Rule, ElvisConfig),
 
@@ -834,6 +880,7 @@ no_invalid_dynamic_calls(Rule, ElvisConfig) ->
         elvis_result:new_item(
             "an unexpected dynamic function call was found; prefer "
             "making dynamic calls only in modules that define callbacks",
+            [],
             #{node => InvalidCallNode}
         )
      || InvalidCallNode <- InvalidCallNodes
@@ -846,6 +893,7 @@ has_callbacks(Root) ->
     }),
     Nodes =/= [].
 
+-spec no_used_ignored_variables(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_used_ignored_variables(Rule, ElvisConfig) ->
     {zippers, IgnoredVarZippers} = elvis_code:find(#{
         of_types => [var],
@@ -857,11 +905,13 @@ no_used_ignored_variables(Rule, ElvisConfig) ->
     [
         elvis_result:new_item(
             "an unexpected use of an ignored variable was found",
+            [],
             #{zipper => IgnoredVarZipper}
         )
      || IgnoredVarZipper <- IgnoredVarZippers
     ].
 
+-spec no_behavior_info(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_behavior_info(Rule, ElvisConfig) ->
     {nodes, BehaviourInfoNodes} = elvis_code:find(#{
         of_types => [function],
@@ -873,6 +923,7 @@ no_behavior_info(Rule, ElvisConfig) ->
         elvis_result:new_item(
             "an avoidable 'behavio[u]r_info/1' declaration was found; prefer '-callback' "
             "attributes",
+            [],
             #{node => BehaviourInfoNode}
         )
      || BehaviourInfoNode <- BehaviourInfoNodes
@@ -882,6 +933,7 @@ has_behavior_info(FunctionNode) ->
     FunctionName = ktn_code:attr(name, FunctionNode),
     lists:member(FunctionName, [behavior_info, behaviour_info]).
 
+-spec module_naming_convention(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 module_naming_convention(Rule, ElvisConfig) ->
     Regex = elvis_rule:option(regex, Rule),
     ForbiddenRegex = elvis_rule:option(forbidden_regex, Rule),
@@ -933,6 +985,7 @@ module_name_from(ModuleNode, File) ->
         end,
     atom_to_list(ModuleName).
 
+-spec state_record_and_type(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 state_record_and_type(Rule, ElvisConfig) ->
     Root = elvis_code:root(Rule, ElvisConfig),
 
@@ -998,6 +1051,7 @@ is_opaque_state(TypeAttrOrOpaqueNode) ->
             false
     end.
 
+-spec no_spec_with_records(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_spec_with_records(Rule, ElvisConfig) ->
     {nodes, SpecWithRecordNodes} = elvis_code:find(#{
         of_types => [spec],
@@ -1009,6 +1063,7 @@ no_spec_with_records(Rule, ElvisConfig) ->
         elvis_result:new_item(
             "an unexpected record was found in a spec; prefer creating a type for it and "
             "using that",
+            [],
             #{node => SpecWithRecordNode}
         )
      || SpecWithRecordNode <- SpecWithRecordNodes
@@ -1026,6 +1081,7 @@ spec_has_records(SpecNode) ->
 type_is_record(TypeInSpecNode) ->
     ktn_code:attr(name, TypeInSpecNode) =:= record.
 
+-spec dont_repeat_yourself(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 dont_repeat_yourself(Rule, ElvisConfig) ->
     MinComplexity = elvis_rule:option(min_complexity, Rule),
 
@@ -1047,6 +1103,7 @@ comma_separate_repetitions(NodeWithRepeat) ->
         ", "
     ).
 
+-spec max_module_length(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 max_module_length(Rule, _ElvisConfig) ->
     MaxLength = elvis_rule:option(max_length, Rule),
     CountComments = elvis_rule:option(count_comments, Rule),
@@ -1089,11 +1146,12 @@ doc_lines(true = _CountDocs, Docs) ->
 doc_lines(false, _Docs) ->
     [].
 
+-spec max_anonymous_function_arity(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 max_anonymous_function_arity(Rule, ElvisConfig) ->
     MaxArity = elvis_rule:option(max_arity, Rule),
 
     {nodes, FunNodes} = elvis_code:find(#{
-        of_types => ['fun'],
+        of_types => ['fun', named_fun],
         inside => elvis_code:root(Rule, ElvisConfig),
         filtered_by => fun has_clauses/1
     }),
@@ -1139,6 +1197,7 @@ first_clause_args(FunNode) ->
     }),
     ktn_code:node_attr(pattern, FirstClause).
 
+-spec max_function_arity(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 max_function_arity(Rule, ElvisConfig) ->
     ExportedMaxArity = elvis_rule:option(max_arity, Rule),
     NonExportedMaxArity0 = elvis_rule:option(non_exported_max_arity, Rule),
@@ -1191,6 +1250,44 @@ is_exported_function(FunctionNode, ExportedFunctions) ->
     Arity = ktn_code:attr(arity, FunctionNode),
     lists:member({Name, Arity}, ExportedFunctions).
 
+-spec max_anonymous_function_clause_length(elvis_rule:t(), elvis_config:t()) ->
+    [elvis_result:item()].
+max_anonymous_function_clause_length(Rule, ElvisConfig) ->
+    MaxLength = elvis_rule:option(max_length, Rule),
+    CountComments = elvis_rule:option(count_comments, Rule),
+    CountWhitespace = elvis_rule:option(count_whitespace, Rule),
+
+    {Src, _} = elvis_file:src(elvis_rule:file(Rule)),
+    Lines = elvis_utils:split_all_lines(Src, [trim]),
+
+    {zippers, ClauseZippers} = elvis_code:find(#{
+        of_types => [clause],
+        inside => elvis_code:root(Rule, ElvisConfig),
+        filtered_by =>
+            fun(ClauseZipper) ->
+                is_function_clause(ClauseZipper, ['fun', named_fun])
+            end,
+        filtered_from => zipper,
+        traverse => all
+    }),
+
+    BigClauses = big_clauses(ClauseZippers, Lines, CountComments, CountWhitespace, MaxLength),
+
+    lists:map(
+        fun({ClauseZipper, ClauseNum, LineLen}) ->
+            FunctionNode = zipper:node(zipper:up(ClauseZipper)),
+
+            elvis_result:new_item(
+                "the code for the ~s clause of the anonymous function has ~p lines, "
+                "which is higher than the configured limit",
+                [parse_clause_num(ClauseNum), LineLen],
+                #{node => FunctionNode, limit => MaxLength}
+            )
+        end,
+        lists:reverse(BigClauses)
+    ).
+
+-spec max_function_clause_length(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 max_function_clause_length(Rule, ElvisConfig) ->
     MaxLength = elvis_rule:option(max_length, Rule),
     CountComments = elvis_rule:option(count_comments, Rule),
@@ -1276,6 +1373,36 @@ parse_clause_num(Num) when Num rem 10 =:= 3 ->
 parse_clause_num(Num) ->
     integer_to_list(Num) ++ "th".
 
+-spec max_anonymous_function_length(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
+max_anonymous_function_length(Rule, ElvisConfig) ->
+    MaxLength = elvis_rule:option(max_length, Rule),
+    CountComments = elvis_rule:option(count_comments, Rule),
+    CountWhitespace = elvis_rule:option(count_whitespace, Rule),
+
+    {Src, _} = elvis_file:src(elvis_rule:file(Rule)),
+    Lines = elvis_utils:split_all_lines(Src, [trim]),
+
+    {nodes, FunctionNodes} = elvis_code:find(#{
+        of_types => ['fun', named_fun],
+        inside => elvis_code:root(Rule, ElvisConfig),
+        traverse => all
+    }),
+
+    BigFunctions = big_functions(FunctionNodes, Lines, CountComments, CountWhitespace, MaxLength),
+
+    lists:map(
+        fun({FunctionNode, LineLen}) ->
+            elvis_result:new_item(
+                "the code for the anonymous function has ~p lines, which is higher than the "
+                "configured limit",
+                [LineLen],
+                #{node => FunctionNode, limit => MaxLength}
+            )
+        end,
+        BigFunctions
+    ).
+
+-spec max_function_length(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 max_function_length(Rule, ElvisConfig) ->
     MaxLength = elvis_rule:option(max_length, Rule),
     CountComments = elvis_rule:option(count_comments, Rule),
@@ -1319,16 +1446,125 @@ big_functions(FunctionNodes, Lines, CountComments, CountWhitespace, MaxLength) -
         FunctionNodes
     ).
 
+-spec max_record_fields(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
+max_record_fields(Rule, ElvisConfig) ->
+    Root = elvis_code:root(Rule, ElvisConfig),
+
+    MaxFields = elvis_rule:option(max_fields, Rule),
+
+    {nodes, LargeRecordNodes} =
+        elvis_code:find(#{
+            of_types => [record_attr],
+            inside => Root,
+            filtered_by => fun(RecordNode) -> length(ktn_code:content(RecordNode)) > MaxFields end
+        }),
+
+    [
+        elvis_result:new_item(
+            "record ~p has ~p fields, which is higher than the configured limit",
+            [ktn_code:attr(name, LargeRecordNode), length(ktn_code:content(LargeRecordNode))],
+            #{node => LargeRecordNode, limit => MaxFields}
+        )
+     || LargeRecordNode <- LargeRecordNodes
+    ].
+
+-spec max_map_type_keys(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
+max_map_type_keys(Rule, ElvisConfig) ->
+    Root = elvis_code:root(Rule, ElvisConfig),
+    MaxFields = elvis_rule:option(max_keys, Rule),
+    max_map_type_keys_on_types(Root, MaxFields) ++ max_map_type_keys_on_opaques(Root, MaxFields).
+
+max_map_type_keys_on_types(Root, MaxFields) ->
+    {nodes, MapTypeNodes} =
+        elvis_code:find(#{
+            of_types => [type_attr],
+            inside => Root,
+            filtered_by => fun is_map_type_with_atom_keys/1
+        }),
+
+    [
+        elvis_result:new_item(
+            "map type ~p has ~p fields, which is higher than the configured limit",
+            [
+                ktn_code:attr(name, MapTypeNode),
+                length(ktn_code:content(ktn_code:node_attr(type, MapTypeNode)))
+            ],
+            #{node => MapTypeNode, limit => MaxFields}
+        )
+     || MapTypeNode <- MapTypeNodes,
+        length(ktn_code:content(ktn_code:node_attr(type, MapTypeNode))) > MaxFields
+    ].
+
+is_map_type_with_atom_keys(TypeAttrNode) ->
+    TypeNode = ktn_code:node_attr(type, TypeAttrNode),
+    ktn_code:attr(name, TypeNode) =:= map andalso
+        all_type_keys_are_atoms(ktn_code:content(TypeNode)).
+
+all_type_keys_are_atoms(TypeNodes) ->
+    lists:all(
+        fun(TypeNode) ->
+            case ktn_code:content(TypeNode) of
+                [] ->
+                    %% -type t() :: map().
+                    false;
+                [KeyType | _] ->
+                    ktn_code:type(KeyType) =:= atom
+            end
+        end,
+        TypeNodes
+    ).
+
+max_map_type_keys_on_opaques(Root, MaxFields) ->
+    {nodes, MapOpaqueNodes} =
+        elvis_code:find(#{
+            of_types => [opaque],
+            inside => Root,
+            filtered_by => fun is_map_opaque_with_atom_keys/1
+        }),
+
+    [
+        elvis_result:new_item(
+            "map type ~p has ~p fields, which is higher than the configured limit",
+            [
+                MapOpaqueName,
+                length(erl_syntax:type_application_arguments(MapOpaqueTypeAST))
+            ],
+            #{node => MapOpaqueNode, limit => MaxFields}
+        )
+     || MapOpaqueNode <- MapOpaqueNodes,
+        {MapOpaqueName, MapOpaqueTypeAST, _} <- [ktn_code:attr(value, MapOpaqueNode)],
+        length(erl_syntax:type_application_arguments(MapOpaqueTypeAST)) > MaxFields
+    ].
+
+is_map_opaque_with_atom_keys(OpaqueNode) ->
+    {_Name, TypeAST, _Params} = ktn_code:attr(value, OpaqueNode),
+    erl_syntax:type(TypeAST) =:= map_type andalso
+        all_opaque_keys_are_atoms(erl_syntax:type_application_arguments(TypeAST)).
+
+all_opaque_keys_are_atoms(OpaqueASTs) ->
+    %% for -opaque t() :: map()., OpaqueASTs =:= any.
+    is_list(OpaqueASTs) andalso
+        lists:all(
+            fun(OpaqueAST) ->
+                [KeyType | _] = erl_syntax:type_application_arguments(OpaqueAST),
+                erl_syntax:type(KeyType) =:= atom
+            end,
+            OpaqueASTs
+        ).
+
+-spec no_call(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_call(Rule, ElvisConfig) ->
     DefaultFns = elvis_rule:option(no_call_functions, Rule),
     Msg = "an unexpected call to '~p:~p/~p' was found (check no_call list)",
     no_call_common(Rule, ElvisConfig, DefaultFns, Msg).
 
+-spec no_debug_call(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_debug_call(Rule, ElvisConfig) ->
     DefaultFns = elvis_rule:option(debug_functions, Rule),
     Msg = "an unexpected debug call to '~p:~p/~p' was found",
     no_call_common(Rule, ElvisConfig, DefaultFns, Msg).
 
+-spec no_common_caveats_call(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_common_caveats_call(Rule, ElvisConfig) ->
     DefaultFns = elvis_rule:option(caveat_functions, Rule),
     Msg = "the call to '~p:~p/~p' might have performance drawbacks or implicit behavior",
@@ -1351,6 +1587,7 @@ node_line_limits(FunctionNode) ->
     [Min | _] = LineNums,
     {Min, Max}.
 
+-spec no_nested_try_catch(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_nested_try_catch(Rule, ElvisConfig) ->
     {nodes, TryExprNodes} = elvis_code:find(#{
         of_types => ['try'],
@@ -1362,6 +1599,7 @@ no_nested_try_catch(Rule, ElvisConfig) ->
     [
         elvis_result:new_item(
             "an unexpected nested 'try...catch' expression was found",
+            [],
             #{node => InnerTryExprNode}
         )
      || InnerTryExprNode <- InnerTryExprNodes
@@ -1375,6 +1613,7 @@ inner_try_exprs(TryExprNodes) ->
         ktn_code:type(TryExprContentNode) =:= 'try'
     ].
 
+-spec no_successive_maps(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_successive_maps(Rule, ElvisConfig) ->
     {nodes, MapExprNodes} = elvis_code:find(#{
         of_types => [map],
@@ -1386,6 +1625,7 @@ no_successive_maps(Rule, ElvisConfig) ->
     [
         elvis_result:new_item(
             "an unexpected map update after map construction/update was found",
+            [],
             #{node => MapExprNode}
         )
      || MapExprNode <- MapExprNodes
@@ -1395,14 +1635,8 @@ is_successive_map(MapExprNode) ->
     InnerVar = ktn_code:node_attr(var, MapExprNode),
     ktn_code:type(InnerVar) =:= map.
 
+-spec atom_naming_convention(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 atom_naming_convention(Rule, ElvisConfig) ->
-    Regex = elvis_rule:option(regex, Rule),
-    ForbiddenRegex = elvis_rule:option(forbidden_regex, Rule),
-    RegexEnclosed0 = elvis_rule:option(enclosed_atoms, Rule),
-    RegexEnclosed = specific_or_default(RegexEnclosed0, Regex),
-    ForbiddenEnclosedRegex0 = elvis_rule:option(forbidden_enclosed_regex, Rule),
-    ForbiddenEnclosedRegex = specific_or_default(ForbiddenEnclosedRegex0, ForbiddenRegex),
-
     {zippers, AtomZippers} = elvis_code:find(#{
         of_types => [atom],
         inside => elvis_code:root(Rule, ElvisConfig),
@@ -1413,73 +1647,74 @@ atom_naming_convention(Rule, ElvisConfig) ->
 
     lists:filtermap(
         fun(AtomZipper) ->
-            {AtomName0, AtomNodeValue} = atom_name_and_node_value(AtomZipper),
-            {IsEnclosed, AtomName} = string_strip_enclosed(AtomName0),
-            IsExceptionClass = is_exception_or_non_reversible(AtomNodeValue),
-
-            RegexAllow = re_compile_for_atom_type(
-                IsEnclosed, Regex, RegexEnclosed
-            ),
-            RegexBlock = re_compile_for_atom_type(
-                IsEnclosed, ForbiddenRegex, ForbiddenEnclosedRegex
-            ),
-
-            AtomNameUnicode = unicode:characters_to_list(AtomName),
-
-            case re_run(AtomNameUnicode, RegexAllow) of
-                _ when IsExceptionClass, not IsEnclosed ->
+            case atom_name_matches_regexes(AtomZipper, Rule) of
+                ok ->
                     false;
-                nomatch when not IsEnclosed ->
+                {not_acceptable, Kind, AtomName, RegexAllow} ->
                     {true,
                         elvis_result:new_item(
-                            "the name of atom ~p is not acceptable by regular "
+                            "the name of ~ts ~p is not acceptable by regular "
                             "expression '~s'",
-                            [AtomName, RegexAllow],
+                            [Kind, AtomName, RegexAllow],
                             #{zipper => AtomZipper}
                         )};
-                nomatch when IsEnclosed ->
+                {blocked, Kind, AtomName, RegexBlock} ->
                     {true,
                         elvis_result:new_item(
-                            "the name of enclosed atom ~p is not acceptable by regular "
+                            "the name of ~ts ~p is forbidden by regular "
                             "expression '~s'",
-                            [AtomName, RegexAllow],
+                            [Kind, AtomName, RegexBlock],
                             #{zipper => AtomZipper}
-                        )};
-                {match, _Captured} when RegexBlock =/= undefined ->
-                    % We check for forbidden names only after accepted names
-                    case re_run(AtomNameUnicode, RegexBlock) of
-                        _ when IsExceptionClass, not IsEnclosed ->
-                            false;
-                        {match, _} when not IsEnclosed ->
-                            {true,
-                                elvis_result:new_item(
-                                    "the name of atom ~p is forbidden by regular "
-                                    "expression '~s'",
-                                    [AtomName, RegexBlock],
-                                    #{zipper => AtomZipper}
-                                )};
-                        {match, _} when IsEnclosed ->
-                            {true,
-                                elvis_result:new_item(
-                                    "the name of enclosed atom ~p is forbidden by regular "
-                                    "expression '~s'",
-                                    [AtomName, RegexBlock],
-                                    #{zipper => AtomZipper}
-                                )};
-                        _ ->
-                            false
-                    end;
-                _ ->
-                    false
+                        )}
             end
         end,
         AtomZippers
     ).
 
+atom_name_matches_regexes(AtomZipper, Rule) ->
+    Regex = elvis_rule:option(regex, Rule),
+    ForbiddenRegex = elvis_rule:option(forbidden_regex, Rule),
+    RegexEnclosed0 = elvis_rule:option(enclosed_atoms, Rule),
+    RegexEnclosed = specific_or_default(RegexEnclosed0, Regex),
+    ForbiddenEnclosedRegex0 = elvis_rule:option(forbidden_enclosed_regex, Rule),
+    ForbiddenEnclosedRegex = specific_or_default(ForbiddenEnclosedRegex0, ForbiddenRegex),
+
+    {AtomName0, AtomNodeValue} = atom_name_and_node_value(AtomZipper),
+    {IsEnclosed, AtomName} = string_strip_enclosed(AtomName0),
+    IsExceptionClass = is_exception_or_non_reversible(AtomNodeValue),
+
+    RegexAllow = re_compile_for_atom_type(IsEnclosed, Regex, RegexEnclosed),
+    RegexBlock = re_compile_for_atom_type(IsEnclosed, ForbiddenRegex, ForbiddenEnclosedRegex),
+
+    AtomNameUnicode = unicode:characters_to_list(AtomName),
+    case re_run(AtomNameUnicode, RegexAllow) of
+        _ when IsExceptionClass, not IsEnclosed ->
+            ok;
+        nomatch when not IsEnclosed ->
+            {not_acceptable, "atom", AtomName, RegexAllow};
+        nomatch when IsEnclosed ->
+            {not_acceptable, "enclosed atom", AtomName, RegexAllow};
+        {match, _Captured} when RegexBlock =/= undefined ->
+            % We check for forbidden names only after accepted names
+            case re_run(AtomNameUnicode, RegexBlock) of
+                _ when IsExceptionClass, not IsEnclosed ->
+                    ok;
+                {match, _} when not IsEnclosed ->
+                    {blocked, "atom", AtomName, RegexBlock};
+                {match, _} when IsEnclosed ->
+                    {blocked, "enclosed atom", AtomName, RegexBlock};
+                _ ->
+                    ok
+            end;
+        _ ->
+            ok
+    end.
+
 atom_name_and_node_value(AtomZipper) ->
     AtomNode = zipper:node(AtomZipper),
     {ktn_code:attr(text, AtomNode), ktn_code:attr(value, AtomNode)}.
 
+-spec no_init_lists(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_init_lists(Rule, ElvisConfig) ->
     ConfigBehaviors = elvis_rule:option(behaviours, Rule),
 
@@ -1516,6 +1751,7 @@ no_init_lists(Rule, ElvisConfig) ->
         elvis_result:new_item(
             "an avoidable list was found as argument to 'init' callback; prefer tuples, maps "
             "or records",
+            [],
             #{node => InitClauseNode}
         )
      || InitClauseNode <- InitClauseNodes
@@ -1554,6 +1790,7 @@ is_list_node(#{type := match, content := Content}) ->
 is_list_node(_) ->
     false.
 
+-spec ms_transform_included(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 ms_transform_included(Rule, ElvisConfig) ->
     Root = elvis_code:root(Rule, ElvisConfig),
 
@@ -1571,6 +1808,7 @@ ms_transform_included(Rule, ElvisConfig) ->
                 elvis_result:new_item(
                     "'ets:fun2ms/1' is used but the module is missing "
                     "'-include_lib(\"stdlib/include/ms_transform.hrl\").'",
+                    [],
                     #{node => FunctionNode}
                 )
              || FunctionNode <- FunctionNodes
@@ -1588,6 +1826,7 @@ is_ets_fun2ms(Node) ->
 
     {ModuleRef, FunctionRef} =:= {ets, fun2ms}.
 
+-spec no_boolean_in_comparison(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_boolean_in_comparison(Rule, ElvisConfig) ->
     {nodes, OpNodes} = elvis_code:find(#{
         of_types => [op],
@@ -1599,6 +1838,7 @@ no_boolean_in_comparison(Rule, ElvisConfig) ->
     [
         elvis_result:new_item(
             "an avoidable comparison to boolean was found",
+            [],
             #{node => OpNode}
         )
      || OpNode <- lists:uniq(OpNodes)
@@ -1619,6 +1859,7 @@ operates_on_boolean(OpNode) ->
         ktn_code:content(OpNode)
     ).
 
+-spec no_receive_without_timeout(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_receive_without_timeout(Rule, ElvisConfig) ->
     {nodes, ReceiveExprNodes} = elvis_code:find(#{
         of_types => ['receive'],
@@ -1630,6 +1871,7 @@ no_receive_without_timeout(Rule, ElvisConfig) ->
         elvis_result:new_item(
             "a 'receive' expression was found without an 'after' clause; "
             "prefer to include 'after' in 'receive' expressions",
+            [],
             #{node => ReceiveExprNode}
         )
      || ReceiveExprNode <- ReceiveExprNodes
@@ -1642,6 +1884,33 @@ is_receive_without_timeout(Receive) ->
     }),
     ReceiveAfterNodes =:= [].
 
+-spec strict_term_equivalence(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
+strict_term_equivalence(Rule, ElvisConfig) ->
+    Operators = #{'==' => '=:=', '/=' => '=/='},
+
+    {nodes, OpNodes} = elvis_code:find(#{
+        of_types => [op],
+        inside => elvis_code:root(Rule, ElvisConfig),
+        filtered_by =>
+            fun(OpNode) ->
+                is_op(OpNode, maps:keys(Operators))
+            end,
+        traverse => all
+    }),
+
+    [
+        elvis_result:new_item(
+            "unexpected weak comparison operator ~p was found; prefer ~p",
+            [
+                ktn_code:attr(operation, OpNode),
+                maps:get(ktn_code:attr(operation, OpNode), Operators)
+            ],
+            #{node => OpNode}
+        )
+     || OpNode <- OpNodes
+    ].
+
+-spec no_operation_on_same_value(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_operation_on_same_value(Rule, ElvisConfig) ->
     InterestingOps = elvis_rule:option(operations, Rule),
 
@@ -1727,6 +1996,7 @@ has_include_ms_transform(Root) ->
 is_ms_transform_hrl(IncludeLibNode) ->
     ktn_code:attr(value, IncludeLibNode) =:= "stdlib/include/ms_transform.hrl".
 
+-spec no_throw(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_throw(Rule, ElvisConfig) ->
     {nodes, ThrowNodes} = elvis_code:find(#{
         of_types => [call],
@@ -1737,6 +2007,7 @@ no_throw(Rule, ElvisConfig) ->
     [
         elvis_result:new_item(
             "an avoidable call to 'throw/1' was found; prefer 'exit/1' or 'error/1'",
+            [],
             #{node => ThrowNode}
         )
      || ThrowNode <- ThrowNodes
@@ -1750,6 +2021,7 @@ is_throw(OpNode) ->
         [{throw, 1}, {erlang, throw, 1}]
     ).
 
+-spec no_dollar_space(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_dollar_space(Rule, ElvisConfig) ->
     {nodes, CharNodes} = elvis_code:find(#{
         of_types => [char],
@@ -1761,6 +2033,7 @@ no_dollar_space(Rule, ElvisConfig) ->
     [
         elvis_result:new_item(
             "unexpected character '$ ' was found; prefer $\\s",
+            [],
             #{node => CharNode}
         )
      || CharNode <- CharNodes
@@ -1769,6 +2042,7 @@ no_dollar_space(Rule, ElvisConfig) ->
 is_dollar_space(CharNode) ->
     ktn_code:attr(text, CharNode) =:= "$ ".
 
+-spec no_author(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_author(Rule, ElvisConfig) ->
     {nodes, AuthorNodes} = elvis_code:find(#{
         of_types => [author],
@@ -1778,11 +2052,13 @@ no_author(Rule, ElvisConfig) ->
     [
         elvis_result:new_item(
             "avoidable attribute '-author' was found",
+            [],
             #{node => AuthorNode}
         )
      || AuthorNode <- AuthorNodes
     ].
 
+-spec no_import(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_import(Rule, ElvisConfig) ->
     {nodes, ImportNodes} = elvis_code:find(#{
         of_types => [import],
@@ -1792,11 +2068,13 @@ no_import(Rule, ElvisConfig) ->
     [
         elvis_result:new_item(
             "unexpected attribute '-import' was found",
+            [],
             #{node => ImportNode}
         )
      || ImportNode <- ImportNodes
     ].
 
+-spec no_catch_expressions(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_catch_expressions(Rule, ElvisConfig) ->
     {zippers, CatchExprZippers} = elvis_code:find(#{
         of_types => ['catch'],
@@ -1808,6 +2086,7 @@ no_catch_expressions(Rule, ElvisConfig) ->
     [
         elvis_result:new_item(
             "an unexpected 'catch' expression was found; prefer a 'try' expression",
+            [],
             #{node => zipper:node(CatchExprZipper)}
         )
      || CatchExprZipper <- lists:uniq(CatchExprZippers)
@@ -1819,11 +2098,12 @@ result_discarded(Zipper) ->
     case ktn_code:type(Parent) of
         match ->
             [LeftSide | _] = ktn_code:content(Parent),
-            ktn_code:type(LeftSide) == var andalso ktn_code:attr(name, LeftSide) == '_';
+            ktn_code:type(LeftSide) =:= var andalso ktn_code:attr(name, LeftSide) =:= '_';
         _ ->
             false
     end.
 
+-spec no_single_clause_case(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_single_clause_case(Rule, ElvisConfig) ->
     {nodes, CaseExprs} = elvis_code:find(#{
         of_types => ['case'],
@@ -1834,6 +2114,7 @@ no_single_clause_case(Rule, ElvisConfig) ->
     [
         elvis_result:new_item(
             "an avoidable single-clause 'case' expression was found",
+            [],
             #{node => CaseExpr}
         )
      || CaseExpr <- CaseExprs
@@ -1850,6 +2131,7 @@ case_clauses_in(Node) ->
         Clause <- ktn_code:content(SubNode)
     ].
 
+-spec no_single_match_maybe(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_single_match_maybe(Rule, ElvisConfig) ->
     {nodes, MaybeNodes} = elvis_code:find(#{
         of_types => ['maybe'],
@@ -1860,6 +2142,7 @@ no_single_match_maybe(Rule, ElvisConfig) ->
     [
         elvis_result:new_item(
             "an avoidable single-match 'maybe' block was found",
+            [],
             #{node => MaybeNode}
         )
      || MaybeNode <- MaybeNodes
@@ -1868,6 +2151,7 @@ no_single_match_maybe(Rule, ElvisConfig) ->
 is_single_match_maybe(MaybeNode) ->
     length(ktn_code:content(MaybeNode)) =:= 1.
 
+-spec no_match_in_condition(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_match_in_condition(Rule, ElvisConfig) ->
     {nodes, CaseExprNodes} = elvis_code:find(#{
         of_types => [case_expr],
@@ -1882,6 +2166,7 @@ no_match_in_condition(Rule, ElvisConfig) ->
         elvis_result:new_item(
             "an avoidable match condition in a 'case' expression was found; prefer matching "
             "in 'case' clauses",
+            [],
             #{node => CaseExprNode}
         )
      || CaseExprNode <- CaseExprNodes
@@ -1904,6 +2189,7 @@ has_match_child_block(CaseExprNode) ->
         ktn_code:content(CaseExprNode)
     ).
 
+-spec numeric_format(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 numeric_format(Rule, ElvisConfig) ->
     Regex = elvis_rule:option(regex, Rule),
     IntRegex0 = elvis_rule:option(int_regex, Rule),
@@ -1945,6 +2231,7 @@ is_not_acceptable_number(NumberNode, Regex) ->
     Number = ktn_code:attr(text, NumberNode),
     Number =/= undefined andalso re_run(Number, Regex) =:= nomatch.
 
+-spec prefer_unquoted_atoms(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 prefer_unquoted_atoms(Rule, ElvisConfig) ->
     {nodes, AtomNodes} = elvis_code:find(#{
         of_types => [atom],
@@ -1976,6 +2263,7 @@ doesnt_need_quotes(AtomNode) ->
             false
     end.
 
+-spec behaviour_spelling(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 behaviour_spelling(Rule, ElvisConfig) ->
     Spelling = elvis_rule:option(spelling, Rule),
 
@@ -1997,6 +2285,7 @@ behaviour_spelling(Rule, ElvisConfig) ->
      || BehaviourNode <- BehaviourNodes
     ].
 
+-spec guard_operators(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 guard_operators(Rule, ElvisConfig) ->
     case elvis_rule:option(preferred_syntax, Rule) of
         per_expression ->
@@ -2087,7 +2376,7 @@ has_guards(ClauseNode) ->
 %%      If they only use words, then we just have [[#{type := op, attrs := #{operation = '...'}}]]
 has_guard_defined_with_punctuation(ClauseNode) ->
     length(ktn_code:node_attr(guards, ClauseNode)) > 1 orelse
-        length(ktn_code:node_attr(guards, ClauseNode)) == 1 andalso
+        length(ktn_code:node_attr(guards, ClauseNode)) =:= 1 andalso
             length(hd(ktn_code:node_attr(guards, ClauseNode))) > 1.
 
 has_guard_defined_with_words(ClauseNode) ->
@@ -2103,11 +2392,12 @@ has_guard_defined_with_words(ClauseNode) ->
 %%      It also returns true for not not not not X andalso Y
 %%      But it returns false for not not not X.
 is_two_sided_boolean_op(Node) ->
-    op == ktn_code:type(Node) andalso
+    op =:= ktn_code:type(Node) andalso
         lists:member(ktn_code:attr(operation, Node), ['and', 'or', 'andalso', 'orelse']) orelse
-        ktn_code:attr(operation, Node) == 'not' andalso
+        ktn_code:attr(operation, Node) =:= 'not' andalso
             is_two_sided_boolean_op(hd(ktn_code:content(Node))).
 
+-spec param_pattern_matching(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 param_pattern_matching(Rule, ElvisConfig) ->
     Side = elvis_rule:option(side, Rule),
 
@@ -2116,7 +2406,7 @@ param_pattern_matching(Rule, ElvisConfig) ->
         inside => elvis_code:root(Rule, ElvisConfig),
         filtered_by =>
             fun(ClauseZipper) ->
-                is_function_clause(ClauseZipper, [function, 'fun'])
+                is_function_clause(ClauseZipper, [function, 'fun', named_fun])
             end,
         filtered_from => zipper,
         traverse => all
@@ -2177,6 +2467,7 @@ is_function_clause(ClauseZipper, ParentNodeTypes) ->
     ParentNodeType = ktn_code:type(ParentNode),
     lists:member(ParentNodeType, ParentNodeTypes).
 
+-spec generic_type(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 generic_type(Rule, ElvisConfig) ->
     PreferredType = elvis_rule:option(preferred_type, Rule),
 
@@ -2204,6 +2495,7 @@ is_inconsistent_generic_type(TypeNode, PreferredType) ->
     IsTermOrAny = lists:member(TypeNodeName, [term, any]),
     IsTermOrAny andalso TypeNodeName =/= PreferredType.
 
+-spec always_shortcircuit(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 always_shortcircuit(Rule, ElvisConfig) ->
     Operators = #{'and' => 'andalso', 'or' => 'orelse'},
 
@@ -2229,6 +2521,7 @@ always_shortcircuit(Rule, ElvisConfig) ->
      || OpNode <- OpNodes
     ].
 
+-spec simplify_anonymous_functions(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 simplify_anonymous_functions(Rule, ElvisConfig) ->
     {nodes, FunNodes} = elvis_code:find(#{
         of_types => ['fun'],
@@ -2274,13 +2567,37 @@ is_simple_anonymous_function(FunNode) ->
             false
     end.
 
+-spec prefer_strict_generators(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
+prefer_strict_generators(Rule, ElvisConfig) ->
+    WeakGenerators = #{b_generate => '<=', generate => '<-', m_generate => '<-'},
+    StrictGenerators = #{b_generate => '<:=', generate => '<:-', m_generate => '<:-'},
+
+    {nodes, GenNodes} = elvis_code:find(#{
+        of_types => maps:keys(WeakGenerators),
+        inside => elvis_code:root(Rule, ElvisConfig),
+        traverse => all
+    }),
+
+    [
+        elvis_result:new_item(
+            "unexpected weak generator ~p was found; prefer ~p",
+            [
+                maps:get(ktn_code:type(GenNode), WeakGenerators),
+                maps:get(ktn_code:type(GenNode), StrictGenerators)
+            ],
+            #{node => GenNode}
+        )
+     || GenNode <- GenNodes
+    ].
+
+-spec prefer_include(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 prefer_include(Rule, ElvisConfig) ->
     {nodes, FunNodes} = elvis_code:find(#{
         of_types => [include_lib],
         inside => elvis_code:root(Rule, ElvisConfig),
         filtered_by =>
             fun(#{attrs := #{value := Value}}) ->
-                filename:basename(Value) == Value
+                filename:basename(Value) =:= Value
             end,
         traverse => all
     }),
@@ -2294,6 +2611,7 @@ prefer_include(Rule, ElvisConfig) ->
      || Fun <- FunNodes
     ].
 
+-spec export_used_types(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 export_used_types(Rule, ElvisConfig) ->
     Root = elvis_code:root(Rule, ElvisConfig),
 
@@ -2356,6 +2674,7 @@ used_types(SpecNodes) ->
         )
     ).
 
+-spec private_data_types(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 private_data_types(Rule, ElvisConfig) ->
     TypesToCheck = elvis_rule:option(apply_to, Rule),
 
@@ -2406,6 +2725,54 @@ is_public_data_type_in(TypesToCheck, TypeAttrNode) ->
     TypeAttrNodeType = ktn_code:node_attr(type, TypeAttrNode),
     TypeAttrNodeType =/= undefined andalso
         lists:member(ktn_code:attr(name, TypeAttrNodeType), TypesToCheck).
+
+-spec macro_definition_parentheses(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
+macro_definition_parentheses(Rule, ElvisConfig) ->
+    TypeMismatchingDefine =
+        fun(#{attrs := #{value := [Elem1, Elem2]}}) ->
+            case {macro_attr_type(Elem1), macro_attr_type(Elem2)} of
+                {call, call} ->
+                    false;
+                {call, _} ->
+                    true;
+                {var, tree} ->
+                    is_stringified_function(
+                        get_tree_content(Elem2)
+                    );
+                _ ->
+                    false
+            end
+        end,
+
+    {nodes, InvalidMacroNodes} = elvis_code:find(#{
+        of_types => [define],
+        inside => elvis_code:root(Rule, ElvisConfig),
+        filtered_by => TypeMismatchingDefine
+    }),
+
+    lists:map(
+        fun(Node) ->
+            elvis_result:new_item(
+                "Invalid parenthesis at a macro definition."
+                "Functions should contain parenthesis, constants should not",
+                [],
+                #{node => Node}
+            )
+        end,
+        InvalidMacroNodes
+    ).
+
+macro_attr_type({Type, _, _}) ->
+    Type;
+macro_attr_type({Type, _, _, _}) ->
+    Type.
+
+is_stringified_function(Tree) ->
+    re:run(Tree, "^[a-zA-Z_][a-zA-Z0-9_]* ?:? ?[a-zA-Z0-9_]*\\([^)]*\\)$", [{capture, none}]) =:=
+        match.
+
+get_tree_content({tree, text, _, Content}) ->
+    Content.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
@@ -2637,7 +3004,7 @@ level_increment(#{type := 'fun', content := _}) ->
 level_increment(#{type := 'fun'}) ->
     0;
 level_increment(#{type := Type}) ->
-    IncrementOne = [function, 'case', 'if', try_case, try_catch, named_fun, receive_case],
+    IncrementOne = [function, 'case', 'if', try_case, try_catch, named_fun, receive_case, 'maybe'],
     case lists:member(Type, IncrementOne) of
         true ->
             1;

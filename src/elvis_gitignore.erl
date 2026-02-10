@@ -36,9 +36,9 @@ default(_RuleName) ->
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Rules
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+-spec required_patterns(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 required_patterns(Rule, _ElvisConfig) ->
-    #{path := Path} = elvis_rule:file(Rule),
+    Path = elvis_file:path(elvis_rule:file(Rule)),
     Regexes = elvis_rule:option(regexes, Rule),
     case file:read_file(Path) of
         {ok, PatternsBin} ->
@@ -48,8 +48,9 @@ required_patterns(Rule, _ElvisConfig) ->
             []
     end.
 
+-spec forbidden_patterns(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 forbidden_patterns(Rule, _ElvisConfig) ->
-    #{path := Path} = elvis_rule:file(Rule),
+    Path = elvis_file:path(elvis_rule:file(Rule)),
     Regexes = elvis_rule:option(regexes, Rule),
     case file:read_file(Path) of
         {ok, PatternsBin} ->

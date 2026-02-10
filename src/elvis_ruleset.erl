@@ -97,7 +97,7 @@ hrl_files_rules() ->
 
 hrl_only_files_rules() ->
     [
-        elvis_rule:new(elvis_style, no_nested_hrls),
+        elvis_rule:new(elvis_style, no_includes),
         elvis_rule:new(elvis_style, no_specs),
         elvis_rule:new(elvis_style, no_types)
     ].
@@ -114,6 +114,8 @@ doesnt_work_on_hrl_files() ->
         elvis_rule:new(elvis_style, no_god_modules),
         elvis_rule:new(elvis_style, no_invalid_dynamic_calls),
         elvis_rule:new(elvis_style, max_anonymous_function_arity),
+        elvis_rule:new(elvis_style, max_anonymous_function_clause_length),
+        elvis_rule:new(elvis_style, max_anonymous_function_length),
         elvis_rule:new(elvis_style, max_function_clause_length),
         elvis_rule:new(elvis_style, max_function_length),
         elvis_rule:new(elvis_style, ms_transform_included),
@@ -198,17 +200,24 @@ elvis_style_stricter_rules() ->
     [
         elvis_rule:new(elvis_style, always_shortcircuit),
         elvis_rule:new(elvis_style, generic_type),
+        elvis_rule:new(elvis_style, max_anonymous_function_clause_length),
+        elvis_rule:new(elvis_style, max_anonymous_function_length),
         elvis_rule:new(elvis_style, max_function_clause_length),
         elvis_rule:new(elvis_style, max_function_length),
         elvis_rule:new(elvis_style, max_module_length),
+        elvis_rule:new(elvis_style, max_record_fields),
+        elvis_rule:new(elvis_style, max_map_type_keys),
         elvis_rule:new(elvis_style, ms_transform_included),
         elvis_rule:new(elvis_style, no_call),
         elvis_rule:new(elvis_style, no_common_caveats_call),
         elvis_rule:new(elvis_style, no_init_lists),
         elvis_rule:new(elvis_style, no_macros),
+        elvis_rule:new(elvis_style, prefer_strict_generators),
         elvis_rule:new(elvis_style, prefer_unquoted_atoms),
         elvis_rule:new(elvis_style, state_record_and_type),
-        elvis_rule:new(elvis_style, prefer_include)
+        elvis_rule:new(elvis_style, prefer_include),
+        elvis_rule:new(elvis_style, strict_term_equivalence),
+        elvis_rule:new(elvis_style, macro_definition_parentheses)
     ].
 
 elvis_text_style_stricter_rules() ->
@@ -228,6 +237,8 @@ doesnt_work_on_beam_files() ->
 not_on_beam() ->
     [
         elvis_rule:new(elvis_style, macro_naming_convention),
+        elvis_rule:new(elvis_style, max_anonymous_function_clause_length),
+        elvis_rule:new(elvis_style, max_anonymous_function_length),
         elvis_rule:new(elvis_style, max_function_clause_length),
         elvis_rule:new(elvis_style, max_function_length),
         elvis_rule:new(elvis_style, max_module_length),

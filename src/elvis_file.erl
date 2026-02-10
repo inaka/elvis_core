@@ -2,17 +2,19 @@
 
 -export([
     src/1,
+    encoding/1,
     path/1,
     parse_tree/2,
     load_file_data/2,
     find_files/2,
     filter_files/4,
-    module/1
+    module/1,
+    get_abstract_parse_tree/1
 ]).
 
 -export_type([t/0]).
 
--type t() ::
+-opaque t() ::
     #{
         path => string(),
         content => binary(),
@@ -39,6 +41,11 @@ src(#{path := Path} = File) ->
     end;
 src(File) ->
     throw({invalid_file, File}).
+
+%% @doc Returns the file encoding.
+-spec encoding(t()) -> atom().
+encoding(#{encoding := Encoding}) -> Encoding;
+encoding(_) -> undefined.
 
 %% @doc Given a t() returns its path.
 -spec path(t()) -> string().
@@ -91,13 +98,7 @@ find_files(Dirs, Pattern) ->
             filename:join(Dir, Pattern)
         )
     end,
-    [
-        #{path => Path}
-     || Path <-
-            lists:usort(
-                lists:flatmap(Fun, Dirs)
-            )
-    ].
+    [#{path => Path} || Path <- lists:usort(lists:flatmap(Fun, Dirs))].
 
 dir_to(Filter, ".") ->
     Filter;
@@ -118,7 +119,7 @@ filter_files(Files, Dirs, Filter, IgnoreList) ->
 
     lists:filter(
         fun(#{path := Path}) ->
-            MatchesPath = fun(Regex) -> match == re:run(Path, Regex, [{capture, none}]) end,
+            MatchesPath = fun(Regex) -> match =:= re:run(Path, Regex, [{capture, none}]) end,
             not lists:any(MatchesPath, IgnoreList)
         end,
         FoundUnique
@@ -136,6 +137,10 @@ module(#{path := Path}) ->
         [".hrl", ".erl", ".beam"]
     ),
     list_to_atom(Stripped).
+
+-spec get_abstract_parse_tree(t()) -> ktn_code:tree_node().
+get_abstract_parse_tree(File) ->
+    maps:get(abstract_parse_tree, File).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private
