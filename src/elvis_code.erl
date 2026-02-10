@@ -12,6 +12,9 @@
     print_node/2
 ]).
 
+% These are local debug functions.
+-ignore_xref([print_node/1, print_node/2]).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Public API
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -190,6 +193,6 @@ print_node(#{type := Type} = Node, CurrentLevel) ->
     Indentation = lists:duplicate(CurrentLevel * 4, $\s),
     Content = ktn_code:content(Node),
 
-    ok = elvis_utils:info("~s - [~p] ~p~n", [Indentation, CurrentLevel, Type]),
+    ok = elvis_utils:info("~s - [~p] ~p", [Indentation, CurrentLevel, Type]),
     _ = lists:map(fun(Child) -> print_node(Child, CurrentLevel + 1) end, Content),
     ok.

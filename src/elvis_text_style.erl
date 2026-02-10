@@ -10,6 +10,9 @@
     no_redundant_blank_lines/2
 ]).
 
+% The whole file is considered to have either callback functions or rules.
+-ignore_xref(elvis_text_style).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

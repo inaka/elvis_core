@@ -3,16 +3,18 @@
 -export([
     new/2, new/3,
     from_tuple/1,
+    is_valid_from_tuple/1,
+    is_ignorable/1,
     ns/1,
     name/1,
     def/1,
-    ignores/1,
     disabled/1,
     file/1, file/2,
     ignored/2,
     execute/2,
     option/2,
     defmap/1,
+    defkeys/1,
     ignorable/1,
     same/2
 ]).
@@ -49,7 +51,7 @@ new(NS, Name, Def) ->
         ignores = maps:get(ignore, Def, [])
     }.
 
--spec from_tuple(Rule | NSName | NSNameDef) -> t() when
+-spec from_tuple(Rule | NSName | NSNameDef) -> t() | invalid_tuple when
     Rule :: t(),
     NSName :: {NS :: module(), Name :: atom()},
     NSNameDef :: {NS :: module(), Name :: atom(), Def :: disable | map()}.
@@ -57,7 +59,7 @@ from_tuple(Rule) when is_record(Rule, rule) ->
     Rule;
 from_tuple({NS, Name}) ->
     from_tuple({NS, Name, #{}});
-from_tuple({NS, Name, Def0}) ->
+from_tuple({NS, Name, Def0}) when is_map(Def0) orelse Def0 =:= disable ->
     {Def, Disable} =
         case Def0 of
             disable ->
@@ -71,6 +73,76 @@ from_tuple({NS, Name, Def0}) ->
             disable(Rule);
         false ->
             Rule
+    end;
+from_tuple(_) ->
+    invalid_tuple.
+
+-spec is_valid_from_tuple(tuple()) -> {true, t()} | {false, string()}.
+is_valid_from_tuple(Tuple) ->
+    case from_tuple(Tuple) of
+        invalid_tuple ->
+            {false, "got an invalid tuple (is def. a map or 'disable'?)."};
+        Rule ->
+            NS = ns(Rule),
+            _ = maybe_ensure_loaded(NS),
+            Name = name(Rule),
+            ArityForExecute = 2,
+            case
+                is_atom(NS) andalso is_atom(Name) andalso
+                    erlang:function_exported(NS, Name, ArityForExecute)
+            of
+                true ->
+                    {true, Rule};
+                _ ->
+                    {false,
+                        io_lib:format("got an unexpected/invalid ~p:~p/~p combo.", [
+                            NS, Name, ArityForExecute
+                        ])}
+            end
+    end.
+
+maybe_ensure_loaded(NS) when not is_atom(NS) ->
+    ok;
+maybe_ensure_loaded(NS) ->
+    code:ensure_loaded(NS).
+
+-spec is_ignorable(term()) -> boolean().
+% Module - invalid type
+is_ignorable(Module) when not is_tuple(Module) andalso not is_atom(Module) ->
+    false;
+% Module - test if valid
+is_ignorable(Module) when is_atom(Module) ->
+    case maybe_ensure_loaded(Module) of
+        {module, _} ->
+            true;
+        _ ->
+            false
+    end;
+% {Module, Function} - invalid type
+is_ignorable({Module, Function}) when not is_atom(Module) orelse not is_atom(Function) ->
+    false;
+% {Module, Function} - test if valid
+is_ignorable({Module, Function}) ->
+    case is_ignorable(Module) of
+        true ->
+            Exports = Module:module_info(exports),
+            proplists:get_value(Function, Exports) =/= undefined;
+        false ->
+            false
+    end;
+% {Module, Function, Arity} - invalid type
+is_ignorable({Module, Function, Arity}) when
+    not is_atom(Module) orelse not is_atom(Function) orelse not is_integer(Arity) orelse Arity < 0
+->
+    false;
+% {Module, Function, Arity} - test if valid
+is_ignorable({Module, Function, Arity}) ->
+    case is_ignorable(Module) of
+        true ->
+            Exports = Module:module_info(exports),
+            proplists:get_value(Function, Exports) =:= Arity;
+        false ->
+            false
     end.
 
 -spec ns(t()) -> module().
@@ -111,7 +183,7 @@ disable(Rule) ->
 
 -spec ignored(Needle :: ignorable(), t()) -> boolean().
 ignored(Needle, Rule) ->
-    lists:member(Needle, Rule#rule.ignores).
+    lists:member(Needle, ignores(Rule)).
 
 -spec execute(t(), ElvisConfig) -> Results when
     ElvisConfig :: elvis_config:t(),
@@ -138,11 +210,23 @@ default(Rule) ->
 
 -spec default(NS :: module(), Name :: atom()) -> def().
 default(NS, Name) ->
-    NS:default(Name).
+    _ = maybe_ensure_loaded(NS),
+    ArityForDefault = 1,
+    case erlang:function_exported(NS, default, ArityForDefault) of
+        false ->
+            #{};
+        true ->
+            NS:default(Name)
+    end.
 
 -spec defmap(map()) -> def().
 defmap(Map) ->
     Map.
+
+-spec defkeys(t()) -> [atom()].
+defkeys(Rule) ->
+    Def = def(Rule),
+    maps:keys(Def).
 
 -spec ignorable(module() | {module(), atom()} | {module(), atom(), arity()}) -> ignorable().
 ignorable(Ignorable) ->

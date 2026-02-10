@@ -5,6 +5,9 @@
 
 -export([no_branch_deps/2, protocol_for_deps/2]).
 
+% The whole file is considered to have either callback functions or rules.
+-ignore_xref(elvis_project).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Default values
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -72,12 +75,11 @@ no_branch_deps(Rule, _ElvisConfig) ->
                 true ->
                     false;
                 false ->
-                    {true, [
+                    {true,
                         elvis_result:new_item(
                             "Dependency '~s' uses a branch; prefer a tag or a specific commit",
                             [AppName]
-                        )
-                    ]}
+                        )}
             end
         end,
         BadDeps

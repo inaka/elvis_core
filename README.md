@@ -37,19 +37,30 @@ Once this is done you can apply the style rules in the following ways.
 #### Loading configuration from a file
 
 ```shell
-1> ElvisConfig = elvis_config:from_file("elvis.config").
+1> ElvisConfig = elvis_config:config().
 <loaded_config>
-2> elvis_core:rock(ElvisConfig).
+2> application:set_env(elvis_core, verbose, true), elvis_core:rock(ElvisConfig).
+Loading src/elvis_code.erl
+# src/elvis_code.erl [OK]
+Loading src/elvis_config.erl
+# src/elvis_config.erl [OK]
+Loading src/elvis_core.erl
 # src/elvis_core.erl [OK]
-# src/elvis_result.erl [OK]
-# src/elvis_style.erl [OK]
-# src/elvis_utils.erl [OK]
+Loading src/elvis_file.erl
+# src/elvis_file.erl [OK]
+...
 ok
 3>
 ```
 
 This will load the [configuration](#configuration), specified in file `elvis.config`, from the
-current directory. If no configuration is found `{invalid_config, _}` is thrown.
+current directory.
+
+If `elvis.config` is not present, the application will fall back to searching for configuration
+parameters in `rebar.config`. If `rebar.config` is also unavailable, the application proceeds to
+perform a tertiary lookup within its application environment (which can also be set via the
+`app/sys.config` file, or e.g., via `application:set_env(elvis_core, Key, Value).` for the required
+settings.
 
 #### Providing configuration as a value
 
@@ -57,17 +68,11 @@ Another option for using `elvis_core` from the shell is to explicitly provide th
 an argument to `elvis_core:rock/1`:
 
 ```shell
-1> ElvisConfig = [#{dirs => ["src"], filter => "*.erl", rules => []}].
+1> ElvisConfig = [#{dirs => ["src"], filter => "elvis_rule.erl", ruleset => erl_files}].
 [#{dirs => ["src"],filter => "*.erl",rules => []}]
-2> elvis_core:rock(ElvisConfig).
-Loading src/elvis_core.erl
-# src/elvis_core.erl [OK]
-Loading src/elvis_result.erl
-# src/elvis_result.erl [OK]
-Loading src/elvis_style.erl
-# src/elvis_style.erl [OK]
-Loading src/elvis_utils.erl
-# src/elvis_utils.erl [OK]
+2> application:set_env(elvis_core, verbose, true), elvis_core:rock(ElvisConfig).
+Loading src/elvis_rule.erl
+# src/elvis_rule.erl [OK]
 ok
 3>
 ```
@@ -117,6 +122,32 @@ An `elvis.config` file looks something like this:
   , {parallel, 1}
 ]}].
 ```
+
+To look at what is considered the "current default" configuration, do:
+
+```console
+rebar3 shell
+...
+1> elvis_config:default().
+[#{filter => "*.erl",
+   dirs => ["apps/**/src/**","src/**"],
+   ruleset => erl_files},
+ #{filter => "*.erl",
+   dirs =>
+       ["apps/**/src/**","src/**","apps/**/include/**",
+        "include/**"],
+   ruleset => hrl_files},
+ #{filter => "rebar.config",
+   dirs => ["."],
+   ruleset => rebar_config},
+ #{filter => ".gitignore",
+   dirs => ["."],
+   ruleset => gitignore}]
+2>
+```
+
+**Note**: this element might change with time. The above was what was generated when this
+documentation was updated.
 
 ### Files, rules and rulesets
 
@@ -238,7 +269,7 @@ found in this repository's [RULES.md](https://github.com/inaka/elvis_core/blob/m
 The implementation of a new rule is a function that takes 2 arguments in the following order:
 
 1. `t:elvis_rule:t()`: the opaque rule to implement
-1. `t:elvis_config:config()`: the value of option `config` as found in the
+1. `t:elvis_config:t()`: the value of each element in list `config` as found in the
 [configuration](#configuration),
 
 This means you can define rules of your own (user-defined rules) as long as the functions that

@@ -230,10 +230,6 @@ for `.hrl` files.
          , ruleset => hrl_files
          }
       , #{ dirs => ["."]
-         , filter => "Makefile"
-         , ruleset => makefiles
-         , rules => [] }
-      , #{ dirs => ["."]
          , filter => "rebar.config"
          , ruleset => rebar_config
          , rules => [] }

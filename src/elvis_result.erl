@@ -16,6 +16,9 @@
 %% Types
 -export_type([item/0, rule/0, file/0, elvis_error/0, elvis_warn/0]).
 
+% API exports, not consumed locally.
+-ignore_xref([get_path/1, get_rules/1, get_items/1, get_message/1, get_info/1, get_line_num/1]).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Records
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -160,7 +163,7 @@ get_line_num(#{line_num := LineNum}) ->
 
 -spec print_results(file() | [elvis_warn()]) -> ok.
 print_results(Results) ->
-    Format = elvis_config:from_application_or_config(output_format, colors),
+    Format = elvis_config:output_format(),
     print(Format, Results).
 
 -spec print(plain | colors | parsable, [file() | elvis_warn()] | file()) -> ok.
@@ -175,11 +178,14 @@ print(Format, #{file := Path, rules := Rules}) ->
         parsable ->
             ok;
         _ ->
+            Verbose = elvis_config:verbose(),
             case status(Rules) of
-                ok ->
+                ok when Verbose ->
                     elvis_utils:notice("# ~s [{{green-bold}}OK{{white-bold}}]", [Path]);
+                ok ->
+                    ok;
                 fail ->
-                    elvis_utils:error("# ~s [{{red-bold}}FAIL{{white-bold}}]", [Path])
+                    elvis_utils:notice("# ~s [{{red-bold}}FAIL{{white-bold}}]", [Path])
             end
     end,
     print_rules(Format, Path, Rules);
@@ -206,7 +212,7 @@ print_rules(
         parsable ->
             ok;
         _ ->
-            elvis_utils:error(
+            elvis_utils:notice(
                 "  - ~p "
                 "(https://github.com/inaka/elvis_core/tree/main/doc_rules/~p/~p.md)",
                 [Name, Scope, Name]
@@ -238,7 +244,7 @@ print_item(
             FMsg = io_lib:format(Msg, Info),
             io:format("~s:~p:~p:~s~n", [File, Ln, Name, FMsg]);
         _ ->
-            elvis_utils:error("    - " ++ Msg, Info)
+            elvis_utils:notice("    - " ++ Msg, Info)
     end,
     print_item(Format, File, Name, Items);
 print_item(Format, File, Name, [Error | Items]) ->
@@ -248,9 +254,9 @@ print_item(_Format, _File, _Name, []) ->
     ok.
 
 print_error(#{error_msg := Msg, info := Info}) ->
-    elvis_utils:error_prn(Msg, Info);
+    elvis_utils:error(Msg, Info);
 print_error(#{warn_msg := Msg, info := Info}) ->
-    elvis_utils:warn_prn(Msg, Info).
+    elvis_utils:warn(Msg, Info).
 
 -spec status([file() | rule()]) -> ok | fail.
 status([]) ->

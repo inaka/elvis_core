@@ -2,18 +2,46 @@
 
 -format(#{inline_items => none}).
 
--export([rules/1, set_rulesets/1]).
+-export([rules/1, load_custom/1, drop_custom/0, is_defined/1, custom_names/0]).
 
--spec set_rulesets(#{atom() => list()}) -> ok.
-set_rulesets(Rulesets) ->
-    Tid = ensure_clean_table(),
-    lists:foreach(
-        fun({Ruleset, NSNameDefs}) ->
-            Rules = [elvis_rule:from_tuple(NSNameDef) || NSNameDef <- NSNameDefs],
-            true = ets:insert(Tid, {Ruleset, Rules})
-        end,
-        maps:to_list(Rulesets)
-    ).
+-spec load_custom(#{atom() => list()}) -> ok.
+load_custom(Rulesets) ->
+    {Existed, Tid} = ensure_table(),
+    case Existed of
+        false ->
+            elvis_utils:debug("loading custom rulesets into state", []),
+            lists:foreach(
+                fun({Ruleset, NSNameDefs}) ->
+                    Rules = [elvis_rule:from_tuple(NSNameDef) || NSNameDef <- NSNameDefs],
+                    true = ets:insert(Tid, {Ruleset, Rules})
+                end,
+                maps:to_list(Rulesets)
+            );
+        true ->
+            ok
+    end.
+
+-spec custom_names() -> [atom()].
+custom_names() ->
+    case table_exists() of
+        false ->
+            [];
+        _ ->
+            proplists:get_keys(ets:tab2list(elvis_ruleset))
+    end.
+
+-spec drop_custom() -> _.
+drop_custom() ->
+    case table_exists() of
+        false ->
+            ok;
+        _ ->
+            ets:delete(elvis_ruleset)
+    end.
+
+-spec is_defined(atom()) -> boolean().
+is_defined(Ruleset) ->
+    rules(Ruleset) =/= [].
 
 -spec rules(Group :: atom()) -> [elvis_rule:t()].
 rules(gitignore) ->
@@ -35,21 +63,31 @@ rules(rebar_config) ->
 rules(erl_files_test) ->
     erl_files_test_rules();
 rules(Group) ->
-    try
-        ets:lookup_element(?MODULE, Group, 2)
-    catch
-        error:badarg ->
+    case table_exists() of
+        false ->
+            [];
+        _ ->
+            lookup(elvis_ruleset, Group)
+    end.
+
+lookup(Table, Group) ->
+    case ets:lookup(Table, Group) of
+        [{Group, Rules}] ->
+            Rules;
+        _ ->
             []
     end.
 
-ensure_clean_table() ->
-    case ets:info(?MODULE) of
-        undefined ->
-            ets:new(?MODULE, [set, named_table, {keypos, 1}, public]);
+ensure_table() ->
+    case table_exists() of
+        false ->
+            {false, ets:new(elvis_ruleset, [set, named_table, {keypos, 1}, public])};
         _ ->
-            true = ets:delete_all_objects(?MODULE),
-            ?MODULE
+            {true, elvis_ruleset}
     end.
+
+table_exists() ->
+    ets:info(elvis_ruleset) =/= undefined.
 
 gitignore_rules() ->
     [
@@ -144,11 +182,11 @@ elvis_style_rules() ->
 
 erl_files_test_rules() ->
     trim(
+        elvis_style_rules(),
         [
             elvis_rule:new(elvis_style, dont_repeat_yourself),
             elvis_rule:new(elvis_style, no_god_modules)
-        ],
-        elvis_style_rules()
+        ]
     ).
 
 elvis_text_style_rules() ->

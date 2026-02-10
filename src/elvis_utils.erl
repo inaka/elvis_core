@@ -3,15 +3,18 @@
 -compile({no_auto_import, [error/2]}).
 
 %% General
--export([erlang_halt/1, to_str/1, split_all_lines/1, split_all_lines/2]).
-%% Output
--export([info/2, notice/2, error/2, error_prn/2, warn_prn/2]).
+-export([erlang_halt/1, list_to_str/1, to_str/1, split_all_lines/1, split_all_lines/2]).
+%% Output / rebar3
+-export([debug/2, info/2, notice/2, warn/2, error/2, abort/2]).
+
+% These call (but verify if exported) rebar3-specific functions.
+-ignore_xref(do_output/2).
+-ignore_xref(abort/2).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Public
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% @doc This is defined so that it can be mocked for tests.
 -spec erlang_halt(integer()) -> no_return().
 erlang_halt(Code) ->
     halt(Code).
@@ -26,6 +29,24 @@ to_str(Arg) when is_integer(Arg) ->
 to_str(Arg) when is_list(Arg) ->
     Arg.
 
+-spec list_to_str([term()]) -> string().
+list_to_str(What) ->
+    list_to_str(What, []).
+
+list_to_str([], Acc) ->
+    "[" ++ string:join(Acc, ", ") ++ "]";
+list_to_str([H0 | T], Acc) ->
+    H =
+        case H0 of
+            H0 when is_list(H0) ->
+                "\"" ++ H0 ++ "\"";
+            H0 when is_binary(H0) ->
+                "<<\"" ++ to_str(H0) ++ "\">>";
+            _ ->
+                to_str(H0)
+        end,
+    list_to_str(T, [H | Acc]).
+
 -spec split_all_lines(binary()) -> [binary(), ...].
 split_all_lines(Binary) ->
     split_all_lines(Binary, []).
@@ -33,51 +54,6 @@ split_all_lines(Binary) ->
 -spec split_all_lines(binary(), list()) -> [binary()].
 split_all_lines(Binary, Opts) ->
     binary:split(Binary, [<<"\r\n">>, <<"\n">>], [global | Opts]).
-
--spec info(string(), [term()]) -> ok.
-info(Message, Args) ->
-    ColoredMessage = Message ++ "{{reset}}~n",
-    print_info(ColoredMessage, Args).
-
--spec notice(string(), [term()]) -> ok.
-notice(Message, Args) ->
-    ColoredMessage = "{{white-bold}}" ++ Message ++ "{{reset}}~n",
-    print_info(ColoredMessage, Args).
-
--spec error(string(), [term()]) -> ok.
-error(Message, Args) ->
-    ColoredMessage = "{{white-bold}}" ++ Message ++ "{{reset}}~n",
-    print(ColoredMessage, Args).
-
--spec error_prn(string(), [term()]) -> ok.
-error_prn(Message, Args) ->
-    ColoredMessage = "{{red}}Error: {{reset}}" ++ Message ++ "{{reset}}~n",
-    print(ColoredMessage, Args).
-
--spec warn_prn(string(), [term()]) -> ok.
-warn_prn(Message, Args) ->
-    ColoredMessage = "{{magenta}}Warning: {{reset}}" ++ Message ++ "{{reset}}~n",
-    print(ColoredMessage, Args).
-
--spec print_info(string(), [term()]) -> ok.
-print_info(Message, Args) ->
-    case elvis_config:from_application_or_config(verbose, false) of
-        true ->
-            print(Message, Args);
-        false ->
-            ok
-    end.
-
--spec print(string(), [term()]) -> ok.
-print(Message, Args) ->
-    case elvis_config:from_application_or_config(no_output, false) of
-        true ->
-            ok;
-        _ ->
-            Output = io_lib:format(Message, Args),
-            EscapedOutput = escape_format_str(Output),
-            io:format(parse_colors(EscapedOutput))
-    end.
 
 -spec parse_colors(string()) -> string().
 parse_colors(Message) ->
@@ -93,7 +69,7 @@ parse_colors(Message) ->
             "reset" => "\e[0m"
         },
     Opts = [global, {return, list}],
-    case elvis_config:from_application_or_config(output_format, colors) of
+    case elvis_config:output_format() of
         P when P =:= plain; P =:= parsable ->
             re:replace(Message, "{{.*?}}", "", Opts);
         colors ->
@@ -105,9 +81,78 @@ parse_colors(Message) ->
             lists:foldl(Fun, Message, maps:keys(Colors))
     end.
 
--spec escape_format_str(string()) -> string().
-escape_format_str(String) ->
+-spec escape_chars(string()) -> string().
+escape_chars(String) ->
     Binary = list_to_binary(String),
     Result = re:replace(Binary, "[^~]~", "~~", [global]),
     ResultBin = iolist_to_binary(Result),
     binary_to_list(ResultBin).
+
+-spec debug(string(), [term()]) -> ok.
+debug(Format, Data) ->
+    output(debug, "Elvis: " ++ Format, Data).
+
+-spec info(string(), [term()]) -> ok.
+info(Format, Data) ->
+    output(info, Format ++ "{{reset}}~n", Data).
+
+-spec notice(string(), [term()]) -> ok.
+notice(Format, Data) ->
+    output(notice, "{{white-bold}}" ++ Format ++ "{{reset}}~n", Data).
+
+-spec warn(string(), [term()]) -> ok.
+warn(Format, Data) ->
+    output(warn, "{{magenta}}Warning: {{reset}}" ++ Format ++ "{{reset}}~n", Data).
+
+-spec error(string(), [term()]) -> ok.
+error(Format, Data) ->
+    output(error, "{{red}}Error: {{reset}}" ++ Format ++ "{{reset}}~n", Data).
+
+-spec output(debug | info | notice | warn | error, Format :: io:format(), Data :: [term()]) -> ok.
+output(debug = _Type, Format, Data) ->
+    Chars = io_lib:format(Format, Data),
+    do_output(debug, Chars);
+output(Type, Format, Data) ->
+    Chars = io_lib:format(Format, Data),
+    EscapedChars = escape_chars(Chars),
+    ColorParsedChars = parse_colors(EscapedChars),
+    case elvis_config:no_output() of
+        true ->
+            ok;
+        _ ->
+            do_output(Type, ColorParsedChars)
+    end.
+
+-dialyzer({nowarn_function, do_output/2}).
+do_output(debug, Chars) ->
+    case erlang:function_exported(rebar_api, debug, 2) of
+        true ->
+            rebar_api:debug(Chars, []);
+        false ->
+            ok
+    end;
+do_output(info, Chars) ->
+    case elvis_config:verbose() of
+        true ->
+            io:format(Chars);
+        false ->
+            ok
+    end;
+do_output(notice, Chars) ->
+    io:format(Chars);
+do_output(warn, Chars) ->
+    io:format(Chars);
+do_output(error, Chars) ->
+    io:format(Chars).
+
+-dialyzer({nowarn_function, abort/2}).
+-spec abort(Format :: io:format(), Data :: [term()]) -> no_return().
+abort(Format0, Data) ->
+    Format = "Elvis: " ++ Format0 ++ "~n",
+    case erlang:function_exported(rebar_api, abort, 2) of
+        true ->
+            rebar_api:abort(Format, [Data]);
+        false ->
+            output(error, Format, Data),
+            throw(elvis_abort)
+    end.

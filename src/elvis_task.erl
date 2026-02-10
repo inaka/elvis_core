@@ -50,9 +50,8 @@ do_in_parallel(FunWork, FunAcc, ExtraArgs, List, MaxW, 0, AccR, AccG) ->
     do_in_parallel(FunWork, FunAcc, ExtraArgs, List, MaxW, erlang:min(N, MaxW), AccR1, AccG1);
 do_in_parallel(FunWork, FunAcc, ExtraArgs, List, MaxW, RemainW, AccR, AccG) ->
     {WorkToBeDone, WorkRemain} =
-        try lists:split(RemainW, List) of
-            Res ->
-                Res
+        try
+            lists:split(RemainW, List)
         catch
             error:badarg ->
                 {List, []}
