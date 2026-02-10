@@ -77,6 +77,7 @@ from_tuple({NS, Name, Def0}) when is_map(Def0) orelse Def0 =:= disable ->
 from_tuple(_) ->
     invalid_tuple.
 
+-spec is_valid_from_tuple(tuple()) -> {true, t()} | {false, string()}.
 is_valid_from_tuple(Tuple) ->
     case from_tuple(Tuple) of
         invalid_tuple ->
@@ -105,6 +106,7 @@ maybe_ensure_loaded(NS) when not is_atom(NS) ->
 maybe_ensure_loaded(NS) ->
     code:ensure_loaded(NS).
 
+-spec is_ignorable(term()) -> boolean().
 % Module - invalid type
 is_ignorable(Module) when not is_tuple(Module) andalso not is_atom(Module) ->
     false;

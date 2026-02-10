@@ -18,6 +18,9 @@
 -opaque t() :: map().
 -export_type([t/0]).
 
+-type output_format() :: plain | colors | parsable.
+-export_type([output_format/0]).
+
 -type fail_validation() :: {fail, [{throw, {invalid_config, Message :: string()}}]}.
 -export_type([fail_validation/0]).
 
@@ -65,27 +68,35 @@ config() ->
             {fail, [{throw, Caught}]}
     end.
 
+-spec output_format() -> output_format().
 output_format() ->
     for(output_format).
 
+-spec verbose() -> boolean().
 verbose() ->
     for(verbose).
 
+-spec no_output() -> boolean().
 no_output() ->
     for(no_output).
 
+-spec parallel() -> pos_integer().
 parallel() ->
     for(parallel).
 
+-spec set_output_format(output_format()) -> ok.
 set_output_format(OutputFormat) ->
     set_env(output_format, OutputFormat).
 
+-spec set_verbose(boolean()) -> ok.
 set_verbose(Verbose) ->
     set_env(verbose, Verbose).
 
+-spec set_no_output(boolean()) -> ok.
 set_no_output(NoOutput) ->
     set_env(no_output, NoOutput).
 
+-spec set_parallel(pos_integer()) -> ok.
 set_parallel(Parallel) ->
     set_env(parallel, Parallel).
 
@@ -101,7 +112,9 @@ default(Key) ->
             ),
             default_for(Key);
         {ok, Value} ->
-            elvis_utils:debug("value for key '~s' found in application environment", [Key]),
+            elvis_utils:debug("value for key '~s' (~p) found in application environment", [
+                Key, Value
+            ]),
             Value
     end.
 
@@ -196,6 +209,7 @@ default_for([config, ruleset]) ->
 default_for([config, rules]) ->
     [].
 
+-spec default() -> [t()].
 default() ->
     [
         #{
@@ -384,6 +398,7 @@ is_rule_override(Rule, UserRules) ->
         UserRules
     ).
 
+-spec validate_config(term()) -> ok.
 validate_config(ElvisConfig) ->
     do_validate({config, ElvisConfig}).
 
@@ -754,7 +769,12 @@ either_rules_is_nonempty_or_ruleset_is_defined([_ | _] = _Rules, _Ruleset) ->
 either_rules_is_nonempty_or_ruleset_is_defined(_Rules, Ruleset) when Ruleset =/= undefined ->
     ok;
 either_rules_is_nonempty_or_ruleset_is_defined(_Rules, _Ruleset) ->
-    {error, io_lib:format("either 'rules' is a non-empty list or 'ruleset' is defined.", [])}.
+    {error,
+        io_lib:format(
+            "each config section is expected to have either"
+            " a non-empty list of 'rules' or a 'ruleset'.",
+            []
+        )}.
 
 check_rule_for_options(Rule, AccInI) ->
     case elvis_rule:defkeys(Rule) of
@@ -765,7 +785,7 @@ check_rule_for_options(Rule, AccInI) ->
             NS = elvis_rule:ns(Rule),
             Name = elvis_rule:name(Rule),
             % Bypass new/ constraints.
-            DefKeys = maps:keys(NS:default(Name)) ++ [ignore],
+            DefKeys = [ignore | maps:keys(NS:default(Name))],
             case DefKeysInput -- DefKeys of
                 [] ->
                     AccInI;
@@ -781,23 +801,24 @@ check_rule_for_options(Rule, AccInI) ->
     end.
 
 flag({_Option, _What} = Obj) ->
-    _ = create_table(elvis_config),
+    _ = ensure_ets_table(),
     true = ets:insert(elvis_config, Obj),
     ok.
 
 check_flag({Option, _What} = Obj) ->
-    table_exists() andalso ets:lookup(elvis_config, Option) =:= [Obj].
+    try ets:lookup(elvis_config, Option) of
+        Found -> [Obj] =:= Found
+    catch
+        _:badarg -> false
+    end.
 
 validation_started(Option) ->
     {Option, validation_started}.
 
-create_table(Table) ->
-    case table_exists() of
-        false ->
-            _ = ets:new(Table, [public, named_table]);
+ensure_ets_table() ->
+    case ets:info(elvis_config) of
+        undefined ->
+            _ = ets:new(elvis_config, [public, named_table]);
         _ ->
             ok
     end.
-
-table_exists() ->
-    ets:info(elvis_config) =/= undefined.

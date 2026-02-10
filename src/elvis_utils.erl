@@ -29,6 +29,7 @@ to_str(Arg) when is_integer(Arg) ->
 to_str(Arg) when is_list(Arg) ->
     Arg.
 
+-spec list_to_str([term()]) -> string().
 list_to_str(What) ->
     list_to_str(What, []).
 
@@ -87,18 +88,23 @@ escape_chars(String) ->
     ResultBin = iolist_to_binary(Result),
     binary_to_list(ResultBin).
 
+-spec debug(string(), [term()]) -> ok.
 debug(Format, Data) ->
     output(debug, "Elvis: " ++ Format, Data).
 
+-spec info(string(), [term()]) -> ok.
 info(Format, Data) ->
     output(info, Format ++ "{{reset}}~n", Data).
 
+-spec notice(string(), [term()]) -> ok.
 notice(Format, Data) ->
     output(notice, "{{white-bold}}" ++ Format ++ "{{reset}}~n", Data).
 
+-spec warn(string(), [term()]) -> ok.
 warn(Format, Data) ->
     output(warn, "{{magenta}}Warning: {{reset}}" ++ Format ++ "{{reset}}~n", Data).
 
+-spec error(string(), [term()]) -> ok.
 error(Format, Data) ->
     output(error, "{{red}}Error: {{reset}}" ++ Format ++ "{{reset}}~n", Data).
 

@@ -21,6 +21,7 @@ load_custom(Rulesets) ->
             ok
     end.
 
+-spec custom_names() -> [atom()].
 custom_names() ->
     case table_exists() of
         false ->
@@ -29,6 +30,7 @@ custom_names() ->
             proplists:get_keys(ets:tab2list(elvis_ruleset))
     end.
 
+-spec drop_custom() -> _.
 drop_custom() ->
     case table_exists() of
         false ->
@@ -37,8 +39,9 @@ drop_custom() ->
             ets:delete(elvis_ruleset)
     end.
 
+-spec is_defined(atom()) -> boolean().
 is_defined(Ruleset) ->
-    elvis_ruleset:rules(Ruleset) =/= [].
+    rules(Ruleset) =/= [].
 
 -spec rules(Group :: atom()) -> [elvis_rule:t()].
 rules(gitignore) ->
