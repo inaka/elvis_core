@@ -195,7 +195,7 @@ default_for(verbose) ->
 default_for(no_output) ->
     false;
 default_for(parallel) ->
-    1;
+    erlang:system_info(schedulers_online);
 default_for(rulesets) ->
     #{};
 default_for([config, dirs]) ->
