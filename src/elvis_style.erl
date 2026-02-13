@@ -1464,7 +1464,14 @@ max_function_length(Rule, ElvisConfig) ->
         BigFunctions
     ).
 
-big_functions(FunctionNodes, Lines, CountComments, CountWhitespace, MaxLength, LineIsCommentRegex) ->
+big_functions(
+    FunctionNodes,
+    Lines,
+    CountComments,
+    CountWhitespace,
+    MaxLength,
+    LineIsCommentRegex
+) ->
     % We do this to apply the configured filters
     lists:filtermap(
         fun(FunctionNode) ->
