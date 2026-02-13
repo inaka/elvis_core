@@ -2733,6 +2733,8 @@ macro_definition_parentheses(Rule, ElvisConfig) ->
             case {macro_attr_type(Elem1), macro_attr_type(Elem2)} of
                 {call, call} ->
                     false;
+                {call, op} ->
+                    false;
                 {call, _} ->
                     true;
                 {var, tree} ->
@@ -2765,6 +2767,8 @@ macro_definition_parentheses(Rule, ElvisConfig) ->
 macro_attr_type({Type, _, _}) ->
     Type;
 macro_attr_type({Type, _, _, _}) ->
+    Type;
+macro_attr_type({Type, _, _, _, _}) ->
     Type.
 
 is_stringified_function(Tree) ->
