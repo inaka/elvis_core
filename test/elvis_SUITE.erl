@@ -279,20 +279,11 @@ rock_this_not_skipping_files(_Config) ->
 rock_with_umbrella_apps(_Config) ->
     ElvisUmbrellaConfigFile = "../../../../config/elvis-umbrella.config",
     ElvisConfig = elvis_config:from_file(ElvisUmbrellaConfigFile),
-    {fail, [
-        #{file := "../../../../_build/test/lib/elvis_core/test/dirs/test/dir_test.erl"},
-        #{file := "../../../../_build/test/lib/elvis_core/test/dirs/src/dirs_src.erl"},
+    {fail, Failures} = elvis_core:rock(ElvisConfig),
+    [
         #{
             file :=
-                "../../../../_build/test/lib/elvis_core/test/dirs/apps/app3/src/app3_example.erl"
-        },
-        #{
-            file :=
-                "../../../../_build/test/lib/elvis_core/test/dirs/apps/app2/test/dirs_apps_app2_test.erl"
-        },
-        #{
-            file :=
-                "../../../../_build/test/lib/elvis_core/test/dirs/apps/app2/src/dirs_apps_app2_src.erl"
+                "../../../../_build/test/lib/elvis_core/test/dirs/apps/app1/src/dirs_apps_app1_src.erl"
         },
         #{
             file :=
@@ -300,10 +291,19 @@ rock_with_umbrella_apps(_Config) ->
         },
         #{
             file :=
-                "../../../../_build/test/lib/elvis_core/test/dirs/apps/app1/src/dirs_apps_app1_src.erl"
-        }
-    ]} =
-        elvis_core:rock(ElvisConfig),
+                "../../../../_build/test/lib/elvis_core/test/dirs/apps/app2/src/dirs_apps_app2_src.erl"
+        },
+        #{
+            file :=
+                "../../../../_build/test/lib/elvis_core/test/dirs/apps/app2/test/dirs_apps_app2_test.erl"
+        },
+        #{
+            file :=
+                "../../../../_build/test/lib/elvis_core/test/dirs/apps/app3/src/app3_example.erl"
+        },
+        #{file := "../../../../_build/test/lib/elvis_core/test/dirs/src/dirs_src.erl"},
+        #{file := "../../../../_build/test/lib/elvis_core/test/dirs/test/dir_test.erl"}
+    ] = lists:sort(Failures),
     ok.
 
 rock_with_invalid_rules(_Config) ->
