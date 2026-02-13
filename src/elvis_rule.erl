@@ -22,6 +22,7 @@
 -record(rule, {
     ns :: module(),
     name :: atom(),
+    rule_fun :: fun(),
     def = #{} :: def(),
     ignores = [] :: [ignorable()],
     disabled = false :: boolean(),
@@ -47,6 +48,7 @@ new(NS, Name, Def) ->
     #rule{
         ns = NS,
         name = Name,
+        rule_fun = fun NS:Name/2,
         def = Def,
         ignores = maps:get(ignore, Def, [])
     }.
@@ -188,10 +190,8 @@ ignored(Needle, Rule) ->
 -spec execute(t(), ElvisConfig) -> Results when
     ElvisConfig :: elvis_config:t(),
     Results :: [elvis_result:rule() | elvis_result:elvis_error()].
-execute(Rule, ElvisConfig) ->
-    NS = Rule#rule.ns,
-    Name = Rule#rule.name,
-    NS:Name(Rule, ElvisConfig).
+execute(#rule{rule_fun = RuleFun} = Rule, ElvisConfig) ->
+    RuleFun(Rule, ElvisConfig).
 
 -spec option(Key :: atom(), t()) -> Value :: undefined | term().
 option(Key, Rule) ->

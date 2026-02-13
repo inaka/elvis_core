@@ -351,6 +351,9 @@ function_naming_convention(Rule, ElvisConfig) ->
     Regex = elvis_rule:option(regex, Rule),
     ForbiddenRegex = elvis_rule:option(forbidden_regex, Rule),
 
+    RegexAllow = re_compile(Regex),
+    RegexBlock = re_compile(ForbiddenRegex),
+
     {nodes, FunctionNodes} = elvis_code:find(#{
         of_types => [function],
         inside => elvis_code:root(Rule, ElvisConfig)
@@ -360,7 +363,7 @@ function_naming_convention(Rule, ElvisConfig) ->
         fun(FunctionNode) ->
             FunctionName = function_name(FunctionNode),
 
-            case re_run(FunctionName, Regex) of
+            case re_run(FunctionName, RegexAllow) of
                 nomatch ->
                     {true,
                         elvis_result:new_item(
@@ -371,7 +374,7 @@ function_naming_convention(Rule, ElvisConfig) ->
                         )};
                 {match, _} when ForbiddenRegex =/= undefined ->
                     % We check for forbidden names only after accepted names
-                    case re_run(FunctionName, ForbiddenRegex) of
+                    case re_run(FunctionName, RegexBlock) of
                         {match, _} ->
                             {true,
                                 elvis_result:new_item(
@@ -408,25 +411,29 @@ variable_casing(Rule, ElvisConfig) ->
 
     GroupedZippers = maps:groups_from_list(fun canonical_variable_name_up/1, VarZippers),
 
-    lists:filtermap(
-        fun({_CanonicalVariableName, [FirstVarZipper | OtherVarZippers]}) ->
-            FirstName = canonical_variable_name(FirstVarZipper),
-            OtherNames = unique_other_names(OtherVarZippers, FirstName),
-
-            case OtherNames of
-                [] ->
-                    false;
-                _ ->
-                    {true,
-                        elvis_result:new_item(
-                            "variable '~s' (first used in line ~p) is written in "
-                            "different ways within the module: ~p",
-                            [FirstName, line(zipper:node(FirstVarZipper)), OtherNames],
-                            #{zipper => FirstVarZipper}
-                        )}
-            end
+    maps:fold(
+        fun
+            (_CanonicalVariableName, [_FirstVarZipper], Acc) ->
+                Acc;
+            (_CanonicalVariableName, [FirstVarZipper | OtherVarZippers], Acc) ->
+                FirstName = canonical_variable_name(FirstVarZipper),
+                case unique_other_names(OtherVarZippers, FirstName) of
+                    [] ->
+                        Acc;
+                    OtherNames ->
+                        [
+                            elvis_result:new_item(
+                                "variable '~s' (first used in line ~p) is written in "
+                                "different ways within the module: ~p",
+                                [FirstName, line(zipper:node(FirstVarZipper)), OtherNames],
+                                #{zipper => FirstVarZipper}
+                            )
+                            | Acc
+                        ]
+                end
         end,
-        maps:to_list(GroupedZippers)
+        [],
+        GroupedZippers
     ).
 
 unique_other_names(OtherVarZippers, FirstName) ->
@@ -447,12 +454,15 @@ canonical_variable_name(VarZipper) ->
     end.
 
 canonical_variable_name_up(VarZipper) ->
-    string:uppercase(canonical_variable_name(VarZipper)).
+    string:casefold(canonical_variable_name(VarZipper)).
 
 -spec variable_naming_convention(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 variable_naming_convention(Rule, ElvisConfig) ->
     Regex = elvis_rule:option(regex, Rule),
     ForbiddenRegex = elvis_rule:option(forbidden_regex, Rule),
+
+    RegexAllow = re_compile(Regex),
+    RegexBlock = re_compile(ForbiddenRegex),
 
     {zippers, VarZippers} = elvis_code:find(#{
         of_types => [var],
@@ -466,7 +476,7 @@ variable_naming_convention(Rule, ElvisConfig) ->
         fun(VarZipper) ->
             VariableName = variable_name(VarZipper),
 
-            case re_run(VariableName, Regex) of
+            case re_run(VariableName, RegexAllow) of
                 nomatch when VariableName =/= "_" ->
                     {true,
                         elvis_result:new_item(
@@ -477,7 +487,7 @@ variable_naming_convention(Rule, ElvisConfig) ->
                         )};
                 {match, _} when ForbiddenRegex =/= undefined ->
                     % We check for forbidden names only after accepted names
-                    case re_run(VariableName, ForbiddenRegex) of
+                    case re_run(VariableName, RegexBlock) of
                         {match, _} ->
                             {true,
                                 elvis_result:new_item(
@@ -1117,9 +1127,10 @@ max_module_length(Rule, _ElvisConfig) ->
     Src = iolist_to_binary(bin_parts_to_iolist(Src0, SrcParts)),
     Lines0 = elvis_utils:split_all_lines(Src, [trim]),
 
+    LineIsCommentRegex = line_is_comment_regex(),
     Lines = lists:filter(
         fun(Line) ->
-            filter_comments_and_whitespace(Line, CountComments, CountWhitespace)
+            filter_comments_and_whitespace(Line, CountComments, CountWhitespace, LineIsCommentRegex)
         end,
         Lines0
     ),
@@ -1271,7 +1282,10 @@ max_anonymous_function_clause_length(Rule, ElvisConfig) ->
         traverse => all
     }),
 
-    BigClauses = big_clauses(ClauseZippers, Lines, CountComments, CountWhitespace, MaxLength),
+    Regex = line_is_comment_regex(),
+    BigClauses = big_clauses(
+        ClauseZippers, Lines, CountComments, CountWhitespace, MaxLength, Regex
+    ),
 
     lists:map(
         fun({ClauseZipper, ClauseNum, LineLen}) ->
@@ -1306,7 +1320,10 @@ max_function_clause_length(Rule, ElvisConfig) ->
         filtered_from => zipper
     }),
 
-    BigClauses = big_clauses(ClauseZippers, Lines, CountComments, CountWhitespace, MaxLength),
+    LineIsCommentRegex = line_is_comment_regex(),
+    BigClauses = big_clauses(
+        ClauseZippers, Lines, CountComments, CountWhitespace, MaxLength, LineIsCommentRegex
+    ),
 
     lists:map(
         fun({ClauseZipper, ClauseNum, LineLen}) ->
@@ -1327,12 +1344,18 @@ max_function_clause_length(Rule, ElvisConfig) ->
         lists:reverse(BigClauses)
     ).
 
-big_clauses(ClauseZippers, Lines, CountComments, CountWhitespace, MaxLength) ->
+big_clauses(ClauseZippers, Lines, CountComments, CountWhitespace, MaxLength, LineIsCommentRegex) ->
     % We do this to recover the clause number and apply the configured filters
     {BigClauses, _} = lists:foldl(
         fun(ClauseZipper, {BigClauses0, ClauseNum}) ->
             ClauseNode = zipper:node(ClauseZipper),
-            FilteredLines = filtered_lines_in(ClauseNode, Lines, CountComments, CountWhitespace),
+            FilteredLines = filtered_lines_in(
+                ClauseNode,
+                Lines,
+                CountComments,
+                CountWhitespace,
+                LineIsCommentRegex
+            ),
             LineLen = length(FilteredLines),
             AccOut =
                 case LineLen > MaxLength of
@@ -1348,18 +1371,23 @@ big_clauses(ClauseZippers, Lines, CountComments, CountWhitespace, MaxLength) ->
     ),
     BigClauses.
 
-filtered_lines_in(Node, Lines, CountComments, CountWhitespace) ->
+filtered_lines_in(Node, Lines, CountComments, CountWhitespace, LineIsCommentRegex) ->
     {Min, Max} = node_line_limits(Node),
     NodeLines = lists:sublist(Lines, Min, Max - Min + 1),
     lists:filter(
         fun(NodeLine) ->
-            filter_comments_and_whitespace(NodeLine, CountComments, CountWhitespace)
+            filter_comments_and_whitespace(
+                NodeLine,
+                CountComments,
+                CountWhitespace,
+                LineIsCommentRegex
+            )
         end,
         NodeLines
     ).
 
-filter_comments_and_whitespace(NodeLine, CountComments, CountWhitespace) ->
-    (CountComments orelse not line_is_comment(NodeLine)) andalso
+filter_comments_and_whitespace(NodeLine, CountComments, CountWhitespace, LineIsCommentRegex) ->
+    (CountComments orelse not line_is_comment(NodeLine, LineIsCommentRegex)) andalso
         (CountWhitespace orelse not line_is_whitespace(NodeLine)).
 
 parse_clause_num(Num) when Num rem 100 >= 11, Num rem 100 =< 13 ->
@@ -1388,7 +1416,10 @@ max_anonymous_function_length(Rule, ElvisConfig) ->
         traverse => all
     }),
 
-    BigFunctions = big_functions(FunctionNodes, Lines, CountComments, CountWhitespace, MaxLength),
+    LineIsCommentRegex = line_is_comment_regex(),
+    BigFunctions = big_functions(
+        FunctionNodes, Lines, CountComments, CountWhitespace, MaxLength, LineIsCommentRegex
+    ),
 
     lists:map(
         fun({FunctionNode, LineLen}) ->
@@ -1416,7 +1447,10 @@ max_function_length(Rule, ElvisConfig) ->
         inside => elvis_code:root(Rule, ElvisConfig)
     }),
 
-    BigFunctions = big_functions(FunctionNodes, Lines, CountComments, CountWhitespace, MaxLength),
+    LineIsCommentRegex = line_is_comment_regex(),
+    BigFunctions = big_functions(
+        FunctionNodes, Lines, CountComments, CountWhitespace, MaxLength, LineIsCommentRegex
+    ),
 
     lists:map(
         fun({FunctionNode, LineLen}) ->
@@ -1430,11 +1464,24 @@ max_function_length(Rule, ElvisConfig) ->
         BigFunctions
     ).
 
-big_functions(FunctionNodes, Lines, CountComments, CountWhitespace, MaxLength) ->
+big_functions(
+    FunctionNodes,
+    Lines,
+    CountComments,
+    CountWhitespace,
+    MaxLength,
+    LineIsCommentRegex
+) ->
     % We do this to apply the configured filters
     lists:filtermap(
         fun(FunctionNode) ->
-            FilteredLines = filtered_lines_in(FunctionNode, Lines, CountComments, CountWhitespace),
+            FilteredLines = filtered_lines_in(
+                FunctionNode,
+                Lines,
+                CountComments,
+                CountWhitespace,
+                LineIsCommentRegex
+            ),
             LineLen = length(FilteredLines),
             case LineLen > MaxLength of
                 true ->
@@ -2197,6 +2244,9 @@ numeric_format(Rule, ElvisConfig) ->
     FloatRegex0 = elvis_rule:option(float_regex, Rule),
     FloatRegex = specific_or_default(FloatRegex0, Regex),
 
+    IntRegexCompiled = re_compile(IntRegex),
+    FloatRegexCompiled = re_compile(FloatRegex),
+
     Root = elvis_code:root(Rule, ElvisConfig),
 
     {nodes, IntegerNodes} = elvis_code:find(#{
@@ -2204,7 +2254,7 @@ numeric_format(Rule, ElvisConfig) ->
         inside => Root,
         filtered_by =>
             fun(NumberNode) ->
-                is_not_acceptable_number(NumberNode, IntRegex)
+                is_not_acceptable_number(NumberNode, IntRegexCompiled)
             end
     }),
 
@@ -2213,7 +2263,7 @@ numeric_format(Rule, ElvisConfig) ->
         inside => Root,
         filtered_by =>
             fun(NumberNode) ->
-                is_not_acceptable_number(NumberNode, FloatRegex)
+                is_not_acceptable_number(NumberNode, FloatRegexCompiled)
             end
     }),
 
@@ -2233,10 +2283,11 @@ is_not_acceptable_number(NumberNode, Regex) ->
 
 -spec prefer_unquoted_atoms(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 prefer_unquoted_atoms(Rule, ElvisConfig) ->
+    QuotesRegex = doesnt_need_quotes_regex(),
     {nodes, AtomNodes} = elvis_code:find(#{
         of_types => [atom],
         inside => elvis_code:root(Rule, ElvisConfig),
-        filtered_by => fun doesnt_need_quotes/1,
+        filtered_by => fun(AtomNode) -> doesnt_need_quotes(AtomNode, QuotesRegex) end,
         traverse => all
     }),
 
@@ -2252,9 +2303,12 @@ prefer_unquoted_atoms(Rule, ElvisConfig) ->
         AtomNodes
     ).
 
-doesnt_need_quotes(AtomNode) ->
+doesnt_need_quotes_regex() ->
+    re_compile("^'[a-z][a-zA-Z0-9_@]*'$").
+
+doesnt_need_quotes(AtomNode, Regex) ->
     AtomName0 = ktn_code:attr(text, AtomNode),
-    case re:run(AtomName0, "^'[a-z][a-zA-Z0-9_@]*'$", [{capture, none}]) of
+    case re:run(AtomName0, Regex, [{capture, none}]) of
         match ->
             AtomName = string:trim(AtomName0, both, "'"),
             Atom = list_to_atom(AtomName),
@@ -2728,6 +2782,7 @@ is_public_data_type_in(TypesToCheck, TypeAttrNode) ->
 
 -spec macro_definition_parentheses(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 macro_definition_parentheses(Rule, ElvisConfig) ->
+    StringifiedRegex = is_stringified_function_regex(),
     TypeMismatchingDefine =
         fun(#{attrs := #{value := [Elem1, Elem2]}}) ->
             case {macro_attr_type(Elem1), macro_attr_type(Elem2)} of
@@ -2738,9 +2793,7 @@ macro_definition_parentheses(Rule, ElvisConfig) ->
                 {call, _} ->
                     true;
                 {var, tree} ->
-                    is_stringified_function(
-                        get_tree_content(Elem2)
-                    );
+                    is_stringified_function(get_tree_content(Elem2), StringifiedRegex);
                 _ ->
                     false
             end
@@ -2771,9 +2824,11 @@ macro_attr_type({Type, _, _, _}) ->
 macro_attr_type({Type, _, _, _, _}) ->
     Type.
 
-is_stringified_function(Tree) ->
-    re:run(Tree, "^[a-zA-Z_][a-zA-Z0-9_]* ?:? ?[a-zA-Z0-9_]*\\([^)]*\\)$", [{capture, none}]) =:=
-        match.
+is_stringified_function_regex() ->
+    re_compile("^[a-zA-Z_][a-zA-Z0-9_]* ?:? ?[a-zA-Z0-9_]*\\([^)]*\\)$").
+
+is_stringified_function(Tree, StringifiedRegex) ->
+    match =:= re:run(Tree, StringifiedRegex, [{capture, none}]).
 
 get_tree_content({tree, text, _, Content}) ->
     Content.
@@ -2837,16 +2892,22 @@ re_compile_for_atom_type(false = _IsEnclosed, Regex, _RegexEnclosed) ->
 re_compile_for_atom_type(true = _IsEnclosed, _Regex, RegexEnclosed) ->
     re_compile(RegexEnclosed).
 
-line_is_comment(Line) ->
-    case re_run(Line, "^[ \t]*%") of
+line_is_comment_regex() ->
+    re_compile("^[ \t]*%").
+
+line_is_comment(Line, Regex) ->
+    case re_run(Line, Regex) of
         nomatch ->
             false;
         {match, _} ->
             true
     end.
 
+line_is_whitespace_regex() ->
+    re_compile("^[ \t]*$").
+
 line_is_whitespace(Line) ->
-    case re_run(Line, "^[ \t]*$") of
+    case re_run(Line, line_is_whitespace_regex()) of
         nomatch ->
             false;
         {match, _} ->
