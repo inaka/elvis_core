@@ -408,25 +408,29 @@ variable_casing(Rule, ElvisConfig) ->
 
     GroupedZippers = maps:groups_from_list(fun canonical_variable_name_up/1, VarZippers),
 
-    lists:filtermap(
-        fun({_CanonicalVariableName, [FirstVarZipper | OtherVarZippers]}) ->
-            FirstName = canonical_variable_name(FirstVarZipper),
-            OtherNames = unique_other_names(OtherVarZippers, FirstName),
-
-            case OtherNames of
-                [] ->
-                    false;
-                _ ->
-                    {true,
-                        elvis_result:new_item(
-                            "variable '~s' (first used in line ~p) is written in "
-                            "different ways within the module: ~p",
-                            [FirstName, line(zipper:node(FirstVarZipper)), OtherNames],
-                            #{zipper => FirstVarZipper}
-                        )}
-            end
+    maps:fold(
+        fun
+            (_CanonicalVariableName, [_FirstVarZipper], Acc) ->
+                Acc;
+            (_CanonicalVariableName, [FirstVarZipper | OtherVarZippers], Acc) ->
+                FirstName = canonical_variable_name(FirstVarZipper),
+                case unique_other_names(OtherVarZippers, FirstName) of
+                    [] ->
+                        Acc;
+                    OtherNames ->
+                        [
+                            elvis_result:new_item(
+                                "variable '~s' (first used in line ~p) is written in "
+                                "different ways within the module: ~p",
+                                [FirstName, line(zipper:node(FirstVarZipper)), OtherNames],
+                                #{zipper => FirstVarZipper}
+                            )
+                            | Acc
+                        ]
+                end
         end,
-        maps:to_list(GroupedZippers)
+        [],
+        GroupedZippers
     ).
 
 unique_other_names(OtherVarZippers, FirstName) ->
@@ -447,7 +451,7 @@ canonical_variable_name(VarZipper) ->
     end.
 
 canonical_variable_name_up(VarZipper) ->
-    string:uppercase(canonical_variable_name(VarZipper)).
+    string:casefold(canonical_variable_name(VarZipper)).
 
 -spec variable_naming_convention(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 variable_naming_convention(Rule, ElvisConfig) ->
