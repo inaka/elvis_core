@@ -109,6 +109,9 @@ maybe_ensure_loaded(NS) ->
     code:ensure_loaded(NS).
 
 -spec is_ignorable(term()) -> boolean().
+% String (file path / regex pattern)
+is_ignorable(String) when is_list(String) ->
+    io_lib:char_list(String) andalso length(String) > 0;
 % Module - invalid type
 is_ignorable(Module) when not is_tuple(Module) andalso not is_atom(Module) ->
     false;
