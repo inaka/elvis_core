@@ -462,7 +462,7 @@ do_validate_throw(FormatData) ->
                 [{Format0, Data0} | _] = FormatData,
                 {Format0, Data0}
         end,
-    throw({invalid_config, io_lib:format(Format, Data)}).
+    throw({invalid_config, lists:flatten(io_lib:format(Format, Data))}).
 
 is_nonempty_list(What, List) when not is_list(List) orelse List =:= [] ->
     {error, {"'~s' is expected to exist and be a non-empty list.", [What]}};
