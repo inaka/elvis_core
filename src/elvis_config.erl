@@ -283,7 +283,7 @@ rules(#{rules := UserRules, ruleset := Ruleset}) ->
     DefaultRules = elvis_ruleset:rules(Ruleset),
     merge_rules(UserRules, DefaultRules);
 rules(#{rules := Rules}) ->
-    Rules;
+    filter_deprecated_rules(Rules);
 rules(#{ruleset := Ruleset}) ->
     elvis_ruleset:rules(Ruleset);
 rules(#{}) ->
@@ -349,7 +349,8 @@ ignore_to_regexp(A) when is_atom(A) ->
 
 %% @doc Merge user rules (override) with elvis default rules.
 -spec merge_rules(UserRules :: list(), DefaultRules :: list()) -> [elvis_rule:t()].
-merge_rules(UserRules, DefaultRules) ->
+merge_rules(UserRules0, DefaultRules) ->
+    UserRules = filter_deprecated_rules(UserRules0),
     UnduplicatedRules =
         % Drops repeated rules
 
@@ -384,6 +385,19 @@ merge_rules(UserRules, DefaultRules) ->
         ),
 
     UnduplicatedRules ++ OverrideRules.
+
+filter_deprecated_rules(RuleTuples) ->
+    lists:filter(
+        fun(RuleTuple) ->
+            case elvis_rule:is_valid_from_tuple(RuleTuple) of
+                {deprecated, _} ->
+                    false;
+                _ ->
+                    true
+            end
+        end,
+        RuleTuples
+    ).
 
 -spec is_rule_override(
     Rule :: elvis_rule:t(),
@@ -534,6 +548,9 @@ all_custom_rulesets_have_valid_rules(What, CustomRulesets) ->
                 fun(RuleTuple, AccInI) ->
                     case elvis_rule:is_valid_from_tuple(RuleTuple) of
                         {true, _Rule} ->
+                            AccInI;
+                        {deprecated, Msg} ->
+                            elvis_utils:warn("~s Skipping.", [Msg]),
                             AccInI;
                         {false, ValidError} ->
                             [
@@ -711,6 +728,9 @@ all_rules_are_valid(What, RuleTuples) ->
             case elvis_rule:is_valid_from_tuple(RuleTuple) of
                 {true, Rule} ->
                     check_rule_for_options(Rule, AccInI);
+                {deprecated, Msg} ->
+                    elvis_utils:warn("~s Skipping.", [Msg]),
+                    AccInI;
                 {false, ValidError} ->
                     [io_lib:format("in '~s', " ++ ValidError, [What]) | AccInI]
             end
