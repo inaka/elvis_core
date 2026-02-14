@@ -19,6 +19,7 @@
     rock_with_rule_groups/1,
     rock_this_skipping_files/1,
     rock_this_not_skipping_files/1,
+    rock_with_glob_dirs_not_matching/1,
     rock_with_umbrella_apps/1,
     custom_ruleset/1,
     hrl_ruleset/1,
@@ -75,6 +76,19 @@ rock_with_list_config(_Config) ->
     ElvisConfig = [
         #{
             dirs => ["../../../../test/dirs/src"],
+            rules => [{elvis_text_style, line_length, disable}],
+            filter => "*.erl"
+        }
+    ],
+    ok = elvis_core:rock(ElvisConfig).
+
+%% Regression test for https://github.com/inaka/elvis_core/issues/543
+%% Glob patterns that don't match any existing directories should not cause
+%% a validation error.
+rock_with_glob_dirs_not_matching(_Config) ->
+    ElvisConfig = [
+        #{
+            dirs => ["absolutely/very/nonexistent/**/src", "../../../../test/dirs/src"],
             rules => [{elvis_text_style, line_length, disable}],
             filter => "*.erl"
         }
