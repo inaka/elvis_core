@@ -462,7 +462,7 @@ do_validate_throw(FormatData) ->
                 [{Format0, Data0} | _] = FormatData,
                 {Format0, Data0}
         end,
-    throw({invalid_config, io_lib:format(Format, Data)}).
+    throw({invalid_config, lists:flatten(io_lib:format(Format, Data))}).
 
 is_nonempty_list(What, List) when not is_list(List) orelse List =:= [] ->
     {error, {"'~s' is expected to exist and be a non-empty list.", [What]}};
@@ -626,10 +626,9 @@ config_is_valid(CustomRulesetNames, Config) ->
         % and the fact it knows about elvis_core's internals, but we
         % should shortly revisit this
         ok ?= map_keys_are_in(Config, [dirs, filter, ignore, ruleset, rules, files]),
-        Dirs = get_config_opt(dirs, Config),
-        ok ?= is_nonempty_list_of_dirs(dirs, Dirs),
         Filter = get_config_opt(filter, Config),
         ok ?= is_nonempty_string(filter, Filter),
+        Dirs = get_config_opt(dirs, Config),
         ok ?= all_dirs_filter_combos_are_valid(Dirs, Filter),
         Ignore = get_config_opt(ignore, Config),
         ok ?= is_list_of_ignorables(ignore, Ignore),
@@ -657,29 +656,6 @@ map_keys_are_in(Map, Keys) ->
                 ])}
     end.
 
-is_nonempty_list_of_dirs(What, List) when not is_list(List) orelse List =:= [] ->
-    {error, io_lib:format("'~s' is expected to be a non-empty list.", [What])};
-is_nonempty_list_of_dirs(What, List) ->
-    Filtered = [
-        Element
-     || Element <- List, not io_lib:char_list(Element) orelse not holds_dir(Element)
-    ],
-    case Filtered of
-        [] ->
-            ok;
-        _ ->
-            {error,
-                io_lib:format(
-                    "in '~s', the following elements are not (or don't contain) directories: ~s.",
-                    [What, elvis_utils:list_to_str(Filtered)]
-                )}
-    end.
-
-holds_dir(Element) ->
-    Dirs = filelib:wildcard(Element),
-    Filtered = [Dir || Dir <- Dirs, filelib:is_dir(Dir)],
-    Filtered =/= [].
-
 is_nonempty_string(What, String) ->
     case io_lib:char_list(String) andalso length(String) > 0 of
         true ->
@@ -689,30 +665,15 @@ is_nonempty_string(What, String) ->
     end.
 
 all_dirs_filter_combos_are_valid(Dirs, Filter) ->
-    AccOut = lists:foldl(
-        fun(Dir, AccIn) ->
-            case filelib:wildcard(filename:join(Dir, Filter)) of
-                [_ | _] ->
-                    AccIn;
-                _ ->
-                    [
-                        io_lib:format(
-                            "'<dir>' + '<filter>' combo '~s' + '~s' yielded no files to analyse.", [
-                                Dir, Filter
-                            ]
-                        )
-                        | AccIn
-                    ]
-            end
-        end,
-        [],
-        Dirs
-    ),
-    case AccOut of
-        [] ->
+    case lists:any(fun(Dir) -> filelib:wildcard(filename:join(Dir, Filter)) =/= [] end, Dirs) of
+        true ->
             ok;
-        _ ->
-            {error, lists:reverse(AccOut)}
+        false ->
+            {error,
+                io_lib:format(
+                    "no '<dir>' + '<filter>' combo in ~s + '~s' yielded any files to analyse.",
+                    [elvis_utils:list_to_str(Dirs), Filter]
+                )}
     end.
 
 is_list_of_ignorables(What, List) when not is_list(List) ->
