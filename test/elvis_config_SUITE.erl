@@ -9,6 +9,7 @@
 -export([rock_with_file_config/1]).
 -export([rock_with_rebar_default_config/1]).
 -export([throw_configuration/1]).
+-export([validate_config_with_string_ignore/1]).
 
 % ct_suite
 all() ->
@@ -60,3 +61,16 @@ throw_configuration(_Config) ->
                 ok
         end,
     _ = file:delete(Filename).
+
+%% @doc Regression test for https://github.com/inaka/elvis_core/issues/544
+%%      String patterns (e.g. .hrl file paths) must be accepted in ignore lists.
+validate_config_with_string_ignore(_Config) ->
+    Config = [
+        #{
+            dirs => ["../../../../_build/test/lib/elvis_core/test/examples/"],
+            filter => "*.erl",
+            ignore => ["include/file_that_i_want_to_ignore.hrl"],
+            ruleset => erl_files
+        }
+    ],
+    ok = elvis_config:validate_config(Config).
