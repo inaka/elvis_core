@@ -73,7 +73,8 @@
     verify_prefer_include/1,
     verify_prefer_strict_generators/1,
     verify_strict_term_equivalence/1,
-    verify_macro_definition_parentheses/1
+    verify_macro_definition_parentheses/1,
+    verify_strict_module_layout/1
 ]).
 %% -elvis attribute
 -export([
@@ -3208,6 +3209,140 @@ verify_macro_definition_parentheses(Config) ->
     [#{line_num := 5}, #{line_num := 6}, #{line_num := 7}, #{line_num := 8}] =
         elvis_test_utils:elvis_core_apply_rule(
             Config, elvis_style, macro_definition_parentheses, #{}, FailPath
+        ).
+
+verify_strict_module_layout(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+    #{order := Order} = elvis_style:default(strict_module_layout),
+
+    PassModule = pass_strict_module_layout,
+    PassPath = atom_to_list(PassModule) ++ "." ++ Ext,
+
+    [] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, strict_module_layout, #{order => Order}, PassPath
+        ),
+
+    % causing trouble with a poor order
+    [
+        #{line_num := 2},
+        #{line_num := 4},
+        #{line_num := 14},
+        #{line_num := 21},
+        #{line_num := 42},
+        #{line_num := 44}
+    ] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config,
+            elvis_style,
+            strict_module_layout,
+            #{order => [module, vsn, moduledoc, behaviour, comment, export_types, exports, body]},
+            PassPath
+        ),
+
+    % empty order list, same as disabling thiss rule
+    [] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, strict_module_layout, #{order => []}, PassPath
+        ),
+
+    FailModule = fail_strict_module_layout,
+    FailPath = atom_to_list(FailModule) ++ "." ++ Ext,
+
+    [_, _, _, _, _, _, _] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, strict_module_layout, #{order => Order}, FailPath
+        ),
+
+    % check a lot of stuff
+    [_, _, _, _, _, _, _, _, _, _, _, _] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config,
+            elvis_style,
+            strict_module_layout,
+            #{
+                order => [
+                    module,
+                    moduledoc,
+                    vsn,
+                    compile,
+                    behaviour,
+                    record,
+                    import,
+                    types,
+                    comment,
+                    exports,
+                    body
+                ]
+            },
+            FailPath
+        ),
+
+    % let's check just a few parts
+    [] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, strict_module_layout, #{order => [module]}, FailPath
+        ),
+
+    [] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config,
+            elvis_style,
+            strict_module_layout,
+            #{order => [module, exports, body]},
+            FailPath
+        ),
+
+    % empty order list, same as disabling thiss rule
+    [] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, strict_module_layout, #{order => []}, FailPath
+        ),
+
+    % this allways will fail
+    AllwaysFailModule = fail_strict_module_layout_allways,
+    AllwaysFailPath = atom_to_list(AllwaysFailModule) ++ "." ++ Ext,
+
+    [#{line_num := 5}] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config,
+            elvis_style,
+            strict_module_layout,
+            #{order => [module, types, export_types]},
+            AllwaysFailPath
+        ),
+
+    [#{line_num := 3}, #{line_num := 4}] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config,
+            elvis_style,
+            strict_module_layout,
+            #{order => [module, export_types, types]},
+            AllwaysFailPath
+        ),
+
+    % if we don't add the module part, this will not fail
+    % because 'type' will not have any defined previous elements,
+    % so it basically not violate the rule
+    [] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config,
+            elvis_style,
+            strict_module_layout,
+            #{order => [types, export_types]},
+            AllwaysFailPath
+        ),
+
+    % repeating a keyword does not have any effect,
+    % because we get the first entry from the order list when checking
+    % if the the previous element matches with the right order or not
+    [#{line_num := 5}] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config,
+            elvis_style,
+            strict_module_layout,
+            #{order => [module, types, export_types, types]},
+            AllwaysFailPath
         ).
 
 verify_elvis_attr_atom_naming_convention(Config) ->
