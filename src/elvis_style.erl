@@ -7,6 +7,7 @@
     function_naming_convention/2,
     variable_naming_convention/2,
     variable_casing/2,
+    consistent_variable_naming/2,
     macro_naming_convention/2,
     no_macros/2,
     no_specs/2,
@@ -411,30 +412,79 @@ variable_casing(Rule, ElvisConfig) ->
 
     GroupedZippers = maps:groups_from_list(fun canonical_variable_name_up/1, VarZippers),
 
-    maps:fold(
-        fun
-            (_CanonicalVariableName, [_FirstVarZipper], Acc) ->
-                Acc;
-            (_CanonicalVariableName, [FirstVarZipper | OtherVarZippers], Acc) ->
-                FirstName = canonical_variable_name(FirstVarZipper),
-                case unique_other_names(OtherVarZippers, FirstName) of
-                    [] ->
-                        Acc;
-                    OtherNames ->
-                        [
-                            elvis_result:new_item(
-                                "variable '~s' (first used in line ~p) is written in "
-                                "different ways within the module: ~p",
-                                [FirstName, line(zipper:node(FirstVarZipper)), OtherNames],
-                                #{zipper => FirstVarZipper}
-                            )
-                            | Acc
-                        ]
-                end
-        end,
-        [],
-        GroupedZippers
-    ).
+    maps:fold(fun variable_casing_fold/3, [], GroupedZippers).
+
+variable_casing_fold(_CanonicalVariableName, [_FirstVarZipper], Acc) ->
+    Acc;
+variable_casing_fold(_CanonicalVariableName, [FirstVarZipper | OtherVarZippers], Acc) ->
+    FirstName = canonical_variable_name(FirstVarZipper),
+    case unique_other_names(OtherVarZippers, FirstName) of
+        [] ->
+            Acc;
+        OtherNames ->
+            [
+                elvis_result:new_item(
+                    "variable '~s' (first used in line ~p) is written in "
+                    "different ways within the module: ~p",
+                    [FirstName, line(zipper:node(FirstVarZipper)), OtherNames],
+                    #{zipper => FirstVarZipper}
+                )
+                | Acc
+            ]
+    end.
+
+-spec consistent_variable_naming(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
+consistent_variable_naming(Rule, ElvisConfig) ->
+    Root = elvis_code:root(Rule, ElvisConfig),
+
+    {zippers, VarZippers} = elvis_code:find(#{
+        of_types => [var],
+        inside => Root,
+        filtered_by => fun is_var/1,
+        filtered_from => zipper,
+        traverse => all
+    }),
+
+    GroupedByTokens = maps:groups_from_list(
+        fun(Z) -> canonical_variable_tokenisation(canonical_variable_name(Z)) end,
+        VarZippers
+    ),
+
+    maps:fold(fun consistent_variable_naming_fold/3, [], GroupedByTokens).
+
+consistent_variable_naming_fold(_Tokens, [_], Acc) ->
+    Acc;
+consistent_variable_naming_fold(_Tokens, [FirstVarZipper | OtherVarZippers], Acc) ->
+    FirstName = canonical_variable_name(FirstVarZipper),
+    case unique_other_names(OtherVarZippers, FirstName) of
+        [] ->
+            Acc;
+        OtherNames ->
+            [
+                elvis_result:new_item(
+                    "variable '~s' (first used in line ~p) has ~w with: ~p",
+                    [
+                        FirstName,
+                        line(zipper:node(FirstVarZipper)),
+                        syntax_or_casing_difference,
+                        OtherNames
+                    ],
+                    #{zipper => FirstVarZipper}
+                )
+                | Acc
+            ]
+    end.
+
+-spec canonical_variable_tokenisation(unicode:chardata()) -> [unicode:chardata()].
+canonical_variable_tokenisation(Name) ->
+    % 1. Insert underscore between lowercase and uppercase (Camel/PascalCase)
+    S1 = re:replace(Name, "([a-z])([A-Z])", "\\1_\\2", [global, {return, list}]),
+    % 2. Replace hyphens with underscores (kebab-case)
+    S2 = re:replace(S1, "-", "_", [global, {return, list}]),
+    % 3. Lowercase everything
+    S3 = string:casefold(S2),
+    % 4. Split by underscore and automatically drop empty tokens
+    string:lexemes(S3, "_").
 
 unique_other_names(OtherVarZippers, FirstName) ->
     lists:usort([

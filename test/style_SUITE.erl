@@ -61,6 +61,7 @@
     verify_no_specs/1,
     verify_export_used_types/1,
     verify_consistent_variable_casing/1,
+    verify_consistent_variable_naming/1,
     verify_no_match_in_condition/1,
     verify_param_pattern_matching/1,
     verify_private_data_types/1,
@@ -148,6 +149,7 @@ groups() ->
             verify_function_naming_convention,
             verify_variable_naming_convention,
             verify_consistent_variable_casing,
+            verify_consistent_variable_naming,
             verify_nesting_level,
             verify_god_modules,
             verify_no_if_expression,
@@ -383,6 +385,26 @@ verify_consistent_variable_casing(Config) ->
     ] =
         elvis_test_utils:elvis_core_apply_rule(
             Config, elvis_style, variable_casing, #{}, PathFail
+        ).
+
+verify_consistent_variable_naming(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+    PathPass = "pass_consistent_variable_naming." ++ Ext,
+    [] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, consistent_variable_naming, #{}, PathPass
+        ),
+
+    PathFail = "fail_consistent_variable_naming." ++ Ext,
+    [
+        #{info := ["TypeVar", _, syntax_or_casing_difference, ["Type_var"]]},
+        #{info := ["SpecVar", _, syntax_or_casing_difference, ["SPEc_Var"]]},
+        #{info := ["FuncVar", _, syntax_or_casing_difference, ["FUnc_Var"]]},
+        #{info := ["IgnVar", _, syntax_or_casing_difference, ["IGN_Var"]]},
+        #{info := ["MyVar", _, syntax_or_casing_difference, ["My_Var"]]}
+    ] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, consistent_variable_naming, #{}, PathFail
         ).
 
 verify_macro_names_rule(Config) ->

@@ -202,6 +202,7 @@ erl_files_strict_rules() ->
 elvis_style_stricter_rules() ->
     [
         elvis_rule:new(elvis_style, always_shortcircuit),
+        elvis_rule:new(elvis_style, consistent_variable_naming),
         elvis_rule:new(elvis_style, generic_type),
         elvis_rule:new(elvis_style, max_anonymous_function_clause_length),
         elvis_rule:new(elvis_style, max_anonymous_function_length),
