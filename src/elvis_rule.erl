@@ -79,27 +79,33 @@ from_tuple({NS, Name, Def0}) when is_map(Def0) orelse Def0 =:= disable ->
 from_tuple(_) ->
     invalid_tuple.
 
--spec is_valid_from_tuple(tuple()) -> {true, t()} | {false, string()}.
-is_valid_from_tuple(Tuple) ->
-    case from_tuple(Tuple) of
-        invalid_tuple ->
-            {false, "got an invalid tuple (is def. a map or 'disable'?)."};
-        Rule ->
-            NS = ns(Rule),
-            _ = maybe_ensure_loaded(NS),
-            Name = name(Rule),
-            ArityForExecute = 2,
-            case
-                is_atom(NS) andalso is_atom(Name) andalso
-                    erlang:function_exported(NS, Name, ArityForExecute)
-            of
-                true ->
-                    {true, Rule};
-                _ ->
+-spec is_valid_from_tuple(tuple()) -> {true, t()} | {false, string()} | {deprecated, string()}.
+is_valid_from_tuple({NS, Name}) when is_atom(NS), is_atom(Name) ->
+    is_valid_from_tuple_check(NS, Name, #{});
+is_valid_from_tuple({NS, Name, Def}) when is_atom(NS), is_atom(Name), is_map(Def) ->
+    is_valid_from_tuple_check(NS, Name, Def);
+is_valid_from_tuple({NS, Name, disable}) when is_atom(NS), is_atom(Name) ->
+    is_valid_from_tuple_check(NS, Name, disable);
+is_valid_from_tuple(Rule) when is_record(Rule, rule) ->
+    {true, Rule};
+is_valid_from_tuple(_) ->
+    {false, "got an invalid tuple (is def. a map or 'disable'?)."}.
+
+is_valid_from_tuple_check(NS, Name, Def) ->
+    _ = maybe_ensure_loaded(NS),
+    ArityForExecute = 2,
+    case erlang:function_exported(NS, Name, ArityForExecute) of
+        true ->
+            {true, from_tuple({NS, Name, Def})};
+        false ->
+            case elvis_deprecated_rules:find(NS, Name) of
+                valid ->
                     {false,
                         io_lib:format("got an unexpected/invalid ~p:~p/~p combo.", [
                             NS, Name, ArityForExecute
-                        ])}
+                        ])};
+                {_, Msg} ->
+                    {deprecated, Msg}
             end
     end.
 
