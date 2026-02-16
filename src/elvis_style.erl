@@ -412,26 +412,30 @@ variable_casing(Rule, ElvisConfig) ->
 
     GroupedZippers = maps:groups_from_list(fun canonical_variable_name_up/1, VarZippers),
 
-    maps:fold(fun variable_casing_fold/3, [], GroupedZippers).
-
-variable_casing_fold(_CanonicalVariableName, [_FirstVarZipper], Acc) ->
-    Acc;
-variable_casing_fold(_CanonicalVariableName, [FirstVarZipper | OtherVarZippers], Acc) ->
-    FirstName = canonical_variable_name(FirstVarZipper),
-    case unique_other_names(OtherVarZippers, FirstName) of
-        [] ->
-            Acc;
-        OtherNames ->
-            [
-                elvis_result:new_item(
-                    "variable '~s' (first used in line ~p) is written in "
-                    "different ways within the module: ~p",
-                    [FirstName, line(zipper:node(FirstVarZipper)), OtherNames],
-                    #{zipper => FirstVarZipper}
-                )
-                | Acc
-            ]
-    end.
+    maps:fold(
+        fun
+            (_CanonicalVariableName, [_FirstVarZipper], Acc) ->
+                Acc;
+            (_CanonicalVariableName, [FirstVarZipper | OtherVarZippers], Acc) ->
+                FirstName = canonical_variable_name(FirstVarZipper),
+                case unique_other_names(OtherVarZippers, FirstName) of
+                    [] ->
+                        Acc;
+                    OtherNames ->
+                        [
+                            elvis_result:new_item(
+                                "variable '~s' (first used in line ~p) is written in "
+                                "different ways within the module: ~p",
+                                [FirstName, line(zipper:node(FirstVarZipper)), OtherNames],
+                                #{zipper => FirstVarZipper}
+                            )
+                            | Acc
+                        ]
+                end
+        end,
+        [],
+        GroupedZippers
+    ).
 
 -spec consistent_variable_naming(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 consistent_variable_naming(Rule, ElvisConfig) ->
@@ -450,30 +454,34 @@ consistent_variable_naming(Rule, ElvisConfig) ->
         VarZippers
     ),
 
-    maps:fold(fun consistent_variable_naming_fold/3, [], GroupedByTokens).
-
-consistent_variable_naming_fold(_Tokens, [_], Acc) ->
-    Acc;
-consistent_variable_naming_fold(_Tokens, [FirstVarZipper | OtherVarZippers], Acc) ->
-    FirstName = canonical_variable_name(FirstVarZipper),
-    case unique_other_names(OtherVarZippers, FirstName) of
-        [] ->
-            Acc;
-        OtherNames ->
-            [
-                elvis_result:new_item(
-                    "variable '~s' (first used in line ~p) has ~w with: ~p",
-                    [
-                        FirstName,
-                        line(zipper:node(FirstVarZipper)),
-                        syntax_or_casing_difference,
-                        OtherNames
-                    ],
-                    #{zipper => FirstVarZipper}
-                )
-                | Acc
-            ]
-    end.
+    maps:fold(
+        fun
+            (_Tokens, [_], Acc) ->
+                Acc;
+            (_Tokens, [FirstVarZipper | OtherVarZippers], Acc) ->
+                FirstName = canonical_variable_name(FirstVarZipper),
+                case unique_other_names(OtherVarZippers, FirstName) of
+                    [] ->
+                        Acc;
+                    OtherNames ->
+                        [
+                            elvis_result:new_item(
+                                "variable '~s' (first used in line ~p) has ~w with: ~p",
+                                [
+                                    FirstName,
+                                    line(zipper:node(FirstVarZipper)),
+                                    syntax_or_casing_difference,
+                                    OtherNames
+                                ],
+                                #{zipper => FirstVarZipper}
+                            )
+                            | Acc
+                        ]
+                end
+        end,
+        [],
+        GroupedByTokens
+    ).
 
 -spec canonical_variable_tokenisation(unicode:chardata()) -> [unicode:chardata()].
 canonical_variable_tokenisation(Name) ->
