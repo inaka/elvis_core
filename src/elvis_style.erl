@@ -341,7 +341,7 @@ default(no_macros) ->
     });
 default(code_complexity) ->
     elvis_rule:defmap(#{
-        max_complexity => 10
+        max_complexity => 30
     });
 default(abc_size) ->
     elvis_rule:defmap(#{

@@ -243,6 +243,8 @@ doesnt_work_on_beam_files() ->
 
 not_on_beam() ->
     [
+        elvis_rule:new(elvis_style, abc_size),
+        elvis_rule:new(elvis_style, code_complexity),
         elvis_rule:new(elvis_style, macro_naming_convention),
         elvis_rule:new(elvis_style, max_anonymous_function_clause_length),
         elvis_rule:new(elvis_style, max_anonymous_function_length),
