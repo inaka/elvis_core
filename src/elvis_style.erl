@@ -1,5 +1,10 @@
 -module(elvis_style).
 
+-elvis([
+    {elvis_style, abc_size, #{ignore => [{elvis_style, default, 1}]}},
+    {elvis_style, code_complexity, #{ignore => [{elvis_style, default, 1}]}}
+]).
+
 -behaviour(elvis_rule).
 -export([default/1]).
 
@@ -3457,7 +3462,8 @@ cyclomatic_points_for(#{type := Type} = Node) when
     Type =:= receive_case;
     Type =:= try_case;
     Type =:= try_catch;
-    Type =:= 'maybe'
+    Type =:= 'maybe';
+    Type =:= 'receive'
 ->
     max(0, count_direct_clauses(Node) - 1);
 cyclomatic_points_for(#{type := op} = Node) ->
@@ -3538,7 +3544,8 @@ abc_condition_points(#{type := Type} = Node) when
     Type =:= receive_case;
     Type =:= try_case;
     Type =:= try_catch;
-    Type =:= 'maybe'
+    Type =:= 'maybe';
+    Type =:= 'receive'
 ->
     max(0, count_direct_clauses(Node) - 1);
 abc_condition_points(#{type := op} = Node) ->
@@ -3546,6 +3553,8 @@ abc_condition_points(#{type := op} = Node) ->
         Op when
             Op =:= 'andalso';
             Op =:= 'orelse';
+            Op =:= 'and';
+            Op =:= 'or';
             Op =:= '==';
             Op =:= '/=';
             Op =:= '=:=';

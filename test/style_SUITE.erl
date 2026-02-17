@@ -3305,12 +3305,23 @@ verify_code_complexity(Config) ->
 
     PathFail = "fail_code_complexity." ++ Ext,
 
-    ct:comment("With a low threshold, the complex function should be caught"),
-    RuleConfig5 = #{max_complexity => 5},
-    [_] =
-        elvis_test_utils:elvis_core_apply_rule(
-            Config, elvis_style, code_complexity, RuleConfig5, PathFail
-        ),
+    ct:comment("With a low threshold, all functions should be caught"),
+    RuleConfig5 = #{max_complexity => 3},
+    Results5 = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, code_complexity, RuleConfig5, PathFail
+    ),
+    8 = length(Results5),
+    ExpectedCC = [
+        complex_function,
+        with_anon_fun,
+        with_bc,
+        with_lc,
+        with_maybe,
+        with_mc,
+        with_old_catch,
+        with_try_catch_after
+    ],
+    ExpectedCC = lists:sort([Name || #{info := [Name | _]} <- Results5]),
 
     ct:comment("With a high threshold, no violations"),
     RuleConfig20 = #{max_complexity => 20},
@@ -3338,12 +3349,24 @@ verify_abc_size(Config) ->
 
     PathFail = "fail_abc_size." ++ Ext,
 
-    ct:comment("With a low threshold, the big function should be caught"),
+    ct:comment("With a low threshold, all functions should be caught"),
     RuleConfig5 = #{max_abc_size => 5},
-    [_] =
-        elvis_test_utils:elvis_core_apply_rule(
-            Config, elvis_style, abc_size, RuleConfig5, PathFail
-        ),
+    Results5 = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, abc_size, RuleConfig5, PathFail
+    ),
+    9 = length(Results5),
+    ExpectedABC = [
+        big_function,
+        with_anon_fun,
+        with_bc,
+        with_lc,
+        with_maybe,
+        with_mc,
+        with_old_catch,
+        with_receive,
+        with_try_catch
+    ],
+    ExpectedABC = lists:sort([Name || #{info := [Name | _]} <- Results5]),
 
     ct:comment("With a high threshold, no violations"),
     RuleConfig100 = #{max_abc_size => 100},

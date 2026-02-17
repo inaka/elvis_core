@@ -1,5 +1,9 @@
 -module(elvis_ruleset).
 
+-elvis([
+    {elvis_style, abc_size, #{ignore => [{elvis_ruleset, elvis_style_rules, 0}]}},
+    {elvis_style, code_complexity, #{ignore => [{elvis_ruleset, elvis_style_rules, 0}]}}
+]).
 -format(#{inline_items => none}).
 
 -export([rules/1, load_custom/1, drop_custom/0, is_defined/1, custom_names/0]).
