@@ -60,7 +60,6 @@
     verify_no_includes/1,
     verify_no_specs/1,
     verify_export_used_types/1,
-    verify_consistent_variable_casing/1,
     verify_consistent_variable_naming/1,
     verify_no_match_in_condition/1,
     verify_param_pattern_matching/1,
@@ -148,7 +147,6 @@ groups() ->
         {beam_files, [sequence], [
             verify_function_naming_convention,
             verify_variable_naming_convention,
-            verify_consistent_variable_casing,
             verify_consistent_variable_naming,
             verify_nesting_level,
             verify_god_modules,
@@ -352,39 +350,6 @@ verify_variable_naming_convention(Config) ->
             variable_naming_convention,
             #{regex => DefaultRegex, forbidden_regex => "[0-9]"},
             PathForbidden
-        ).
-
-verify_consistent_variable_casing(Config) ->
-    Ext = proplists:get_value(test_file_ext, Config, "erl"),
-    PathPass = "pass_consistent_variable_casing." ++ Ext,
-    [] =
-        elvis_test_utils:elvis_core_apply_rule(
-            Config, elvis_style, variable_casing, #{}, PathPass
-        ),
-
-    PathFail = "fail_consistent_variable_casing." ++ Ext,
-    [
-        #{info := ["TypeVar", _, ["Typevar"]]},
-        #{
-            info :=
-                [
-                    "GeneralInconsistency",
-                    _,
-                    [
-                        "GENERALInconsistencY",
-                        "GENERALInconsistency",
-                        "GeNeRaLiNcOnSiStEnCy",
-                        "GeneralINCONSISTENCY"
-                    ]
-                ]
-        },
-        #{info := ["SpecVar", _, ["SPECVar"]]},
-        #{info := ["FuncVar", _, ["FUNCVar"]]},
-        #{info := ["FunVar", _, ["FunVAR"]]},
-        #{info := ["IgnVar", _, ["IGNVar"]]}
-    ] =
-        elvis_test_utils:elvis_core_apply_rule(
-            Config, elvis_style, variable_casing, #{}, PathFail
         ).
 
 verify_consistent_variable_naming(Config) ->
