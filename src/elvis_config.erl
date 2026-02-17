@@ -2,6 +2,11 @@
 
 -feature(maybe_expr, enable).
 
+-elvis([
+    {elvis_style, abc_size, #{ignore => [{elvis_config, default_for, 1}]}},
+    {elvis_style, code_complexity, #{ignore => [{elvis_config, default_for, 1}]}}
+]).
+
 -export([from_rebar/1, from_file/1, validate_config/1, default/0]).
 %% Getters
 -export([dirs/1, ignore/1, filter/1, files/1, rules/1, ruleset/1]).

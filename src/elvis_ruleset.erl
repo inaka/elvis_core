@@ -1,5 +1,9 @@
 -module(elvis_ruleset).
 
+-elvis([
+    {elvis_style, abc_size, #{ignore => [{elvis_ruleset, elvis_style_rules, 0}]}},
+    {elvis_style, code_complexity, #{ignore => [{elvis_ruleset, elvis_style_rules, 0}]}}
+]).
 -format(#{inline_items => none}).
 
 -export([rules/1, load_custom/1, drop_custom/0, is_defined/1, custom_names/0]).
@@ -110,7 +114,9 @@ hrl_files_strict_rules() ->
 
 doesnt_work_on_hrl_files() ->
     [
+        elvis_rule:new(elvis_style, abc_size),
         elvis_rule:new(elvis_style, behaviour_spelling),
+        elvis_rule:new(elvis_style, code_complexity),
         elvis_rule:new(elvis_style, dont_repeat_yourself),
         elvis_rule:new(elvis_style, export_used_types),
         elvis_rule:new(elvis_style, function_naming_convention),
@@ -201,7 +207,9 @@ erl_files_strict_rules() ->
 
 elvis_style_stricter_rules() ->
     [
+        elvis_rule:new(elvis_style, abc_size),
         elvis_rule:new(elvis_style, always_shortcircuit),
+        elvis_rule:new(elvis_style, code_complexity),
         elvis_rule:new(elvis_style, generic_type),
         elvis_rule:new(elvis_style, max_anonymous_function_clause_length),
         elvis_rule:new(elvis_style, max_anonymous_function_length),
@@ -239,6 +247,8 @@ doesnt_work_on_beam_files() ->
 
 not_on_beam() ->
     [
+        elvis_rule:new(elvis_style, abc_size),
+        elvis_rule:new(elvis_style, code_complexity),
         elvis_rule:new(elvis_style, macro_naming_convention),
         elvis_rule:new(elvis_style, max_anonymous_function_clause_length),
         elvis_rule:new(elvis_style, max_anonymous_function_length),

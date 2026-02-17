@@ -1,5 +1,10 @@
 -module(elvis_deprecated_rules).
 
+-elvis([
+    {elvis_style, abc_size, #{ignore => [{elvis_deprecated_rules, find, 1}]}},
+    {elvis_style, code_complexity, #{ignore => [{elvis_deprecated_rules, find, 1}]}}
+]).
+
 -export([find/2]).
 
 %% @doc Returns deprecation info for known deprecated or renamed rules.
