@@ -110,6 +110,7 @@ hrl_files_strict_rules() ->
 
 doesnt_work_on_hrl_files() ->
     [
+        elvis_rule:new(elvis_style, abc_size),
         elvis_rule:new(elvis_style, behaviour_spelling),
         elvis_rule:new(elvis_style, dont_repeat_yourself),
         elvis_rule:new(elvis_style, export_used_types),
@@ -201,6 +202,7 @@ erl_files_strict_rules() ->
 
 elvis_style_stricter_rules() ->
     [
+        elvis_rule:new(elvis_style, abc_size),
         elvis_rule:new(elvis_style, always_shortcircuit),
         elvis_rule:new(elvis_style, generic_type),
         elvis_rule:new(elvis_style, max_anonymous_function_clause_length),

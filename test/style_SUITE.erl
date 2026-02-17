@@ -73,7 +73,8 @@
     verify_prefer_include/1,
     verify_prefer_strict_generators/1,
     verify_strict_term_equivalence/1,
-    verify_macro_definition_parentheses/1
+    verify_macro_definition_parentheses/1,
+    verify_abc_size/1
 ]).
 %% -elvis attribute
 -export([
@@ -179,7 +180,8 @@ groups() ->
             verify_behaviour_spelling,
             verify_param_pattern_matching,
             verify_private_data_types,
-            verify_simplify_anonymous_functions
+            verify_simplify_anonymous_functions,
+            verify_abc_size
         ]}
     ].
 
@@ -3295,6 +3297,39 @@ verify_elvis_attr_param_pattern_matching(Config) ->
 
 verify_elvis_attr_private_data_types(Config) ->
     verify_elvis_attr(Config, "pass_private_data_types_elvis_attr").
+
+verify_abc_size(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PathFail = "fail_abc_size." ++ Ext,
+
+    ct:comment("With a low threshold, the big function should be caught"),
+    RuleConfig5 = #{max_abc_size => 5},
+    [_] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, abc_size, RuleConfig5, PathFail
+        ),
+
+    ct:comment("With a high threshold, no violations"),
+    RuleConfig100 = #{max_abc_size => 100},
+    [] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, abc_size, RuleConfig100, PathFail
+        ),
+
+    ct:comment("Ignore module"),
+    IgnoreRule = #{ignore => [fail_abc_size]},
+    [] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, abc_size, IgnoreRule, PathFail
+        ),
+
+    ct:comment("Simple functions should pass"),
+    PathPass = "pass_abc_size." ++ Ext,
+    [] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, abc_size, RuleConfig5, PathPass
+        ).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Private

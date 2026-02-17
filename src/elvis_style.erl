@@ -67,7 +67,8 @@
     prefer_include/2,
     prefer_strict_generators/2,
     strict_term_equivalence/2,
-    macro_definition_parentheses/2
+    macro_definition_parentheses/2,
+    abc_size/2
 ]).
 
 % The whole file is considered to have either callback functions or rules.
@@ -336,6 +337,10 @@ default(no_operation_on_same_value) ->
 default(no_macros) ->
     elvis_rule:defmap(#{
         allow => []
+    });
+default(abc_size) ->
+    elvis_rule:defmap(#{
+        max_abc_size => 30
     });
 default(_RuleName) ->
     elvis_rule:defmap(#{}).
@@ -3389,6 +3394,119 @@ ignore_bin_parts_1([{Start, Len} | T], Prev, Src) ->
     Parts :: [binary_part()].
 bin_parts_to_iolist(Src, Parts) when is_binary(Src), is_list(Parts) ->
     [binary_part(Src, Start, Len) || {Start, Len} <- Parts].
+
+-spec abc_size(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
+abc_size(Rule, ElvisConfig) ->
+    MaxAbcSize = elvis_rule:option(max_abc_size, Rule),
+    Root = elvis_code:root(Rule, ElvisConfig),
+    {nodes, FunctionNodes} = elvis_code:find(#{
+        of_types => [function],
+        inside => Root
+    }),
+    lists:filtermap(
+        fun(FunctionNode) ->
+            {A, B, C, Magnitude} = compute_abc_size(FunctionNode),
+            MaxAbcSize < Magnitude andalso
+                {true,
+                    elvis_result:new_item(
+                        "the ABC size of '~p/~p' is ~.1f (<~p, ~p, ~p>),"
+                        " which exceeds the configured maximum of ~p",
+                        [
+                            ktn_code:attr(name, FunctionNode),
+                            ktn_code:attr(arity, FunctionNode),
+                            Magnitude,
+                            A,
+                            B,
+                            C,
+                            MaxAbcSize
+                        ],
+                        #{node => FunctionNode, limit => MaxAbcSize}
+                    )}
+        end,
+        FunctionNodes
+    ).
+
+%% Computes the ABC size vector and its magnitude for a function node.
+-spec compute_abc_size(ktn_code:tree_node()) ->
+    {non_neg_integer(), non_neg_integer(), non_neg_integer(), float()}.
+compute_abc_size(FunctionNode) ->
+    A = count_abc_nodes(FunctionNode, fun add_assignment/1),
+    B = count_abc_nodes(FunctionNode, fun add_branch/1),
+    C = count_abc_conditions(FunctionNode),
+    Magnitude = math:sqrt(A * A + B * B + C * C),
+    {A, B, C, Magnitude}.
+
+%% Recursively counts nodes matching a predicate, skipping anonymous functions.
+-spec count_abc_nodes(ktn_code:tree_node(), fun((ktn_code:tree_node()) -> 0 | 1)) ->
+    non_neg_integer().
+count_abc_nodes(#{type := Type}, _Pred) when Type =:= 'fun'; Type =:= named_fun ->
+    0;
+count_abc_nodes(#{content := Content} = Node, Pred) ->
+    Own = Pred(Node),
+    Own + lists:sum([count_abc_nodes(Child, Pred) || Child <- Content]);
+count_abc_nodes(Node, Pred) ->
+    Pred(Node).
+
+%% Counts conditions: branching clauses beyond first + andalso/orelse + comparison ops.
+-spec count_abc_conditions(ktn_code:tree_node()) -> non_neg_integer().
+count_abc_conditions(#{type := Type}) when Type =:= 'fun'; Type =:= named_fun ->
+    0;
+count_abc_conditions(#{content := Content} = Node) ->
+    Own = abc_condition_points(Node),
+    Own + lists:sum([count_abc_conditions(Child) || Child <- Content]);
+count_abc_conditions(_) ->
+    0.
+
+-spec abc_condition_points(ktn_code:tree_node()) -> non_neg_integer().
+abc_condition_points(#{type := Type} = Node) when
+    Type =:= 'case';
+    Type =:= 'if';
+    Type =:= receive_case;
+    Type =:= try_case;
+    Type =:= try_catch;
+    Type =:= 'maybe'
+->
+    max(0, count_direct_clauses(Node) - 1);
+abc_condition_points(#{type := op} = Node) ->
+    case ktn_code:attr(operation, Node) of
+        Op when
+            Op =:= 'andalso';
+            Op =:= 'orelse';
+            Op =:= '==';
+            Op =:= '/=';
+            Op =:= '=:=';
+            Op =:= '=/=';
+            Op =:= '<';
+            Op =:= '>';
+            Op =:= '=<';
+            Op =:= '>='
+        ->
+            1;
+        _ ->
+            0
+    end;
+abc_condition_points(_) ->
+    0.
+
+%% Checks if a node is an assignment (match expression).
+-spec add_assignment(ktn_code:tree_node()) -> 0 | 1.
+add_assignment(#{type := match}) -> 1;
+add_assignment(_) -> 0.
+
+%% Checks if a node is a branch (function call).
+-spec add_branch(ktn_code:tree_node()) -> 0 | 1.
+add_branch(#{type := call}) -> 1;
+add_branch(_) -> 0.
+
+%% Counts direct clause children of a node (not deeply nested ones).
+-spec count_direct_clauses(ktn_code:tree_node()) -> non_neg_integer().
+count_direct_clauses(Node) ->
+    case ktn_code:content(Node) of
+        [] ->
+            0;
+        Content ->
+            length([C || C <- Content, ktn_code:type(C) =:= clause])
+    end.
 
 line(Node) ->
     {Line, _} = ktn_code:attr(location, Node),
