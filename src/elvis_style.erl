@@ -68,6 +68,7 @@
     prefer_strict_generators/2,
     strict_term_equivalence/2,
     macro_definition_parentheses/2,
+    code_complexity/2,
     abc_size/2
 ]).
 
@@ -337,6 +338,10 @@ default(no_operation_on_same_value) ->
 default(no_macros) ->
     elvis_rule:defmap(#{
         allow => []
+    });
+default(code_complexity) ->
+    elvis_rule:defmap(#{
+        max_complexity => 10
     });
 default(abc_size) ->
     elvis_rule:defmap(#{
@@ -3394,6 +3399,75 @@ ignore_bin_parts_1([{Start, Len} | T], Prev, Src) ->
     Parts :: [binary_part()].
 bin_parts_to_iolist(Src, Parts) when is_binary(Src), is_list(Parts) ->
     [binary_part(Src, Start, Len) || {Start, Len} <- Parts].
+
+-spec code_complexity(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
+code_complexity(Rule, ElvisConfig) ->
+    MaxComplexity = elvis_rule:option(max_complexity, Rule),
+    Root = elvis_code:root(Rule, ElvisConfig),
+    {nodes, FunctionNodes} = elvis_code:find(#{
+        of_types => [function],
+        inside => Root
+    }),
+    lists:filtermap(
+        fun(FunctionNode) ->
+            Complexity = compute_cyclomatic_complexity(FunctionNode),
+            MaxComplexity < Complexity andalso
+                {true,
+                    elvis_result:new_item(
+                        "the cyclomatic complexity of '~p/~p' is ~p,"
+                        " which exceeds the configured maximum of ~p",
+                        [
+                            ktn_code:attr(name, FunctionNode),
+                            ktn_code:attr(arity, FunctionNode),
+                            Complexity,
+                            MaxComplexity
+                        ],
+                        #{node => FunctionNode, limit => MaxComplexity}
+                    )}
+        end,
+        FunctionNodes
+    ).
+
+%% Computes cyclomatic complexity for a function node.
+%%  Base complexity is 1. Each additional function clause adds 1.
+%%  Then we recursively count decision points in the function body.
+-spec compute_cyclomatic_complexity(ktn_code:tree_node()) -> pos_integer().
+compute_cyclomatic_complexity(FunctionNode) ->
+    ExtraClauses = max(0, count_direct_clauses(FunctionNode) - 1),
+    1 + ExtraClauses + cyclomatic_decision_points(FunctionNode).
+
+%% Recursively counts decision points in a node's subtree.
+%% Skips anonymous functions (their complexity is their own).
+-spec cyclomatic_decision_points(ktn_code:tree_node()) -> non_neg_integer().
+cyclomatic_decision_points(#{type := Type}) when Type =:= 'fun'; Type =:= named_fun ->
+    0;
+cyclomatic_decision_points(#{content := Content}) ->
+    lists:sum([
+        cyclomatic_points_for(Child) + cyclomatic_decision_points(Child)
+     || Child <- Content
+    ]);
+cyclomatic_decision_points(_) ->
+    0.
+
+%% Returns the number of decision points introduced by a single node.
+-spec cyclomatic_points_for(ktn_code:tree_node()) -> non_neg_integer().
+cyclomatic_points_for(#{type := Type} = Node) when
+    Type =:= 'case';
+    Type =:= 'if';
+    Type =:= receive_case;
+    Type =:= try_case;
+    Type =:= try_catch;
+    Type =:= 'maybe'
+->
+    max(0, count_direct_clauses(Node) - 1);
+cyclomatic_points_for(#{type := op} = Node) ->
+    case ktn_code:attr(operation, Node) of
+        'andalso' -> 1;
+        'orelse' -> 1;
+        _ -> 0
+    end;
+cyclomatic_points_for(_) ->
+    0.
 
 -spec abc_size(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 abc_size(Rule, ElvisConfig) ->
