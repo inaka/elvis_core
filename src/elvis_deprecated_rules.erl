@@ -42,8 +42,5 @@ find(elvis_style, macro_names) ->
     {renamed, "Rule 'elvis_style:macro_names' has been renamed to 'macro_naming_convention'."};
 find(elvis_style, consistent_generic_type) ->
     {renamed, "Rule 'elvis_style:consistent_generic_type' has been renamed to 'generic_type'."};
-find(elvis_style, consistent_variable_casing) ->
-    {renamed,
-        "Rule 'elvis_style:consistent_variable_casing' has been renamed to 'variable_casing'."};
 find(_, _) ->
     valid.

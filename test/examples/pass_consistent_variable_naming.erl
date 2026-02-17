@@ -1,8 +1,8 @@
--module(pass_consistent_variable_casing).
+-module(pass_consistent_variable_naming).
 
 -export_type([one/1, two/1, general/1]).
--export([one/1, two/1, general/1]).
--export([funs/0]).
+-export([one/1, two/1]).
+-export([my_fun/1, my_fun/2]).
 -export([ignored/0]).
 
 %% Inconsistency in types
@@ -17,14 +17,11 @@ one(FuncVar) -> {one, FuncVar}.
 -spec two(SpecVar) -> {two, SpecVar}.
 two(FuncVar) -> {two, FuncVar}.
 
--spec general(GeneralConsistency) -> {general, GeneralConsistency}.
-general(GeneralConsistency) -> {general, GeneralConsistency}.
+my_fun(MyVar) ->
+    my_fun(MyVar, too).
 
-funs() ->
-    One = fun(FunVar) -> {one, FunVar} end,
-    Two = fun(FunVar) -> {two, FunVar} end,
-    General = fun(GeneralConsistency) -> {general, GeneralConsistency} end,
-    General(Two(One(inconsistency))).
+my_fun(MyVar, MyOtherVar) ->
+    {MyVar, MyOtherVar}.
 
 ignored() ->
     One = fun(IgnVar) -> {one, IgnVar} end,

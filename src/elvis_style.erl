@@ -6,7 +6,7 @@
 -export([
     function_naming_convention/2,
     variable_naming_convention/2,
-    variable_casing/2,
+    consistent_variable_naming/2,
     macro_naming_convention/2,
     no_macros/2,
     no_specs/2,
@@ -397,8 +397,8 @@ function_name(FunctionNode) ->
     FunctionName = ktn_code:attr(name, FunctionNode),
     unicode:characters_to_list(atom_to_list(FunctionName)).
 
--spec variable_casing(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
-variable_casing(Rule, ElvisConfig) ->
+-spec consistent_variable_naming(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
+consistent_variable_naming(Rule, ElvisConfig) ->
     Root = elvis_code:root(Rule, ElvisConfig),
 
     {zippers, VarZippers} = elvis_code:find(#{
@@ -409,13 +409,16 @@ variable_casing(Rule, ElvisConfig) ->
         traverse => all
     }),
 
-    GroupedZippers = maps:groups_from_list(fun canonical_variable_name_up/1, VarZippers),
+    GroupedByTokens = maps:groups_from_list(
+        fun(Z) -> canonical_variable_tokenisation(canonical_variable_name(Z)) end,
+        VarZippers
+    ),
 
     maps:fold(
         fun
-            (_CanonicalVariableName, [_FirstVarZipper], Acc) ->
+            (_Tokens, [_], Acc) ->
                 Acc;
-            (_CanonicalVariableName, [FirstVarZipper | OtherVarZippers], Acc) ->
+            (_Tokens, [FirstVarZipper | OtherVarZippers], Acc) ->
                 FirstName = canonical_variable_name(FirstVarZipper),
                 case unique_other_names(OtherVarZippers, FirstName) of
                     [] ->
@@ -423,9 +426,13 @@ variable_casing(Rule, ElvisConfig) ->
                     OtherNames ->
                         [
                             elvis_result:new_item(
-                                "variable '~s' (first used in line ~p) is written in "
-                                "different ways within the module: ~p",
-                                [FirstName, line(zipper:node(FirstVarZipper)), OtherNames],
+                                "variable '~s' (first used in line ~p) has ~w with: ~p",
+                                [
+                                    FirstName,
+                                    line(zipper:node(FirstVarZipper)),
+                                    syntax_or_casing_difference,
+                                    OtherNames
+                                ],
                                 #{zipper => FirstVarZipper}
                             )
                             | Acc
@@ -433,8 +440,19 @@ variable_casing(Rule, ElvisConfig) ->
                 end
         end,
         [],
-        GroupedZippers
+        GroupedByTokens
     ).
+
+-spec canonical_variable_tokenisation(unicode:chardata()) -> [unicode:chardata()].
+canonical_variable_tokenisation(Name) ->
+    % 1. Insert underscore between lowercase and uppercase (Camel/PascalCase)
+    S1 = re:replace(Name, "([a-z])([A-Z])", "\\1_\\2", [global, {return, list}]),
+    % 2. Replace hyphens with underscores (kebab-case)
+    S2 = re:replace(S1, "-", "_", [global, {return, list}]),
+    % 3. Lowercase everything
+    S3 = string:casefold(S2),
+    % 4. Split by underscore and automatically drop empty tokens
+    string:lexemes(S3, "_").
 
 unique_other_names(OtherVarZippers, FirstName) ->
     lists:usort([
@@ -452,9 +470,6 @@ canonical_variable_name(VarZipper) ->
         VarNameStr ->
             VarNameStr
     end.
-
-canonical_variable_name_up(VarZipper) ->
-    string:casefold(canonical_variable_name(VarZipper)).
 
 -spec variable_naming_convention(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 variable_naming_convention(Rule, ElvisConfig) ->

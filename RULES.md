@@ -85,7 +85,7 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [Simplify Anonymous Functions](doc_rules/elvis_style/simplify_anonymous_functions.md)
 - [State Record And Type](doc_rules/elvis_style/state_record_and_type.md)
 - [Strict Term Equivalence](doc_rules/elvis_style/strict_term_equivalence.md)
-- [Variable Casing](doc_rules/elvis_style/variable_casing.md)
+- [Consistent Variable Naming](doc_rules/elvis_style/consistent_variable_naming.md)
 - [Variable Naming Convention](doc_rules/elvis_style/variable_naming_convention.md)
 - [Parentheses in Macro Definitions](doc_rules/elvis_style/macro_definition_parentheses.md)
 
