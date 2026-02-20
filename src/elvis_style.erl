@@ -1730,26 +1730,28 @@ atom_name_matches_regexes(AtomZipper, Rule) ->
     {IsEnclosed, AtomName} = string_strip_enclosed(AtomName0),
     IsExceptionClass = is_exception_or_non_reversible(AtomNodeValue),
 
-    RegexAllow = re_compile_for_atom_type(IsEnclosed, Regex, RegexEnclosed),
-    RegexBlock = re_compile_for_atom_type(IsEnclosed, ForbiddenRegex, ForbiddenEnclosedRegex),
+    {RegexAllowStr, RegexAllow} = re_compile_for_atom_type(IsEnclosed, Regex, RegexEnclosed),
+    {RegexBlockStr, RegexBlock} = re_compile_for_atom_type(
+        IsEnclosed, ForbiddenRegex, ForbiddenEnclosedRegex
+    ),
 
     AtomNameUnicode = unicode:characters_to_list(AtomName),
     case re_run(AtomNameUnicode, RegexAllow) of
         _ when IsExceptionClass, not IsEnclosed ->
             ok;
         nomatch when not IsEnclosed ->
-            {not_acceptable, "atom", AtomName, RegexAllow};
+            {not_acceptable, "atom", AtomName, RegexAllowStr};
         nomatch when IsEnclosed ->
-            {not_acceptable, "enclosed atom", AtomName, RegexAllow};
+            {not_acceptable, "enclosed atom", AtomName, RegexAllowStr};
         {match, _Captured} when RegexBlock =/= undefined ->
             % We check for forbidden names only after accepted names
             case re_run(AtomNameUnicode, RegexBlock) of
                 _ when IsExceptionClass, not IsEnclosed ->
                     ok;
                 {match, _} when not IsEnclosed ->
-                    {blocked, "atom", AtomName, RegexBlock};
+                    {blocked, "atom", AtomName, RegexBlockStr};
                 {match, _} when IsEnclosed ->
-                    {blocked, "enclosed atom", AtomName, RegexBlock};
+                    {blocked, "enclosed atom", AtomName, RegexBlockStr};
                 _ ->
                     ok
             end;
@@ -2274,8 +2276,17 @@ numeric_format(Rule, ElvisConfig) ->
             [ktn_code:attr(text, NumberNode), Regex],
             #{node => NumberNode}
         )
-     || NumberNode <- IntegerNodes ++ FloatNodes
-    ].
+     || NumberNode <- IntegerNodes
+    ] ++
+        [
+            elvis_result:new_item(
+                "the format of number '~s' is not acceptable by regular "
+                "expression '~s'",
+                [ktn_code:attr(text, NumberNode), FloatRegex],
+                #{node => NumberNode}
+            )
+         || NumberNode <- FloatNodes
+        ].
 
 is_not_acceptable_number(NumberNode, Regex) ->
     Number = ktn_code:attr(text, NumberNode),
@@ -2884,13 +2895,13 @@ string_strip_enclosed(NonEnclosedAtomName) ->
     {IsEnclosed, NonEnclosedAtomName}.
 
 re_compile_for_atom_type(false = _IsEnclosed, undefined = _Regex, _RegexEnclosed) ->
-    undefined;
+    {undefined, undefined};
 re_compile_for_atom_type(true = _IsEnclosed, _Regex, undefined = _RegexEnclosed) ->
-    undefined;
+    {undefined, undefined};
 re_compile_for_atom_type(false = _IsEnclosed, Regex, _RegexEnclosed) ->
-    re_compile(Regex);
+    {Regex, re_compile(Regex)};
 re_compile_for_atom_type(true = _IsEnclosed, _Regex, RegexEnclosed) ->
-    re_compile(RegexEnclosed).
+    {RegexEnclosed, re_compile(RegexEnclosed)}.
 
 line_is_comment_regex() ->
     re_compile("^[ \t]*%").
