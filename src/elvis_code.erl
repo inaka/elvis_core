@@ -141,10 +141,6 @@ all_zipper(Root) ->
     MakeNode = fun(Node, _) -> Node end,
     zipper:new(IsBranch, Children, MakeNode, Root).
 
-%% Note: I'm not sure why, sometimes, traversing a zipper may result in going through the same
-%%       node twice, but it has happened. If you remove the call to lists:uniq/1 in the next
-%%       line, you can see it for yourself: Just run the tests and the one for
-%%       simplify_anonymous_functions will fail because it will emit duplicate results.
 find_with_zipper(Pred, Zipper, Results, Keys, Mode) ->
     case zipper:is_end(Zipper) of
         true ->
@@ -160,6 +156,9 @@ find_with_zipper(Pred, Zipper, Results, Keys, Mode) ->
             {NewResults, NewKeys} =
                 case is_map_key(Value, Keys) of
                     true ->
+                        %% Note: I'm not sure why, sometimes, traversing a zipper may result in going through the same
+                        %%       node twice, but it has happened. You can see it for yourself: Just add a ct:pal here,
+                        %%       run the tests and the one for simplify_anonymous_functions will show duplicate results.
                         {Results, Keys};
                     false ->
                         case Pred(Value) of
