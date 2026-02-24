@@ -154,20 +154,20 @@ find_with_zipper(Pred, Zipper, Results, Keys, Mode) ->
                         zipper:node(Zipper)
                 end,
             {NewResults, NewKeys} =
-                case is_map_key(Value, Keys) of
+                case Pred(Value) of
                     true ->
-                        %% Note: I'm not sure why, sometimes, traversing a zipper may result in
-                        %%       going through the same node twice, but it has happened. You can
-                        %%       see it for yourself: Just add a ct:pal here, run the tests and
-                        %%       simplify_anonymous_functions will show duplicate results.
-                        {Results, Keys};
-                    false ->
-                        case Pred(Value) of
+                        case is_map_key(Value, Keys) of
                             true ->
-                                {[Value | Results], Keys#{Value => true}};
+                                %% Note: I'm not sure why, sometimes, traversing a zipper may result in
+                                %%       going through the same node twice, but it has happened. You can
+                                %%       see it for yourself: Just add a ct:pal here, run the tests and
+                                %%       simplify_anonymous_functions will show duplicate results.
+                                {Results, Keys};
                             false ->
-                                {Results, Keys}
-                        end
+                                {[Value | Results], Keys#{Value => true}}
+                        end;
+                    false ->
+                        {Results, Keys}
                 end,
             find_with_zipper(Pred, zipper:next(Zipper), NewResults, NewKeys, Mode)
     end.
