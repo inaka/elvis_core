@@ -3,7 +3,7 @@
 Dependencies in `erlang.mk` should not use branch `master`.
 
 > [!WARNING]
-> This rule is now deprecated, as is the support for `erlang.mk`.
+> This rule was removed.
 
 ## Options
 

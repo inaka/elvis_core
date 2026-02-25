@@ -288,7 +288,7 @@ rules(#{rules := UserRules, ruleset := Ruleset}) ->
     DefaultRules = elvis_ruleset:rules(Ruleset),
     merge_rules(UserRules, DefaultRules);
 rules(#{rules := Rules}) ->
-    filter_deprecated_rules(Rules);
+    filter_removed_rules(Rules);
 rules(#{ruleset := Ruleset}) ->
     elvis_ruleset:rules(Ruleset);
 rules(#{}) ->
@@ -355,7 +355,7 @@ ignore_to_regexp(A) when is_atom(A) ->
 %% @doc Merge user rules (override) with elvis default rules.
 -spec merge_rules(UserRules :: list(), DefaultRules :: list()) -> [elvis_rule:t()].
 merge_rules(UserRules0, DefaultRules) ->
-    UserRules = filter_deprecated_rules(UserRules0),
+    UserRules = filter_removed_rules(UserRules0),
     UnduplicatedRules =
         % Drops repeated rules
 
@@ -391,11 +391,11 @@ merge_rules(UserRules0, DefaultRules) ->
 
     UnduplicatedRules ++ OverrideRules.
 
-filter_deprecated_rules(RuleTuples) ->
+filter_removed_rules(RuleTuples) ->
     lists:filter(
         fun(RuleTuple) ->
             case elvis_rule:is_valid_from_tuple(RuleTuple) of
-                {deprecated, _} ->
+                {removed, _} ->
                     false;
                 _ ->
                     true
@@ -554,7 +554,7 @@ all_custom_rulesets_have_valid_rules(What, CustomRulesets) ->
                     case elvis_rule:is_valid_from_tuple(RuleTuple) of
                         {true, _Rule} ->
                             AccInI;
-                        {deprecated, Msg} ->
+                        {removed, Msg} ->
                             elvis_utils:warn("~s Skipping.", [Msg]),
                             AccInI;
                         {false, ValidError} ->
@@ -733,7 +733,7 @@ all_rules_are_valid(What, RuleTuples) ->
             case elvis_rule:is_valid_from_tuple(RuleTuple) of
                 {true, Rule} ->
                     check_rule_for_options(Rule, AccInI);
-                {deprecated, Msg} ->
+                {removed, Msg} ->
                     elvis_utils:warn("~s Skipping.", [Msg]),
                     AccInI;
                 {false, ValidError} ->

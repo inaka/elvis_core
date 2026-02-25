@@ -1,35 +1,35 @@
--module(elvis_deprecated_rules).
+-module(elvis_removed_rules).
 
 -elvis([
-    {elvis_style, abc_size, #{ignore => [{elvis_deprecated_rules, find, 1}]}},
-    {elvis_style, code_complexity, #{ignore => [{elvis_deprecated_rules, find, 1}]}}
+    {elvis_style, abc_size, #{ignore => [{elvis_removed_rules, find, 1}]}},
+    {elvis_style, code_complexity, #{ignore => [{elvis_removed_rules, find, 1}]}}
 ]).
 
 -export([find/2]).
 
-%% @doc Returns deprecation info for known deprecated or renamed rules.
-%% Returns {deprecated, Message} | {renamed, Message} | valid
--spec find(module(), atom()) -> {deprecated | renamed, string()} | valid.
+%% @doc Returns info for known removed or renamed rules.
+%% Returns {removed, Message} | {renamed, Message} | valid
+-spec find(module(), atom()) -> {removed | renamed, string()} | valid.
 
-%% Deprecated rules (no longer have implementations)
+%% Removed rules (no longer have implementations)
 find(elvis_style, macro_module_names) ->
-    {deprecated, "Rule 'elvis_style:macro_module_names' is deprecated since 4.1.0."};
+    {removed, "Rule 'elvis_style:macro_module_names' was removed in version 4.1.0."};
 find(elvis_project, no_deps_master_erlang_mk) ->
-    {deprecated,
-        "Rule 'elvis_project:no_deps_master_erlang_mk' is deprecated;"
+    {removed,
+        "Rule 'elvis_project:no_deps_master_erlang_mk' was removed;"
         " use 'no_branch_deps' instead."};
 find(elvis_project, no_deps_master_rebar) ->
-    {deprecated,
-        "Rule 'elvis_project:no_deps_master_rebar' is deprecated;"
+    {removed,
+        "Rule 'elvis_project:no_deps_master_rebar' was removed;"
         " use 'no_branch_deps' instead."};
 find(elvis_project, old_configuration_format) ->
-    {deprecated, "Rule 'elvis_project:old_configuration_format' is deprecated."};
+    {removed, "Rule 'elvis_project:old_configuration_format' was removed."};
 find(elvis_project, protocol_for_deps_rebar) ->
-    {deprecated,
-        "Rule 'elvis_project:protocol_for_deps_rebar' is deprecated;"
+    {removed,
+        "Rule 'elvis_project:protocol_for_deps_rebar' was removed;"
         " use 'protocol_for_deps' instead."};
 find(elvis_project, protocol_for_deps_erlang_mk) ->
-    {deprecated, "Rule 'elvis_project:protocol_for_deps_erlang_mk' is deprecated."};
+    {removed, "Rule 'elvis_project:protocol_for_deps_erlang_mk' was removed."};
 %% Renamed rules (from PR #505)
 find(elvis_style, god_modules) ->
     {renamed, "Rule 'elvis_style:god_modules' has been renamed to 'no_god_modules'."};

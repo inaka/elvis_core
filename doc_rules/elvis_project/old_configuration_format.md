@@ -3,8 +3,7 @@
 `elvis.config` files should not use an outdated format.
 
 > [!WARNING]
-> This rule is now deprecated, since a warning is issued and default options are assumed when
-> the configuration is not a map (for older rules).
+> This rule was removed.
 
 ## Avoid
 

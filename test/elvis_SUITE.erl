@@ -29,7 +29,7 @@
     to_string/1,
     chunk_fold/1,
     rock_with_invalid_rules/1,
-    rock_with_deprecated_rules/1
+    rock_with_removed_rules/1
 ]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -326,10 +326,10 @@ rock_with_invalid_rules(_Config) ->
     {fail, [{throw, {invalid_config, _}}]} = elvis_config:from_file(ConfigPath),
     ok.
 
-rock_with_deprecated_rules(_Config) ->
-    ConfigPath = "../../../../test/examples/deprecated_rules.elvis.config",
+rock_with_removed_rules(_Config) ->
+    ConfigPath = "../../../../test/examples/removed_rules.elvis.config",
     ElvisConfig = elvis_config:from_file(ConfigPath),
-    %% Should not crash; deprecated rules are skipped with a warning
+    %% Should not crash; removed rules are skipped with a warning
     ok = elvis_core:rock(ElvisConfig).
 
 %%%%%%%%%%%%%%%
