@@ -198,10 +198,8 @@ normalize_ignorable({A, B, C}) ->
 match_triple({M1, F1, A1}, {M2, F2, A2}) ->
     wildcard_match(M1, M2) andalso wildcard_match(F1, F2) andalso wildcard_match(A1, A2).
 
-wildcard_match('_', _) ->
-    true;
 wildcard_match(X, Y) ->
-    X =:= Y.
+    '_' =:= X orelse X =:= Y.
 
 -spec execute(t(), ElvisConfig) -> Results when
     ElvisConfig :: elvis_config:t(),
