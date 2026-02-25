@@ -2145,6 +2145,7 @@ verify_ignore_wildcard_patterns(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
     PathFail = "fail_no_debug_call." ++ Ext,
+    PathMixed = "fail_no_debug_call_mixed_arity." ++ Ext,
     case Group of
         beam_files ->
             %% Same wildcard behaviour for beam: ignore whole module
@@ -2195,6 +2196,42 @@ verify_ignore_wildcard_patterns(Config) ->
                 no_debug_call,
                 #{ignore => [{'_', '_'}]},
                 PathFail
+            ),
+            %% {Module, '_', 0} - all functions with arity 0 in that module
+            [] = elvis_test_utils:elvis_core_apply_rule(
+                Config,
+                elvis_style,
+                no_debug_call,
+                #{ignore => [{fail_no_debug_call, '_', 0}]},
+                PathFail
+            ),
+            [_, _, _, _, _, _] = elvis_test_utils:elvis_core_apply_rule(
+                Config,
+                elvis_style,
+                no_debug_call,
+                #{},
+                PathMixed
+            ),
+            [_, _, _, _, _] = elvis_test_utils:elvis_core_apply_rule(
+                Config,
+                elvis_style,
+                no_debug_call,
+                #{ignore => [{fail_no_debug_call_mixed_arity, '_', 0}]},
+                PathMixed
+            ),
+            [_, _, _] = elvis_test_utils:elvis_core_apply_rule(
+                Config,
+                elvis_style,
+                no_debug_call,
+                #{ignore => [{fail_no_debug_call_mixed_arity, '_', 2}]},
+                PathMixed
+            ),
+            [] = elvis_test_utils:elvis_core_apply_rule(
+                Config,
+                elvis_style,
+                no_debug_call,
+                #{ignore => [{fail_no_debug_call_mixed_arity, fail, '_'}]},
+                PathMixed
             )
     end.
 
