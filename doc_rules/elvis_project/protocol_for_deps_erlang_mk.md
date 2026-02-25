@@ -3,7 +3,7 @@
 `erlang.mk` dependencies should use known protocols.
 
 > [!WARNING]
-> This rule is now deprecated, as is the support for `erlang.mk`.
+> This rule was removed.
 
 ## Options
 

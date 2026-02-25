@@ -4,7 +4,7 @@ Dependencies in `rebar.config` should not use branch `master` (e.g., `{branch, "
 `{tag, "..."}` or `{ref, "..."}` instead.
 
 > [!WARNING]
-> This rule is now deprecated, having been replaced by `no_branch_deps`.
+> This rule was removed; use `no_branch_deps` instead.
 
 ## Options
 

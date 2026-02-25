@@ -27,7 +27,7 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [Guard Operators](doc_rules/elvis_style/guard_operators.md)
 - [Include `ms_transform` for `ets:fun2ms/1`](doc_rules/elvis_style/ms_transform_included.md)
 - [Line Length](doc_rules/elvis_text_style/line_length.md)
-- [Macro Module Names - *deprecated*](doc_rules/elvis_style/macro_module_names.md)
+- [Macro Module Names - *removed*](doc_rules/elvis_style/macro_module_names.md)
 - [Macro Naming Convention](doc_rules/elvis_style/macro_naming_convention.md)
 - [Max Anonymous Function Arity](doc_rules/elvis_style/max_anonymous_function_arity.md)
 - [Max Anonymous Function Clause Length](doc_rules/elvis_style/max_anonymous_function_clause_length.md)
@@ -96,12 +96,12 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 
 ## Project rules
 
-- [No Deps `master` `erlang.mk` - *deprecated*](doc_rules/elvis_project/no_deps_master_erlang_mk.md)
-- [No Deps `master` `rebar.config` - *deprecated*](doc_rules/elvis_project/no_deps_master_rebar.md)
+- [No Deps `master` `erlang.mk` - *removed*](doc_rules/elvis_project/no_deps_master_erlang_mk.md)
+- [No Deps `master` `rebar.config` - *removed*](doc_rules/elvis_project/no_deps_master_rebar.md)
 - [No Deps With Branches](doc_rules/elvis_project/no_branch_deps.md)
-- [Old Configuration Format - *deprecated*](doc_rules/elvis_project/old_configuration_format.md)
-- [Protocol For Deps `erlang.mk` - *deprecated*](doc_rules/elvis_project/protocol_for_deps_erlang_mk.md)
-- [Protocol For Deps `rebar.config` - *deprecated*](doc_rules/elvis_project/protocol_for_deps_rebar.md)
+- [Old Configuration Format - *removed*](doc_rules/elvis_project/old_configuration_format.md)
+- [Protocol For Deps `erlang.mk` - *removed*](doc_rules/elvis_project/protocol_for_deps_erlang_mk.md)
+- [Protocol For Deps `rebar.config` - *removed*](doc_rules/elvis_project/protocol_for_deps_rebar.md)
 - [Protocol For Deps](doc_rules/elvis_project/protocol_for_deps.md)
 
 ## Rulesets

@@ -79,7 +79,7 @@ from_tuple({NS, Name, Def0}) when is_map(Def0) orelse Def0 =:= disable ->
 from_tuple(_) ->
     invalid_tuple.
 
--spec is_valid_from_tuple(tuple()) -> {true, t()} | {false, string()} | {deprecated, string()}.
+-spec is_valid_from_tuple(tuple()) -> {true, t()} | {false, string()} | {removed, string()}.
 is_valid_from_tuple({NS, Name}) when is_atom(NS), is_atom(Name) ->
     is_valid_from_tuple_check(NS, Name, #{});
 is_valid_from_tuple({NS, Name, Def}) when is_atom(NS), is_atom(Name), is_map(Def) ->
@@ -98,14 +98,14 @@ is_valid_from_tuple_check(NS, Name, Def) ->
         true ->
             {true, from_tuple({NS, Name, Def})};
         false ->
-            case elvis_deprecated_rules:find(NS, Name) of
+            case elvis_removed_rules:find(NS, Name) of
                 valid ->
                     {false,
                         io_lib:format("got an unexpected/invalid ~p:~p/~p combo.", [
                             NS, Name, ArityForExecute
                         ])};
                 {_, Msg} ->
-                    {deprecated, Msg}
+                    {removed, Msg}
             end
     end.
 

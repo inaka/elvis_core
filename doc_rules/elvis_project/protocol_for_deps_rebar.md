@@ -3,7 +3,7 @@
 `rebar.config` dependencies should use known protocols.
 
 > [!WARNING]
-> This rule is now deprecated, having been replaced by `protocol_for_deps`.
+> This rule was removed; use `protocol_for_deps` instead.
 
 ## Options
 
