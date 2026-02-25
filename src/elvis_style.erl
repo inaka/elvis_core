@@ -74,7 +74,8 @@
     strict_term_equivalence/2,
     macro_definition_parentheses/2,
     code_complexity/2,
-    abc_size/2
+    abc_size/2,
+    prefer_robot_butt/2
 ]).
 
 % The whole file is considered to have either callback functions or rules.
@@ -2011,6 +2012,78 @@ no_operation_on_same_value(Rule, ElvisConfig) ->
         )
      || OpNode <- lists:uniq(OpNodes)
     ].
+
+-spec prefer_robot_butt(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
+prefer_robot_butt(Rule, ElvisConfig) ->
+    {nodes, OpNodes} = elvis_code:find(#{
+        of_types => [op],
+        inside => elvis_code:root(Rule, ElvisConfig),
+        filtered_by => fun is_length_comparison/1,
+        traverse => all
+    }),
+    [build_length_warning(OpNode) || OpNode <- OpNodes].
+
+is_length_comparison(OpNode) ->
+    case ktn_code:attr(operation, OpNode) of
+        Op when Op =:= '=:='; Op =:= '==' ->
+            is_length_vs_integer(OpNode, [0, 1, 2]);
+        Op when Op =:= '>'; Op =:= '>='; Op =:= '<'; Op =:= '=<'; Op =:= '=/='; Op =:= '/=' ->
+            is_length_vs_integer(OpNode, [0, 1]);
+        _ ->
+            false
+    end.
+
+is_length_vs_integer(OpNode, AllowedInts) ->
+    case ktn_code:content(OpNode) of
+        [Left, Right] ->
+            (is_length_call(Left) andalso is_integer_lit(Right, AllowedInts)) orelse
+                (is_length_call(Right) andalso is_integer_lit(Left, AllowedInts));
+        _ ->
+            false
+    end.
+
+is_length_call(Node) ->
+    ktn_code:type(Node) =:= call andalso call_mfa(Node) =:= {erlang, length, 1}.
+
+is_integer_lit(Node, AllowedInts) ->
+    ktn_code:type(Node) =:= integer andalso
+        lists:member(ktn_code:attr(value, Node), AllowedInts).
+
+build_length_warning(OpNode) ->
+    Op = ktn_code:attr(operation, OpNode),
+    [Left, Right] = ktn_code:content(OpNode),
+    IntValue =
+        case is_length_call(Left) of
+            true -> ktn_code:attr(value, Right);
+            false -> ktn_code:attr(value, Left)
+        end,
+    Message = length_suggestion_message(Op, IntValue),
+    elvis_result:new_item(Message, [], #{node => OpNode}).
+
+length_suggestion_message('=:=', 0) ->
+    "prefer pattern matching over 'length/1' comparison" ++
+        "(length(L) =:= 0 can be replaced by matching on [])";
+length_suggestion_message('==', 0) ->
+    "prefer pattern matching over 'length/1' comparison" ++
+        "(length(L) == 0 can be replaced by matching on [])";
+length_suggestion_message('=:=', 1) ->
+    "prefer pattern matching over 'length/1' comparison" ++
+        "(length(L) =:= 1 can be replaced by matching on [_])";
+length_suggestion_message('==', 1) ->
+    "prefer pattern matching over 'length/1' comparison" ++
+        "(length(L) == 1 can be replaced by matching on [_])";
+length_suggestion_message('=:=', 2) ->
+    "prefer pattern matching over 'length/1' comparison" ++
+        "(length(L) =:= 2 can be replaced by matching on [_, _])";
+length_suggestion_message('==', 2) ->
+    "prefer pattern matching over 'length/1' comparison" ++
+        "(length(L) == 2 can be replaced by matching on [_, _])";
+length_suggestion_message(Op, _Int) when Op =:= '>'; Op =:= '>='; Op =:= '=/='; Op =:= '/=' ->
+    "prefer pattern matching over 'length/1' comparison" ++
+        "(length(L) > 0 etc. can be replaced by matching on [_|_])";
+length_suggestion_message(Op, _Int) when Op =:= '<'; Op =:= '=<' ->
+    "prefer pattern matching over 'length/1' comparison" ++
+        "(0 < length(L) etc. can be replaced by matching on [_|_])".
 
 same_value_on_both_sides(Node) ->
     case ktn_code:content(Node) of

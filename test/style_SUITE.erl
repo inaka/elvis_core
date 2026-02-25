@@ -76,7 +76,8 @@
     verify_strict_term_equivalence/1,
     verify_macro_definition_parentheses/1,
     verify_code_complexity/1,
-    verify_abc_size/1
+    verify_abc_size/1,
+    verify_prefer_robot_butt/1
 ]).
 %% -elvis attribute
 -export([
@@ -185,7 +186,8 @@ groups() ->
             verify_private_data_types,
             verify_simplify_anonymous_functions,
             verify_code_complexity,
-            verify_abc_size
+            verify_abc_size,
+            verify_prefer_robot_butt
         ]}
     ].
 
@@ -3439,6 +3441,27 @@ verify_code_complexity(Config) ->
     [] =
         elvis_test_utils:elvis_core_apply_rule(
             Config, elvis_style, code_complexity, RuleConfig5, PathPass
+        ).
+
+verify_prefer_robot_butt(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PathFail = "fail_prefer_robot_butt." ++ Ext,
+    Results = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, prefer_robot_butt, #{}, PathFail
+    ),
+    12 = length(Results),
+
+    PathPass = "pass_prefer_robot_butt." ++ Ext,
+    [] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, prefer_robot_butt, #{}, PathPass
+        ),
+
+    IgnoreRule = #{ignore => [fail_prefer_robot_butt]},
+    [] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, prefer_robot_butt, IgnoreRule, PathFail
         ).
 
 verify_abc_size(Config) ->
