@@ -95,12 +95,7 @@ find(#{of_types := OfTypes, inside := Inside} = Options) ->
     [tree_node() | tree_node_zipper()].
 find(Pred, Root, FilteredFrom, Traverse) ->
     Zipper = zipper(Root, Traverse),
-    Results = find_with_zipper(Pred, Zipper, [], FilteredFrom),
-    %% Note: I'm not sure why, sometimes, traversing a zipper may result in going through the same
-    %%       node twice, but it has happened. If you remove the call to lists:uniq/1 in the next
-    %%       line, you can see it for yourself: Just run the tests and the one for
-    %%       simplify_anonymous_functions will fail because it will emit duplicate results.
-    lists:reverse(lists:uniq(Results)).
+    find_with_zipper(Pred, Zipper, [], #{}, FilteredFrom).
 
 -spec zipper(tree_node()) -> tree_node_zipper().
 zipper(Root) ->
@@ -146,10 +141,10 @@ all_zipper(Root) ->
     MakeNode = fun(Node, _) -> Node end,
     zipper:new(IsBranch, Children, MakeNode, Root).
 
-find_with_zipper(Pred, Zipper, Results, Mode) ->
+find_with_zipper(Pred, Zipper, Results, Keys, Mode) ->
     case zipper:is_end(Zipper) of
         true ->
-            Results;
+            lists:reverse(Results);
         false ->
             Value =
                 case Mode of
@@ -158,14 +153,24 @@ find_with_zipper(Pred, Zipper, Results, Mode) ->
                     node ->
                         zipper:node(Zipper)
                 end,
-            NewResults =
+            {NewResults, NewKeys} =
                 case Pred(Value) of
                     true ->
-                        [Value | Results];
+                        case is_map_key(Value, Keys) of
+                            true ->
+                                %% Note: I'm not sure why, sometimes, traversing a zipper may
+                                %%       result in going through the same node twice, but it has
+                                %%       happened. You can see it for yourself: Just add a ct:pal
+                                %%       here, run the tests and simplify_anonymous_functions will
+                                %%       show duplicate results.
+                                {Results, Keys};
+                            false ->
+                                {[Value | Results], Keys#{Value => true}}
+                        end;
                     false ->
-                        Results
+                        {Results, Keys}
                 end,
-            find_with_zipper(Pred, zipper:next(Zipper), NewResults, Mode)
+            find_with_zipper(Pred, zipper:next(Zipper), NewResults, NewKeys, Mode)
     end.
 
 -spec root(Rule, ElvisConfig) -> Res when
