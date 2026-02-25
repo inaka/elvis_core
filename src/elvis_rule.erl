@@ -33,7 +33,11 @@
 -opaque def() :: #{
     atom() => term()
 }.
--opaque ignorable() :: module() | {module(), atom()} | {module(), atom(), arity()}.
+-opaque ignorable() ::
+    '_'
+    | module()
+    | {module() | '_', atom() | '_'}
+    | {module() | '_', atom() | '_', arity() | '_'}.
 
 -export_type([t/0, def/0, ignorable/0]).
 
@@ -115,46 +119,30 @@ maybe_ensure_loaded(NS) ->
     code:ensure_loaded(NS).
 
 -spec is_ignorable(term()) -> boolean().
-% String (file path / regex pattern)
 is_ignorable(String) when is_list(String) ->
-    io_lib:char_list(String) andalso length(String) > 0;
-% Module - invalid type
-is_ignorable(Module) when not is_tuple(Module) andalso not is_atom(Module) ->
+    io_lib:char_list(String) andalso "" =/= String;
+is_ignorable(X) when not is_tuple(X) andalso not is_atom(X) ->
     false;
-% Module - test if valid
-is_ignorable(Module) when is_atom(Module) ->
-    case maybe_ensure_loaded(Module) of
-        {module, _} ->
-            true;
-        _ ->
-            false
-    end;
-% {Module, Function} - invalid type
-is_ignorable({Module, Function}) when not is_atom(Module) orelse not is_atom(Function) ->
-    false;
-% {Module, Function} - test if valid
-is_ignorable({Module, Function}) ->
-    case is_ignorable(Module) of
-        true ->
-            Exports = Module:module_info(exports),
-            proplists:get_value(Function, Exports) =/= undefined;
-        false ->
-            false
-    end;
-% {Module, Function, Arity} - invalid type
-is_ignorable({Module, Function, Arity}) when
-    not is_atom(Module) orelse not is_atom(Function) orelse not is_integer(Arity) orelse Arity < 0
+is_ignorable(M) when is_atom(M) ->
+    valid_module(M);
+is_ignorable({M, F}) when is_atom(M) andalso is_atom(F) ->
+    valid_module(M) andalso (F =:= '_' orelse M =:= '_' orelse exported(M, F));
+is_ignorable({M, F, A}) when
+    is_atom(M) andalso is_atom(F) andalso (A =:= '_' orelse (is_integer(A) andalso 0 =< A))
 ->
-    false;
-% {Module, Function, Arity} - test if valid
-is_ignorable({Module, Function, Arity}) ->
-    case is_ignorable(Module) of
-        true ->
-            Exports = Module:module_info(exports),
-            proplists:get_value(Function, Exports) =:= Arity;
-        false ->
-            false
-    end.
+    valid_module(M) andalso
+        (M =:= '_' orelse F =:= '_' orelse A =:= '_' orelse exported_arity(M, F, A));
+is_ignorable(_) ->
+    false.
+
+valid_module(M) ->
+    '_' =:= M orelse {module, M} =:= maybe_ensure_loaded(M).
+
+exported(M, F) ->
+    proplists:get_value(F, erlang:get_module_info(M, exports)) =/= undefined.
+
+exported_arity(M, F, A) ->
+    proplists:get_value(F, erlang:get_module_info(M, exports)) =:= A.
 
 -spec ns(t()) -> module().
 ns(Rule) ->
@@ -194,7 +182,26 @@ disable(Rule) ->
 
 -spec ignored(Needle :: ignorable(), t()) -> boolean().
 ignored(Needle, Rule) ->
-    lists:member(Needle, ignores(Rule)).
+    lists:any(fun(Pattern) -> ignore_match(Pattern, Needle) end, ignores(Rule)).
+
+%% Normalize to 3-tuple so one match covers module, {M,F}, and {M,F,A}.
+ignore_match(Pattern, Needle) ->
+    match_triple(normalize_ignorable(Pattern), normalize_ignorable(Needle)).
+
+normalize_ignorable(X) when is_atom(X) ->
+    {X, '_', '_'};
+normalize_ignorable({A, B}) ->
+    {A, B, '_'};
+normalize_ignorable({A, B, C}) ->
+    {A, B, C}.
+
+match_triple({M1, F1, A1}, {M2, F2, A2}) ->
+    wildcard_match(M1, M2) andalso wildcard_match(F1, F2) andalso wildcard_match(A1, A2).
+
+wildcard_match('_', _) ->
+    true;
+wildcard_match(X, Y) ->
+    X =:= Y.
 
 -spec execute(t(), ElvisConfig) -> Results when
     ElvisConfig :: elvis_config:t(),
@@ -237,7 +244,7 @@ defkeys(Rule) ->
     Def = def(Rule),
     maps:keys(Def).
 
--spec ignorable(module() | {module(), atom()} | {module(), atom(), arity()}) -> ignorable().
+-spec ignorable(dynamic()) -> ignorable().
 ignorable(Ignorable) ->
     Ignorable.
 

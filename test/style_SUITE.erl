@@ -41,6 +41,7 @@
     verify_max_record_fields/1,
     verify_max_map_type_keys/1,
     verify_no_debug_call/1,
+    verify_ignore_wildcard_patterns/1,
     verify_no_common_caveats_call/1,
     verify_no_call/1,
     verify_no_nested_try_catch/1,
@@ -162,6 +163,7 @@ groups() ->
             verify_no_spec_with_records,
             verify_dont_repeat_yourself,
             verify_no_debug_call,
+            verify_ignore_wildcard_patterns,
             verify_no_common_caveats_call,
             verify_no_call,
             verify_no_nested_try_catch,
@@ -2137,6 +2139,64 @@ verify_no_debug_call(Config) ->
     [_, _] = elvis_test_utils:elvis_core_apply_rule(
         Config, elvis_style, no_debug_call, RuleConfig5, PathFail
     ).
+
+%% Ignore option supports wildcard patterns ('_') in any position.
+verify_ignore_wildcard_patterns(Config) ->
+    Group = proplists:get_value(group, Config, erl_files),
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+    PathFail = "fail_no_debug_call." ++ Ext,
+    case Group of
+        beam_files ->
+            %% Same wildcard behaviour for beam: ignore whole module
+            [] = elvis_test_utils:elvis_core_apply_rule(
+                Config,
+                elvis_style,
+                no_debug_call,
+                #{ignore => [{fail_no_debug_call, '_'}]},
+                PathFail
+            );
+        erl_files ->
+            %% {Module, '_'} - ignore all functions in a specific module
+            [] = elvis_test_utils:elvis_core_apply_rule(
+                Config,
+                elvis_style,
+                no_debug_call,
+                #{ignore => [{fail_no_debug_call, '_'}]},
+                PathFail
+            ),
+            %% {'_', Function} - ignore a function name across all modules
+            [] = elvis_test_utils:elvis_core_apply_rule(
+                Config,
+                elvis_style,
+                no_debug_call,
+                #{ignore => [{'_', fail}]},
+                PathFail
+            ),
+            %% {Module, '_', '_'} - 3-tuple with wildcards
+            [] = elvis_test_utils:elvis_core_apply_rule(
+                Config,
+                elvis_style,
+                no_debug_call,
+                #{ignore => [{fail_no_debug_call, '_', '_'}]},
+                PathFail
+            ),
+            %% {'_', Function, Arity} - wildcard module with specific function+arity
+            [] = elvis_test_utils:elvis_core_apply_rule(
+                Config,
+                elvis_style,
+                no_debug_call,
+                #{ignore => [{'_', fail, 0}]},
+                PathFail
+            ),
+            %% {'_', '_'} - ignore everything (edge case)
+            [] = elvis_test_utils:elvis_core_apply_rule(
+                Config,
+                elvis_style,
+                no_debug_call,
+                #{ignore => [{'_', '_'}]},
+                PathFail
+            )
+    end.
 
 %% We test no_call and no_common_caveats_call by building the equivalent config and make sure that
 %% other than defaults, they behave the same
