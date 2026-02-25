@@ -268,14 +268,8 @@ found in this repository's [RULES.md](https://github.com/inaka/elvis_core/blob/m
 
 ### User-defined rules
 
-The implementation of a new rule is a function that takes 2 arguments in the following order:
-
-1. `t:elvis_rule:t()`: the opaque rule to implement
-1. `t:elvis_config:t()`: the value of each element in list `config` as found in the
-[configuration](#configuration),
-
-This means you can define rules of your own (user-defined rules) as long as the functions that
-implement them respect this interface.
+To implement your own rules, see the [User-defined rules](RULES.md#user-defined-rules) section in
+[RULES.md](RULES.md) for the full interface, APIs, and a complete example.
 
 ## Contributing and reporting bugs
 

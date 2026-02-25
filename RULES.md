@@ -144,6 +144,100 @@ Example configuration with a custom ruleset (named `my_ruleset`):
 ]}].
 ```
 
+## User-defined rules
+
+You can define your own rules by implementing a module that follows the interface below.
+
+### Module requirements
+
+- Your module must implement the `elvis_rule` behaviour, which requires a `default/1` function. It
+  is called during config validation (see `elvis_config.erl`): when a rule is configured with
+  options, only keys returned by `default/1` (plus `ignore`) are accepted.
+- `default(RuleName)` must return a map of option names to default values for that rule. Use
+  `elvis_rule:defmap(#{option => default_value})` for each rule, and `elvis_rule:defmap(#{})` as a
+  catch-all for unknown rule names.
+
+### Rule function signature
+
+Each rule is implemented by a function of the following signature:
+
+```erlang
+-spec FunctionName(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
+```
+
+- **Argument 1:** `Rule :: elvis_rule:t()` — the opaque rule term (use `elvis_rule` and `elvis_file`
+  APIs to inspect it and the current file).
+- **Argument 2:** `ElvisConfig :: elvis_config:t()` — the config map for the current "file group"
+  (one element of the `config` list in the [configuration](README.md#configuration)).
+- **Return value:** a list of `elvis_result:item()` — use `elvis_result:new_item/3` for each
+violation. Return `[]` when the file passes the rule.
+
+### Configuration
+
+Add your rule to the `rules` list in a config section (or in a custom ruleset referenced by
+`ruleset`):
+
+- `{MyModule, my_rule}` — rule with default options
+- `{MyModule, my_rule, #{opt => val}}` — rule with overridden options
+
+### Complete example: `no_todo_comments`
+
+A minimal rule that reports any line containing `TODO` (or `FIXME`) in a comment or string:
+
+```erlang
+-module(my_rules).
+-behaviour(elvis_rule).
+-export([default/1, no_todo_comments/2]).
+
+default(no_todo_comments) ->
+    elvis_rule:defmap(#{ignore => []});
+default(_) ->
+    elvis_rule:defmap(#{}).
+
+no_todo_comments(Rule, ElvisConfig) ->
+    Ignore = elvis_rule:option(ignore, Rule),
+    File = elvis_rule:file(Rule),
+    Path = elvis_file:path(File),
+    {Src, _} = elvis_file:src(File),
+    case lists:member(filename:basename(Path, ".erl"), [atom_to_list(M) || M <- Ignore]) of
+        true -> [];
+        false ->
+            Lines = binary:split(Src, <<"\n">>, [global]),
+            Items = lists:flatmap(
+                fun({LineNum, Line}) ->
+                    case binary:match(Line, <<"TODO">>) =/= nomatch
+                         orelse binary:match(Line, <<"FIXME">>) =/= nomatch of
+                        true ->
+                            [
+                                elvis_result:new_item(
+                                    "TODO/FIXME found at line ~p",
+                                    [LineNum],
+                                    #{line => LineNum}
+                                )
+                            ];
+                        false -> []
+                    end
+                end,
+                lists:zip(lists:seq(1, length(Lines)), Lines)
+            ),
+            Items
+    end.
+```
+
+And in `elvis.config`:
+
+```erlang
+#{
+    dirs => ["src"],
+    filter => "*.erl",
+    ruleset => erl_files,
+    rules => [
+        {elvis_style, no_debug_call, #{ ignore => [my_mod] }},
+        {my_rules, no_todo_comments, #{ignore => [my_rules]}}
+    ]
+}.
+```
+
 ## The `-elvis` attribute
 
 Per-module rules can also be configured using attribute `-elvis(_).`, with the same content as is
