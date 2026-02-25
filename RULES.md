@@ -195,6 +195,10 @@ You can add the exceptions using the following syntax:
 only**)
 - module, function and arity: `ignore => [{mod, fun, arity}]` (available for **`elvis_style`-based
 rules only**)
+- wildcard patterns: use the atom `'_'` in any position to match any module, function, or arity,
+e.g. `ignore => [{mod, '_'}]` (all functions in a module), `ignore => [{'_', fun}]` (a function in
+any module), `ignore => [{'_', '_'}]` (ignore everything), `ignore => [{mod, fun, '_'}]` (ignore a
+function in a module for all arities)
 
 ## BEAM files
 

@@ -195,7 +195,9 @@ You can also `ignore` modules at a _check level_ or at a _ruleset (group of chec
 ```
 
 (we are telling `elvis` to **ignore** the `elvis` and `elvis_utils` modules when executing
-the `no_debug_call` check.
+the `no_debug_call` check. You can also use wildcard patterns: `'_'` in any position matches any
+module, function, or arity (e.g. `[{mod, '_'}]` for all functions in a module, `[{'_', fun}]` for a
+function in any module).
 
 - at a _ruleset (group of checks) level_, you set the `ignore` option for the group you want to
 ignore, e.g.:
