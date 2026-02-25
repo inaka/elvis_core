@@ -208,7 +208,13 @@ no_todo_comments(Rule, ElvisConfig) ->
                     case binary:match(Line, <<"TODO">>) =/= nomatch
                          orelse binary:match(Line, <<"FIXME">>) =/= nomatch of
                         true ->
-                            [elvis_result:new_item("TODO/FIXME found at line ~p", [LineNum], #{line => LineNum})];
+                            [
+                                elvis_result:new_item(
+                                    "TODO/FIXME found at line ~p",
+                                    [LineNum],
+                                    #{line => LineNum}
+                                )
+                            ];
                         false -> []
                     end
                 end,
