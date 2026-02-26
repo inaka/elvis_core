@@ -2019,15 +2019,32 @@ no_operation_on_same_value(Rule, ElvisConfig) ->
 
 -spec prefer_robot_butt(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 prefer_robot_butt(Rule, ElvisConfig) ->
+    Root = elvis_code:root(Rule, ElvisConfig),
     MaxSize = elvis_rule:option(max_small_list_size, Rule),
     AllowedEq = lists:seq(0, MaxSize),
-    {nodes, OpNodes} = elvis_code:find(#{
-        of_types => [op],
-        inside => elvis_code:root(Rule, ElvisConfig),
-        filtered_by => fun(OpNode) -> is_length_comparison(OpNode, AllowedEq) end,
+    {nodes, Nodes} = elvis_code:find(#{
+        of_types => [op, 'case', 'try'],
+        inside => Root,
+        filtered_by => fun(Node) -> is_robot_butt_violation(Node, AllowedEq) end,
         traverse => all
     }),
-    lists:map(fun build_robot_butt_warning/1, OpNodes).
+    lists:map(fun build_robot_butt_warning_for/1, Nodes).
+
+is_robot_butt_violation(Node, AllowedEq) ->
+    case ktn_code:type(Node) of
+        op -> is_length_comparison(Node, AllowedEq);
+        'case' -> tuple_length_matched_on_int(Node, AllowedEq);
+        'try' -> tuple_length_matched_on_int(Node, AllowedEq);
+        _ -> false
+    end.
+
+build_robot_butt_warning_for(Node) ->
+    case ktn_code:type(Node) of
+        op -> build_robot_butt_warning(Node);
+        'case' -> build_tuple_length_warning(Node);
+        'try' -> build_tuple_length_warning(Node);
+        _ -> error(badarg, [Node])
+    end.
 
 is_length_comparison(OpNode, AllowedEq) ->
     maybe
@@ -2068,7 +2085,8 @@ int_value(Node, K) ->
 
 when_length_call(LengthSide, M, Else) ->
     case is_length_call(LengthSide) of
-        true -> M;
+        true ->
+            M;
         false ->
             case get_minus_n(LengthSide) of
                 N when is_integer(N) -> Else(N);
@@ -2089,7 +2107,8 @@ minus_operand(Node) ->
                 undefined -> length_int_operand(B, A);
                 N -> N
             end;
-        _ -> undefined
+        _ ->
+            undefined
     end.
 
 length_int_operand(A, B) ->
@@ -2113,19 +2132,124 @@ build_robot_butt_warning(OpNode) ->
     elvis_result:new_item(Message, Args, #{node => OpNode}).
 
 length_eq_message(0) ->
-    {"prefer pattern matching over 'length/1' comparison (length(L) =:= 0 can be replaced by matching on [])",
-        []};
+    {
+        "prefer pattern matching over 'length/1' comparison: "
+        "length(L) =:= 0 can be replaced by matching on []",
+        []
+    };
 length_eq_message(N) when N >= 1 ->
     P = "[" ++ lists:join(", ", lists:duplicate(N, "_")) ++ "]",
-    {"prefer pattern matching over 'length/1' comparison (length(L) =:= ~w can be replaced by matching on ~s)",
-        [N, P]}.
+    {
+        "prefer pattern matching over 'length/1' comparison: "
+        "length(L) =:= ~w can be replaced by matching on ~s",
+        [N, P]
+    }.
 
 length_ineq_message(Op) when Op =:= '>'; Op =:= '>='; Op =:= '=/='; Op =:= '/=' ->
-    {"prefer pattern matching over 'length/1' comparison (length(L) ~p 0 etc. can be replaced by matching on [_|_])",
-        [Op]};
+    {
+        "prefer pattern matching over 'length/1' comparison: "
+        "length(L) ~p 0 etc. can be replaced by matching on [_|_]",
+        [Op]
+    };
 length_ineq_message(Op) when Op =:= '<'; Op =:= '=<' ->
-    {"prefer pattern matching over 'length/1' comparison (0 ~p length(L) etc. can be replaced by matching on [_|_])",
-        [Op]}.
+    {
+        "prefer pattern matching over 'length/1' comparison: "
+        "0 ~p length(L) etc. can be replaced by matching on [_|_]",
+        [Op]
+    }.
+
+tuple_length_matched_on_int(Node, AllowedEq) ->
+    case ktn_code:type(Node) of
+        'case' ->
+            [ExprNode | _] = ktn_code:content(Node),
+            TupleExpr = unwrap_case_expr(ExprNode),
+            Clauses = case_clauses_in(Node),
+            tuple_has_length_matched_on_int(TupleExpr, Clauses, AllowedEq);
+        'try' ->
+            [TryCase | _] = ktn_code:content(Node),
+            case ktn_code:type(TryCase) of
+                try_case ->
+                    TupleExpr = ensure_single_node(ktn_code:node_attr(expression, TryCase)),
+                    OfClauses = ktn_code:content(TryCase),
+                    TupleExpr =/= undefined andalso
+                        tuple_has_length_matched_on_int(TupleExpr, OfClauses, AllowedEq);
+                _ ->
+                    false
+            end;
+        _ ->
+            false
+    end.
+
+unwrap_case_expr(Node) ->
+    case ktn_code:type(Node) of
+        case_expr ->
+            case ktn_code:content(Node) of
+                [Expr | _] -> Expr;
+                _ -> Node
+            end;
+        _ ->
+            Node
+    end.
+
+ensure_single_node([N]) when is_map(N) -> N;
+ensure_single_node([L]) when is_list(L) -> hd(L);
+ensure_single_node(N) when is_map(N) -> N;
+ensure_single_node(_) -> undefined.
+
+tuple_has_length_matched_on_int(TupleExpr, Clauses, AllowedEq) ->
+    ktn_code:type(TupleExpr) =:= tuple andalso
+        case tuple_length_indices(TupleExpr) of
+            [] -> false;
+            Indices -> any_clause_has_int_at_indices(Clauses, Indices, AllowedEq)
+        end.
+
+tuple_length_indices(TupleNode) ->
+    Elements = ktn_code:content(TupleNode),
+    [
+        I
+     || {I, E} <- lists:zip(lists:seq(1, length(Elements)), Elements),
+        is_length_call(E)
+    ].
+
+any_clause_has_int_at_indices(Clauses, Indices, AllowedEq) ->
+    lists:any(
+        fun(Clause) ->
+            Pattern = clause_pattern(Clause),
+            Pattern =/= undefined andalso
+                ktn_code:type(Pattern) =:= tuple andalso
+                lists:any(
+                    fun(I) ->
+                        Elem = tuple_elem(Pattern, I),
+                        Elem =/= undefined andalso is_int_in_allowed(Elem, AllowedEq)
+                    end,
+                    Indices
+                )
+        end,
+        Clauses
+    ).
+
+clause_pattern(Clause) ->
+    case ktn_code:node_attr(pattern, Clause) of
+        [P | _] -> P;
+        _ -> undefined
+    end.
+
+tuple_elem(TupleNode, OneBasedIdx) ->
+    Content = ktn_code:content(TupleNode),
+    case OneBasedIdx =< length(Content) of
+        true -> lists:nth(OneBasedIdx, Content);
+        false -> undefined
+    end.
+
+is_int_in_allowed(Node, AllowedEq) ->
+    ktn_code:type(Node) =:= integer andalso
+        lists:member(ktn_code:attr(value, Node), AllowedEq).
+
+build_tuple_length_warning(Node) ->
+    Msg =
+        "prefer pattern matching over 'length/1' in tuple: tuple contains length/1 and is "
+        "matched on 0/1/2; prefer matching on the list structure directly (e.g. [] or [_|_])",
+    elvis_result:new_item(Msg, [], #{node => Node}).
 
 same_value_on_both_sides(Node) ->
     case ktn_code:content(Node) of

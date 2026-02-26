@@ -13,7 +13,8 @@
          length_minus_two_eq_zero/1, length_minus_one_eq_one/1,
          zero_eq_length_minus_two/1, one_eq_length_minus_one/1,
          length_minus_one_gt_zero/1, zero_lt_length_minus_one/1,
-         length_minus_one_neq_zero/1]).
+         length_minus_one_neq_zero/1,
+         case_tuple_with_length/1, try_tuple_with_length/1]).
 
 % Guards
 guard_eq_zero(L) when length(L) =:= 0 -> empty.
@@ -98,3 +99,18 @@ zero_lt_length_minus_one(X) ->
     0 < length(X) - 1.   % effective 1 (length > 1)
 length_minus_one_neq_zero(X) ->
     length(X) - 1 =/= 0.  % effective 1 (length =/= 1)
+
+% case/try: tuple contains length/1 and clause matches on 0 at that position
+case_tuple_with_length(X) ->
+    case {one_thing, "another thing", length(X)} of
+        {_, _, 0} -> empty;
+        _ -> nonempty
+    end.
+
+try_tuple_with_length(X) ->
+    try {one_thing, "another thing", length(X)} of
+        {_, _, 0} -> empty;
+        _ -> nonempty
+    catch
+        _:_ -> error
+    end.
