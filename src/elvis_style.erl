@@ -2047,13 +2047,9 @@ build_robot_butt_warning_for(Node) ->
     end.
 
 is_length_comparison(OpNode, AllowedEq) ->
-    maybe
-        Op = ktn_code:attr(operation, OpNode),
-        true ?= lists:member(Op, operators()),
-        E = effective_length(Op, OpNode),
-        true ?= is_integer(E),
-        lists:member(E, allowed_for_op(Op, AllowedEq))
-    end.
+    Op = ktn_code:attr(operation, OpNode),
+    E = effective_length(Op, OpNode),
+    is_integer(E) andalso lists:member(E, allowed_for_op(Op, AllowedEq)).
 
 allowed_for_op('=:=', AllowedEq) -> AllowedEq;
 allowed_for_op('==', AllowedEq) -> AllowedEq;
@@ -2061,15 +2057,19 @@ allowed_for_op(_, _) -> [0, 1].
 
 %% length(L) op M or (length(L)-N) op M: effective RHS is M or M+N.
 effective_length(Op, OpNode) ->
-    maybe
-        true ?= lists:member(Op, operators()),
-        [L, R] ?= ktn_code:content(OpNode),
-        case effective_from(L, R) of
-            undefined -> effective_from(R, L);
-            E -> E
-        end
-    else
-        _ -> undefined
+    case lists:member(Op, operators()) of
+        true ->
+            case ktn_code:content(OpNode) of
+                [L, R] ->
+                    case effective_from(L, R) of
+                        undefined -> effective_from(R, L);
+                        E -> E
+                    end;
+                _ ->
+                    undefined
+            end;
+        false ->
+            undefined
     end.
 
 effective_from(LengthSide, IntSide) ->
