@@ -2055,14 +2055,14 @@ allowed_for_op('=:=', AllowedEq) -> AllowedEq;
 allowed_for_op('==', AllowedEq) -> AllowedEq;
 allowed_for_op(_, _) -> [0, 1].
 
-%% length(L) op M or (length(L)-N) op M: effective RHS is M or M+N.
+%% length(L) op M: RHS must be literal integer (no arithmetic on length side).
 effective_length(Op, OpNode) ->
     case lists:member(Op, operators()) of
         true ->
             case ktn_code:content(OpNode) of
                 [L, R] ->
-                    case effective_from(L, R) of
-                        undefined -> effective_from(R, L);
+                    case rhs_int_when_length_left(L, R) of
+                        undefined -> rhs_int_when_length_left(R, L);
                         E -> E
                     end;
                 _ ->
@@ -2072,48 +2072,12 @@ effective_length(Op, OpNode) ->
             undefined
     end.
 
-effective_from(LengthSide, IntSide) ->
-    int_value(IntSide, fun(M) ->
-        when_length_call(LengthSide, M, fun(N) -> M + N end)
-    end).
+rhs_int_when_length_left(LengthSide, IntSide) ->
+    is_length_call(LengthSide) andalso int_value(IntSide).
 
-int_value(Node, K) ->
+int_value(Node) ->
     case ktn_code:type(Node) of
-        integer -> K(ktn_code:attr(value, Node));
-        _ -> undefined
-    end.
-
-when_length_call(LengthSide, M, Else) ->
-    case is_length_call(LengthSide) of
-        true ->
-            M;
-        false ->
-            case get_minus_n(LengthSide) of
-                N when is_integer(N) -> Else(N);
-                _ -> undefined
-            end
-    end.
-
-get_minus_n(Node) ->
-    is_minus_op(Node) andalso minus_operand(Node).
-
-is_minus_op(Node) ->
-    ktn_code:type(Node) =:= op andalso ktn_code:attr(operation, Node) =:= '-'.
-
-minus_operand(Node) ->
-    case ktn_code:content(Node) of
-        [A, B] ->
-            case length_int_operand(A, B) of
-                undefined -> length_int_operand(B, A);
-                N -> N
-            end;
-        _ ->
-            undefined
-    end.
-
-length_int_operand(A, B) ->
-    case is_length_call(A) andalso ktn_code:type(B) of
-        integer -> ktn_code:attr(value, B);
+        integer -> ktn_code:attr(value, Node);
         _ -> undefined
     end.
 
@@ -2125,8 +2089,7 @@ build_robot_butt_warning(OpNode) ->
     E = effective_length(Op, OpNode),
     {Message, Args} =
         case Op of
-            '=:=' -> length_eq_message(E);
-            '==' -> length_eq_message(E);
+            _ when Op =:= '=:='; Op =:= '==' -> length_eq_message(E);
             _ -> length_ineq_message(Op)
         end,
     elvis_result:new_item(Message, Args, #{node => OpNode}).
@@ -2162,23 +2125,38 @@ tuple_length_matched_on_int(Node, AllowedEq) ->
     case ktn_code:type(Node) of
         'case' ->
             [ExprNode | _] = ktn_code:content(Node),
-            TupleExpr = unwrap_case_expr(ExprNode),
+            Expr = unwrap_case_expr(ExprNode),
             Clauses = case_clauses_in(Node),
-            tuple_has_length_matched_on_int(TupleExpr, Clauses, AllowedEq);
+            direct_length_matched_on_int(Expr, Clauses, AllowedEq) orelse
+                tuple_has_length_matched_on_int(Expr, Clauses, AllowedEq);
         'try' ->
             [TryCase | _] = ktn_code:content(Node),
             case ktn_code:type(TryCase) of
                 try_case ->
-                    TupleExpr = ensure_single_node(ktn_code:node_attr(expression, TryCase)),
                     OfClauses = ktn_code:content(TryCase),
-                    TupleExpr =/= undefined andalso
-                        tuple_has_length_matched_on_int(TupleExpr, OfClauses, AllowedEq);
+                    Expr = ensure_single_node(ktn_code:node_attr(expression, TryCase)),
+                    undefined =/= Expr andalso
+                        (direct_length_matched_on_int(Expr, OfClauses, AllowedEq) orelse
+                            tuple_has_length_matched_on_int(Expr, OfClauses, AllowedEq));
                 _ ->
                     false
             end;
         _ ->
             false
     end.
+
+%% case/try: expression is length/1 call and a clause pattern is 0/1/2
+direct_length_matched_on_int(Expr, Clauses, AllowedEq) ->
+    is_length_call(Expr) andalso any_clause_pattern_int_in_allowed(Clauses, AllowedEq).
+
+any_clause_pattern_int_in_allowed(Clauses, AllowedEq) ->
+    lists:any(
+        fun(Clause) ->
+            Pattern = clause_pattern(Clause),
+            Pattern =/= undefined andalso is_int_in_allowed(Pattern, AllowedEq)
+        end,
+        Clauses
+    ).
 
 unwrap_case_expr(Node) ->
     case ktn_code:type(Node) of

@@ -22,10 +22,6 @@ guard_two(L) when length(L) =:= 2 -> two.
 expr_empty(L) -> length(L) =:= 0.
 expr_nonempty(L) -> length(L) > 0.
 
-% length in arithmetic then compared to 0: length(X) - N =:= 0
-length_minus_one_eq_zero(X) ->
-    length(X) - 1 =:= 0.
-
 % case/try: tuple contains length/1 and a clause matches 0/1/2 at that position
 case_tuple_with_length(X) ->
     case {one_thing, "another thing", length(X)} of
@@ -63,10 +59,7 @@ non-empty lists.
 
 Equality comparisons with integers greater than `max_small_list_size` (e.g. `length(L) =:= 10` when
 using the default) are not flagged, since pattern matching on long list shapes is impractical.
-
-The rule also flags **`length(L) - N =:= 0`** (and `0 =:= length(L) - N`): it suggests matching on a
-list of `N` elements (e.g. `length(L) - 1 =:= 0` → match on `[_]`). Only `N` in
-`1..max_small_list_size` are flagged.
+Arithmetic involving `length/1` (e.g. `length(L) - N =:= M`) is not flagged.
 
 **Case/try with tuple:** If the expression is a tuple that contains a `length/1` call in some
 position, and at least one clause pattern is a tuple with 0, 1, or 2 (within `max_small_list_size`)

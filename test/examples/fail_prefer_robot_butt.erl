@@ -3,20 +3,15 @@
 -feature(maybe_expr, enable).
 
 -export([guard_eq_zero/1, guard_gt_zero/1, guard_gte_one/1, guard_neq_zero/1,
-         guard_reversed/1, guard_reversed_lt/1,
-         guard_reversed_neq_zero/1, guard_reversed_nem_zero/1,
+         guard_reversed/1, guard_reversed_lt/1, guard_reversed_neq_zero/1,
          guard_eq_one/1, guard_eq_two/1,
          guard_double_eq/1, expr_eq_zero/1, expr_gt_zero/1, fq_guard/1,
          case_with_length/1, try_of_with_length/0, if_with_length/1,
          maybe_with_length/0, receive_with_length/0,
          complex_guard_eq/1, complex_guard_gt/1,
          is_empty/1, bad_stuff/1,
-         length_minus_one_eq_zero/1,
-         length_minus_two_eq_zero/1, length_minus_one_eq_one/1,
-         zero_eq_length_minus_two/1, one_eq_length_minus_one/1,
-         length_minus_one_gt_zero/1, zero_lt_length_minus_one/1,
-         length_minus_one_neq_zero/1,
-         case_tuple_with_length/1, try_tuple_with_length/1]).
+         case_tuple_with_length/1, try_tuple_with_length/1,
+         case_direct_length/1, try_direct_length/1]).
 
 % Guards
 guard_eq_zero(L) when length(L) =:= 0 -> empty.
@@ -25,8 +20,7 @@ guard_gte_one(L) when length(L) >= 1 -> notempty.
 guard_neq_zero(L) when length(L) =/= 0 -> notempty.
 guard_reversed(L) when 0 =:= length(L) -> empty.
 guard_reversed_lt(L) when 0 < length(L) -> notempty.
-guard_reversed_neq_zero(L) when 0 == length(L) -> empty.
-guard_reversed_nem_zero(L) when 0 =:= length(L) -> empty.
+guard_reversed_neq_zero(L) when 0 =/= length(L) -> notempty.
 guard_eq_one(L) when length(L) =:= 1 -> one.
 guard_eq_two(L) when length(L) =:= 2 -> two.
 guard_double_eq(L) when length(L) == 0 -> empty.
@@ -83,27 +77,6 @@ complex_guard_gt(X) when is_list(X) andalso length(X) > 0 -> notempty.
 is_empty(X) -> length(X) =:= 0.
 bad_stuff(X) -> length(X) =:= 0 orelse hd(X).
 
-% length(X) - N =:= M (linted when M+N in 0..max_small_list_size)
-length_minus_one_eq_zero(X) ->
-    length(X) - 1 =:= 0.  % effective 1 -> [_]
-length_minus_two_eq_zero(X) ->
-    length(X) - 2 =:= 0.  % effective 2 -> [_, _]
-length_minus_one_eq_one(X) ->
-    length(X) - 1 =:= 1.  % effective 2 -> [_, _]
-% reversed: M =:= length(X) - N
-zero_eq_length_minus_two(X) ->
-    0 =:= length(X) - 2.  % effective 2
-one_eq_length_minus_one(X) ->
-    1 =:= length(X) - 1.  % effective 2
-
-% length(X) - N op M with inequality (effective 0 or 1)
-length_minus_one_gt_zero(X) ->
-    length(X) - 1 > 0.   % effective 1, length > 1 -> [_,_|_]
-zero_lt_length_minus_one(X) ->
-    0 < length(X) - 1.   % effective 1 (length > 1)
-length_minus_one_neq_zero(X) ->
-    length(X) - 1 =/= 0.  % effective 1 (length =/= 1)
-
 % case/try: tuple contains length/1 and clause matches on 0 at that position
 case_tuple_with_length(X) ->
     case {one_thing, "another thing", length(X)} of
@@ -114,6 +87,21 @@ case_tuple_with_length(X) ->
 try_tuple_with_length(X) ->
     try {one_thing, "another thing", length(X)} of
         {_, _, 0} -> empty;
+        _ -> nonempty
+    catch
+        _:_ -> error
+    end.
+
+% case/try: expression is length(X), clause matches on 0
+case_direct_length(X) ->
+    case length(X) of
+        0 -> empty;
+        _ -> nonempty
+    end.
+
+try_direct_length(X) ->
+    try length(X) of
+        0 -> empty;
         _ -> nonempty
     catch
         _:_ -> error
