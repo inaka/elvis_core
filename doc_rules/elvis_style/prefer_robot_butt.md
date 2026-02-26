@@ -14,7 +14,7 @@ guard_nonempty(L) when length(L) > 0 -> notempty.
 guard_nonempty(L) when length(L) >= 1 -> notempty.
 guard_nonempty(L) when length(L) =/= 0 -> notempty.
 
-% Exact length checks (only 1 and 2 are flagged)
+% Exact length checks (1 and 2 flagged by default; configurable up to max_small_list_size)
 guard_one(L) when length(L) =:= 1 -> one.
 guard_two(L) when length(L) =:= 2 -> two.
 
@@ -50,15 +50,22 @@ non-emptiness, or a small fixed size is wasteful when pattern matching achieves 
 O(1). The name "robot butt" refers to the `[_|_]` pattern, which is the idiomatic way to match
 non-empty lists.
 
-Equality comparisons with integers greater than 2 (e.g. `length(L) =:= 10`) are not flagged, since
-pattern matching on long list shapes is impractical.
+Equality comparisons with integers greater than `max_small_list_size` (e.g. `length(L) =:= 10` when
+using the default) are not flagged, since pattern matching on long list shapes is impractical.
 
 ## Options
 
-- None.
+- **`max_small_list_size`** (default: `2`) — Maximum list length for which equality comparisons
+  are flagged. For example, with `max_small_list_size => 5`, `length(L) =:= 3`, `=:= 4`, and `=:= 5`
+  are also reported, with suggestions to match on `[_, _, _]`, `[_, _, _, _]`, and `[_, _, _, _, _]`
+  respectively.
 
 ## Example configuration
 
 ```erlang
+% Default: only 0, 1, 2
 {elvis_style, prefer_robot_butt, #{}}
+
+% Flag equality checks up to length 5
+{elvis_style, prefer_robot_butt, #{ max_small_list_size => 5 }}
 ```

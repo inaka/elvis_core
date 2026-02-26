@@ -353,6 +353,10 @@ default(abc_size) ->
     elvis_rule:defmap(#{
         max_abc_size => 30
     });
+default(prefer_robot_butt) ->
+    elvis_rule:defmap(#{
+        max_small_list_size => 2
+    });
 default(_RuleName) ->
     elvis_rule:defmap(#{}).
 
@@ -2015,18 +2019,20 @@ no_operation_on_same_value(Rule, ElvisConfig) ->
 
 -spec prefer_robot_butt(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 prefer_robot_butt(Rule, ElvisConfig) ->
+    MaxSize = elvis_rule:option(max_small_list_size, Rule),
+    AllowedEq = lists:seq(0, MaxSize),
     {nodes, OpNodes} = elvis_code:find(#{
         of_types => [op],
         inside => elvis_code:root(Rule, ElvisConfig),
-        filtered_by => fun is_length_comparison/1,
+        filtered_by => fun(OpNode) -> is_length_comparison(OpNode, AllowedEq) end,
         traverse => all
     }),
-    [build_length_warning(OpNode) || OpNode <- OpNodes].
+    lists:map(fun build_robot_butt_warning/1, OpNodes).
 
-is_length_comparison(OpNode) ->
+is_length_comparison(OpNode, AllowedEq) ->
     case ktn_code:attr(operation, OpNode) of
         Op when Op =:= '=:='; Op =:= '==' ->
-            is_length_vs_integer(OpNode, [0, 1, 2]);
+            is_length_vs_integer(OpNode, AllowedEq);
         Op when Op =:= '>'; Op =:= '>='; Op =:= '<'; Op =:= '=<'; Op =:= '=/='; Op =:= '/=' ->
             is_length_vs_integer(OpNode, [0, 1]);
         _ ->
@@ -2049,7 +2055,7 @@ is_integer_lit(Node, AllowedInts) ->
     ktn_code:type(Node) =:= integer andalso
         lists:member(ktn_code:attr(value, Node), AllowedInts).
 
-build_length_warning(OpNode) ->
+build_robot_butt_warning(OpNode) ->
     Op = ktn_code:attr(operation, OpNode),
     [Left, Right] = ktn_code:content(OpNode),
     IntValue =
@@ -2057,33 +2063,37 @@ build_length_warning(OpNode) ->
             true -> ktn_code:attr(value, Right);
             false -> ktn_code:attr(value, Left)
         end,
-    Message = length_suggestion_message(Op, IntValue),
-    elvis_result:new_item(Message, [], #{node => OpNode}).
+    {Message, Args} = length_suggestion_message(Op, IntValue),
+    elvis_result:new_item(Message, Args, #{node => OpNode}).
 
-length_suggestion_message('=:=', 0) ->
-    "prefer pattern matching over 'length/1' comparison" ++
-        "(length(L) =:= 0 can be replaced by matching on [])";
-length_suggestion_message('==', 0) ->
-    "prefer pattern matching over 'length/1' comparison" ++
-        "(length(L) == 0 can be replaced by matching on [])";
-length_suggestion_message('=:=', 1) ->
-    "prefer pattern matching over 'length/1' comparison" ++
-        "(length(L) =:= 1 can be replaced by matching on [_])";
-length_suggestion_message('==', 1) ->
-    "prefer pattern matching over 'length/1' comparison" ++
-        "(length(L) == 1 can be replaced by matching on [_])";
-length_suggestion_message('=:=', 2) ->
-    "prefer pattern matching over 'length/1' comparison" ++
-        "(length(L) =:= 2 can be replaced by matching on [_, _])";
-length_suggestion_message('==', 2) ->
-    "prefer pattern matching over 'length/1' comparison" ++
-        "(length(L) == 2 can be replaced by matching on [_, _])";
-length_suggestion_message(Op, _Int) when Op =:= '>'; Op =:= '>='; Op =:= '=/='; Op =:= '/=' ->
-    "prefer pattern matching over 'length/1' comparison" ++
-        "(length(L) > 0 etc. can be replaced by matching on [_|_])";
+length_suggestion_message(Op, 0) when Op =:= '=:='; Op =:= '==' ->
+    {
+        "prefer pattern matching over 'length/1' comparison "
+        "(length(L) ~p 0 can be replaced by matching on [])",
+        [Op]
+    };
+length_suggestion_message(Op, N) when (Op =:= '=:=' orelse Op =:= '=='), N >= 1 ->
+    Underscores = lists:join(", ", lists:duplicate(N, "_")),
+    Pattern = "[" ++ Underscores ++ "]",
+    {
+        "prefer pattern matching over 'length/1' comparison "
+        "(length(L) ~p ~w can be replaced by matching on ~s)",
+        [Op, N, Pattern]
+    };
+length_suggestion_message(Op, _Int) when
+    Op =:= '>'; Op =:= '>='; Op =:= '=/='; Op =:= '/='
+->
+    {
+        "prefer pattern matching over 'length/1' comparison "
+        "(length(L) ~p 0 etc. can be replaced by matching on [_|_])",
+        [Op]
+    };
 length_suggestion_message(Op, _Int) when Op =:= '<'; Op =:= '=<' ->
-    "prefer pattern matching over 'length/1' comparison" ++
-        "(0 < length(L) etc. can be replaced by matching on [_|_])".
+    {
+        "prefer pattern matching over 'length/1' comparison "
+        "(0 ~p length(L) etc. can be replaced by matching on [_|_])",
+        [Op]
+    }.
 
 same_value_on_both_sides(Node) ->
     case ktn_code:content(Node) of
