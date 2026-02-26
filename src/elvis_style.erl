@@ -74,7 +74,8 @@
     strict_term_equivalence/2,
     macro_definition_parentheses/2,
     code_complexity/2,
-    abc_size/2
+    abc_size/2,
+    prefer_robot_butt/2
 ]).
 
 % The whole file is considered to have either callback functions or rules.
@@ -351,6 +352,10 @@ default(code_complexity) ->
 default(abc_size) ->
     elvis_rule:defmap(#{
         max_abc_size => 30
+    });
+default(prefer_robot_butt) ->
+    elvis_rule:defmap(#{
+        max_small_list_size => 2
     });
 default(_RuleName) ->
     elvis_rule:defmap(#{}).
@@ -2012,6 +2017,218 @@ no_operation_on_same_value(Rule, ElvisConfig) ->
      || OpNode <- lists:uniq(OpNodes)
     ].
 
+-spec prefer_robot_butt(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
+prefer_robot_butt(Rule, ElvisConfig) ->
+    Root = elvis_code:root(Rule, ElvisConfig),
+    MaxSize = elvis_rule:option(max_small_list_size, Rule),
+    AllowedEq = lists:seq(0, MaxSize),
+    {nodes, Nodes} = elvis_code:find(#{
+        of_types => [op, 'case', 'try'],
+        inside => Root,
+        filtered_by => fun(Node) -> is_robot_butt_violation(Node, AllowedEq) end,
+        traverse => all
+    }),
+    lists:map(fun build_robot_butt_warning_for/1, Nodes).
+
+is_robot_butt_violation(Node, AllowedEq) ->
+    case ktn_code:type(Node) of
+        op -> is_length_comparison(Node, AllowedEq);
+        'case' -> tuple_length_matched_on_int(Node, AllowedEq);
+        'try' -> tuple_length_matched_on_int(Node, AllowedEq);
+        _ -> false
+    end.
+
+build_robot_butt_warning_for(Node) ->
+    case ktn_code:type(Node) of
+        op -> build_robot_butt_warning(Node);
+        'case' -> build_tuple_length_warning(Node);
+        'try' -> build_tuple_length_warning(Node);
+        _ -> error(badarg, [Node])
+    end.
+
+is_length_comparison(OpNode, AllowedEq) ->
+    Op = ktn_code:attr(operation, OpNode),
+    E = effective_length(Op, OpNode),
+    is_integer(E) andalso lists:member(E, allowed_for_op(Op, AllowedEq)).
+
+allowed_for_op('=:=', AllowedEq) -> AllowedEq;
+allowed_for_op('==', AllowedEq) -> AllowedEq;
+allowed_for_op(_, _) -> [0, 1].
+
+%% length(L) op M: RHS must be literal integer (no arithmetic on length side).
+effective_length(Op, OpNode) ->
+    case lists:member(Op, operators()) of
+        true ->
+            case ktn_code:content(OpNode) of
+                [L, R] ->
+                    case rhs_int_when_length_left(L, R) of
+                        undefined -> rhs_int_when_length_left(R, L);
+                        E -> E
+                    end;
+                _ ->
+                    undefined
+            end;
+        false ->
+            undefined
+    end.
+
+rhs_int_when_length_left(LengthSide, IntSide) ->
+    is_length_call(LengthSide) andalso int_value(IntSide).
+
+int_value(Node) ->
+    case ktn_code:type(Node) of
+        integer -> ktn_code:attr(value, Node);
+        _ -> undefined
+    end.
+
+is_length_call(Node) ->
+    ktn_code:type(Node) =:= call andalso call_mfa(Node) =:= {erlang, length, 1}.
+
+build_robot_butt_warning(OpNode) ->
+    Op = ktn_code:attr(operation, OpNode),
+    E = effective_length(Op, OpNode),
+    {Message, Args} =
+        case Op of
+            _ when Op =:= '=:='; Op =:= '==' -> length_eq_message(E);
+            _ -> length_ineq_message(Op)
+        end,
+    elvis_result:new_item(Message, Args, #{node => OpNode}).
+
+length_eq_message(0) ->
+    {
+        "prefer pattern matching over 'length/1' comparison: "
+        "length(L) =:= 0 can be replaced by matching on []",
+        []
+    };
+length_eq_message(N) when N >= 1 ->
+    P = "[" ++ lists:join(", ", lists:duplicate(N, "_")) ++ "]",
+    {
+        "prefer pattern matching over 'length/1' comparison: "
+        "length(L) =:= ~w can be replaced by matching on ~s",
+        [N, P]
+    }.
+
+length_ineq_message(Op) when Op =:= '>'; Op =:= '>='; Op =:= '=/='; Op =:= '/=' ->
+    {
+        "prefer pattern matching over 'length/1' comparison: "
+        "length(L) ~p 0 etc. can be replaced by matching on [_|_]",
+        [Op]
+    };
+length_ineq_message(Op) when Op =:= '<'; Op =:= '=<' ->
+    {
+        "prefer pattern matching over 'length/1' comparison: "
+        "0 ~p length(L) etc. can be replaced by matching on [_|_]",
+        [Op]
+    }.
+
+tuple_length_matched_on_int(Node, AllowedEq) ->
+    case ktn_code:type(Node) of
+        'case' ->
+            [ExprNode | _] = ktn_code:content(Node),
+            Expr = unwrap_case_expr(ExprNode),
+            Clauses = case_clauses_in(Node),
+            direct_length_matched_on_int(Expr, Clauses, AllowedEq) orelse
+                tuple_has_length_matched_on_int(Expr, Clauses, AllowedEq);
+        'try' ->
+            [TryCase | _] = ktn_code:content(Node),
+            case ktn_code:type(TryCase) of
+                try_case ->
+                    OfClauses = ktn_code:content(TryCase),
+                    Expr = ensure_single_node(ktn_code:node_attr(expression, TryCase)),
+                    undefined =/= Expr andalso
+                        (direct_length_matched_on_int(Expr, OfClauses, AllowedEq) orelse
+                            tuple_has_length_matched_on_int(Expr, OfClauses, AllowedEq));
+                _ ->
+                    false
+            end;
+        _ ->
+            false
+    end.
+
+%% case/try: expression is length/1 call and a clause pattern is 0/1/2
+direct_length_matched_on_int(Expr, Clauses, AllowedEq) ->
+    is_length_call(Expr) andalso any_clause_pattern_int_in_allowed(Clauses, AllowedEq).
+
+any_clause_pattern_int_in_allowed(Clauses, AllowedEq) ->
+    lists:any(
+        fun(Clause) ->
+            Pattern = clause_pattern(Clause),
+            Pattern =/= undefined andalso is_int_in_allowed(Pattern, AllowedEq)
+        end,
+        Clauses
+    ).
+
+unwrap_case_expr(Node) ->
+    case ktn_code:type(Node) of
+        case_expr ->
+            case ktn_code:content(Node) of
+                [Expr | _] -> Expr;
+                _ -> Node
+            end;
+        _ ->
+            Node
+    end.
+
+ensure_single_node([N]) when is_map(N) -> N;
+ensure_single_node([L]) when is_list(L) -> hd(L);
+ensure_single_node(N) when is_map(N) -> N;
+ensure_single_node(_) -> undefined.
+
+tuple_has_length_matched_on_int(TupleExpr, Clauses, AllowedEq) ->
+    ktn_code:type(TupleExpr) =:= tuple andalso
+        case tuple_length_indices(TupleExpr) of
+            [] -> false;
+            Indices -> any_clause_has_int_at_indices(Clauses, Indices, AllowedEq)
+        end.
+
+tuple_length_indices(TupleNode) ->
+    Elements = ktn_code:content(TupleNode),
+    [
+        I
+     || {I, E} <- lists:zip(lists:seq(1, length(Elements)), Elements),
+        is_length_call(E)
+    ].
+
+any_clause_has_int_at_indices(Clauses, Indices, AllowedEq) ->
+    lists:any(
+        fun(Clause) ->
+            Pattern = clause_pattern(Clause),
+            Pattern =/= undefined andalso
+                ktn_code:type(Pattern) =:= tuple andalso
+                lists:any(
+                    fun(I) ->
+                        Elem = tuple_elem(Pattern, I),
+                        Elem =/= undefined andalso is_int_in_allowed(Elem, AllowedEq)
+                    end,
+                    Indices
+                )
+        end,
+        Clauses
+    ).
+
+clause_pattern(Clause) ->
+    case ktn_code:node_attr(pattern, Clause) of
+        [P | _] -> P;
+        _ -> undefined
+    end.
+
+tuple_elem(TupleNode, OneBasedIdx) ->
+    Content = ktn_code:content(TupleNode),
+    case OneBasedIdx =< length(Content) of
+        true -> lists:nth(OneBasedIdx, Content);
+        false -> undefined
+    end.
+
+is_int_in_allowed(Node, AllowedEq) ->
+    ktn_code:type(Node) =:= integer andalso
+        lists:member(ktn_code:attr(value, Node), AllowedEq).
+
+build_tuple_length_warning(Node) ->
+    Msg =
+        "prefer pattern matching over 'length/1' in tuple: tuple contains length/1 and is "
+        "matched on 0/1/2; prefer matching on the list structure directly (e.g. [] or [_|_])",
+    elvis_result:new_item(Msg, [], #{node => Node}).
+
 same_value_on_both_sides(Node) ->
     case ktn_code:content(Node) of
         [Left, Right] ->
@@ -3620,3 +3837,6 @@ re_compile(undefined, _Options) ->
 re_compile(Regexp, Options) ->
     {ok, MP} = re:compile(Regexp, Options),
     MP.
+
+operators() ->
+    ['=:=', '==', '>', '>=', '<', '=<', '=/=', '/='].
