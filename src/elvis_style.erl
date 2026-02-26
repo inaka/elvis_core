@@ -421,6 +421,10 @@ function_name(FunctionNode) ->
 consistent_variable_naming(Rule, ElvisConfig) ->
     Root = elvis_code:root(Rule, ElvisConfig),
 
+    % Compile regexes once; canonical_variable_tokenisation/1 used to compile per variable.
+    CamelRe = re_compile("([a-z])([A-Z])"),
+    HyphenRe = re_compile("-"),
+
     {zippers, VarZippers} = elvis_code:find(#{
         of_types => [var],
         inside => Root,
@@ -430,7 +434,13 @@ consistent_variable_naming(Rule, ElvisConfig) ->
     }),
 
     GroupedByTokens = maps:groups_from_list(
-        fun(Z) -> canonical_variable_tokenisation(canonical_variable_name(Z)) end,
+        fun(Z) ->
+            canonical_variable_tokenisation(
+                canonical_variable_name(Z),
+                CamelRe,
+                HyphenRe
+            )
+        end,
         VarZippers
     ),
 
@@ -463,12 +473,13 @@ consistent_variable_naming(Rule, ElvisConfig) ->
         GroupedByTokens
     ).
 
--spec canonical_variable_tokenisation(unicode:chardata()) -> [unicode:chardata()].
-canonical_variable_tokenisation(Name) ->
+-spec canonical_variable_tokenisation(unicode:chardata(), term(), term()) ->
+    [unicode:chardata()].
+canonical_variable_tokenisation(Name, CamelRe, HyphenRe) ->
     % 1. Insert underscore between lowercase and uppercase (Camel/PascalCase)
-    S1 = re:replace(Name, "([a-z])([A-Z])", "\\1_\\2", [global, {return, list}]),
+    S1 = re:replace(Name, CamelRe, "\\1_\\2", [global, {return, list}]),
     % 2. Replace hyphens with underscores (kebab-case)
-    S2 = re:replace(S1, "-", "_", [global, {return, list}]),
+    S2 = re:replace(S1, HyphenRe, "_", [global, {return, list}]),
     % 3. Lowercase everything
     S3 = string:casefold(S2),
     % 4. Split by underscore and automatically drop empty tokens
@@ -1719,41 +1730,6 @@ is_successive_map(MapExprNode) ->
 
 -spec atom_naming_convention(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 atom_naming_convention(Rule, ElvisConfig) ->
-    {zippers, AtomZippers} = elvis_code:find(#{
-        of_types => [atom],
-        inside => elvis_code:root(Rule, ElvisConfig),
-        filtered_by => fun parent_is_not_remote/1,
-        filtered_from => zipper,
-        traverse => all
-    }),
-
-    lists:filtermap(
-        fun(AtomZipper) ->
-            case atom_name_matches_regexes(AtomZipper, Rule) of
-                ok ->
-                    false;
-                {not_acceptable, Kind, AtomName, RegexAllow} ->
-                    {true,
-                        elvis_result:new_item(
-                            "the name of ~ts ~p is not acceptable by regular "
-                            "expression '~s'",
-                            [Kind, AtomName, RegexAllow],
-                            #{zipper => AtomZipper}
-                        )};
-                {blocked, Kind, AtomName, RegexBlock} ->
-                    {true,
-                        elvis_result:new_item(
-                            "the name of ~ts ~p is forbidden by regular "
-                            "expression '~s'",
-                            [Kind, AtomName, RegexBlock],
-                            #{zipper => AtomZipper}
-                        )}
-            end
-        end,
-        AtomZippers
-    ).
-
-atom_name_matches_regexes(AtomZipper, Rule) ->
     Regex = elvis_rule:option(regex, Rule),
     ForbiddenRegex = elvis_rule:option(forbidden_regex, Rule),
     RegexEnclosed0 = elvis_rule:option(enclosed_atoms, Rule),
@@ -1761,32 +1737,93 @@ atom_name_matches_regexes(AtomZipper, Rule) ->
     ForbiddenEnclosedRegex0 = elvis_rule:option(forbidden_enclosed_regex, Rule),
     ForbiddenEnclosedRegex = specific_or_default(ForbiddenEnclosedRegex0, ForbiddenRegex),
 
+    % Compile each regex once instead of per atom (was the main performance bottleneck).
+    Compiled = #{
+        allow_normal => re_compile_for_atom_type(false, Regex, RegexEnclosed),
+        allow_enclosed => re_compile_for_atom_type(true, Regex, RegexEnclosed),
+        block_normal => re_compile_for_atom_type(false, ForbiddenRegex, ForbiddenEnclosedRegex),
+        block_enclosed => re_compile_for_atom_type(true, ForbiddenRegex, ForbiddenEnclosedRegex)
+    },
+    Source = #{
+        allow_normal => Regex,
+        allow_enclosed => RegexEnclosed,
+        block_normal => ForbiddenRegex,
+        block_enclosed => ForbiddenEnclosedRegex
+    },
+
+    % Use content only: 'all' would also traverse node_attrs (location, text, value, etc.),
+    % multiplying visited nodes and making the rule much slower.
+    {zippers, AtomZippers} = elvis_code:find(#{
+        of_types => [atom],
+        inside => elvis_code:root(Rule, ElvisConfig),
+        filtered_by => fun parent_is_not_remote/1,
+        filtered_from => zipper,
+        traverse => content
+    }),
+
+    lists:filtermap(
+        fun(AtomZipper) ->
+            case atom_name_matches_regexes(AtomZipper, Compiled, Source) of
+                ok ->
+                    false;
+                {not_acceptable, Kind, AtomName, RegexAllowSource} ->
+                    {true,
+                        elvis_result:new_item(
+                            "the name of ~ts ~p is not acceptable by regular "
+                            "expression '~s'",
+                            [Kind, AtomName, RegexAllowSource],
+                            #{zipper => AtomZipper}
+                        )};
+                {blocked, Kind, AtomName, RegexBlockSource} ->
+                    {true,
+                        elvis_result:new_item(
+                            "the name of ~ts ~p is forbidden by regular "
+                            "expression '~s'",
+                            [Kind, AtomName, RegexBlockSource],
+                            #{zipper => AtomZipper}
+                        )}
+            end
+        end,
+        AtomZippers
+    ).
+
+atom_name_matches_regexes(AtomZipper, Compiled, Source) ->
     {AtomName0, AtomNodeValue} = atom_name_and_node_value(AtomZipper),
     {IsEnclosed, AtomName} = string_strip_enclosed(AtomName0),
     IsExceptionClass = is_exception_or_non_reversible(AtomNodeValue),
 
-    {RegexAllowStr, RegexAllow} = re_compile_for_atom_type(IsEnclosed, Regex, RegexEnclosed),
-    {RegexBlockStr, RegexBlock} = re_compile_for_atom_type(
-        IsEnclosed, ForbiddenRegex, ForbiddenEnclosedRegex
-    ),
+    AllowKey =
+        case IsEnclosed of
+            true -> allow_enclosed;
+            false -> allow_normal
+        end,
+    BlockKey =
+        case IsEnclosed of
+            true -> block_enclosed;
+            false -> block_normal
+        end,
+    RegexAllow = maps:get(AllowKey, Compiled),
+    RegexBlock = maps:get(BlockKey, Compiled),
+    RegexAllowSource = maps:get(AllowKey, Source),
+    RegexBlockSource = maps:get(BlockKey, Source),
 
     AtomNameUnicode = unicode:characters_to_list(AtomName),
     case re_run(AtomNameUnicode, RegexAllow) of
         _ when IsExceptionClass, not IsEnclosed ->
             ok;
         nomatch when not IsEnclosed ->
-            {not_acceptable, "atom", AtomName, RegexAllowStr};
+            {not_acceptable, "atom", AtomName, RegexAllowSource};
         nomatch when IsEnclosed ->
-            {not_acceptable, "enclosed atom", AtomName, RegexAllowStr};
+            {not_acceptable, "enclosed atom", AtomName, RegexAllowSource};
         {match, _Captured} when RegexBlock =/= undefined ->
             % We check for forbidden names only after accepted names
             case re_run(AtomNameUnicode, RegexBlock) of
                 _ when IsExceptionClass, not IsEnclosed ->
                     ok;
                 {match, _} when not IsEnclosed ->
-                    {blocked, "atom", AtomName, RegexBlockStr};
+                    {blocked, "atom", AtomName, RegexBlockSource};
                 {match, _} when IsEnclosed ->
-                    {blocked, "enclosed atom", AtomName, RegexBlockStr};
+                    {blocked, "enclosed atom", AtomName, RegexBlockSource};
                 _ ->
                     ok
             end;
@@ -3141,14 +3178,14 @@ string_strip_enclosed(NonEnclosedAtomName) ->
     IsEnclosed = false,
     {IsEnclosed, NonEnclosedAtomName}.
 
-re_compile_for_atom_type(false = _IsEnclosed, undefined = _Regex, _RegexEnclosed) ->
-    {undefined, undefined};
-re_compile_for_atom_type(true = _IsEnclosed, _Regex, undefined = _RegexEnclosed) ->
-    {undefined, undefined};
-re_compile_for_atom_type(false = _IsEnclosed, Regex, _RegexEnclosed) ->
-    {Regex, re_compile(Regex)};
-re_compile_for_atom_type(true = _IsEnclosed, _Regex, RegexEnclosed) ->
-    {RegexEnclosed, re_compile(RegexEnclosed)}.
+re_compile_for_atom_type(false, undefined, _) ->
+    undefined;
+re_compile_for_atom_type(false, Regex, _) ->
+    re_compile(Regex);
+re_compile_for_atom_type(true, _, undefined) ->
+    undefined;
+re_compile_for_atom_type(true, _, RegexEnclosed) ->
+    re_compile(RegexEnclosed).
 
 line_is_comment_regex() ->
     re_compile("^[ \t]*%").
