@@ -3450,7 +3450,7 @@ verify_prefer_robot_butt(Config) ->
     Results = elvis_test_utils:elvis_core_apply_rule(
         Config, elvis_style, prefer_robot_butt, #{}, PathFail
     ),
-    31 = length(Results),
+    33 = length(Results),
 
     PathPass = "pass_prefer_robot_butt." ++ Ext,
     [] =

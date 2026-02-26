@@ -3,7 +3,9 @@
 -feature(maybe_expr, enable).
 
 -export([guard_eq_zero/1, guard_gt_zero/1, guard_gte_one/1, guard_neq_zero/1,
-         guard_reversed/1, guard_reversed_lt/1, guard_eq_one/1, guard_eq_two/1,
+         guard_reversed/1, guard_reversed_lt/1,
+         guard_reversed_neq_zero/1, guard_reversed_nem_zero/1,
+         guard_eq_one/1, guard_eq_two/1,
          guard_double_eq/1, expr_eq_zero/1, expr_gt_zero/1, fq_guard/1,
          case_with_length/1, try_of_with_length/0, if_with_length/1,
          maybe_with_length/0, receive_with_length/0,
@@ -23,6 +25,8 @@ guard_gte_one(L) when length(L) >= 1 -> notempty.
 guard_neq_zero(L) when length(L) =/= 0 -> notempty.
 guard_reversed(L) when 0 =:= length(L) -> empty.
 guard_reversed_lt(L) when 0 < length(L) -> notempty.
+guard_reversed_neq_zero(L) when 0 == length(L) -> empty.
+guard_reversed_nem_zero(L) when 0 =:= length(L) -> empty.
 guard_eq_one(L) when length(L) =:= 1 -> one.
 guard_eq_two(L) when length(L) =:= 2 -> two.
 guard_double_eq(L) when length(L) == 0 -> empty.
