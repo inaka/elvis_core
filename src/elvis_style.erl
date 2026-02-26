@@ -2030,70 +2030,102 @@ prefer_robot_butt(Rule, ElvisConfig) ->
     lists:map(fun build_robot_butt_warning/1, OpNodes).
 
 is_length_comparison(OpNode, AllowedEq) ->
-    case ktn_code:attr(operation, OpNode) of
-        Op when Op =:= '=:='; Op =:= '==' ->
-            is_length_vs_integer(OpNode, AllowedEq);
-        Op when Op =:= '>'; Op =:= '>='; Op =:= '<'; Op =:= '=<'; Op =:= '=/='; Op =:= '/=' ->
-            is_length_vs_integer(OpNode, [0, 1]);
-        _ ->
-            false
+    maybe
+        Op = ktn_code:attr(operation, OpNode),
+        true ?= lists:member(Op, operators()),
+        E = effective_length(Op, OpNode),
+        true ?= is_integer(E),
+        lists:member(E, allowed_for_op(Op, AllowedEq))
     end.
 
-is_length_vs_integer(OpNode, AllowedInts) ->
-    case ktn_code:content(OpNode) of
-        [Left, Right] ->
-            (is_length_call(Left) andalso is_integer_lit(Right, AllowedInts)) orelse
-                (is_length_call(Right) andalso is_integer_lit(Left, AllowedInts));
-        _ ->
-            false
+allowed_for_op('=:=', AllowedEq) -> AllowedEq;
+allowed_for_op('==', AllowedEq) -> AllowedEq;
+allowed_for_op(_, _) -> [0, 1].
+
+%% length(L) op M or (length(L)-N) op M: effective RHS is M or M+N.
+effective_length(Op, OpNode) ->
+    maybe
+        true ?= lists:member(Op, operators()),
+        [L, R] ?= ktn_code:content(OpNode),
+        case effective_from(L, R) of
+            undefined -> effective_from(R, L);
+            E -> E
+        end
+    else
+        _ -> undefined
+    end.
+
+effective_from(LengthSide, IntSide) ->
+    int_value(IntSide, fun(M) ->
+        when_length_call(LengthSide, M, fun(N) -> M + N end)
+    end).
+
+int_value(Node, K) ->
+    case ktn_code:type(Node) of
+        integer -> K(ktn_code:attr(value, Node));
+        _ -> undefined
+    end.
+
+when_length_call(LengthSide, M, Else) ->
+    case is_length_call(LengthSide) of
+        true -> M;
+        false ->
+            case get_minus_n(LengthSide) of
+                N when is_integer(N) -> Else(N);
+                _ -> undefined
+            end
+    end.
+
+get_minus_n(Node) ->
+    is_minus_op(Node) andalso minus_operand(Node).
+
+is_minus_op(Node) ->
+    ktn_code:type(Node) =:= op andalso ktn_code:attr(operation, Node) =:= '-'.
+
+minus_operand(Node) ->
+    case ktn_code:content(Node) of
+        [A, B] ->
+            case length_int_operand(A, B) of
+                undefined -> length_int_operand(B, A);
+                N -> N
+            end;
+        _ -> undefined
+    end.
+
+length_int_operand(A, B) ->
+    case is_length_call(A) andalso ktn_code:type(B) of
+        integer -> ktn_code:attr(value, B);
+        _ -> undefined
     end.
 
 is_length_call(Node) ->
     ktn_code:type(Node) =:= call andalso call_mfa(Node) =:= {erlang, length, 1}.
 
-is_integer_lit(Node, AllowedInts) ->
-    ktn_code:type(Node) =:= integer andalso
-        lists:member(ktn_code:attr(value, Node), AllowedInts).
-
 build_robot_butt_warning(OpNode) ->
     Op = ktn_code:attr(operation, OpNode),
-    [Left, Right] = ktn_code:content(OpNode),
-    IntValue =
-        case is_length_call(Left) of
-            true -> ktn_code:attr(value, Right);
-            false -> ktn_code:attr(value, Left)
+    E = effective_length(Op, OpNode),
+    {Message, Args} =
+        case Op of
+            '=:=' -> length_eq_message(E);
+            '==' -> length_eq_message(E);
+            _ -> length_ineq_message(Op)
         end,
-    {Message, Args} = length_suggestion_message(Op, IntValue),
     elvis_result:new_item(Message, Args, #{node => OpNode}).
 
-length_suggestion_message(Op, 0) when Op =:= '=:='; Op =:= '==' ->
-    {
-        "prefer pattern matching over 'length/1' comparison "
-        "(length(L) ~p 0 can be replaced by matching on [])",
-        [Op]
-    };
-length_suggestion_message(Op, N) when (Op =:= '=:=' orelse Op =:= '=='), N >= 1 ->
-    Underscores = lists:join(", ", lists:duplicate(N, "_")),
-    Pattern = "[" ++ Underscores ++ "]",
-    {
-        "prefer pattern matching over 'length/1' comparison "
-        "(length(L) ~p ~w can be replaced by matching on ~s)",
-        [Op, N, Pattern]
-    };
-length_suggestion_message(Op, _Int) when
-    Op =:= '>'; Op =:= '>='; Op =:= '=/='; Op =:= '/='
-->
-    {
-        "prefer pattern matching over 'length/1' comparison "
-        "(length(L) ~p 0 etc. can be replaced by matching on [_|_])",
-        [Op]
-    };
-length_suggestion_message(Op, _Int) when Op =:= '<'; Op =:= '=<' ->
-    {
-        "prefer pattern matching over 'length/1' comparison "
-        "(0 ~p length(L) etc. can be replaced by matching on [_|_])",
-        [Op]
-    }.
+length_eq_message(0) ->
+    {"prefer pattern matching over 'length/1' comparison (length(L) =:= 0 can be replaced by matching on [])",
+        []};
+length_eq_message(N) when N >= 1 ->
+    P = "[" ++ lists:join(", ", lists:duplicate(N, "_")) ++ "]",
+    {"prefer pattern matching over 'length/1' comparison (length(L) =:= ~w can be replaced by matching on ~s)",
+        [N, P]}.
+
+length_ineq_message(Op) when Op =:= '>'; Op =:= '>='; Op =:= '=/='; Op =:= '/=' ->
+    {"prefer pattern matching over 'length/1' comparison (length(L) ~p 0 etc. can be replaced by matching on [_|_])",
+        [Op]};
+length_ineq_message(Op) when Op =:= '<'; Op =:= '=<' ->
+    {"prefer pattern matching over 'length/1' comparison (0 ~p length(L) etc. can be replaced by matching on [_|_])",
+        [Op]}.
 
 same_value_on_both_sides(Node) ->
     case ktn_code:content(Node) of
@@ -3703,3 +3735,6 @@ re_compile(undefined, _Options) ->
 re_compile(Regexp, Options) ->
     {ok, MP} = re:compile(Regexp, Options),
     MP.
+
+operators() ->
+    ['=:=', '==', '>', '>=', '<', '=<', '=/=', '/='].

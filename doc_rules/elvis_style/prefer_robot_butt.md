@@ -21,6 +21,10 @@ guard_two(L) when length(L) =:= 2 -> two.
 % In expressions
 expr_empty(L) -> length(L) =:= 0.
 expr_nonempty(L) -> length(L) > 0.
+
+% length in arithmetic then compared to 0: length(X) - N =:= 0
+length_minus_one_eq_zero(X) ->
+    length(X) - 1 =:= 0.
 ```
 
 ## Prefer
@@ -52,6 +56,8 @@ non-empty lists.
 
 Equality comparisons with integers greater than `max_small_list_size` (e.g. `length(L) =:= 10` when
 using the default) are not flagged, since pattern matching on long list shapes is impractical.
+
+The rule also flags **`length(L) - N =:= 0`** (and `0 =:= length(L) - N`): it suggests matching on a list of `N` elements (e.g. `length(L) - 1 =:= 0` → match on `[_]`). Only `N` in `1..max_small_list_size` are flagged.
 
 ## Options
 
