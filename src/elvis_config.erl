@@ -9,7 +9,7 @@
 
 -export([from_rebar/1, from_file/1, validate_config/1, default/0]).
 %% Getters
--export([dirs/1, ignore/1, filter/1, files/1, rules/1, ruleset/1]).
+-export([file_globs/1, ignore/1, files/1, rules/1, ruleset/1]).
 %% Files
 -export([resolve_files/1, resolve_files/2, apply_to_files/2]).
 %% Rules
@@ -20,7 +20,13 @@
 -export([set_output_format/1, set_verbose/1, set_no_output/1, set_parallel/1]).
 
 % Corresponds to the 'config' key.
--opaque t() :: map().
+-opaque t() ::
+    #{
+        files => [nonempty_string()],
+        ruleset => atom(),
+        resolved_files => dynamic(),
+        ignore => [string()]
+    }.
 -export_type([t/0]).
 
 -type output_format() :: plain | colors | parsable.
@@ -203,10 +209,8 @@ default_for(parallel) ->
     erlang:system_info(schedulers_online);
 default_for(rulesets) ->
     #{};
-default_for([config, dirs]) ->
+default_for([config, files]) ->
     [];
-default_for([config, filter]) ->
-    "";
 default_for([config, ignore]) ->
     [];
 default_for([config, ruleset]) ->
@@ -217,42 +221,19 @@ default_for([config, rules]) ->
 -spec default() -> [t()].
 default() ->
     [
+        #{files => ["apps/**/src/*.erl", "src/**/*.erl"], ruleset => erl_files},
         #{
-            dirs => [
-                "apps/**/src",
-                "src"
-            ],
-            filter => "*.erl",
-            ruleset => erl_files
-        },
-        #{
-            dirs => [
-                "apps/**/src",
-                "src",
-                "apps/**/include",
-                "include"
-            ],
-            filter => "*.hrl",
+            files => ["apps/**/src/*.hrl", "apps/**/include/*.hrl", "src/*.hrl", "include/*.hrl"],
             ruleset => hrl_files
         },
-        #{
-            dirs => ["."],
-            filter => "rebar.config",
-            ruleset => rebar_config
-        },
-        #{
-            dirs => ["."],
-            filter => ".gitignore",
-            ruleset => gitignore
-        }
+        #{files => ["rebar.config"], ruleset => rebar_config},
+        #{files => [".gitignore"], ruleset => gitignore}
     ].
 
--spec dirs(Config :: [t()] | t()) -> [string()].
-dirs(Config) when is_list(Config) ->
-    lists:flatmap(fun dirs/1, Config);
-dirs(#{dirs := Dirs}) ->
-    Dirs;
-dirs(#{}) ->
+-spec file_globs(t()) -> [string()].
+file_globs(#{files := Globs}) when is_list(Globs) ->
+    Globs;
+file_globs(#{}) ->
     [].
 
 -spec ignore([t()] | t()) -> [string()].
@@ -263,18 +244,10 @@ ignore(#{ignore := Ignore}) ->
 ignore(#{}) ->
     [].
 
--spec filter([t()] | t()) -> [string()].
-filter(Config) when is_list(Config) ->
-    lists:flatmap(fun filter/1, Config);
-filter(#{filter := Filter}) ->
-    Filter;
-filter(#{}) ->
-    "*.erl".
-
 -spec files(RuleGroup :: [t()] | t()) -> [elvis_file:t()].
 files(RuleGroup) when is_list(RuleGroup) ->
     lists:map(fun files/1, RuleGroup);
-files(#{files := Files}) ->
+files(#{resolved_files := Files}) ->
     Files;
 files(#{}) ->
     [].
@@ -299,8 +272,7 @@ ruleset(ElvisConfig) ->
     maps:get(ruleset, ElvisConfig, undefined).
 
 %% @doc Takes a configuration and a list of files, filtering some
-%%      of them according to the 'filter' key, or if not specified
-%%      uses '*.erl'.
+%%      of them according to the 'files' globs and ignore list.
 %% @end
 %% resolve_files/2 with a [t()] type is used in elvis project
 -spec resolve_files(Config :: [t()] | t(), Files :: [elvis_file:t()]) ->
@@ -308,25 +280,33 @@ ruleset(ElvisConfig) ->
 resolve_files(Config, Files) when is_list(Config) ->
     Fun = fun(RuleGroup) -> resolve_files(RuleGroup, Files) end,
     lists:map(Fun, Config);
-resolve_files(RuleGroup, Files) ->
-    Filter = filter(RuleGroup),
-    Dirs = dirs(RuleGroup),
+resolve_files(RuleGroup, Files) when is_map(RuleGroup) ->
+    FileGlobs = maps:get(files, RuleGroup, []),
     Ignore = ignore(RuleGroup),
-    FilteredFiles = elvis_file:filter_files(Files, Dirs, Filter, Ignore),
-    RuleGroup#{files => FilteredFiles}.
+    FilteredFiles = elvis_file:filter_files(Files, FileGlobs, Ignore),
+    RuleGroup#{resolved_files => FilteredFiles}.
 
-%% @doc Takes a configuration and finds all files according to its 'dirs'
-%%      end  'filter' key, or if not specified uses '*.erl'.
+%% @doc Takes a configuration and finds all files according to its 'files' globs.
 %% @end
 -spec resolve_files(t()) -> t().
-resolve_files(#{files := _Files} = RuleGroup) ->
+resolve_files(#{resolved_files := _} = RuleGroup) ->
     RuleGroup;
-resolve_files(#{dirs := Dirs} = RuleGroup) ->
-    Filter = filter(RuleGroup),
-    Files = elvis_file:find_files(Dirs, Filter),
-    resolve_files(RuleGroup, Files);
-resolve_files(#{}) ->
-    [].
+resolve_files(#{files := FileGlobs} = RuleGroup) ->
+    Ignore = ignore(RuleGroup),
+    FoundFiles = elvis_file:find_files(FileGlobs),
+    FilteredFiles = filter_by_ignore(FoundFiles, Ignore),
+    RuleGroup#{resolved_files => FilteredFiles}.
+
+filter_by_ignore(Files, Ignore) ->
+    lists:filter(
+        fun(#{path := Path}) ->
+            not lists:any(
+                fun(Regex) -> match =:= re:run(Path, Regex, [{capture, none}]) end,
+                Ignore
+            )
+        end,
+        Files
+    ).
 
 %% @doc Takes a function and configuration and applies the function to all
 %%      file in the configuration.
@@ -336,9 +316,9 @@ resolve_files(#{}) ->
 apply_to_files(Fun, Config) when is_list(Config) ->
     ApplyFun = fun(RuleGroup) -> apply_to_files(Fun, RuleGroup) end,
     lists:map(ApplyFun, Config);
-apply_to_files(Fun, #{files := Files} = RuleGroup) ->
+apply_to_files(Fun, #{resolved_files := Files} = RuleGroup) ->
     NewFiles = lists:map(Fun, Files),
-    RuleGroup#{files => NewFiles}.
+    RuleGroup#{resolved_files => NewFiles}.
 
 %% @doc Ensures the ignore is a regexp, this is used
 %%      to allow using 'module name' atoms in the ignore
@@ -651,15 +631,9 @@ get_config_opt(OptName, Config, true = _Compulsory) ->
 
 config_is_valid(CustomRulesetNames, Config) ->
     maybe
-        % We're keeping files, for the time being, because of elvis
-        % and the fact it knows about elvis_core's internals, but we
-        % should shortly revisit this
-        ok ?= map_keys_are_in(Config, [dirs, filter, ignore, ruleset, rules, files]),
-        {ok, Dirs} ?= get_config_opt(dirs, Config, true),
-        ok ?= is_nonempty_list(dirs, Dirs),
-        {ok, Filter} ?= get_config_opt(filter, Config, true),
-        ok ?= is_nonempty_string(filter, Filter),
-        ok ?= at_least_one_dirs_filter_combo_is_valid(Dirs, Filter),
+        ok ?= map_keys_are_in(Config, [files, ignore, ruleset, rules]),
+        {ok, FileGlobs} ?= get_config_opt(files, Config, true),
+        ok ?= all_files_globs_are_valid(FileGlobs),
         {ok, Ignore} ?= get_config_opt(ignore, Config, false),
         ok ?= is_list_of_ignorables(ignore, Ignore),
         {ok, Ruleset} ?= get_config_opt(ruleset, Config, false),
@@ -688,24 +662,21 @@ map_keys_are_in(Map, Keys) ->
                 ])}
     end.
 
-is_nonempty_string(What, String) ->
-    case io_lib:char_list(String) andalso length(String) > 0 of
+all_files_globs_are_valid(FileGlobs) when not is_list(FileGlobs) ->
+    {error, "'files' is expected to be a list."};
+all_files_globs_are_valid(FileGlobs) when FileGlobs =:= [] ->
+    {error, "'files' is expected to be a non-empty list."};
+all_files_globs_are_valid(FileGlobs) ->
+    case lists:all(fun(G) -> is_list(G) andalso length(G) > 0 end, FileGlobs) of
         true ->
-            ok;
-        _ ->
-            {error, io_lib:format("'~s' is expected to be a non-empty string.", [What])}
-    end.
-
-at_least_one_dirs_filter_combo_is_valid(Dirs, Filter) ->
-    case lists:any(fun(Dir) -> filelib:wildcard(filename:join(Dir, Filter)) =/= [] end, Dirs) of
-        true ->
-            ok;
+            case lists:any(fun(G) -> filelib:wildcard(G) =/= [] end, FileGlobs) of
+                true ->
+                    ok;
+                false ->
+                    {error, "at least one glob in 'files' is expected to yield files to analyse."}
+            end;
         false ->
-            {error,
-                io_lib:format(
-                    "no '<dir>' + '<filter>' combo in ~s + '~s' yielded any files to analyse.",
-                    [elvis_utils:list_to_str(Dirs), Filter]
-                )}
+            {error, "'files' is expected to be a non-empty list of non-empty strings."}
     end.
 
 is_list_of_ignorables(What, List) when not is_list(List) ->

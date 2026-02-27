@@ -4,15 +4,14 @@
     src/1,
     encoding/1,
     path/1,
+    from_path/1,
     parse_tree/2,
     load_file_data/2,
-    find_files/2,
-    filter_files/4,
+    find_files/1,
+    filter_files/3,
     module/1,
     get_abstract_parse_tree/1
 ]).
-
--export_type([t/0]).
 
 -opaque t() ::
     #{
@@ -20,6 +19,8 @@
         content => binary(),
         _ => _
     }.
+
+-export_type([t/0]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Public
@@ -53,6 +54,11 @@ path(#{path := Path}) ->
     Path;
 path(File) ->
     throw({invalid_file, File}).
+
+%% @doc Build a t() from a file path (for use when the file is not yet loaded).
+-spec from_path(string()) -> t().
+from_path(Path) when is_list(Path) ->
+    #{path => Path}.
 
 %% @doc Add the root node of the parse tree to the file data, with filtering.
 -spec parse_tree(
@@ -89,40 +95,32 @@ load_file_data(ElvisConfig, #{path := _Path} = File0) ->
     {_, File2} = parse_tree(File1, ElvisConfig),
     File2.
 
-%% @doc Returns all files under the specified Path
-%% that match the pattern Name.
--spec find_files([string()], string()) -> [t()].
-find_files(Dirs, Pattern) ->
-    Fun = fun(Dir) ->
-        filelib:wildcard(
-            filename:join(Dir, Pattern)
-        )
-    end,
-    [#{path => Path} || Path <- lists:usort(lists:flatmap(Fun, Dirs))].
+%% @doc Returns all files matching the given glob patterns.
+-spec find_files([string()]) -> [t()].
+find_files(Globs) ->
+    Paths = lists:usort(lists:flatmap(fun filelib:wildcard/1, Globs)),
+    [#{path => Path} || Path <- Paths].
 
-dir_to(Filter, ".") ->
-    Filter;
-dir_to(Filter, Dir) ->
-    filename:join(Dir, Filter).
-
-file_in(ExpandedFilter, Files) ->
-    lists:filter(fun(#{path := Path}) -> lists:member(Path, ExpandedFilter) end, Files).
-
-%% @doc Filter files based on the glob provided.
--spec filter_files([t()], [string()], string(), [string()]) -> [t()].
-filter_files(Files, Dirs, Filter, IgnoreList) ->
-    ExpandedFilters = lists:map(fun(Dir) -> filelib:wildcard(dir_to(Filter, Dir)) end, Dirs),
-    Found =
-        lists:flatmap(fun(ExpandedFilter) -> file_in(ExpandedFilter, Files) end, ExpandedFilters),
-    % File src/sub/file.erl will match both src/ and src/sub/ folders. We can't have that!
-    FoundUnique = lists:usort(Found),
-
+%% @doc Filter files to those matching the globs and not matching any ignore regex.
+-spec filter_files([t()], [string()], [string()]) -> [t()].
+filter_files(Files, Globs, IgnoreList) ->
+    ExpandedPaths = lists:usort(lists:flatmap(fun filelib:wildcard/1, Globs)),
+    Found = lists:filter(fun(#{path := P}) -> lists:member(P, ExpandedPaths) end, Files),
+    CompiledIgnoreList = lists:map(
+        fun(Regexp) ->
+            {ok, CompiledRegex} = re:compile(Regexp, [unicode]),
+            CompiledRegex
+        end,
+        IgnoreList
+    ),
     lists:filter(
         fun(#{path := Path}) ->
-            MatchesPath = fun(Regex) -> match =:= re:run(Path, Regex, [{capture, none}]) end,
-            not lists:any(MatchesPath, IgnoreList)
+            not lists:any(
+                fun(Regex) -> match =:= re:run(Path, Regex, [{capture, none}]) end,
+                CompiledIgnoreList
+            )
         end,
-        FoundUnique
+        Found
     ).
 
 %% @doc Return module name corresponding to a given .hrl/.erl/.beam file

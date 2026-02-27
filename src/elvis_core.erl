@@ -73,22 +73,18 @@ rock_this(Path, ElvisConfig) ->
     case validate_config(ElvisConfig) of
         ok ->
             elvis_ruleset:drop_custom(),
-            Dirname = filename:dirname(Path),
-            Filename = filename:basename(Path),
             File =
-                case elvis_file:find_files([Dirname], Filename) of
-                    [] ->
-                        throw({enoent, Path});
-                    [File0] ->
-                        File0
+                case filelib:is_regular(Path) of
+                    true ->
+                        elvis_file:from_path(Path);
+                    false ->
+                        throw({enoent, Path})
                 end,
-
             FilterFun =
                 fun(Cfg) ->
-                    Filter = elvis_config:filter(Cfg),
-                    Dirs = elvis_config:dirs(Cfg),
+                    FileGlobs = elvis_config:file_globs(Cfg),
                     IgnoreList = elvis_config:ignore(Cfg),
-                    [] =/= elvis_file:filter_files([File], Dirs, Filter, IgnoreList)
+                    [] =/= elvis_file:filter_files([File], FileGlobs, IgnoreList)
                 end,
             case lists:filter(FilterFun, ElvisConfig) of
                 [] ->

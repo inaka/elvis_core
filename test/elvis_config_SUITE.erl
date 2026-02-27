@@ -70,8 +70,7 @@ throw_configuration(_Config) ->
 validate_config_with_string_ignore(_Config) ->
     Config = [
         #{
-            dirs => ["../../../../_build/test/lib/elvis_core/test/examples/"],
-            filter => "*.erl",
+            files => ["../../../../_build/test/lib/elvis_core/test/examples/*.erl"],
             ignore => ["include/file_that_i_want_to_ignore.hrl"],
             ruleset => erl_files
         }
