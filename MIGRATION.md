@@ -8,6 +8,58 @@ since these are incremental.
 This file's format is influenced by [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and
 [Make a README](https://www.makeareadme.com/).
 
+## Going from `4.x` to `5.0.0`
+
+### Replace `dirs` and `filter` with `files`
+
+Config no longer uses `dirs` and `filter`. Use a single `files` key: a list of glob patterns that
+select which files each rule group applies to.
+
+**Before (4.x):**
+
+```erlang
+#{ dirs => ["src/**", "test/**"]
+ , filter => "*.erl"
+ , ruleset => erl_files
+ , rules => [...]
+}
+```
+
+**After (5.0.0):**
+
+```erlang
+#{ files => ["src/**/*.erl", "test/**/*.erl"]
+ , ruleset => erl_files
+ , rules => [...]
+}
+```
+
+For each entry in `dirs`, combine it with `filter` into one glob: e.g. `"src/**"` and `"*.erl"`
+become `"src/**/*.erl"`. For a single dir and filter, e.g. `dirs => ["."]` and `filter =>
+"rebar.config"`, use `files => ["rebar.config"]` (or `["**/rebar.config"]` if you need to match in
+subdirs).
+
+**Example — full config before (4.x):**
+
+```erlang
+#{ dirs => ["src/**"], filter => "*.erl", ruleset => erl_files, rules => [...] }
+, #{ dirs => ["include/**"], filter => "*.hrl", ruleset => hrl_files }
+, #{ dirs => ["."], filter => "rebar.config", ruleset => rebar_config, rules => [] }
+, #{ dirs => ["."], filter => ".gitignore", ruleset => gitignore }
+```
+
+**After (5.0.0):**
+
+```erlang
+#{ files => ["src/**/*.erl"], ruleset => erl_files, rules => [...] }
+, #{ files => ["include/**/*.hrl"], ruleset => hrl_files }
+, #{ files => ["rebar.config"], ruleset => rebar_config, rules => [] }
+, #{ files => [".gitignore"], ruleset => gitignore }
+```
+
+Allowed config keys per rule group are now: `files`, `ignore`, `ruleset`, `rules`. At least one glob
+in `files` must match at least one file.
+
 ## Going from `3.x` to `4.x`
 
 ### Update
