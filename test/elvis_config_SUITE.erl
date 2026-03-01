@@ -105,11 +105,6 @@ validate(_Config) ->
             end
         end,
         [
-            % does not exist
-            % exists is not of type
-            % exists is not fully of type
-            % exists > next
-
             % invalid top-level content (non-existing file)
             {"-1.config",
                 invalid_config(
