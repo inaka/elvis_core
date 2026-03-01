@@ -221,7 +221,10 @@ default_for([config, rules]) ->
 -spec default() -> [t()].
 default() ->
     [
-        #{files => ["apps/**/src/*.erl", "src/**/*.erl"], ruleset => erl_files},
+        #{
+            files => ["apps/**/src/*.erl", "src/**/*.erl"],
+            ruleset => erl_files
+        },
         #{
             files => ["apps/**/src/*.hrl", "apps/**/include/*.hrl", "src/*.hrl", "include/*.hrl"],
             ruleset => hrl_files
@@ -662,9 +665,7 @@ map_keys_are_in(Map, Keys) ->
                 ])}
     end.
 
-all_files_globs_are_valid(FileGlobs) when not is_list(FileGlobs) ->
-    {error, "'files' is expected to be a list."};
-all_files_globs_are_valid(FileGlobs) when FileGlobs =:= [] ->
+all_files_globs_are_valid(FileGlobs) when not is_list(FileGlobs) orelse FileGlobs =:= [] ->
     {error, "'files' is expected to be a non-empty list."};
 all_files_globs_are_valid(FileGlobs) ->
     case lists:all(fun(G) -> is_list(G) andalso length(G) > 0 end, FileGlobs) of
@@ -673,7 +674,10 @@ all_files_globs_are_valid(FileGlobs) ->
                 true ->
                     ok;
                 false ->
-                    {error, "at least one glob in 'files' is expected to yield files to analyse."}
+                    {error,
+                        io_lib:format("no '<globs>' in '~s' yielded any files to analyse.", [
+                            FileGlobs
+                        ])}
             end;
         false ->
             {error, "'files' is expected to be a non-empty list of non-empty strings."}
