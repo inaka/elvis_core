@@ -639,8 +639,15 @@ all_configs_are_valid(What, CustomRulesetNames, Configset) ->
             {error, lists:reverse(ValidErrors)}
     end.
 
-get_config_opt(OptName, Config) ->
-    maps:get(OptName, Config, default_for([config, OptName])).
+get_config_opt(OptName, Config, false = _Compulsory) ->
+    {ok, maps:get(OptName, Config, default_for([config, OptName]))};
+get_config_opt(OptName, Config, true = _Compulsory) ->
+    case maps:get(OptName, Config, undefined) of
+        undefined ->
+            {error, io_lib:format("'~s' is a compulsory option.", [OptName])};
+        _GetWithDefault ->
+            get_config_opt(OptName, Config, false)
+    end.
 
 config_is_valid(CustomRulesetNames, Config) ->
     maybe
@@ -648,18 +655,21 @@ config_is_valid(CustomRulesetNames, Config) ->
         % and the fact it knows about elvis_core's internals, but we
         % should shortly revisit this
         ok ?= map_keys_are_in(Config, [dirs, filter, ignore, ruleset, rules, files]),
-        Filter = get_config_opt(filter, Config),
+        {ok, Dirs} ?= get_config_opt(dirs, Config, true),
+        ok ?= is_nonempty_list(dirs, Dirs),
+        {ok, Filter} ?= get_config_opt(filter, Config, true),
         ok ?= is_nonempty_string(filter, Filter),
-        Dirs = get_config_opt(dirs, Config),
-        ok ?= all_dirs_filter_combos_are_valid(Dirs, Filter),
-        Ignore = get_config_opt(ignore, Config),
+        ok ?= at_least_one_dirs_filter_combo_is_valid(Dirs, Filter),
+        {ok, Ignore} ?= get_config_opt(ignore, Config, false),
         ok ?= is_list_of_ignorables(ignore, Ignore),
-        Ruleset = get_config_opt(ruleset, Config),
+        {ok, Ruleset} ?= get_config_opt(ruleset, Config, false),
         ok ?= defined_ruleset_is_custom_or_default(CustomRulesetNames, Ruleset),
-        Rules = get_config_opt(rules, Config),
+        {ok, Rules} ?= get_config_opt(rules, Config, false),
         ok ?= all_rules_are_valid(rules, Rules),
         ok ?= either_rules_is_nonempty_or_ruleset_is_defined(Rules, Ruleset)
     else
+        {error, {Format, Args}} ->
+            {error, io_lib:format(Format, Args)};
         {error, ValidError} ->
             {error, ValidError}
     end.
@@ -686,7 +696,7 @@ is_nonempty_string(What, String) ->
             {error, io_lib:format("'~s' is expected to be a non-empty string.", [What])}
     end.
 
-all_dirs_filter_combos_are_valid(Dirs, Filter) ->
+at_least_one_dirs_filter_combo_is_valid(Dirs, Filter) ->
     case lists:any(fun(Dir) -> filelib:wildcard(filename:join(Dir, Filter)) =/= [] end, Dirs) of
         true ->
             ok;
@@ -755,12 +765,7 @@ either_rules_is_nonempty_or_ruleset_is_defined([_ | _] = _Rules, _Ruleset) ->
 either_rules_is_nonempty_or_ruleset_is_defined(_Rules, Ruleset) when Ruleset =/= undefined ->
     ok;
 either_rules_is_nonempty_or_ruleset_is_defined(_Rules, _Ruleset) ->
-    {error,
-        io_lib:format(
-            "each config section is expected to have either"
-            " a non-empty list of 'rules' or a 'ruleset'.",
-            []
-        )}.
+    {error, "either 'rules' is a non-empty list or 'ruleset' is defined."}.
 
 check_rule_for_options(Rule, AccInI) ->
     case elvis_rule:defkeys(Rule) of
