@@ -155,42 +155,22 @@ validate(_Config) ->
                     "in 'elvis.config', at list position number 1, the following keys are unknown: [<<\"key\">>]."
                 )},
 
-            % invalid elvis.config > dirs (does not exist)
+            % invalid elvis.config > files (does not exist)
             {"3_1.config",
                 invalid_config(
-                    "in 'elvis.config', at list position number 1, 'dirs' is a compulsory option."
+                    "in 'elvis.config', at list position number 1, 'files' is a compulsory option."
                 )},
-            % invalid elvis.config > dirs (is not a list)
+            % invalid elvis.config > files (is not a list)
             {"3_2.config",
                 invalid_config(
-                    "in 'elvis.config', at list position number 1, 'dirs' is expected to exist and be a non-empty list."
+                    "in 'elvis.config', at list position number 1, 'files' is expected to be a non-empty list."
                 )},
-            % invalid elvis.config > dirs (is an empty list)
+            % invalid elvis.config > files (is an empty list)
             {"3_3.config",
                 invalid_config(
-                    "in 'elvis.config', at list position number 1, 'dirs' is expected to exist and be a non-empty list."
+                    "in 'elvis.config', at list position number 1, 'files' is expected to be a non-empty list."
                 )},
 
-            % invalid elvis.config > filter (does not exist)
-            {"4_1.config",
-                invalid_config(
-                    "in 'elvis.config', at list position number 1, 'filter' is a compulsory option."
-                )},
-            % invalid elvis.config > filter (is not a string)
-            {"4_2.config",
-                invalid_config(
-                    "in 'elvis.config', at list position number 1, 'filter' is expected to be a non-empty string."
-                )},
-            % invalid elvis.config > filter (is an empty string)
-            {"4_3.config",
-                invalid_config(
-                    "in 'elvis.config', at list position number 1, 'filter' is expected to be a non-empty string."
-                )},
-            % invalid elvis.config > dirs + filter combo (no files)
-            {"4_4.config",
-                invalid_config(
-                    "in 'elvis.config', at list position number 1, no '<dir>' + '<filter>' combo in [\"src\"] + '*.fil' yielded any files to analyse."
-                )},
             % invalid elvis.config > rules + ruleset combo (one has to be defined)
             {"5_1.config",
                 invalid_config(
