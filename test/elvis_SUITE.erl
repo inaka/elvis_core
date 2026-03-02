@@ -69,29 +69,31 @@ rock_with_empty_list_config(_Config) ->
     ok.
 
 rock_with_incomplete_config(_Config) ->
-    ElvisConfig = [#{dirs => ["src"]}],
+    ElvisConfig = [#{files => ["src/*.erl"]}],
     {fail, [{throw, {invalid_config, _}}]} = elvis_core:rock(ElvisConfig),
     ok.
 
 rock_with_list_config(_Config) ->
     ElvisConfig = [
         #{
-            dirs => ["../../../../test/dirs/src"],
-            rules => [{elvis_text_style, line_length, disable}],
-            filter => "*.erl"
+            files => ["../../../../test/dirs/src/*.erl"],
+            rules => [{elvis_text_style, line_length, disable}]
         }
     ],
     ok = elvis_core:rock(ElvisConfig).
 
 %% Regression test for https://github.com/inaka/elvis_core/issues/543
-%% Glob patterns that don't match any existing directories should not cause
-%% a validation error.
+%% Glob patterns that don't match any existing paths should not cause
+%% a validation error as long as at least one glob yields files.
 rock_with_glob_dirs_not_matching(_Config) ->
     ElvisConfig = [
         #{
-            dirs => ["absolutely/very/nonexistent/**/src", "../../../../test/dirs/src"],
-            rules => [{elvis_text_style, line_length, disable}],
-            filter => "*.erl"
+            files =>
+                [
+                    "absolutely/very/nonexistent/**/src/*.erl",
+                    "../../../../test/dirs/src/*.erl"
+                ],
+            rules => [{elvis_text_style, line_length, disable}]
         }
     ],
     ok = elvis_core:rock(ElvisConfig).
@@ -214,18 +216,15 @@ rock_with_rule_groups(_Config) ->
     RulesGroupConfig =
         [
             #{
-                dirs => ["../../../../test/dirs/apps/app3/src"],
-                filter => "*.erl",
+                files => ["../../../../test/dirs/apps/app3/src/*.erl"],
                 ruleset => erl_files
             },
             #{
-                dirs => ["../../../../test/dirs/apps/app3/include"],
-                filter => "*.hrl",
+                files => ["../../../../test/dirs/apps/app3/include/*.hrl"],
                 ruleset => hrl_files
             },
             #{
-                dirs => ["../../../../test/dirs/apps/app3"],
-                filter => "rebar.config",
+                files => ["../../../../test/dirs/apps/app3/rebar.config"],
                 ruleset => rebar_config
             }
         ],
@@ -234,7 +233,7 @@ rock_with_rule_groups(_Config) ->
     OverrideFailConfig =
         [
             #{
-                dirs => ["src"],
+                files => ["src/*.erl"],
                 rules =>
                     [
                         {elvis_text_style, line_length, #{limit => 90}},
@@ -247,8 +246,7 @@ rock_with_rule_groups(_Config) ->
     OverrideConfig =
         [
             #{
-                dirs => ["../../../../test/dirs/apps/app3/src"],
-                filter => "*.erl",
+                files => ["../../../../test/dirs/apps/app3/src/*.erl"],
                 ruleset => erl_files,
                 rules =>
                     % I like 90 chars per line.
@@ -259,8 +257,7 @@ rock_with_rule_groups(_Config) ->
                     ]
             },
             #{
-                dirs => ["../../../../test/dirs/apps/app3"],
-                filter => "rebar.config",
+                files => ["../../../../test/dirs/apps/app3/rebar.config"],
                 ruleset => rebar_config
             }
         ],
@@ -268,8 +265,8 @@ rock_with_rule_groups(_Config) ->
 
 rock_this_skipping_files(_Config) ->
     meck:new(elvis_file, [passthrough]),
-    Dirs = ["../../../../_build/test/lib/elvis_core/test/examples"],
-    [File] = elvis_file:find_files(Dirs, "small.erl"),
+    Globs = ["../../../../_build/test/lib/elvis_core/test/examples/small.erl"],
+    [File] = elvis_file:find_files(Globs),
     Path = elvis_file:path(File),
     ConfigPath = "../../../../config/elvis-test-pa.config",
     {ok, user_defined_rules} = compile:file("../../../../test/examples/user_defined_rules.erl"),
@@ -282,8 +279,8 @@ rock_this_skipping_files(_Config) ->
 
 rock_this_not_skipping_files(_Config) ->
     meck:new(elvis_file, [passthrough]),
-    Dirs = ["../../../../_build/test/lib/elvis_core/test/examples"],
-    [File] = elvis_file:find_files(Dirs, "small.erl"),
+    Globs = ["../../../../_build/test/lib/elvis_core/test/examples/small.erl"],
+    [File] = elvis_file:find_files(Globs),
     Path = elvis_file:path(File),
     ElvisConfig = elvis_test_utils:config(),
     ok = elvis_core:rock_this(Path, ElvisConfig),
@@ -368,10 +365,11 @@ hrl_ruleset(_Config) ->
     ok.
 
 find_file_and_check_src(_Config) ->
-    Dirs = ["../../../../test/examples"],
+    Globs = ["../../../../test/examples/*.erl"],
 
-    [] = elvis_file:find_files(Dirs, "doesnt_exist.erl"),
-    [File] = elvis_file:find_files(Dirs, "small.erl"),
+    [] = elvis_file:find_files(["../../../../test/examples/doesnt_exist.erl"]),
+    Files = elvis_file:find_files(Globs),
+    [File] = [F || F <- Files, filename:basename(elvis_file:path(F)) =:= "small.erl"],
 
     {<<"-module(small).", LineBreak/binary>>, _} = elvis_file:src(File),
     LineBreak =
@@ -384,13 +382,11 @@ find_file_and_check_src(_Config) ->
     {error, enoent} = elvis_file:src(#{path => "doesnt_exist.erl"}).
 
 find_file_with_ignore(_Config) ->
-    Dirs = ["../../../../test/examples"],
-    Filter = "find_test*.erl",
+    Globs = ["../../../../test/examples/find_test*.erl"],
     Ignore = elvis_config:ignore(#{ignore => [find_test1]}),
-    Files = [_, _] = elvis_file:find_files(Dirs, Filter),
-    [_, _] = elvis_file:filter_files(Files, Dirs, Filter, []),
+    Files = [_, _] = elvis_file:find_files(Globs),
     [#{path := "../../../../test/examples/find_test2.erl"}] =
-        elvis_file:filter_files(Files, Dirs, Filter, Ignore).
+        elvis_file:filter_files(Files, Globs, Ignore).
 
 invalid_file(_Config) ->
     ok =

@@ -68,8 +68,8 @@ Another option for using `elvis_core` from the shell is to explicitly provide th
 an argument to `elvis_core:rock/1`:
 
 ```shell
-1> ElvisConfig = [#{dirs => ["src"], filter => "elvis_rule.erl", ruleset => erl_files}].
-[#{dirs => ["src"],filter => "*.erl",rules => []}]
+1> ElvisConfig = [#{files => ["src/elvis_rule.erl"], ruleset => erl_files}].
+[#{files => ["src/elvis_rule.erl"],rules => []}]
 2> application:set_env(elvis_core, verbose, true), elvis_core:rock(ElvisConfig).
 Loading src/elvis_rule.erl
 # src/elvis_rule.erl [OK]
@@ -98,14 +98,11 @@ An `elvis.config` file looks something like this:
 ```erlang
 [{elvis, [
     {config, [
-        #{ dirs    => ["src"]
-         , filter  => "*.erl"
+        #{ files   => ["src/*.erl"]
          , ruleset => erl_files }
-      , #{ dirs    => ["include"]
-         , filter  => "*.hrl"
+      , #{ files   => ["include/*.hrl"]
          , ruleset => hrl_files }
-      , #{ dirs    => ["."]
-         , filter  => "rebar.config"
+      , #{ files   => ["rebar.config"]
          , ruleset => rebar_config }
     ]}
     % output_format (optional): how to format the output.
@@ -129,19 +126,15 @@ To look at what is considered the "current default" configuration, do:
 rebar3 shell
 ...
 1> elvis_config:default().
-[#{filter => "*.erl",
-   dirs => ["apps/**/src/**","src/**"],
+[#{files => ["apps/**/src/*.erl","src/*.erl"],
    ruleset => erl_files},
- #{filter => "*.erl",
-   dirs =>
-       ["apps/**/src/**","src/**","apps/**/include/**",
-        "include/**"],
+ #{files =>
+       ["apps/**/src/*.hrl","apps/**/include/*.hrl",
+        "src/*.hrl","include/*.hrl"],
    ruleset => hrl_files},
- #{filter => "rebar.config",
-   dirs => ["."],
+ #{files => ["rebar.config"],
    ruleset => rebar_config},
- #{filter => ".gitignore",
-   dirs => ["."],
+ #{files => [".gitignore"],
    ruleset => gitignore}]
 2>
 ```
@@ -151,10 +144,10 @@ documentation was updated.
 
 ### Files, rules and rulesets
 
-The `dirs` key is a list that tells `elvis_core` where it should look for the files that match
-`filter`, which will be run through each of the pre-defined rules in the specified `ruleset`.
-`filter` can contain `**` for further matching (it uses
-[`filelib:wildcard/1`](https://erlang.org/doc/man/filelib.html#wildcard-1) under the hood).
+The `files` key is a list of glob patterns that tell `elvis_core` which files to analyse. Each
+pattern uses [`filelib:wildcard/1`](https://erlang.org/doc/man/filelib.html#wildcard-1), so you can
+use patterns like `"src/*.erl"` or `"apps/**/src/*.erl"`. Matching files are run through the
+pre-defined rules in the specified `ruleset`.
 
 If you want to override the [pre-defined rules](#pre-defined-rules), for a given ruleset, you need
 to specify them in a `rules` key which is a list of items with the following structure
@@ -174,8 +167,7 @@ tabs instead of spaces. In that case, you need to override `erl_files`'s `rulese
 `rules` as follows:
 
 ```erlang
-#{ dirs => ["src"]
- , filter => "*.erl"
+#{ files => ["src/*.erl"]
  , rules => [
        {elvis_text_style, line_length, #{ limit => 90 }} % change line_length from 100 to 90
      , {elvis_text_style, no_tabs, disable} % disable no_tabs
@@ -203,8 +195,7 @@ function in any module).
 ignore, e.g.:
 
 ```erlang
-#{ dirs => ["src"]
- , filter => "*.erl"
+#{ files => ["src/*.erl"]
  , ruleset => erl_files
  , ignore => [module1, module4]
 }.

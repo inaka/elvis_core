@@ -31,10 +31,10 @@ end_per_suite(Config) ->
 
 verify_no_branch_deps(_Config) ->
     ElvisConfig = elvis_test_utils:config(rebar_config),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
+    FileGlobs = elvis_config:file_globs(ElvisConfig),
 
     Filename = "rebar.config.fail",
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, Filename),
+    {ok, File} = elvis_test_utils:find_file(FileGlobs, Filename),
 
     Rule1 = elvis_rule:new(elvis_project, no_branch_deps, #{}),
     [_, _, _, _, _] = elvis_rule:execute(elvis_rule:file(Rule1, File), ElvisConfig),
@@ -53,10 +53,10 @@ verify_no_branch_deps(_Config) ->
 
 verify_protocol_for_deps(_Config) ->
     ElvisConfig = elvis_test_utils:config(rebar_config),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
+    FileGlobs = elvis_config:file_globs(ElvisConfig),
 
     Filename = "rebar.config.fail",
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, Filename),
+    {ok, File} = elvis_test_utils:find_file(FileGlobs, Filename),
 
     Rule1 = elvis_rule:new(elvis_project, protocol_for_deps, #{}),
     [
@@ -84,16 +84,16 @@ verify_protocol_for_deps(_Config) ->
 
 verify_hex_dep(_Config) ->
     ElvisConfig = elvis_test_utils:config(rebar_config),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
+    FileGlobs = elvis_config:file_globs(ElvisConfig),
 
     Filename1 = "rebar3.config.success",
-    {ok, File1} = elvis_test_utils:find_file(SrcDirs, Filename1),
+    {ok, File1} = elvis_test_utils:find_file(FileGlobs, Filename1),
 
     Rule1 = elvis_rule:new(elvis_project, protocol_for_deps, #{}),
     [] = elvis_rule:execute(elvis_rule:file(Rule1, File1), ElvisConfig),
 
     Filename2 = "rebar3_2.config.success",
-    {ok, File2} = elvis_test_utils:find_file(SrcDirs, Filename2),
+    {ok, File2} = elvis_test_utils:find_file(FileGlobs, Filename2),
 
     Rule2 = elvis_rule:new(elvis_project, protocol_for_deps, #{}),
     [] = elvis_rule:execute(elvis_rule:file(Rule2, File2), ElvisConfig).

@@ -3272,8 +3272,7 @@ oddities(_Config) ->
     ElvisConfig =
         [
             #{
-                dirs => ["../../../../_build/test/lib/elvis_core/test/examples"],
-                filter => "odditiesß.erl",
+                files => ["../../../../_build/test/lib/elvis_core/test/examples/odditiesß.erl"],
                 ruleset => erl_files,
                 rules => [{elvis_style, no_god_modules, #{limit => 0}}]
             }
@@ -3518,11 +3517,11 @@ verify_elvis_attr(Config, FilenameNoExt) ->
         elvis_test_utils:config(
             proplists:get_value(group, Config, erl_files)
         ),
-    SrcDirs = elvis_config:dirs(ElvisConfig),
+    FileGlobs = elvis_config:file_globs(ElvisConfig),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     FullFilename = FilenameNoExt ++ "." ++ Ext,
-    {ok, File} = elvis_test_utils:find_file(SrcDirs, FullFilename),
+    {ok, File} = elvis_test_utils:find_file(FileGlobs, FullFilename),
 
     ct:comment("Checking ~ts", [FullFilename]),
     {ok, #{rules := RuleResults}} = elvis_core:do_rock(File, ElvisConfig),

@@ -27,32 +27,26 @@ end_per_suite(Config) ->
 
 verify_required_patterns(_Config) ->
     GitIgnoreConfig = elvis_test_utils:config(gitignore),
-    [SrcDirPass, SrcDirFail] = elvis_config:dirs(GitIgnoreConfig),
+    FileGlobs = elvis_config:file_globs(GitIgnoreConfig),
     NoRuleConfig = #{},
 
-    PathPass = ".gitignore",
-    {ok, FilePass} = elvis_test_utils:find_file([SrcDirPass], PathPass),
+    [FilePass, FileFail] = lists:sort(elvis_file:find_files(FileGlobs)),
     Rule1 = elvis_rule:new(elvis_gitignore, required_patterns, GitIgnoreConfig),
     [] = elvis_rule:execute(elvis_rule:file(Rule1, FilePass), NoRuleConfig),
 
-    PathFail = ".gitignore",
-    {ok, FileFail} = elvis_test_utils:find_file([SrcDirFail], PathFail),
     Rule2 = elvis_rule:new(elvis_gitignore, required_patterns, GitIgnoreConfig),
     [Res] = elvis_rule:execute(elvis_rule:file(Rule2, FileFail), NoRuleConfig),
     #{info := ["^doc/$"]} = Res.
 
 verify_forbidden_patterns(_Config) ->
     GitIgnoreConfig = elvis_test_utils:config(gitignore),
-    [SrcDirPass, SrcDirFail] = elvis_config:dirs(GitIgnoreConfig),
+    FileGlobs = elvis_config:file_globs(GitIgnoreConfig),
     NoRuleConfig = #{},
 
-    PathPass = ".gitignore",
-    {ok, FilePass} = elvis_test_utils:find_file([SrcDirPass], PathPass),
+    [FilePass, FileFail] = lists:sort(elvis_file:find_files(FileGlobs)),
     Rule1 = elvis_rule:new(elvis_gitignore, forbidden_patterns, GitIgnoreConfig),
     [] = elvis_rule:execute(elvis_rule:file(Rule1, FilePass), NoRuleConfig),
 
-    PathFail = ".gitignore",
-    {ok, FileFail} = elvis_test_utils:find_file([SrcDirFail], PathFail),
     Rule2 = elvis_rule:new(elvis_gitignore, forbidden_patterns, GitIgnoreConfig),
     [Res] = elvis_rule:execute(elvis_rule:file(Rule2, FileFail), NoRuleConfig),
     #{info := ["^rebar.lock$"]} = Res.
