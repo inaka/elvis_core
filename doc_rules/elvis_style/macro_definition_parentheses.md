@@ -1,4 +1,4 @@
-# Macro Definition Parentheses
+# Macro Definition Parentheses [![](https://img.shields.io/badge/since-4.2.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.2.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Parentheses should be used propely to increase readability.
 Macros that represent a function, should contains parentheses,

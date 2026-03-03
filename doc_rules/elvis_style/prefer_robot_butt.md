@@ -1,4 +1,4 @@
-# Prefer Robot Butt ![](https://img.shields.io/badge/BEAM-yes-orange)
+# Prefer Robot Butt [![](https://img.shields.io/badge/since-5.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/5.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Using `length/1` only to check if a list is empty, non-empty, or has a specific small size should be
 avoided in favour of pattern matching.

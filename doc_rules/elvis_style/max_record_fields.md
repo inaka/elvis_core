@@ -1,4 +1,4 @@
-# Max Record Fields
+# Max Record Fields [![](https://img.shields.io/badge/since-4.2.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.2.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 The number of fields in a record definition should be limited to a defined maximum.
 

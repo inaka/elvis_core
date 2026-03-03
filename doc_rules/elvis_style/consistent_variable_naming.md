@@ -1,4 +1,4 @@
-# Consistent Variable Naming ![](https://img.shields.io/badge/BEAM-yes-orange)
+# Consistent Variable Naming [![](https://img.shields.io/badge/since-5.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/5.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Variables that represent the same concept should be named consistently across a module.
 This rule detects syntax or casing differences: the same logical name written in different

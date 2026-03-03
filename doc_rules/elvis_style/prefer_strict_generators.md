@@ -1,4 +1,4 @@
-# Prefer Strict Generators [![](https://img.shields.io/badge/since-4.2.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.2.0)
+# Prefer Strict Generators [![](https://img.shields.io/badge/since-4.2.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.2.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Within comprehensions, avoid `<-` and `<=` in favor of `<:-` and `<:=`.
 

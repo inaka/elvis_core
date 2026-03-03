@@ -1,4 +1,4 @@
-# Max Anonymous Function Length
+# Max Anonymous Function Length [![](https://img.shields.io/badge/since-4.2.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.2.0)
 
 The number of lines in an anonymous function definition should be limited to a defined maximum.
 
