@@ -787,9 +787,10 @@ is_operator_node(Node) ->
         map_field_assoc,
         map_field_exact
     ],
-    NodeOperators = ktn_code:content(Node),
-    IsNotSingleNodeOperator = length(NodeOperators) > 1 andalso lists:member(NodeType, OpOrMatch),
-    IsNotSingleNodeOperator orelse lists:member(NodeType, ExtraOpsTypes).
+    case ktn_code:content(Node) of
+        [_, _ | _] -> lists:member(NodeType, OpOrMatch);
+        _ -> lists:member(NodeType, ExtraOpsTypes)
+    end.
 
 match_operators() ->
     [match, maybe_match].
@@ -2454,7 +2455,10 @@ no_single_clause_case(Rule, ElvisConfig) ->
     ].
 
 is_single_clause_case(CaseExpr) ->
-    length(case_clauses_in(CaseExpr)) =:= 1.
+    case case_clauses_in(CaseExpr) of
+        [_] -> true;
+        _ -> false
+    end.
 
 case_clauses_in(Node) ->
     [
@@ -2482,7 +2486,10 @@ no_single_match_maybe(Rule, ElvisConfig) ->
     ].
 
 is_single_match_maybe(MaybeNode) ->
-    length(ktn_code:content(MaybeNode)) =:= 1.
+    case ktn_code:content(MaybeNode) of
+        [_] -> true;
+        _ -> false
+    end.
 
 -spec no_match_in_condition(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_match_in_condition(Rule, ElvisConfig) ->
@@ -2724,9 +2731,11 @@ has_guards(ClauseNode) ->
 %%      as lists of lists.
 %%      If they only use words, then we just have [[#{type := op, attrs := #{operation = '...'}}]]
 has_guard_defined_with_punctuation(ClauseNode) ->
-    length(ktn_code:node_attr(guards, ClauseNode)) > 1 orelse
-        length(ktn_code:node_attr(guards, ClauseNode)) =:= 1 andalso
-            length(hd(ktn_code:node_attr(guards, ClauseNode))) > 1.
+    case ktn_code:node_attr(guards, ClauseNode) of
+        [_, _ | _] -> true;
+        [[_, _ | _]] -> true;
+        _ -> false
+    end.
 
 has_guard_defined_with_words(ClauseNode) ->
     [] =/=

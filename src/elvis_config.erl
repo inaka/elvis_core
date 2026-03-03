@@ -668,7 +668,7 @@ map_keys_are_in(Map, Keys) ->
 all_files_globs_are_valid(FileGlobs) when not is_list(FileGlobs) orelse FileGlobs =:= [] ->
     {error, "'files' is expected to be a non-empty list."};
 all_files_globs_are_valid(FileGlobs) ->
-    case lists:all(fun(G) -> is_list(G) andalso length(G) > 0 end, FileGlobs) of
+    case lists:all(fun(G) -> is_list(G) andalso G =/= [] end, FileGlobs) of
         true ->
             case lists:any(fun(G) -> filelib:wildcard(G) =/= [] end, FileGlobs) of
                 true ->

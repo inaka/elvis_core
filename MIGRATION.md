@@ -60,6 +60,57 @@ subdirs).
 Allowed config keys per rule group are now: `files`, `ignore`, `ruleset`, `rules`. At least one glob
 in `files` must match at least one file.
 
+### Rule renames
+
+If your `rules` override or reference these rule names, update them to the new names:
+
+| Old name | New name |
+|----------|----------|
+| `god_modules` | `no_god_modules` |
+| `nesting_level` | `no_deep_nesting` |
+| `invalid_dynamic_call` | `no_invalid_dynamic_calls` |
+| `used_ignored_variable` | `no_used_ignored_variables` |
+| `macro_names` | `macro_naming_convention` |
+| `consistent_generic_type` | `generic_type` |
+| `no_nested_hrls` | `no_includes` |
+
+Example: `{elvis_style, no_nested_hrls, #{}}` → `{elvis_style, no_includes, #{}}`.
+
+Using an old name prints a warning and the rule is skipped; update your config to the new name to
+run the rule.
+
+### Rule namespace change
+
+- **`prefer_unquoted_atoms`** moved from `elvis_text_style` to `elvis_style` (before 4.2.0). Use
+  `{elvis_style, prefer_unquoted_atoms, ...}` instead of `{elvis_text_style, prefer_unquoted_atoms, ...}`.
+
+### Removed rules
+
+These rules no longer exist. Remove them from your config or switch to the replacement:
+
+| Removed rule | Replacement or note |
+|--------------|----------------------|
+| `elvis_style:macro_module_names` | Removed in 4.1.0; no replacement. |
+| `elvis_project:no_deps_master_erlang_mk` | Use `no_branch_deps`. |
+| `elvis_project:no_deps_master_rebar` | Use `no_branch_deps`. |
+| `elvis_project:old_configuration_format` | Removed; no replacement. |
+| `elvis_project:protocol_for_deps_rebar` | Use `protocol_for_deps`. |
+| `elvis_project:protocol_for_deps_erlang_mk` | Removed; no replacement. |
+
+Referenced removed rules are skipped with a warning.
+
+### Stricter configuration validation
+
+Configuration is validated more strictly: only the keys `files`, `ignore`, `ruleset`, and `rules` are
+allowed per rule group; unknown keys cause validation to fail. Non‑existing rules or rulesets also
+fail validation (renamed/removed rules are handled as above and do not fail validation).
+
+### Parallelism default
+
+The default for the `parallel` application option (number of parallel workers) is now
+`erlang:system_info(schedulers_online)` instead of the previous fixed value. If you relied on the
+old default, set `application:set_env(elvis_core, parallel, N)` explicitly.
+
 ## Going from `3.x` to `4.x`
 
 ### Update
