@@ -29,6 +29,7 @@ results in clearer, faster, and more maintainable code.
              , {erlang, list_to_atom, 1}
              , {erlang, binary_to_atom, 1}
              , {erlang, binary_to_atom, 2}
+             , {erlang, garbage_collect, 0}
               ]`
 
 `{gen_statem, call, 2}`, `{gen_server, call, 2}`, `{gen_event, call, 3}`,

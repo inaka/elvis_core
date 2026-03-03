@@ -2240,7 +2240,7 @@ verify_ignore_wildcard_patterns(Config) ->
 %% We test no_call and no_common_caveats_call by building the equivalent config and make sure that
 %% other than defaults, they behave the same
 verify_no_common_caveats_call(Config) ->
-    verify_no_call_flavours(Config, no_common_caveats_call, caveat_functions, 12).
+    verify_no_call_flavours(Config, no_common_caveats_call, caveat_functions, 13).
 
 verify_no_call(Config) ->
     verify_no_call_flavours(Config, no_call, no_call_functions, 0).
@@ -2283,7 +2283,8 @@ verify_no_call_flavours(
             {{gen_event, call, 3}, 1},
             {{erlang, list_to_atom, 1}, 1},
             {{erlang, binary_to_atom, 1}, 1},
-            {{erlang, binary_to_atom, 2}, 1}
+            {{erlang, binary_to_atom, 2}, 1},
+            {{erlang, garbage_collect, 0}, 1}
         ],
 
     lists:foreach(
