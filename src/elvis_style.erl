@@ -284,7 +284,8 @@ default(no_common_caveats_call) ->
                 {gen_event, call, 3},
                 {erlang, list_to_atom, 1},
                 {erlang, binary_to_atom, 1},
-                {erlang, binary_to_atom, 2}
+                {erlang, binary_to_atom, 2},
+                {erlang, garbage_collect, 0}
             ]
     });
 default(atom_naming_convention) ->

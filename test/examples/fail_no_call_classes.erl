@@ -26,4 +26,5 @@ fail() ->
 
     _ = list_to_atom("heya"),
     _ = binary_to_atom(<<"heya">>),
-    _ = binary_to_atom(<<"heya">>, utf8).
+    _ = binary_to_atom(<<"heya">>, utf8),
+    _ = erlang:garbage_collect().
