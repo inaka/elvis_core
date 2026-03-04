@@ -9,43 +9,33 @@
 -export([rules/1, load_custom/1, drop_custom/0, is_defined/1, custom_names/0]).
 
 -spec load_custom(#{atom() => list()}) -> ok.
-load_custom(Rulesets) ->
-    {Existed, Tid} = ensure_table(),
-    case Existed of
-        false ->
+load_custom(RulesetNames) ->
+    case custom_names() of
+        [] ->
             elvis_utils:debug("loading custom rulesets into state", []),
             lists:foreach(
-                fun({Ruleset, NSNameDefs}) ->
+                fun({RulesetName, NSNameDefs}) ->
                     Rules = [elvis_rule:from_tuple(NSNameDef) || NSNameDef <- NSNameDefs],
-                    true = ets:insert(Tid, {Ruleset, Rules})
+                    ok = persistent_term:put({elvis_ruleset, RulesetName}, Rules)
                 end,
-                maps:to_list(Rulesets)
+                maps:to_list(RulesetNames)
             );
-        true ->
+        _ ->
             ok
     end.
 
 -spec custom_names() -> [atom()].
 custom_names() ->
-    case table_exists() of
-        false ->
-            [];
-        _ ->
-            proplists:get_keys(ets:tab2list(elvis_ruleset))
-    end.
+    [RulesetName || {{elvis_ruleset, RulesetName}, _} <- persistent_term:get()].
 
--spec drop_custom() -> _.
+-spec drop_custom() -> ok.
 drop_custom() ->
-    case table_exists() of
-        false ->
-            ok;
-        _ ->
-            ets:delete(elvis_ruleset)
-    end.
+    [persistent_term:erase(K) || {{elvis_ruleset, _} = K, _} <- persistent_term:get()],
+    ok.
 
 -spec is_defined(atom()) -> boolean().
-is_defined(Ruleset) ->
-    rules(Ruleset) =/= [].
+is_defined(RulesetName) ->
+    rules(RulesetName) =/= [].
 
 -spec rules(Group :: atom()) -> [elvis_rule:t()].
 rules(gitignore) ->
@@ -66,32 +56,8 @@ rules(rebar_config) ->
     rebar_config_rules();
 rules(erl_files_test) ->
     erl_files_test_rules();
-rules(Group) ->
-    case table_exists() of
-        false ->
-            [];
-        _ ->
-            lookup(elvis_ruleset, Group)
-    end.
-
-lookup(Table, Group) ->
-    case ets:lookup(Table, Group) of
-        [{Group, Rules}] ->
-            Rules;
-        _ ->
-            []
-    end.
-
-ensure_table() ->
-    case table_exists() of
-        false ->
-            {false, ets:new(elvis_ruleset, [set, named_table, {keypos, 1}, public])};
-        _ ->
-            {true, elvis_ruleset}
-    end.
-
-table_exists() ->
-    ets:info(elvis_ruleset) =/= undefined.
+rules(RulesetName) ->
+    persistent_term:get({elvis_ruleset, RulesetName}, []).
 
 gitignore_rules() ->
     [

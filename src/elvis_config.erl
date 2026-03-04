@@ -39,6 +39,10 @@
 -ignore_xref([from_rebar/1, from_file/1, default/0, resolve_files/2, apply_to_files/2]).
 -ignore_xref([set_output_format/1, set_verbose/1, set_no_output/1, set_parallel/1]).
 
+-ifdef(TEST).
+-export([reset_validation/0]).
+-endif.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Public
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -411,45 +415,41 @@ elvis_control_opts() ->
     [output_format, verbose, no_output, parallel].
 
 do_validate({elvis = Option, Elvis}) ->
-    case check_flag(validation_started(Option)) of
-        true ->
+    maybe
+        {v, false} ?= {v, has_validation_started_for(Option)},
+        ok = flag_validation_started_for(Option),
+        ok ?= is_nonempty_list(elvis, Elvis),
+        ok ?=
+            proplist_keys_are_in(
+                elvis, Elvis, elvis_control_opts() ++ [rulesets, config]
+            ),
+        OutputFormat = get_elvis_opt(output_format, Elvis),
+        ok ?= is_one_of('elvis.output_format', OutputFormat, [colors, plain, parsable]),
+        Verbose = get_elvis_opt(verbose, Elvis),
+        ok ?= is_boolean('elvis.verbose', Verbose),
+        NoOutput = get_elvis_opt(no_output, Elvis),
+        ok ?= is_boolean('elvis.no_output', NoOutput),
+        Parallel = get_elvis_opt(parallel, Elvis),
+        ok ?= is_pos_integer('elvis.parallel', Parallel),
+        CustomRulesets = get_elvis_opt(rulesets, Elvis),
+        ok ?= are_valid_rulesets('elvis.rulesets', CustomRulesets),
+        ElvisConfig = get_elvis_opt(config, Elvis),
+        ok ?= is_valid_config('elvis.config', maps:keys(CustomRulesets), ElvisConfig)
+    else
+        {v, true} ->
             ok;
-        _ ->
-            maybe
-                ok = flag(validation_started(Option)),
-                ok ?= is_nonempty_list(elvis, Elvis),
-                ok ?=
-                    proplist_keys_are_in(
-                        elvis, Elvis, elvis_control_opts() ++ [rulesets, config]
-                    ),
-                OutputFormat = get_elvis_opt(output_format, Elvis),
-                ok ?= is_one_of('elvis.output_format', OutputFormat, [colors, plain, parsable]),
-                Verbose = get_elvis_opt(verbose, Elvis),
-                ok ?= is_boolean('elvis.verbose', Verbose),
-                NoOutput = get_elvis_opt(no_output, Elvis),
-                ok ?= is_boolean('elvis.no_output', NoOutput),
-                Parallel = get_elvis_opt(parallel, Elvis),
-                ok ?= is_pos_integer('elvis.parallel', Parallel),
-                CustomRulesets = get_elvis_opt(rulesets, Elvis),
-                ok ?= are_valid_rulesets('elvis.rulesets', CustomRulesets),
-                ElvisConfig = get_elvis_opt(config, Elvis),
-                ok ?= is_valid_config('elvis.config', maps:keys(CustomRulesets), ElvisConfig)
-            else
-                {error, FormatData} ->
-                    do_validate_throw(FormatData)
-            end
+        {error, FormatData} ->
+            do_validate_throw(FormatData)
     end;
 do_validate({config = Option, ElvisConfig}) ->
-    case check_flag(validation_started(Option)) of
-        true ->
+    maybe
+        {v, false} ?= {v, has_validation_started_for(Option)},
+        ok ?= is_valid_config('elvis.config', elvis_ruleset:custom_names(), ElvisConfig)
+    else
+        {v, true} ->
             ok;
-        _ ->
-            maybe
-                ok ?= is_valid_config('elvis.config', elvis_ruleset:custom_names(), ElvisConfig)
-            else
-                {error, FormatData} ->
-                    do_validate_throw(FormatData)
-            end
+        {error, FormatData} ->
+            do_validate_throw(FormatData)
     end.
 
 -spec do_validate_throw(_) -> no_return().
@@ -766,25 +766,14 @@ check_rule_for_options(Rule, AccInI) ->
             end
     end.
 
-flag({_Option, _What} = Obj) ->
-    _ = ensure_ets_table(),
-    true = ets:insert(elvis_config, Obj),
+flag_validation_started_for(Option) ->
+    ok = persistent_term:put({elvis_config, {validation_started_for, Option}}, true).
+
+has_validation_started_for(Option) ->
+    persistent_term:get({elvis_config, {validation_started_for, Option}}, false).
+
+-ifdef(TEST).
+reset_validation() ->
+    [persistent_term:erase(K) || {{elvis_config, _} = K, _} <- persistent_term:get()],
     ok.
-
-check_flag({Option, _What} = Obj) ->
-    try ets:lookup(elvis_config, Option) of
-        Found -> [Obj] =:= Found
-    catch
-        _:badarg -> false
-    end.
-
-validation_started(Option) ->
-    {Option, validation_started}.
-
-ensure_ets_table() ->
-    case ets:info(elvis_config) of
-        undefined ->
-            _ = ets:new(elvis_config, [public, named_table]);
-        _ ->
-            ok
-    end.
+-endif.

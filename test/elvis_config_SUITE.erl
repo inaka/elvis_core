@@ -84,12 +84,7 @@ validate(_Config) ->
             % In a normal use case scenario we either get an error and return
             % or call the function (at our own risk) several times in a row without
             % clearing state
-            case ets:info(elvis_config) of
-                undefined ->
-                    ok;
-                _ ->
-                    ets:delete(elvis_config)
-            end,
+            _ = elvis_config:reset_validation(),
             FilePath = filename:join(ConfigDir, File),
             FullPath = filename:join(["..", "..", "..", "..", FilePath]),
             try elvis_config:from_file(FullPath) of

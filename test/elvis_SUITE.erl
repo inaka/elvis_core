@@ -319,6 +319,7 @@ rock_with_umbrella_apps(_Config) ->
     ok.
 
 rock_with_invalid_rules(_Config) ->
+    _ = elvis_config:reset_validation(),
     ConfigPath = "../../../../test/examples/invalid_rules.elvis.config",
     {fail, [{throw, {invalid_config, _}}]} = elvis_config:from_file(ConfigPath),
     ok.
