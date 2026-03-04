@@ -51,7 +51,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fetch_elvis_config(Key, AppConfig) ->
-    Elvis = from_static(elvis, {app, AppConfig}),
+    Elvis = from_static(elvis, app, AppConfig),
     _ =
         case lists:member(Key, elvis_control_opts()) of
             true ->
@@ -59,10 +59,10 @@ fetch_elvis_config(Key, AppConfig) ->
             _ ->
                 do_validate({elvis, Elvis})
         end,
-    _ = elvis_ruleset:load_custom(from_static(rulesets, {elvis, Elvis})),
+    _ = elvis_ruleset:load_custom(from_static(rulesets, elvis, Elvis)),
     Elvis.
 
-from_static(Key, {Type, Config}) ->
+from_static(Key, Type, Config) ->
     elvis_utils:debug("fetching key '~s' from '~s' configuration", [Key, Type]),
     case proplists:get_value(Key, Config) of
         undefined ->
@@ -149,7 +149,7 @@ for(Key) ->
         end,
     % If we got this far, the configuration is valid...
     Elvis = fetch_elvis_config(Key, AppConfig),
-    from_static(Key, {elvis, Elvis}).
+    from_static(Key, elvis, Elvis).
 
 consult_elvis_config(File) ->
     case file:consult(File) of
@@ -193,7 +193,7 @@ from_file(File) ->
 fetch_elvis_config_from(AppConfig) ->
     try fetch_elvis_config(undefined, AppConfig) of
         Elvis ->
-            from_static(config, {elvis, Elvis})
+            from_static(config, elvis, Elvis)
     catch
         {invalid_config, Message} ->
             {fail, [{throw, {invalid_config, lists:flatten(Message)}}]}
