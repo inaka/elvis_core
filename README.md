@@ -203,6 +203,11 @@ ignore, e.g.:
 
 With this configuration, none of the checks for `erl_files` is applied to `module1` or `module4`.
 
+##### `.gitignore`
+
+In addition to custom ignore rules, `.gitignore` patterns are automatically honored during
+execution to skip unnecessary paths.
+
 ### Formatting
 
 Option `output_format` allows you to configure the output format. Possible values are `colors`,
