@@ -22,6 +22,30 @@ If you need to permit this call in your codebase, you have two primary options:
 - **customize the list**: modify the `caveat_functions` option to define a specific subset of
 functions that better fits your project's requirements.
 
+### Drop the `elvis` wrapper from your configuration
+
+**Before (4.x):**
+
+```erlang
+% elvis.config
+[
+  {elvis, [
+    {config, [...]},
+    ...
+  ]}
+].
+```
+
+**After (5.0.0):**
+
+```erlang
+% elvis.config
+[
+  {config, [...]},
+  ...
+].
+```
+
 ### Replace `dirs` and `filter` with `files`
 
 Config no longer uses `dirs` and `filter`. Use a single `files` key: a list of glob patterns that
