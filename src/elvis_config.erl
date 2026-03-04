@@ -771,18 +771,18 @@ check_rule_for_options(Rule, AccInI) ->
     end.
 
 flag_validation_started_for(Option) ->
-    ok = persistent_term:put({{elvis_config, validation}, {started_for, Option}}, true).
+    ok = persistent_term:put({elvis_config_validation, {started_for, Option}}, true).
 
 has_validation_started_for(Option) ->
-    persistent_term:get({{elvis_config, validation}, {started_for, Option}}, false).
+    persistent_term:get({elvis_config_validation, {started_for, Option}}, false).
 
 -ifdef(TEST).
 reset_validation() ->
-    [persistent_term:erase(K) || {{{elvis_config, validation}, _} = K, _} <- persistent_term:get()],
+    [persistent_term:erase(K) || {{elvis_config_validation, _} = K, _} <- persistent_term:get()],
     ok.
 
 reset_gitignore() ->
-    [persistent_term:erase(K) || {{{elvis_config, gitignore}, _} = K, _} <- persistent_term:get()],
+    [persistent_term:erase(K) || {{elvis_config_gitignore, _} = K, _} <- persistent_term:get()],
     ok.
 -endif.
 
@@ -795,10 +795,10 @@ gitignored() ->
         _ ->
             ok
     end,
-    persistent_term:get({{elvis_config, gitignore}, content}, []).
+    persistent_term:get({elvis_config_gitignore, content}, []).
 
 update_gitignored_with(GitIgnore) ->
-    ok = persistent_term:put({{elvis_config, gitignore}, content}, GitIgnore).
+    ok = persistent_term:put({elvis_config_gitignore, content}, GitIgnore).
 
 git_check_ignore() ->
     GitCheckIgnore =
@@ -811,7 +811,7 @@ git_check_ignore() ->
     string:lexemes(GitCheckIgnore, "\r\n").
 
 flag_gitignore_was_read() ->
-    ok = persistent_term:put({{elvis_config, gitignore}, read}, true).
+    ok = persistent_term:put({elvis_config_gitignore, read}, true).
 
 has_gitignore_been_read() ->
-    persistent_term:get({{elvis_config, gitignore}, read}, false).
+    persistent_term:get({elvis_config_gitignore, read}, false).
