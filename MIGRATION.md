@@ -10,6 +10,30 @@ This file's format is influenced by [Keep a Changelog](https://keepachangelog.co
 
 ## Going from `4.x` to `5.0.0`
 
+### Drop the `elvis` wrapper from your configuration
+
+**Before (4.x):**
+
+```erlang
+% elvis.config
+[
+  {elvis, [
+    {config, [...]},
+    ...
+  ]}
+].
+```
+
+**After (5.0.0):**
+
+```erlang
+% elvis.config
+[
+  {config, [...]},
+  ...
+].
+```
+
 ### Replace `dirs` and `filter` with `files`
 
 Config no longer uses `dirs` and `filter`. Use a single `files` key: a list of glob patterns that
