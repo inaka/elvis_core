@@ -771,14 +771,14 @@ check_rule_for_options(Rule, AccInI) ->
     end.
 
 flag_validation_started_for(Option) ->
-    ok = persistent_term:put({elvis_config, {validation_started_for, Option}}, true).
+    ok = persistent_term:put({{elvis_config, validation}, {started_for, Option}}, true).
 
 has_validation_started_for(Option) ->
-    persistent_term:get({elvis_config, {validation_started_for, Option}}, false).
+    persistent_term:get({{elvis_config, validation}, {started_for, Option}}, false).
 
 -ifdef(TEST).
 reset_validation() ->
-    [persistent_term:erase(K) || {{elvis_config, _} = K, _} <- persistent_term:get()],
+    [persistent_term:erase(K) || {{{elvis_config, validation}, _} = K, _} <- persistent_term:get()],
     ok.
 
 reset_gitignore() ->
