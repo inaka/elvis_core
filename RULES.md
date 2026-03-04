@@ -285,6 +285,7 @@ It suffices to add the `ignore` list to your rules, as per the example below.
 
 You can add the exceptions using the following syntax:
 
+- file name: `ignore => ["path/to/header.hrl"]`
 - whole module: `ignore => [mod]`
 - functions (by name only): `ignore => [{mod, fun}]` (available for **`elvis_style`-based rules
 only**)
