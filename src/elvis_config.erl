@@ -39,28 +39,9 @@
 -ignore_xref([from_rebar/1, from_file/1, default/0, resolve_files/2, apply_to_files/2]).
 -ignore_xref([set_output_format/1, set_verbose/1, set_no_output/1, set_parallel/1]).
 
--ifdef(TEST).
--export([reset_validation/0]).
--export([update_gitignored_with/1]).
--export([flag_gitignore_was_read/0]).
--export([reset_gitignore/0]).
--endif.
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Public
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-fetch_elvis_config(Key, AppConfig) ->
-    Elvis = from_static(elvis, {app, AppConfig}),
-    _ =
-        case lists:member(Key, elvis_control_opts()) of
-            true ->
-                ok;
-            _ ->
-                do_validate({elvis, Elvis})
-        end,
-    _ = elvis_ruleset:load_custom(from_static(rulesets, {elvis, Elvis})),
-    Elvis.
 
 from_static(Key, {Type, Config}) ->
     elvis_utils:debug("fetching key '~s' from '~s' configuration", [Key, Type]),
@@ -142,19 +123,18 @@ for(Key) ->
         case consult_elvis_config("elvis.config") of
             AppDefault ->
                 % This might happen whether we fail to parse the file or it actually is []
-                elvis_utils:debug("elvis.config unusable; falling back to rebar.config", []),
+                elvis_utils:debug("elvis.config is unusable; falling back to rebar.config", []),
                 consult_rebar_config("rebar.config");
             AppConfig0 ->
                 AppConfig0
         end,
     % If we got this far, the configuration is valid...
-    Elvis = fetch_elvis_config(Key, AppConfig),
-    from_static(Key, {elvis, Elvis}).
+    from_static(Key, {app, AppConfig}).
 
 consult_elvis_config(File) ->
     case file:consult(File) of
         {ok, [AppConfig]} when is_list(AppConfig) ->
-            elvis_utils:debug("elvis.config consultable; using it", []),
+            elvis_utils:debug("elvis.config is consultable; using it", []),
             AppConfig;
         {error, {Line, Mod, Term}} ->
             % In this very specific case we prefer to throw, since we make efforts
@@ -162,23 +142,25 @@ consult_elvis_config(File) ->
             % is readable
             exit(
                 lists:flatten(
-                    io_lib:format("elvis.config unconsultable: ~p, ~p, ~p", [Line, Mod, Term])
+                    io_lib:format("elvis.config is unconsultable: ~p, ~p, ~p", [Line, Mod, Term])
                 )
             );
         _ ->
-            elvis_utils:debug("elvis.config unconsultable", []),
+            elvis_utils:debug("elvis.config is unconsultable", []),
             default_for(app)
     end.
 
 consult_rebar_config(File) ->
-    case file:consult(File) of
-        {ok, AppConfig0} when is_list(AppConfig0) ->
-            elvis_utils:debug("rebar.config consultable; using it", []),
-            AppConfig0;
-        _ ->
-            elvis_utils:debug("rebar.config unconsultable", []),
-            default_for(app)
-    end.
+    AppConfig =
+        case file:consult(File) of
+            {ok, AppConfig0} when is_list(AppConfig0) ->
+                elvis_utils:debug("rebar.config is consultable; using it", []),
+                AppConfig0;
+            _ ->
+                elvis_utils:debug("rebar.config is unconsultable", []),
+                default_for('rebar.config')
+        end,
+    from_static(elvis, {'rebar.config', AppConfig}).
 
 -spec from_rebar(File :: string()) -> [t()] | fail_validation().
 from_rebar(File) ->
@@ -191,19 +173,19 @@ from_file(File) ->
     fetch_elvis_config_from(AppConfig).
 
 fetch_elvis_config_from(AppConfig) ->
-    try fetch_elvis_config(undefined, AppConfig) of
-        Elvis ->
-            from_static(config, {elvis, Elvis})
+    try do_validate({app, AppConfig}) of
+        ok ->
+            from_static(config, {app, AppConfig})
     catch
         {invalid_config, Message} ->
             {fail, [{throw, {invalid_config, lists:flatten(Message)}}]}
     end.
 
 default_for(app) ->
-    % This is the top-level element, before 'elvis'
+    % This is the top-level element
     [];
-default_for(elvis) ->
-    [];
+default_for('rebar.config') ->
+    [{elvis, []}];
 default_for(config) ->
     [];
 default_for(output_format) ->
@@ -418,37 +400,35 @@ get_elvis_opt(OptName, Elvis) ->
 elvis_control_opts() ->
     [output_format, verbose, no_output, parallel].
 
-do_validate({elvis = Option, Elvis}) ->
+do_validate({app = _Option, Elvis}) ->
     maybe
-        {v, false} ?= {v, has_validation_started_for(Option)},
-        ok = flag_validation_started_for(Option),
-        ok ?= is_nonempty_list(elvis, Elvis),
+        ok ?= is_nonempty_list("elvis.config", Elvis),
         ok ?=
             proplist_keys_are_in(
-                elvis, Elvis, elvis_control_opts() ++ [rulesets, config]
+                'elvis.config', Elvis, elvis_control_opts() ++ [rulesets, config]
             ),
         OutputFormat = get_elvis_opt(output_format, Elvis),
-        ok ?= is_one_of('elvis.output_format', OutputFormat, [colors, plain, parsable]),
+        ok ?= is_one_of('output_format', OutputFormat, [colors, plain, parsable]),
         Verbose = get_elvis_opt(verbose, Elvis),
-        ok ?= is_boolean('elvis.verbose', Verbose),
+        ok ?= is_boolean('verbose', Verbose),
         NoOutput = get_elvis_opt(no_output, Elvis),
-        ok ?= is_boolean('elvis.no_output', NoOutput),
+        ok ?= is_boolean('no_output', NoOutput),
         Parallel = get_elvis_opt(parallel, Elvis),
-        ok ?= is_pos_integer('elvis.parallel', Parallel),
+        ok ?= is_pos_integer('parallel', Parallel),
         CustomRulesets = get_elvis_opt(rulesets, Elvis),
-        ok ?= are_valid_rulesets('elvis.rulesets', CustomRulesets),
-        ElvisConfig = get_elvis_opt(config, Elvis),
-        ok ?= is_valid_config('elvis.config', maps:keys(CustomRulesets), ElvisConfig)
+        ok ?= are_valid_rulesets('rulesets', CustomRulesets),
+        Configset = get_elvis_opt(config, Elvis),
+        ok ?= is_valid_config('config', maps:keys(CustomRulesets), Configset),
+        _ = elvis_ruleset:load_custom(from_static(rulesets, {app, Elvis}))
     else
         {v, true} ->
             ok;
         {error, FormatData} ->
             do_validate_throw(FormatData)
     end;
-do_validate({config = Option, ElvisConfig}) ->
+do_validate({config = _Option, ElvisConfig}) ->
     maybe
-        {v, false} ?= {v, has_validation_started_for(Option)},
-        ok ?= is_valid_config('elvis.config', elvis_ruleset:custom_names(), ElvisConfig)
+        ok ?= is_valid_config('config', elvis_ruleset:custom_names(), ElvisConfig)
     else
         {v, true} ->
             ok;
@@ -769,17 +749,6 @@ check_rule_for_options(Rule, AccInI) ->
                     ]
             end
     end.
-
-flag_validation_started_for(Option) ->
-    ok = persistent_term:put({elvis_config_validation, {started_for, Option}}, true).
-
-has_validation_started_for(Option) ->
-    persistent_term:get({elvis_config_validation, {started_for, Option}}, false).
-
--ifdef(TEST).
-reset_validation() ->
-    [persistent_term:erase(K) || {{elvis_config_validation, _} = K, _} <- persistent_term:get()],
-    ok.
 
 reset_gitignore() ->
     [persistent_term:erase(K) || {{elvis_config_gitignore, _} = K, _} <- persistent_term:get()],

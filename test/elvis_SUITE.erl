@@ -320,7 +320,6 @@ rock_with_umbrella_apps(_Config) ->
     ok.
 
 rock_with_invalid_rules(_Config) ->
-    _ = elvis_config:reset_validation(),
     ConfigPath = "../../../../test/examples/invalid_rules.elvis.config",
     {fail, [{throw, {invalid_config, _}}]} = elvis_config:from_file(ConfigPath),
     ok.
@@ -346,8 +345,11 @@ custom_ruleset(_Config) ->
     %% read unknown ruleset configuration to ensure rulesets from
     %% previous load do not stick around
     ConfigPathMissing = "../../../../config/elvis-test-unknown-ruleset.config",
-    ElvisConfigMissing = elvis_config:from_file(ConfigPathMissing),
-    [[]] = elvis_config:rules(ElvisConfigMissing),
+    {fail, [
+        {throw,
+            {invalid_config,
+                "in 'config', at list position number 1, 'project' is expected to be either a custom or a default ruleset."}}
+    ]} = elvis_config:from_file(ConfigPathMissing),
     ok.
 
 hrl_ruleset(_Config) ->
