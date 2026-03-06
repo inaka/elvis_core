@@ -128,21 +128,21 @@ standard ruleset.
 Example configuration with a custom ruleset (named `my_ruleset`):
 
 ```erlang
-[{elvis, [
-    {rulesets,
-        #{ my_ruleset => [{elvis_style, max_module_length, #{}}
-                        , {elvis_style, no_common_caveats_call, #{}}
-                         ]
-         }
-    }
-  , {config,
-        [#{ dirs => ["src/**" , "test/**"]
-          , filter => "*.erl"
-          , ruleset => my_ruleset
-          }
+[
+    {rulesets, #{
+        my_ruleset => [
+            {elvis_style, max_module_length, #{}},
+            {elvis_style, no_common_caveats_call, #{}}
         ]
-    }
-]}].
+    }},
+    {config, [
+        #{
+            dirs => ["src/**", "test/**"],
+            filter => "*.erl",
+            ruleset => my_ruleset
+        }
+    ]}
+].
 ```
 
 ## User-defined rules
@@ -228,15 +228,19 @@ no_todo_comments(Rule, ElvisConfig) ->
 And in `elvis.config`:
 
 ```erlang
-#{
-    dirs => ["src"],
-    filter => "*.erl",
-    ruleset => erl_files,
-    rules => [
-        {elvis_style, no_debug_call, #{ ignore => [my_mod] }},
-        {my_rules, no_todo_comments, #{ignore => [my_rules]}}
-    ]
-}.
+[
+    {config, [
+        #{
+            dirs => ["src"],
+            filter => "*.erl",
+            ruleset => erl_files,
+            rules => [
+                {elvis_style, no_debug_call, #{ignore => [my_mod]}},
+                {my_rules, no_todo_comments, #{ignore => [my_rules]}}
+            ]
+        }
+    ]}
+].
 ```
 
 ## The `-elvis` attribute
@@ -314,28 +318,35 @@ for `.hrl` files.
 ## Example `elvis.config`
 
 ```erlang
-[{elvis, [
+[
     {config, [
-        #{ dirs => ["src/**", "test/**"]
-         , filter => "*.erl"
-         , ruleset => erl_files
-         % these are not enforced by default, so are added here for completeness
-         , rules => [{elvis_style, max_module_length, #{}}
-                   , {elvis_style, no_common_caveats_call, #{}}
-                    ]
-         }
-      , #{ dirs => ["include/**"]
-         , filter => "*.hrl"
-         , ruleset => hrl_files
-         }
-      , #{ dirs => ["."]
-         , filter => "rebar.config"
-         , ruleset => rebar_config
-         , rules => [] }
-      , #{ dirs => ["."]
-         , filter => ".gitignore"
-         , ruleset => gitignore }
-    ]}
-  , {verbose, true}
-]}].
+        #{
+            dirs => ["src/**", "test/**"],
+            filter => "*.erl",
+            ruleset => erl_files,
+            % these are not enforced by default, so are added here for completeness
+            rules => [
+                {elvis_style, max_module_length, #{}},
+                {elvis_style, no_common_caveats_call, #{}}
+            ]
+        },
+        #{
+            dirs => ["include/**"],
+            filter => "*.hrl",
+            ruleset => hrl_files
+        },
+        #{
+            dirs => ["."],
+            filter => "rebar.config",
+            ruleset => rebar_config,
+            rules => []
+        },
+        #{
+            dirs => ["."],
+            filter => ".gitignore",
+            ruleset => gitignore
+        }
+    ]},
+    {verbose, true}
+].
 ```
