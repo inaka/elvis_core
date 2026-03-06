@@ -800,9 +800,9 @@ git_check_ignore() ->
 do_git_check_ignore() ->
     case os:type() of
         {win32, _} ->
-            os:cmd("git check-ignore '*'");
+            os:cmd("git check-ignore '**/*'");
         _ ->
-            os:cmd("git check-ignore *")
+            os:cmd("git check-ignore **/*")
     end.
 
 -ifdef(TEST).
