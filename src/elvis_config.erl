@@ -16,7 +16,7 @@
 -export([merge_rules/2]).
 
 %% Options
--export([config/0, output_format/0, verbose/0, no_output/0, parallel/0]).
+-export([config/0, output_format/0, verbose/0, no_output/0, parallel/0, warnings_as_errors/0]).
 -export([set_output_format/1, set_verbose/1, set_no_output/1, set_parallel/1]).
 
 % Corresponds to the 'config' key.
@@ -32,7 +32,7 @@
 -type output_format() :: plain | colors | parsable.
 -export_type([output_format/0]).
 
--type fail_validation() :: {fail, [{throw, {invalid_config, Message :: string()}}]}.
+-type fail_validation() :: {error, Message :: string()}.
 -export_type([fail_validation/0]).
 
 % API exports, not consumed locally.
@@ -68,12 +68,7 @@ from_static(Key, {Type, Config}) ->
 
 -spec config() -> [t()] | fail_validation().
 config() ->
-    try
-        for(config)
-    catch
-        {invalid_config, _} = Caught ->
-            {fail, [{throw, Caught}]}
-    end.
+    for(config).
 
 -spec output_format() -> output_format().
 output_format() ->
@@ -90,6 +85,10 @@ no_output() ->
 -spec parallel() -> pos_integer().
 parallel() ->
     for(parallel).
+
+-spec warnings_as_errors() -> boolean().
+warnings_as_errors() ->
+    for(warnings_as_errors).
 
 -spec set_output_format(output_format()) -> ok.
 set_output_format(OutputFormat) ->
@@ -145,7 +144,7 @@ consult_elvis_config(File) ->
             elvis_utils:debug("elvis.config is consultable; using it", []),
             AppConfig;
         {error, {Line, Mod, Term}} ->
-            % In this very specific case we prefer to throw, since we make efforts
+            % In this very specific case we prefer to exit, since we make efforts
             % to provide a valid config., but we also need to make sure the file
             % is readable
             exit(
@@ -186,7 +185,7 @@ fetch_elvis_config_from(AppConfig) ->
             from_static(config, {app, AppConfig})
     catch
         {invalid_config, Message} ->
-            {fail, [{throw, {invalid_config, lists:flatten(Message)}}]}
+            {error, lists:flatten(Message)}
     end.
 
 default_for(app) ->
@@ -204,6 +203,8 @@ default_for(no_output) ->
     false;
 default_for(parallel) ->
     erlang:system_info(schedulers_online);
+default_for(warnings_as_errors) ->
+    true;
 default_for(rulesets) ->
     #{};
 default_for([config, files]) ->
@@ -400,7 +401,7 @@ is_rule_override(Rule, UserRules) ->
         UserRules
     ).
 
--spec validate_config(term()) -> ok.
+-spec validate_config(term()) -> ok | {error, Message :: string()}.
 validate_config(ElvisConfig) ->
     do_validate({config, ElvisConfig}).
 
@@ -408,7 +409,7 @@ get_elvis_opt(OptName, Elvis) ->
     proplists:get_value(OptName, Elvis, default_for(OptName)).
 
 elvis_control_opts() ->
-    [output_format, verbose, no_output, parallel].
+    [output_format, verbose, no_output, parallel, warnings_as_errors].
 
 do_validate({app = _Option, Elvis}) ->
     maybe
@@ -425,6 +426,8 @@ do_validate({app = _Option, Elvis}) ->
         ok ?= is_boolean(no_output, NoOutput),
         Parallel = get_elvis_opt(parallel, Elvis),
         ok ?= is_pos_integer(parallel, Parallel),
+        WarningsAsErrors = get_elvis_opt(warnings_as_errors, Elvis),
+        ok ?= is_boolean(warnings_as_errors, WarningsAsErrors),
         CustomRulesets = get_elvis_opt(rulesets, Elvis),
         ok ?= are_valid_rulesets(rulesets, CustomRulesets),
         Configset = get_elvis_opt(config, Elvis),
@@ -434,7 +437,7 @@ do_validate({app = _Option, Elvis}) ->
         {v, true} ->
             ok;
         {error, FormatData} ->
-            do_validate_throw(FormatData)
+            error_out_validate(FormatData)
     end;
 do_validate({config = _Option, ElvisConfig}) ->
     maybe
@@ -443,11 +446,11 @@ do_validate({config = _Option, ElvisConfig}) ->
         {v, true} ->
             ok;
         {error, FormatData} ->
-            do_validate_throw(FormatData)
+            error_out_validate(FormatData)
     end.
 
--spec do_validate_throw(_) -> no_return().
-do_validate_throw(FormatData) ->
+-spec error_out_validate(_) -> {error, Message :: string()}.
+error_out_validate(FormatData) ->
     {Format, Data} =
         case is_list(FormatData) of
             false ->
@@ -458,7 +461,7 @@ do_validate_throw(FormatData) ->
                 [{Format0, Data0} | _] = FormatData,
                 {Format0, Data0}
         end,
-    throw({invalid_config, lists:flatten(io_lib:format(Format, Data))}).
+    {error, lists:flatten(io_lib:format(Format, Data))}.
 
 is_nonempty_list(What, List) when not is_list(List) orelse List =:= [] ->
     {error, {"'~s' is expected to exist and be a non-empty list.", [What]}};
