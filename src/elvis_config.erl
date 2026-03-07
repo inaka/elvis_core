@@ -41,6 +41,9 @@
 
 -ifdef(TEST).
 -export([reset_validation/0]).
+-export([update_gitignored_with/1]).
+-export([flag_gitignore_was_read/0]).
+-export([reset_gitignore/0]).
 -endif.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -247,9 +250,10 @@ file_globs(#{}) ->
 ignore(Config) when is_list(Config) ->
     lists:flatmap(fun ignore/1, Config);
 ignore(#{ignore := Ignore}) ->
-    lists:map(fun ignore_to_regexp/1, Ignore);
+    lists:map(fun ignore_to_regexp/1, Ignore) ++ ignore(#{});
 ignore(#{}) ->
-    [].
+    % Base state.
+    gitignored().
 
 -spec files(RuleGroup :: [t()] | t()) -> [elvis_file:t()].
 files(RuleGroup) when is_list(RuleGroup) ->
@@ -767,13 +771,47 @@ check_rule_for_options(Rule, AccInI) ->
     end.
 
 flag_validation_started_for(Option) ->
-    ok = persistent_term:put({elvis_config, {validation_started_for, Option}}, true).
+    ok = persistent_term:put({elvis_config_validation, {started_for, Option}}, true).
 
 has_validation_started_for(Option) ->
-    persistent_term:get({elvis_config, {validation_started_for, Option}}, false).
+    persistent_term:get({elvis_config_validation, {started_for, Option}}, false).
 
 -ifdef(TEST).
 reset_validation() ->
-    [persistent_term:erase(K) || {{elvis_config, _} = K, _} <- persistent_term:get()],
+    [persistent_term:erase(K) || {{elvis_config_validation, _} = K, _} <- persistent_term:get()],
+    ok.
+
+reset_gitignore() ->
+    [persistent_term:erase(K) || {{elvis_config_gitignore, _} = K, _} <- persistent_term:get()],
     ok.
 -endif.
+
+gitignored() ->
+    maybe
+        false ?= has_gitignore_been_read(),
+        ok = update_gitignored_with(git_check_ignore()),
+        _ = flag_gitignore_was_read()
+    else
+        _ ->
+            ok
+    end,
+    persistent_term:get({elvis_config_gitignore, content}, []).
+
+update_gitignored_with(GitIgnore) ->
+    ok = persistent_term:put({elvis_config_gitignore, content}, GitIgnore).
+
+git_check_ignore() ->
+    GitCheckIgnore =
+        case os:type() of
+            {win32, _} ->
+                os:cmd("git check-ignore '*'");
+            _ ->
+                os:cmd("git check-ignore *")
+        end,
+    string:lexemes(GitCheckIgnore, "\r\n").
+
+flag_gitignore_was_read() ->
+    ok = persistent_term:put({elvis_config_gitignore, read}, true).
+
+has_gitignore_been_read() ->
+    persistent_term:get({elvis_config_gitignore, read}, false).
