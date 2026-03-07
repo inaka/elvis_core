@@ -39,6 +39,12 @@
 -ignore_xref([from_rebar/1, from_file/1, default/0, resolve_files/2, apply_to_files/2]).
 -ignore_xref([set_output_format/1, set_verbose/1, set_no_output/1, set_parallel/1]).
 
+-ifdef(TEST).
+-export([update_gitignored_with/1]).
+-export([flag_gitignore_was_read/0]).
+-export([reset_gitignore/0]).
+-endif.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Public
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -750,6 +756,7 @@ check_rule_for_options(Rule, AccInI) ->
             end
     end.
 
+-ifdef(TEST).
 reset_gitignore() ->
     [persistent_term:erase(K) || {{elvis_config_gitignore, _} = K, _} <- persistent_term:get()],
     ok.
