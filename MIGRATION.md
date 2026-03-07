@@ -1,4 +1,4 @@
-# Migration helper
+# Migration guide
 
 This file presents the changes required to your consumption code/configuration when you bump
 from a given version to a new one, as presented below.
