@@ -11,7 +11,7 @@ It implements [pre-defined rules](#pre-defined-rules), but also supports
 
 ## Usage
 
-### As a library
+### As a command-line tool
 
 The [`elvis`](https://github.com/inaka/elvis) command-line tool uses `elvis_core` extensively, so
 do check that project for a concrete example on how you could use it for your own purposes.
