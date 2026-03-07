@@ -269,8 +269,8 @@ To implement your own rules, see the [User-defined rules](RULES.md#user-defined-
 
 ## Versioning
 
-`elvis_core` adheres to [Semantic Versioning](https://semver.org/). All breaking changes and
-upgrade paths for major versions are documented in [`MIGRATION.md`](https://github.com/inaka/elvis_core/blob/main/MIGRATION.md).
+From 5.x, `elvis_core` adheres to [Semantic Versioning](https://semver.org/). All breaking changes
+and upgrade paths for major versions are documented in [`MIGRATION.md`](https://github.com/inaka/elvis_core/blob/main/MIGRATION.md).
 
 ## Contributing and reporting bugs
 
