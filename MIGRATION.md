@@ -46,6 +46,18 @@ functions that better fits your project's requirements.
 ].
 ```
 
+### Using `elvis_core:rock/1`'s new interface
+
+The function `elvis_core:rock/1` has been updated to return `ok | {errors, _} | {warnings, _}`.
+
+The `_` value currently serves as a signal for the exit status code (`0` for `warnings`,
+non-`0` for `errors`).
+
+**Future compatibility**: we are intentionally treating the second element of the tuple as opaque.
+This allows us to refine the return type - likely replacing the placeholder with structured
+diagnostic data - once `elvis_core` implements a decoupled output framework (e.g., removing
+direct `io:format/2` calls).
+
 ### Using `elvis_core:rock/1` instead of `elvis_core:rock_this/2`
 
 The function `elvis_core:rock_this/2` has been removed. Use the existing `elvis_core:rock/1`
