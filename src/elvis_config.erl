@@ -408,17 +408,17 @@ do_validate({app = _Option, Elvis}) ->
                 'elvis.config', Elvis, elvis_control_opts() ++ [rulesets, config]
             ),
         OutputFormat = get_elvis_opt(output_format, Elvis),
-        ok ?= is_one_of('output_format', OutputFormat, [colors, plain, parsable]),
+        ok ?= is_one_of(output_format, OutputFormat, [colors, plain, parsable]),
         Verbose = get_elvis_opt(verbose, Elvis),
-        ok ?= is_boolean('verbose', Verbose),
+        ok ?= is_boolean(verbose, Verbose),
         NoOutput = get_elvis_opt(no_output, Elvis),
-        ok ?= is_boolean('no_output', NoOutput),
+        ok ?= is_boolean(no_output, NoOutput),
         Parallel = get_elvis_opt(parallel, Elvis),
-        ok ?= is_pos_integer('parallel', Parallel),
+        ok ?= is_pos_integer(parallel, Parallel),
         CustomRulesets = get_elvis_opt(rulesets, Elvis),
-        ok ?= are_valid_rulesets('rulesets', CustomRulesets),
+        ok ?= are_valid_rulesets(rulesets, CustomRulesets),
         Configset = get_elvis_opt(config, Elvis),
-        ok ?= is_valid_config('config', maps:keys(CustomRulesets), Configset),
+        ok ?= is_valid_config(config, maps:keys(CustomRulesets), Configset),
         _ = elvis_ruleset:load_custom(from_static(rulesets, {app, Elvis}))
     else
         {v, true} ->
@@ -428,7 +428,7 @@ do_validate({app = _Option, Elvis}) ->
     end;
 do_validate({config = _Option, ElvisConfig}) ->
     maybe
-        ok ?= is_valid_config('config', elvis_ruleset:custom_names(), ElvisConfig)
+        ok ?= is_valid_config(config, elvis_ruleset:custom_names(), ElvisConfig)
     else
         {v, true} ->
             ok;
