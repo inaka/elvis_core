@@ -46,6 +46,44 @@ functions that better fits your project's requirements.
 ].
 ```
 
+### Using `elvis_core:rock/1` instead of `elvis_core:rock_this/2`
+
+The function `elvis_core:rock_this/2` has been removed. Use the existing `elvis_core:rock/1`
+function, which utilizes a configuration list.
+
+**Before (4.x):**
+
+You could pass a single file or a module name directly:
+
+```erlang
+% As a filename
+elvis_core:rock_this("rebar.config", ElvisConfig).
+
+% As a module name
+elvis_core:rock_this(elvis_core, ElvisConfig).
+```
+
+**After (5.0.0):**
+
+You must now provide a list of configurations, with `files` and `ruleset`:
+
+```erlang
+% As a filename
+elvis_core:rock([#{
+    files => ["rebar.config"],
+    ruleset => rebar_config
+}]).
+
+% As a module (requires the explicit file path)
+elvis_core:rock([#{
+    files => ["src/elvis_core.erl"],
+    ruleset => erl_files
+}]).
+```
+
+**Note**: use `elvis_config:config/0` to retrieve the configuration for the current project, if
+required during the migration.
+
 ### Replace `dirs` and `filter` with `files`
 
 Config no longer uses `dirs` and `filter`. Use a single `files` key: a list of glob patterns that
