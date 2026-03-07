@@ -267,6 +267,11 @@ found in this repository's [RULES.md](https://github.com/inaka/elvis_core/blob/m
 To implement your own rules, see the [User-defined rules](RULES.md#user-defined-rules) section in
 [RULES.md](RULES.md) for the full interface, APIs, and a complete example.
 
+## Versioning
+
+`elvis_core` adheres to [Semantic Versioning](https://semver.org/). All breaking changes and
+upgrade paths for major versions are documented in [`MIGRATION.md`](./MIGRATION.md).
+
 ## Contributing and reporting bugs
 
 If you find any **bugs** or have other **problems** using this library,
