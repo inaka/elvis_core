@@ -8,7 +8,6 @@
     rock_with_empty_list_config/1,
     rock_with_incomplete_config/1,
     rock_with_list_config/1,
-    rock_this/1,
     rock_without_colors/1,
     rock_with_parsable/1,
     rock_with_no_output_has_no_output/1,
@@ -17,8 +16,6 @@
     rock_without_errors_has_no_output/1,
     rock_without_errors_and_with_verbose_has_output/1,
     rock_with_rule_groups/1,
-    rock_this_skipping_files/1,
-    rock_this_not_skipping_files/1,
     rock_with_glob_dirs_not_matching/1,
     rock_with_umbrella_apps/1,
     custom_ruleset/1,
@@ -98,23 +95,6 @@ rock_with_glob_dirs_not_matching(_Config) ->
         }
     ],
     ok = elvis_core:rock(ElvisConfig).
-
-rock_this(_Config) ->
-    ElvisConfig = elvis_test_utils:config(),
-    ok = elvis_core:rock_this(elvis_core, ElvisConfig),
-
-    ok =
-        try
-            {fail, _} = elvis_core:rock_this("bla.erl", ElvisConfig)
-        catch
-            _:{enoent, "bla.erl"} ->
-                ok
-        end,
-
-    Path = "../../../../_build/test/lib/elvis_core/test/examples/fail_line_length.erl",
-    {fail, _} = elvis_core:rock_this(Path, ElvisConfig),
-
-    ok.
 
 rock_without_colors(_Config) ->
     ElvisConfig = elvis_test_utils:config(),
@@ -264,31 +244,6 @@ rock_with_rule_groups(_Config) ->
         ],
     ok = elvis_core:rock(OverrideConfig).
 
-rock_this_skipping_files(_Config) ->
-    meck:new(elvis_file, [passthrough]),
-    Globs = ["../../../../_build/test/lib/elvis_core/test/examples/small.erl"],
-    [File] = elvis_file:find_files(Globs),
-    Path = elvis_file:path(File),
-    ConfigPath = "../../../../config/elvis-test-pa.config",
-    {ok, user_defined_rules} = compile:file("../../../../test/examples/user_defined_rules.erl"),
-    {module, user_defined_rules} = code:ensure_loaded(user_defined_rules),
-    ElvisConfig = elvis_config:from_file(ConfigPath),
-    ok = elvis_core:rock_this(Path, ElvisConfig),
-    0 = meck:num_calls(elvis_file, load_file_data, '_'),
-    meck:unload(elvis_file),
-    ok.
-
-rock_this_not_skipping_files(_Config) ->
-    meck:new(elvis_file, [passthrough]),
-    Globs = ["../../../../_build/test/lib/elvis_core/test/examples/small.erl"],
-    [File] = elvis_file:find_files(Globs),
-    Path = elvis_file:path(File),
-    ElvisConfig = elvis_test_utils:config(),
-    ok = elvis_core:rock_this(Path, ElvisConfig),
-    1 = meck:num_calls(elvis_file, load_file_data, '_'),
-    meck:unload(elvis_file),
-    ok.
-
 rock_with_umbrella_apps(_Config) ->
     ElvisUmbrellaConfigFile = "../../../../config/elvis-umbrella.config",
     ElvisConfig = elvis_config:from_file(ElvisUmbrellaConfigFile),
@@ -339,7 +294,7 @@ custom_ruleset(_Config) ->
     NoTabs = elvis_rule:new(elvis_text_style, no_tabs),
     [[NoTabs]] = elvis_config:rules(ElvisConfig),
 
-    %% this is also done by :rock and :rock_this
+    %% this is also done by elvis_core:rock/1
     _ = elvis_ruleset:drop_custom(),
 
     %% read unknown ruleset configuration to ensure rulesets from

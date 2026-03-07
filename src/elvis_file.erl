@@ -4,7 +4,6 @@
     src/1,
     encoding/1,
     path/1,
-    from_path/1,
     parse_tree/2,
     load_file_data/2,
     find_files/1,
@@ -12,6 +11,10 @@
     module/1,
     get_abstract_parse_tree/1
 ]).
+
+-ifdef(TEST).
+-export([from_path/1]).
+-endif.
 
 -opaque t() ::
     #{
@@ -55,10 +58,12 @@ path(#{path := Path}) ->
 path(File) ->
     throw({invalid_file, File}).
 
+-ifdef(TEST).
 %% @doc Build a t() from a file path (for use when the file is not yet loaded).
 -spec from_path(string()) -> t().
 from_path(Path) when is_list(Path) ->
     #{path => Path}.
+-endif.
 
 %% @doc Add the root node of the parse tree to the file data, with filtering.
 -spec parse_tree(

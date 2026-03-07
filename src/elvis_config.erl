@@ -9,7 +9,7 @@
 
 -export([from_rebar/1, from_file/1, validate_config/1, default/0]).
 %% Getters
--export([file_globs/1, ignore/1, files/1, rules/1, ruleset/1]).
+-export([files/1, rules/1, ruleset/1]).
 %% Files
 -export([resolve_files/1, resolve_files/2, apply_to_files/2]).
 %% Rules
@@ -43,6 +43,8 @@
 -export([update_gitignored_with/1]).
 -export([flag_gitignore_was_read/0]).
 -export([reset_gitignore/0]).
+-export([file_globs/1]).
+-export([ignore/1]).
 -endif.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -228,11 +230,13 @@ default() ->
         #{files => [".gitignore"], ruleset => gitignore}
     ].
 
+-ifdef(TEST).
 -spec file_globs(t()) -> [string()].
 file_globs(#{files := Globs}) when is_list(Globs) ->
     Globs;
 file_globs(#{}) ->
     [].
+-endif.
 
 -spec ignore([t()] | t()) -> [string()].
 ignore(Config) when is_list(Config) ->
