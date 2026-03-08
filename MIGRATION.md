@@ -90,12 +90,12 @@ These rules no longer exist. Remove them from your config or switch to the repla
 
 | Removed rule | Replacement or note |
 |--------------|----------------------|
-| `elvis_style:macro_module_names` | Removed in 4.1.0; no replacement. |
+| `elvis_style:macro_module_names` | No replacement. |
 | `elvis_project:no_deps_master_erlang_mk` | Use `no_branch_deps`. |
 | `elvis_project:no_deps_master_rebar` | Use `no_branch_deps`. |
-| `elvis_project:old_configuration_format` | Removed; no replacement. |
+| `elvis_project:old_configuration_format` | No replacement. |
 | `elvis_project:protocol_for_deps_rebar` | Use `protocol_for_deps`. |
-| `elvis_project:protocol_for_deps_erlang_mk` | Removed; no replacement. |
+| `elvis_project:protocol_for_deps_erlang_mk` | No replacement. |
 
 Referenced removed rules are skipped with a warning.
 

@@ -1,4 +1,4 @@
-# ABC Size
+# ABC Size [![](https://img.shields.io/badge/since-5.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/5.0.0)
 
 Functions should not have excessively high ABC size.
 
