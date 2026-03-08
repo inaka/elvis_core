@@ -174,7 +174,7 @@ print(Format, [Result | Results]) ->
     print(Format, Results);
 %% File
 print(Format, #{file := Path, rules := Rules}) ->
-    case Format of
+    _ = case Format of
         parsable ->
             ok;
         _ ->
@@ -208,7 +208,7 @@ print_rules(
         | EItems
     ]
 ) ->
-    case Format of
+    _ = case Format of
         parsable ->
             ok;
         _ ->
@@ -221,7 +221,7 @@ print_rules(
     print_item(Format, File, Name, Items),
     print_rules(Format, File, EItems);
 print_rules(Format, File, [Error | Items]) ->
-    print_error(Error),
+    _ = print_error(Error),
     print_rules(Format, File, Items).
 
 %% Item
@@ -239,7 +239,7 @@ print_item(
         | Items
     ]
 ) ->
-    case Format of
+    _ = case Format of
         parsable ->
             FMsg = io_lib:format(Msg, Info),
             io:format("~s:~p:~p:~s~n", [File, Ln, Name, FMsg]);
@@ -248,7 +248,7 @@ print_item(
     end,
     print_item(Format, File, Name, Items);
 print_item(Format, File, Name, [Error | Items]) ->
-    print_error(Error),
+    _ = print_error(Error),
     print_item(Format, File, Name, Items);
 print_item(_Format, _File, _Name, []) ->
     ok.

@@ -56,17 +56,17 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 from_static(Key, {Type, Config}) ->
-    elvis_utils:debug("fetching key '~s' from '~s' configuration", [Key, Type]),
+    _ = elvis_utils:debug("fetching key '~s' from '~s' configuration", [Key, Type]),
     case proplists:get_value(Key, Config) of
         undefined ->
-            elvis_utils:debug(
+            _ = elvis_utils:debug(
                 "no value for key '~s' found in '~s' configuration; going with default", [
                     Key, Type
                 ]
             ),
             default(Key);
         Value ->
-            elvis_utils:debug("value for key '~s' found in '~s' configuration", [Key, Type]),
+            _ = elvis_utils:debug("value for key '~s' found in '~s' configuration", [Key, Type]),
             Value
     end.
 
@@ -120,13 +120,13 @@ set_env(Key, Value) ->
 default(Key) ->
     case application:get_env(elvis_core, Key) of
         undefined ->
-            elvis_utils:debug(
+            _ = elvis_utils:debug(
                 "no value for key '~s' found in application environment; going with default",
                 [Key]
             ),
             default_for(Key);
         {ok, Value} ->
-            elvis_utils:debug("value for key '~s' (~p) found in application environment", [
+            _ = elvis_utils:debug("value for key '~s' (~p) found in application environment", [
                 Key, Value
             ]),
             Value
@@ -140,7 +140,7 @@ for(Key) ->
             case ElvisConfig of
                 AppDefault ->
                     % This might happen whether we fail to parse the file or it actually is []
-                    elvis_utils:debug("elvis.config is unusable; falling back to rebar.config", []),
+                    _ = elvis_utils:debug("elvis.config is unusable; falling back to rebar.config", []),
                     consult_rebar_config("rebar.config");
                 AppConfig0 ->
                     AppConfig0
@@ -155,7 +155,7 @@ for(Key) ->
 consult_elvis_config(File) ->
     case file:consult(File) of
         {ok, [AppConfig]} when is_list(AppConfig) ->
-            elvis_utils:debug("elvis.config is consultable; using it", []),
+            _ = elvis_utils:debug("elvis.config is consultable; using it", []),
             {ok, AppConfig};
         {error, {Line, Mod, Term}} ->
             {error,
@@ -163,21 +163,19 @@ consult_elvis_config(File) ->
                     io_lib:format("elvis.config is unconsultable: ~p, ~p, ~p", [Line, Mod, Term])
                 )};
         _ ->
-            elvis_utils:debug("elvis.config is unconsultable", []),
+            _ = elvis_utils:debug("elvis.config is unconsultable", []),
             {ok, default_for(app)}
     end.
 
 consult_rebar_config(File) ->
-    AppConfig =
-        case file:consult(File) of
-            {ok, AppConfig0} when is_list(AppConfig0) ->
-                elvis_utils:debug("rebar.config is consultable; using it", []),
-                AppConfig0;
-            _ ->
-                elvis_utils:debug("rebar.config is unconsultable", []),
-                default_for('rebar.config')
-        end,
-    from_static(elvis, {'rebar.config', AppConfig}).
+    case file:consult(File) of
+        {ok, AppConfig0} when is_list(AppConfig0) ->
+            _ = elvis_utils:debug("rebar.config is consultable; using it", []),
+            AppConfig0;
+        _ ->
+            _ = elvis_utils:debug("rebar.config os unconsultable", []),
+            default_for('rebar.config')
+    end.
 
 -spec from_rebar(File :: string()) -> [t()] | fail_validation().
 from_rebar(File) ->
@@ -554,7 +552,7 @@ all_custom_rulesets_have_valid_rules(What, CustomRulesets) ->
                         {true, _Rule} ->
                             AccInI;
                         {removed, Msg} ->
-                            elvis_utils:warn("~s Skipping.", [Msg]),
+                            _ = elvis_utils:warn("~s Skipping.", [Msg]),
                             AccInI;
                         {false, ValidError} ->
                             [
@@ -735,7 +733,7 @@ all_rules_are_valid(What, RuleTuples) ->
                 {true, Rule} ->
                     check_rule_for_options(Rule, AccInI);
                 {removed, Msg} ->
-                    elvis_utils:warn("~s Skipping.", [Msg]),
+                    _ = elvis_utils:warn("~s Skipping.", [Msg]),
                     AccInI;
                 {false, ValidError} ->
                     [io_lib:format("in '~s', " ++ ValidError, [What]) | AccInI]

@@ -108,7 +108,7 @@ do_rock(File, ElvisConfig) ->
     {ok, elvis_file:t()} | {error, string()}.
 load_file_data(ElvisConfig, File) ->
     Path = elvis_file:path(File),
-    elvis_utils:info("Loading ~s", [Path]),
+    _ = elvis_utils:info("Loading ~s", [Path]),
     try
         {ok, elvis_file:load_file_data(ElvisConfig, File)}
     catch
