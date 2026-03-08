@@ -45,7 +45,7 @@ rock_with_rebar_default_config(_Config) ->
     ElvisConfig = elvis_config:from_rebar("rebar.config"),
     [#{name := line_length}] =
         try
-            {fail, Results} = elvis_core:rock(ElvisConfig),
+            {errors, Results} = elvis_core:rock(ElvisConfig),
             [Rule || #{rules := [Rule]} <- Results]
         after
             file:delete("rebar.config")
@@ -60,7 +60,7 @@ throw_configuration(_Config) ->
             elvis_config:from_file(Filename),
             fail
         catch
-            exit:"elvis.config is unconsultable: 1, erl_parse, [\"syntax error before: \",[]]" ->
+            {error, "elvis.config unconsultable: 1, erl_parse, [\"syntax error before: \",[]]"} ->
                 ok
         end,
     _ = file:delete(Filename).
@@ -80,7 +80,8 @@ validate_config_with_string_ignore(_Config) ->
 validate(_Config) ->
     ConfigDir = filename:join(["test", "examples", "configs"]),
     lists:foreach(
-        fun({File, Expected}) ->
+        fun({File, Expected0}) ->
+            Expected = {error, Expected0},
             % In a normal use case scenario we either get an error and return
             % or call the function (at our own risk) several times in a row without
             % clearing state
@@ -89,120 +90,76 @@ validate(_Config) ->
             try elvis_config:from_file(FullPath) of
                 Expected ->
                     ok;
-                {fail, [{throw, {invalid_config, Comment}}]} ->
+                {error, Comment} ->
                     % This is a minor hack, so the message is visible in the tests
                     ct:fail("Expected no failure from ~s; got -> ~s", [FilePath, Comment])
             catch
-                exit:Reason when Reason =:= Expected ->
+                Expected ->
                     ok
             end
         end,
         [
             % invalid top-level content (non-existing file)
-            {"-1.config",
-                invalid_config(
-                    "'elvis.config' is expected to exist and be a non-empty list."
-                )},
+            {"-1.config", "'elvis' is expected to exist and be a non-empty list."},
 
             % invalid elvis.config (unconsultable file)
             {"1_1.config",
-                "elvis.config is unconsultable: 1, erl_parse, [\"syntax error before: \",\"'.'\"]"},
+                "elvis.config unconsultable: 1, erl_parse, [\"syntax error before: \",\"'.'\"]"},
+            % invalid elvis (does not exist)
+            {"1_2.config", "'elvis' is expected to exist and be a non-empty list."},
+            % invalid elvis (is not a list)
+            {"1_3.config", "'elvis' is expected to exist and be a non-empty list."},
+            % invalid elvis (is an empty list)
+            {"1_4.config", "'elvis' is expected to exist and be a non-empty list."},
 
-            % invalid config (does not exist)
-            {"2_1.config",
-                invalid_config(
-                    "'config' is expected to exist and be a non-empty list."
-                )},
-            % invalid config (is not a list)
-            {"2_2.config",
-                invalid_config(
-                    "'config' is expected to exist and be a non-empty list."
-                )},
-            % invalid config (is an empty list)
-            {"2_3.config",
-                invalid_config(
-                    "'config' is expected to exist and be a non-empty list."
-                )},
-            % invalid config element (is not a map)
+            % invalid elvis.config (does not exist)
+            {"2_1.config", "'elvis.config' is expected to exist and be a non-empty list."},
+            % invalid elvis.config (is not a list)
+            {"2_2.config", "'elvis.config' is expected to exist and be a non-empty list."},
+            % invalid elvis.config (is an empty list)
+            {"2_3.config", "'elvis.config' is expected to exist and be a non-empty list."},
+            % invalid elvis.config element (is not a map)
             {"2_4.config",
-                invalid_config(
-                    "in 'config', at list position number 1, element is expected to be a map."
-                )},
-            % invalid config element (unknown key)
+                "in 'elvis.config', at list position number 1, element is expected to be a map."},
+            % invalid elvis.config element (unknown key)
             {"2_5.config",
-                invalid_config(
-                    "in 'config', at list position number 1, the following keys are unknown: [<<\"key\">>]."
-                )},
+                "in 'elvis.config', at list position number 1, the following keys are unknown: [<<\"key\">>]."},
 
             % invalid config > files (does not exist)
             {"3_1.config",
-                invalid_config(
-                    "in 'config', at list position number 1, 'files' is a compulsory option."
-                )},
-            % invalid config > files (is not a list)
+                "in 'elvis.config', at list position number 1, 'files' is a compulsory option."},
+            % invalid elvis.config > files (is not a list)
             {"3_2.config",
-                invalid_config(
-                    "in 'config', at list position number 1, 'files' is expected to be a non-empty list."
-                )},
-            % invalid config > files (is an empty list)
+                "in 'elvis.config', at list position number 1, 'files' is expected to be a non-empty list."},
+            % invalid elvis.config > files (is an empty list)
             {"3_3.config",
-                invalid_config(
-                    "in 'config', at list position number 1, 'files' is expected to be a non-empty list."
-                )},
+                "in 'elvis.config', at list position number 1, 'files' is expected to be a non-empty list."},
 
             % invalid config > rules + ruleset combo (one has to be defined)
             {"5_1.config",
-                invalid_config(
-                    "in 'config', at list position number 1, either 'rules' is a non-empty list or 'ruleset' is defined."
-                )},
-            % invalid config > rules (is not a list)
+                "in 'elvis.config', at list position number 1, either 'rules' is a non-empty list or 'ruleset' is defined."},
+            % invalid elvis.config > rules (is not a list)
             {"5_2.config",
-                invalid_config(
-                    "in 'config', at list position number 1, 'rules' is expected to be a list."
-                )},
-            % invalid config > ruleset (is not valid)
+                "in 'elvis.config', at list position number 1, 'rules' is expected to be a list."},
+            % invalid elvis.config > ruleset (is not valid)
             {"5_3.config",
-                invalid_config(
-                    "in 'config', at list position number 1, 'not_a_ruleset' is expected to be either a custom or a default ruleset."
-                )},
-            % invalid config > rules (is an empty list), ruleset is undefined
+                "in 'elvis.config', at list position number 1, 'not_a_ruleset' is expected to be either a custom or a default ruleset."},
+            % invalid elvis.config > rules (is an empty list), ruleset is undefined
             {"5_4.config",
-                invalid_config(
-                    "in 'config', at list position number 1, either 'rules' is a non-empty list or 'ruleset' is defined."
-                )},
+                "in 'elvis.config', at list position number 1, either 'rules' is a non-empty list or 'ruleset' is defined."},
 
-            % invalid (unknown key)
-            {"6_1.config",
-                invalid_config(
-                    "in 'elvis.config', the following keys are unknown: [<<\"key\">>]."
-                )},
-            % invalid output_format (not "one of")
+            % invalid elvis (unknown key)
+            {"6_1.config", "in 'elvis', the following keys are unknown: [<<\"key\">>]."},
+            % invalid elvis.output_format (not "one of")
             {"6_2.config",
-                invalid_config(
-                    "'output_format' is expected to be one of the following: [parsable, plain, colors]."
-                )},
-            % invalid verbose (not a boolean)
-            {"6_3.config",
-                invalid_config(
-                    "'verbose' is expected to be a boolean."
-                )},
-            % invalid no_output (not a boolean)
-            {"6_4.config",
-                invalid_config(
-                    "'no_output' is expected to be a boolean."
-                )},
-            % invalid parallel (not an integer)
-            {"6_5.config",
-                invalid_config(
-                    "'parallel' is expected to be a positive integer."
-                )},
-            % invalid parallel (not a positive integer)
-            {"6_6.config",
-                invalid_config(
-                    "'parallel' is expected to be a positive integer."
-                )}
+                "'elvis.output_format' is expected to be one of the following: [parsable, plain, colors]."},
+            % invalid elvis.verbose (not a boolean)
+            {"6_3.config", "'elvis.verbose' is expected to be a boolean."},
+            % invalid elvis.no_output (not a boolean)
+            {"6_4.config", "'elvis.no_output' is expected to be a boolean."},
+            % invalid elvis.parallel (not an integer)
+            {"6_5.config", "'elvis.parallel' is expected to be a positive integer."},
+            % invalid elvis.parallel (not a positive integer)
+            {"6_6.config", "'elvis.parallel' is expected to be a positive integer."}
         ]
     ).
-
-invalid_config(Comment) ->
-    {fail, [{throw, {invalid_config, Comment}}]}.

@@ -1,7 +1,9 @@
 -module(elvis_test_utils).
 
 -export([
-    config/0, config/1,
+    config/0,
+    config_erl_files/1,
+    config/1,
     find_file/2,
     elvis_core_apply_rule/5,
     excluded_funs_all/0,
@@ -22,6 +24,18 @@ excluded_funs_all() ->
 
 config() ->
     application:get_env(elvis_core, config, []).
+
+config_erl_files(File) when is_atom(File) ->
+    ModuleInfo = File:module_info(compile),
+    Source = proplists:get_value(source, ModuleInfo),
+    config_erl_files(Source);
+config_erl_files(File) ->
+    [
+        #{
+            files => [File],
+            ruleset => erl_files
+        }
+    ].
 
 config(Ruleset) ->
     RulesetCfgs = application:get_env(elvis_core, config, []),
