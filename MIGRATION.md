@@ -10,6 +10,18 @@ This file's format is influenced by [Keep a Changelog](https://keepachangelog.co
 
 ## Going from `4.x` to `5.0.0`
 
+### Avoiding warnings on the use of `erlang:garbage_collect/0`
+
+The `no_common_caveats_call` rule now includes `erlang:garbage_collect/0` in its default set of
+restricted functions.
+
+If you need to permit this call in your codebase, you have two primary options:
+
+- **fully disable the rule**: disable `no_common_caveats_call` entirely in your configuration.
+
+- **customize the list**: modify the `caveat_functions` option to define a specific subset of
+functions that better fits your project's requirements.
+
 ### Replace `dirs` and `filter` with `files`
 
 Config no longer uses `dirs` and `filter`. Use a single `files` key: a list of glob patterns that
