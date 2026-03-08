@@ -174,20 +174,21 @@ print(Format, [Result | Results]) ->
     print(Format, Results);
 %% File
 print(Format, #{file := Path, rules := Rules}) ->
-    _ = case Format of
-        parsable ->
-            ok;
-        _ ->
-            Verbose = elvis_config:verbose(),
-            case status(Rules) of
-                ok when Verbose ->
-                    elvis_utils:notice("# ~s [{{green-bold}}OK{{white-bold}}]", [Path]);
-                ok ->
-                    ok;
-                fail ->
-                    elvis_utils:notice("# ~s [{{red-bold}}FAIL{{white-bold}}]", [Path])
-            end
-    end,
+    _ =
+        case Format of
+            parsable ->
+                ok;
+            _ ->
+                Verbose = elvis_config:verbose(),
+                case status(Rules) of
+                    ok when Verbose ->
+                        elvis_utils:notice("# ~s [{{green-bold}}OK{{white-bold}}]", [Path]);
+                    ok ->
+                        ok;
+                    fail ->
+                        elvis_utils:notice("# ~s [{{red-bold}}FAIL{{white-bold}}]", [Path])
+                end
+        end,
     print_rules(Format, Path, Rules);
 print(_, Error) ->
     print_error(Error).
@@ -208,16 +209,17 @@ print_rules(
         | EItems
     ]
 ) ->
-    _ = case Format of
-        parsable ->
-            ok;
-        _ ->
-            elvis_utils:notice(
-                "  - ~p "
-                "(https://github.com/inaka/elvis_core/tree/main/doc_rules/~p/~p.md)",
-                [Name, Scope, Name]
-            )
-    end,
+    _ =
+        case Format of
+            parsable ->
+                ok;
+            _ ->
+                elvis_utils:notice(
+                    "  - ~p "
+                    "(https://github.com/inaka/elvis_core/tree/main/doc_rules/~p/~p.md)",
+                    [Name, Scope, Name]
+                )
+        end,
     print_item(Format, File, Name, Items),
     print_rules(Format, File, EItems);
 print_rules(Format, File, [Error | Items]) ->
@@ -239,13 +241,14 @@ print_item(
         | Items
     ]
 ) ->
-    _ = case Format of
-        parsable ->
-            FMsg = io_lib:format(Msg, Info),
-            io:format("~s:~p:~p:~s~n", [File, Ln, Name, FMsg]);
-        _ ->
-            elvis_utils:notice("    - " ++ Msg, Info)
-    end,
+    _ =
+        case Format of
+            parsable ->
+                FMsg = io_lib:format(Msg, Info),
+                io:format("~s:~p:~p:~s~n", [File, Ln, Name, FMsg]);
+            _ ->
+                elvis_utils:notice("    - " ++ Msg, Info)
+        end,
     print_item(Format, File, Name, Items);
 print_item(Format, File, Name, [Error | Items]) ->
     _ = print_error(Error),

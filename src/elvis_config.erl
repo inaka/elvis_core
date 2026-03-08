@@ -140,7 +140,9 @@ for(Key) ->
             case ElvisConfig of
                 AppDefault ->
                     % This might happen whether we fail to parse the file or it actually is []
-                    _ = elvis_utils:debug("elvis.config is unusable; falling back to rebar.config", []),
+                    _ = elvis_utils:debug(
+                        "elvis.config is unusable; falling back to rebar.config", []
+                    ),
                     consult_rebar_config("rebar.config");
                 AppConfig0 ->
                     AppConfig0

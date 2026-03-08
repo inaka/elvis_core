@@ -43,19 +43,23 @@ rock_with_file_config(_Config) ->
 rock_with_rebar_default_config(_Config) ->
     {ok, _} = file:copy("../../../../config/rebar.config", "rebar.config"),
     ElvisConfig = elvis_config:from_rebar("rebar.config"),
+    elvis_config:set_warnings_as_errors(false),
     [#{name := line_length}] =
         try
-            {errors, Results} = elvis_core:rock(ElvisConfig),
+            {warnings, Results} = elvis_core:rock(ElvisConfig),
             [Rule || #{rules := [Rule]} <- Results]
         after
             file:delete("rebar.config")
         end,
+    elvis_config:set_warnings_as_errors(true),
     ok.
 
 throw_configuration(_Config) ->
     Filename = "./elvis.config",
     ok = file:write_file(Filename, <<"-">>),
-    {error, "elvis.config unconsultable: 1, erl_parse, [\"syntax error before: \",[]]"} = elvis_config:from_file(Filename),
+    {error, "elvis.config unconsultable: 1, erl_parse, [\"syntax error before: \",[]]"} = elvis_config:from_file(
+        Filename
+    ),
     _ = file:delete(Filename).
 
 %% @doc Regression test for https://github.com/inaka/elvis_core/issues/544
