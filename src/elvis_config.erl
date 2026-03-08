@@ -133,37 +133,38 @@ default(Key) ->
     end.
 
 for(Key) ->
-    AppDefault = default_for(app),
-    AppConfig =
-        case consult_elvis_config("elvis.config") of
-            AppDefault ->
-                % This might happen whether we fail to parse the file or it actually is []
-                elvis_utils:debug("elvis.config is unusable; falling back to rebar.config", []),
-                consult_rebar_config("rebar.config");
-            AppConfig0 ->
-                AppConfig0
-        end,
-    % If we got this far, the configuration is valid...
-    % i.e. the return won't be {error, _}
-    from_static(Key, {app, AppConfig}).
+    maybe
+        AppDefault = default_for(app),
+        {ok, ElvisConfig} ?= consult_elvis_config("elvis.config"),
+        AppConfig =
+            case ElvisConfig of
+                AppDefault ->
+                    % This might happen whether we fail to parse the file or it actually is []
+                    elvis_utils:debug("elvis.config is unusable; falling back to rebar.config", []),
+                    consult_rebar_config("rebar.config");
+                AppConfig0 ->
+                    AppConfig0
+            end,
+        % If we got this far, the configuration is valid...
+        % i.e. the return won't be {error, _}
+        from_static(Key, {app, AppConfig})
+    else
+        {error, _} = Error -> Error
+    end.
 
 consult_elvis_config(File) ->
     case file:consult(File) of
         {ok, [AppConfig]} when is_list(AppConfig) ->
             elvis_utils:debug("elvis.config is consultable; using it", []),
-            AppConfig;
+            {ok, AppConfig};
         {error, {Line, Mod, Term}} ->
-            % In this very specific case we prefer to exit, since we make efforts
-            % to provide a valid config., but we also need to make sure the file
-            % is readable
-            exit(
+            {error,
                 lists:flatten(
                     io_lib:format("elvis.config is unconsultable: ~p, ~p, ~p", [Line, Mod, Term])
-                )
-            );
+                )};
         _ ->
             elvis_utils:debug("elvis.config is unconsultable", []),
-            default_for(app)
+            {ok, default_for(app)}
     end.
 
 consult_rebar_config(File) ->
@@ -185,8 +186,12 @@ from_rebar(File) ->
 
 -spec from_file(File :: string()) -> [t()] | fail_validation().
 from_file(File) ->
-    AppConfig = consult_elvis_config(File),
-    fetch_elvis_config_from(AppConfig).
+    maybe
+        {ok, AppConfig} ?= consult_elvis_config(File),
+        fetch_elvis_config_from(AppConfig)
+    else
+        {error, _} = Error -> Error
+    end.
 
 fetch_elvis_config_from(AppConfig) ->
     try do_validate({app, AppConfig}) of
@@ -412,7 +417,12 @@ is_rule_override(Rule, UserRules) ->
 
 -spec validate_config(term()) -> ok | {error, Message :: string()}.
 validate_config(ElvisConfig) ->
-    do_validate({config, ElvisConfig}).
+    try
+        do_validate({config, ElvisConfig})
+    catch
+        {invalid_config, Message} ->
+            {error, lists:flatten(Message)}
+    end.
 
 get_elvis_opt(OptName, Elvis) ->
     proplists:get_value(OptName, Elvis, default_for(OptName)).
@@ -446,7 +456,7 @@ do_validate({app = _Option, Elvis}) ->
         {v, true} ->
             ok;
         {error, FormatData} ->
-            error_out_validate(FormatData)
+            do_validate_throw(FormatData)
     end;
 do_validate({config = _Option, ElvisConfig}) ->
     maybe
@@ -455,11 +465,11 @@ do_validate({config = _Option, ElvisConfig}) ->
         {v, true} ->
             ok;
         {error, FormatData} ->
-            error_out_validate(FormatData)
+            do_validate_throw(FormatData)
     end.
 
--spec error_out_validate(_) -> {error, Message :: string()}.
-error_out_validate(FormatData) ->
+-spec do_validate_throw(_) -> no_return().
+do_validate_throw(FormatData) ->
     {Format, Data} =
         case is_list(FormatData) of
             false ->
@@ -470,7 +480,7 @@ error_out_validate(FormatData) ->
                 [{Format0, Data0} | _] = FormatData,
                 {Format0, Data0}
         end,
-    {error, lists:flatten(io_lib:format(Format, Data))}.
+    throw({invalid_config, lists:flatten(io_lib:format(Format, Data))}).
 
 is_nonempty_list(What, List) when not is_list(List) orelse List =:= [] ->
     {error, {"'~s' is expected to exist and be a non-empty list.", [What]}};

@@ -88,30 +88,32 @@ escape_chars(String) ->
     ResultBin = iolist_to_binary(Result),
     binary_to_list(ResultBin).
 
--spec debug(string(), [term()]) -> ok.
+-spec debug(string(), [term()]) -> string().
 debug(Format, Data) ->
     output(debug, "Elvis: " ++ Format, Data).
 
--spec info(string(), [term()]) -> ok.
+-spec info(string(), [term()]) -> string().
 info(Format, Data) ->
     output(info, Format ++ "{{reset}}~n", Data).
 
--spec notice(string(), [term()]) -> ok.
+-spec notice(string(), [term()]) -> string().
 notice(Format, Data) ->
     output(notice, "{{white-bold}}" ++ Format ++ "{{reset}}~n", Data).
 
--spec warn(string(), [term()]) -> ok.
+-spec warn(string(), [term()]) -> string().
 warn(Format, Data) ->
     output(warn, "{{magenta}}Warning: {{reset}}" ++ Format ++ "{{reset}}~n", Data).
 
--spec error(string(), [term()]) -> ok.
+-spec error(string(), [term()]) -> string().
 error(Format, Data) ->
     output(error, "{{red}}Error: {{reset}}" ++ Format ++ "{{reset}}~n", Data).
 
--spec output(debug | info | notice | warn | error, Format :: io:format(), Data :: [term()]) -> ok.
+-spec output(debug | info | notice | warn | error, Format :: io:format(), Data :: [term()]) ->
+    string().
 output(debug = _Type, Format, Data) ->
     Chars = io_lib:format(Format, Data),
-    do_output(debug, Chars);
+    do_output(debug, Chars),
+    unicode:characters_to_list(Chars);
 output(Type, Format, Data) ->
     Chars = io_lib:format(Format, Data),
     EscapedChars = escape_chars(Chars),
@@ -121,7 +123,8 @@ output(Type, Format, Data) ->
             ok;
         _ ->
             do_output(Type, ColorParsedChars)
-    end.
+    end,
+    unicode:characters_to_list(Chars).
 
 -dialyzer({nowarn_function, do_output/2}).
 do_output(debug, Chars) ->

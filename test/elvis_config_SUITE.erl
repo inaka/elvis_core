@@ -55,14 +55,7 @@ rock_with_rebar_default_config(_Config) ->
 throw_configuration(_Config) ->
     Filename = "./elvis.config",
     ok = file:write_file(Filename, <<"-">>),
-    ok =
-        try
-            elvis_config:from_file(Filename),
-            fail
-        catch
-            {error, "elvis.config unconsultable: 1, erl_parse, [\"syntax error before: \",[]]"} ->
-                ok
-        end,
+    {error, "elvis.config unconsultable: 1, erl_parse, [\"syntax error before: \",[]]"} = elvis_config:from_file(Filename),
     _ = file:delete(Filename).
 
 %% @doc Regression test for https://github.com/inaka/elvis_core/issues/544
@@ -87,15 +80,12 @@ validate(_Config) ->
             % clearing state
             FilePath = filename:join(ConfigDir, File),
             FullPath = filename:join(["..", "..", "..", "..", FilePath]),
-            try elvis_config:from_file(FullPath) of
+            case elvis_config:from_file(FullPath) of
                 Expected ->
                     ok;
                 {error, Comment} ->
                     % This is a minor hack, so the message is visible in the tests
                     ct:fail("Expected no failure from ~s; got -> ~s", [FilePath, Comment])
-            catch
-                Expected ->
-                    ok
             end
         end,
         [

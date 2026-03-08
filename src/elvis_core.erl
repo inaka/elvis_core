@@ -95,22 +95,26 @@ do_parallel_rock(ElvisConfig0) ->
 -spec do_rock(elvis_file:t(), [elvis_config:t()] | elvis_config:t()) ->
     {ok, elvis_result:file()}.
 do_rock(File, ElvisConfig) ->
-    LoadedFile = load_file_data(ElvisConfig, File),
-    Results = apply_rules(ElvisConfig, LoadedFile),
-    {ok, Results}.
+    maybe
+        {ok, LoadedFile} ?= load_file_data(ElvisConfig, File),
+        Results = apply_rules(ElvisConfig, LoadedFile),
+        {ok, Results}
+    else
+        {error, _} = Error ->
+            Error
+    end.
 
 -spec load_file_data([elvis_config:t()] | elvis_config:t(), elvis_file:t()) ->
-    elvis_file:t().
+    {ok, elvis_file:t()} | {error, string()}.
 load_file_data(ElvisConfig, File) ->
     Path = elvis_file:path(File),
     elvis_utils:info("Loading ~s", [Path]),
     try
-        elvis_file:load_file_data(ElvisConfig, File)
+        {ok, elvis_file:load_file_data(ElvisConfig, File)}
     catch
         _:Reason ->
-            Msg = "~p when loading file ~p.",
-            elvis_utils:error(Msg, [Reason, Path]),
-            File
+            Msg = "~w when loading file ~p.",
+            {error, elvis_utils:error(Msg, [Reason, Path])}
     end.
 
 -spec main([]) -> true | no_return().
@@ -135,8 +139,8 @@ combine_results(ok, Acc) ->
     Acc;
 combine_results(Item, ok) ->
     Item;
-combine_results({fail, ItemResults}, {fail, AccResults}) ->
-    {fail, ItemResults ++ AccResults}.
+combine_results({error, ItemResults}, {error, AccResults}) ->
+    {error, ItemResults ++ AccResults}.
 
 -spec apply_rules(
     [elvis_config:t()] | elvis_config:t(),
