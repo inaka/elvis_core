@@ -59,7 +59,6 @@ path(File) ->
     throw({invalid_file, File}).
 
 -ifdef(TEST).
-%% @doc Build a t() from a file path (for use when the file is not yet loaded).
 -spec from_path(string()) -> t().
 from_path(Path) when is_list(Path) ->
     #{path => Path}.

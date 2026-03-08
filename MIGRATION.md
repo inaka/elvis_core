@@ -58,9 +58,9 @@ This allows us to refine the return type - likely replacing the placeholder with
 diagnostic data - once `elvis_core` implements a decoupled output framework (e.g., removing
 direct `io:format/2` calls).
 
-### Using `elvis_core:rock/1` instead of `elvis_core:rock_this/2`
+### Using `elvis_core:rock/1` instead of `_:rock_this/2`
 
-The function `elvis_core:rock_this/2` has been removed. Use the existing `elvis_core:rock/1`
+The function `_:rock_this/2` has been removed. Use the existing `elvis_core:rock/1`
 function, which utilizes a configuration list.
 
 **Before (4.x):**
