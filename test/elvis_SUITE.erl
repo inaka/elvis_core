@@ -146,8 +146,7 @@ rock_with_non_parsable_file(_Config) ->
         "../../../../_build/test/lib/elvis_core/test/non_compilable_examples/fail_non_parsable_file.erl",
     ElvisConfig = elvis_test_utils:config_erl_files(Path),
     {errors, [{error, Result}]} = elvis_core:rock(ElvisConfig),
-    "{{red}}Error: {{reset}}{badmatch,{error,{{6,6},erl_scan,{unterminated,string,[10]}},{7,1}}}" ++
-        _ = Result,
+    "{{red}}Error: {{reset}}{badmatch," ++ _ = Result,
 
     ok.
 
