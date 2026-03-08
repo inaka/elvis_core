@@ -11,6 +11,8 @@
     matches_regex/2
 ]).
 
+-elvis([{elvis_style, no_invalid_dynamic_calls, disable}]).
+
 excluded_funs_all() ->
     [
         module_info,
