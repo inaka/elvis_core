@@ -21,7 +21,7 @@
     set_output_format/1, set_verbose/1, set_no_output/1, set_parallel/1, set_warnings_as_errors/1
 ]).
 
-% Corresponds to the 'config' key.
+% Corresponds to each config map in the 'config' key.
 -opaque t() ::
     #{
         files => [nonempty_string()],
@@ -144,6 +144,7 @@ for(Key) ->
                 AppConfig0
         end,
     % If we got this far, the configuration is valid...
+    % i.e. the return won't be {error, _}
     from_static(Key, {app, AppConfig}).
 
 consult_elvis_config(File) ->
