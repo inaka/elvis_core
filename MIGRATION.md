@@ -50,8 +50,8 @@ functions that better fits your project's requirements.
 
 The function `elvis_core:rock/1` has been updated to return `ok | {errors, _} | {warnings, _}`.
 
-The `_` value currently serves as a signal for the exit status code (`0` for `warnings`,
-non-`0` for `errors`).
+The tuple label (`errors` or `warnings`) serves as a signal for the exit status code
+(use `0` for `warnings`, and non-`0` for `errors`).
 
 **Future compatibility**: we are intentionally treating the second element of the tuple as opaque.
 This allows us to refine the return type - likely replacing the placeholder with structured
