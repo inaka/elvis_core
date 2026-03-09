@@ -59,10 +59,10 @@ rock(ElvisConfig) ->
 
 errors_or_warnings() ->
     case elvis_config:warnings_as_errors() of
-        true ->
-            errors;
         false ->
-            warnings
+            warnings;
+        _ ->
+            errors
     end.
 
 %% In this context, `throw` means an error, e.g., validation or internal, not an actual

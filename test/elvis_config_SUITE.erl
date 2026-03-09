@@ -7,6 +7,7 @@
 
 % Tests
 -export([rock_with_file_config/1]).
+-export([rock_with_bananas/1]).
 -export([rock_with_rebar_default_config/1]).
 -export([throw_configuration/1]).
 -export([validate_config_with_string_ignore/1]).
@@ -38,6 +39,29 @@ rock_with_file_config(_Config) ->
     [_ | _] = elvis_test_utils:check_some_line_output(
         Fun, Expected, fun elvis_test_utils:matches_regex/2
     ),
+    ok.
+
+rock_with_bananas(_Config) ->
+    File = "../../../../_build/test/lib/elvis_core/test/examples/american_behavior_spelling.erl",
+    ElvisConfig = [#{ files => [File], ruleset => erl_files }],
+
+    elvis_config:set_warnings_as_errors(bananas),
+    bananas = elvis_config:warnings_as_errors(),
+    {errors, [
+        #{
+            file := File,
+            rules := [#{name := behaviour_spelling}]
+        }
+    ]} = elvis_core:rock(ElvisConfig),
+
+    elvis_config:set_warnings_as_errors(false),
+    {warnings, [
+        #{
+            file := File,
+            rules := [#{name := behaviour_spelling}]
+        }
+    ]} = elvis_core:rock(ElvisConfig),
+
     ok.
 
 rock_with_rebar_default_config(_Config) ->
