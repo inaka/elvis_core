@@ -3,7 +3,7 @@
 Dependencies in `erlang.mk` should not use branch `master`.
 
 > [!WARNING]
-> This rule was removed.
+> This rule was removed in version [2.0.0](https://github.com/inaka/elvis_core/releases/tag/2.0.0).
 
 ## Options
 

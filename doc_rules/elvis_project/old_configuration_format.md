@@ -1,9 +1,9 @@
-# Old Configuration Format
+# Old Configuration Format [![](https://img.shields.io/badge/until-4.1.0-red)](https://github.com/inaka/elvis_core/releases/tag/4.1.0)
 
 `elvis.config` files should not use an outdated format.
 
 > [!WARNING]
-> This rule was removed.
+> This rule was removed in version [4.2.0](https://github.com/inaka/elvis_core/releases/tag/4.2.0).
 
 ## Avoid
 

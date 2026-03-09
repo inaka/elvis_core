@@ -43,6 +43,9 @@ API.
 - `apply_to :: [record | map | tuple]`
   - default: `[record, map, tuple]`
 
+The default was changed, from `[record]`, to `[record, map, tuple]` in
+[4.2.0](https://github.com/inaka/elvis_core/releases/tag/4.2.0).
+
 ## Example configuration
 
 ```erlang
