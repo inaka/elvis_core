@@ -170,14 +170,16 @@ consult_elvis_config(File) ->
     end.
 
 consult_rebar_config(File) ->
-    case file:consult(File) of
-        {ok, AppConfig0} when is_list(AppConfig0) ->
-            _ = elvis_utils:debug("rebar.config is consultable; using it", []),
-            AppConfig0;
-        _ ->
-            _ = elvis_utils:debug("rebar.config os unconsultable", []),
-            default_for('rebar.config')
-    end.
+    AppConfig =
+        case file:consult(File) of
+            {ok, AppConfig0} when is_list(AppConfig0) ->
+                _ = elvis_utils:debug("rebar.config is consultable; using it", []),
+                AppConfig0;
+            _ ->
+                _ = elvis_utils:debug("rebar.config os unconsultable", []),
+                default_for('rebar.config')
+        end,
+    from_static(elvis, {'rebar.config', AppConfig}).
 
 -spec from_rebar(File :: string()) -> [t()] | fail_validation().
 from_rebar(File) ->
