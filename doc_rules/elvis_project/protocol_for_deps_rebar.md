@@ -3,7 +3,8 @@
 `rebar.config` dependencies should use known protocols.
 
 > [!WARNING]
-> This rule was removed; use `protocol_for_deps` instead.
+> This rule was removed in version [2.0.0](https://github.com/inaka/elvis_core/releases/tag/2.0.0);
+use `protocol_for_deps` instead.
 
 ## Options
 

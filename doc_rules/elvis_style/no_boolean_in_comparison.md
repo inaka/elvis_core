@@ -36,6 +36,15 @@ the risk of subtle bugs - especially in cases where expressions yield non-boolea
 (e.g., atoms or tuples). Favoring direct boolean evaluation leads to clearer, more idiomatic, and
 more maintainable code.
 
+While developers might often use, for example, `=:=` (exactly equal to) to imply type-checking, this
+distinction is largely irrelevant for booleans. Since Erlang does not perform "magic" type-casting
+for booleans (e.g., `0` is never equal to `true`), `==` and `=:=` behave identically when one
+operand is a boolean. Therefore, using `=:= true` offers no functional advantage over simple
+logical evaluation.
+
+Furthermore, if type safety is a concern (ensuring the value is actually a boolean), one can use
+`is_boolean(Val) andalso Val` instead.
+
 ## Options
 
 - None.

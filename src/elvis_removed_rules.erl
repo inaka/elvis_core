@@ -13,7 +13,7 @@
 
 %% Removed rules (no longer have implementations)
 find(elvis_style, macro_module_names) ->
-    {removed, "Rule 'elvis_style:macro_module_names' was removed in version 4.1.0."};
+    {removed, "Rule 'elvis_style:macro_module_names' was removed."};
 find(elvis_project, no_deps_master_erlang_mk) ->
     {removed,
         "Rule 'elvis_project:no_deps_master_erlang_mk' was removed;"

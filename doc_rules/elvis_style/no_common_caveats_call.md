@@ -37,6 +37,8 @@ results in clearer, faster, and more maintainable code.
 were added in
 [4.1.0](https://github.com/inaka/elvis_core/releases/tag/4.1.0).
 
+`{erlang, garbage_collect, 0}` was added in [5.0.0](https://github.com/inaka/elvis_core/releases/tag/5.0.0).
+
 ## Example configuration
 
 ```erlang

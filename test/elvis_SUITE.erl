@@ -25,6 +25,7 @@
     hrl_ruleset/1,
     find_file_and_check_src/1,
     find_file_with_ignore/1,
+    ignore_gitignored/1,
     invalid_file/1,
     to_string/1,
     chunk_fold/1,
@@ -388,6 +389,17 @@ find_file_with_ignore(_Config) ->
     Files = [_, _] = elvis_file:find_files(Globs),
     [#{path := "../../../../test/examples/find_test2.erl"}] =
         elvis_file:filter_files(Files, Globs, Ignore).
+
+ignore_gitignored(_Config) ->
+    % Force internals, as per current implementation.
+    elvis_config:update_gitignored_with(["test_good.hrl", "test_bad.hrl"]),
+    elvis_config:flag_gitignore_was_read(),
+
+    ConfigPath = "../../../../config/elvis-test-hrl-files.config",
+    ElvisConfig = elvis_config:from_file(ConfigPath),
+    ok = elvis_core:rock(ElvisConfig),
+
+    elvis_config:reset_gitignore().
 
 invalid_file(_Config) ->
     ok =

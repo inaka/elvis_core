@@ -11,7 +11,7 @@ It implements [pre-defined rules](#pre-defined-rules), but also supports
 
 ## Usage
 
-### As a library
+### As a command-line tool
 
 The [`elvis`](https://github.com/inaka/elvis) command-line tool uses `elvis_core` extensively, so
 do check that project for a concrete example on how you could use it for your own purposes.
@@ -203,6 +203,11 @@ ignore, e.g.:
 With this configuration, none of the checks for `erl_files` is applied to `module1`, `module4`,
 or `path/to/header_file.hrl`.
 
+##### `.gitignore`
+
+In addition to custom ignore rules, `.gitignore` patterns are automatically honored during
+execution to skip unnecessary paths.
+
 ### Formatting
 
 Option `output_format` allows you to configure the output format. Possible values are `colors`,
@@ -261,6 +266,11 @@ found in this repository's [RULES.md](https://github.com/inaka/elvis_core/blob/m
 
 To implement your own rules, see the [User-defined rules](RULES.md#user-defined-rules) section in
 [RULES.md](RULES.md) for the full interface, APIs, and a complete example.
+
+## Versioning
+
+From 5.x, `elvis_core` adheres to [Semantic Versioning](https://semver.org/). All breaking changes
+and upgrade paths for major versions are documented in [`MIGRATION.md`](https://github.com/inaka/elvis_core/blob/main/MIGRATION.md).
 
 ## Contributing and reporting bugs
 

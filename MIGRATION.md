@@ -1,4 +1,4 @@
-# Migration helper
+# Migration guide
 
 This file presents the changes required to your consumption code/configuration when you bump
 from a given version to a new one, as presented below.
@@ -9,6 +9,18 @@ This file's format is influenced by [Keep a Changelog](https://keepachangelog.co
 [Make a README](https://www.makeareadme.com/).
 
 ## Going from `4.x` to `5.0.0`
+
+### Avoiding warnings on the use of `erlang:garbage_collect/0`
+
+The `no_common_caveats_call` rule now includes `erlang:garbage_collect/0` in its default set of
+restricted functions.
+
+If you need to permit this call in your codebase, you have two primary options:
+
+- **fully disable the rule**: disable `no_common_caveats_call` entirely in your configuration.
+
+- **customize the list**: modify the `caveat_functions` option to define a specific subset of
+functions that better fits your project's requirements.
 
 ### Replace `dirs` and `filter` with `files`
 
@@ -90,12 +102,12 @@ These rules no longer exist. Remove them from your config or switch to the repla
 
 | Removed rule | Replacement or note |
 |--------------|----------------------|
-| `elvis_style:macro_module_names` | Removed in 4.1.0; no replacement. |
+| `elvis_style:macro_module_names` | No replacement. |
 | `elvis_project:no_deps_master_erlang_mk` | Use `no_branch_deps`. |
 | `elvis_project:no_deps_master_rebar` | Use `no_branch_deps`. |
-| `elvis_project:old_configuration_format` | Removed; no replacement. |
+| `elvis_project:old_configuration_format` | No replacement. |
 | `elvis_project:protocol_for_deps_rebar` | Use `protocol_for_deps`. |
-| `elvis_project:protocol_for_deps_erlang_mk` | Removed; no replacement. |
+| `elvis_project:protocol_for_deps_erlang_mk` | No replacement. |
 
 Referenced removed rules are skipped with a warning.
 
