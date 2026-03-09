@@ -172,6 +172,8 @@ validate(_Config) ->
             % invalid elvis.parallel (not an integer)
             {"6_5.config", "'parallel' is expected to be a positive integer."},
             % invalid elvis.parallel (not a positive integer)
-            {"6_6.config", "'parallel' is expected to be a positive integer."}
+            {"6_6.config", "'parallel' is expected to be a positive integer."},
+            % invalid elvis.warnings_as_errors (not a boolean)
+            {"6_7.config", "'warnings_as_errors' is expected to be a boolean."}
         ]
     ).
