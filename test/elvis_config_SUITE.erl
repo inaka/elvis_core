@@ -43,7 +43,7 @@ rock_with_file_config(_Config) ->
 
 rock_with_bananas(_Config) ->
     File = "../../../../_build/test/lib/elvis_core/test/examples/american_behavior_spelling.erl",
-    ElvisConfig = [#{ files => [File], ruleset => erl_files }],
+    ElvisConfig = [#{files => [File], ruleset => erl_files}],
 
     elvis_config:set_warnings_as_errors(bananas),
     bananas = elvis_config:warnings_as_errors(),
