@@ -24,8 +24,8 @@
 % Corresponds to each config map in the 'config' key.
 -opaque t() ::
     #{
-        files => [nonempty_string()],
-        ruleset => atom(),
+        files := [nonempty_string()],
+        ruleset := atom(),
         resolved_files => dynamic(),
         ignore => [string()]
     }.
@@ -44,9 +44,8 @@
 ]).
 
 -ifdef(TEST).
--export([update_gitignored_with/1]).
--export([flag_gitignore_was_read/0]).
--export([reset_gitignore/0]).
+-export([reset_validation/0]).
+-export([inject_ignore/2]).
 -export([file_globs/1]).
 -export([ignore/1]).
 -endif.
@@ -55,7 +54,13 @@
 %%% Public
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+from_static(config, {Type, Config}) ->
+    inject_ignore(do_from_static(config, {Type, Config}), git_check_ignore());
 from_static(Key, {Type, Config}) ->
+    _ = elvis_utils:debug("fetching key '~s' from '~s' configuration", [Key, Type]),
+    do_from_static(Key, {Type, Config}).
+
+do_from_static(Key, {Type, Config}) ->
     _ = elvis_utils:debug("fetching key '~s' from '~s' configuration", [Key, Type]),
     case proplists:get_value(Key, Config) of
         undefined ->
@@ -259,10 +264,9 @@ file_globs(#{}) ->
 ignore(Config) when is_list(Config) ->
     lists:flatmap(fun ignore/1, Config);
 ignore(#{ignore := Ignore}) ->
-    lists:map(fun ignore_to_regexp/1, Ignore) ++ ignore(#{});
+    lists:map(fun ignore_to_regexp/1, Ignore);
 ignore(#{}) ->
-    % Base state.
-    gitignored().
+    [].
 
 -spec files(RuleGroup :: [t()] | t()) -> [elvis_file:t()].
 files(RuleGroup) when is_list(RuleGroup) ->
@@ -784,38 +788,37 @@ check_rule_for_options(Rule, AccInI) ->
             end
     end.
 
--ifdef(TEST).
-reset_gitignore() ->
-    [persistent_term:erase(K) || {{elvis_config_gitignore, _} = K, _} <- persistent_term:get()],
-    ok.
--endif.
+-spec inject_ignore([t()], [string()]) -> [t()].
+inject_ignore(Configs, GitIgnored) ->
+    [inject_gitignore(C, GitIgnored) || C <- Configs].
 
-gitignored() ->
-    maybe
-        false ?= has_gitignore_been_read(),
-        ok = update_gitignored_with(git_check_ignore()),
-        _ = flag_gitignore_was_read()
-    else
-        _ ->
-            ok
-    end,
-    persistent_term:get({elvis_config_gitignore, content}, []).
-
-update_gitignored_with(GitIgnore) ->
-    ok = persistent_term:put({elvis_config_gitignore, content}, GitIgnore).
+inject_gitignore(#{ignore := Ignore} = Config, GitIgnored) ->
+    Config#{ignore => Ignore ++ GitIgnored};
+inject_gitignore(Config, GitIgnored) ->
+    Config#{ignore => GitIgnored}.
 
 git_check_ignore() ->
-    GitCheckIgnore =
-        case os:type() of
-            {win32, _} ->
-                os:cmd("git check-ignore '*'");
-            _ ->
-                os:cmd("git check-ignore *")
-        end,
-    string:lexemes(GitCheckIgnore, "\r\n").
+    maybe
+        GitExecutable = os:find_executable("git"),
+        true ?= is_list(GitExecutable),
+        RevParse = os:cmd("git rev-parse --is-inside-work-tree 2>&1"),
+        true ?= lists:prefix("true", RevParse),
+        GitCheckIgnore = do_git_check_ignore(),
+        string:lexemes(GitCheckIgnore, "\r\n")
+    else
+        _ -> []
+    end.
 
-flag_gitignore_was_read() ->
-    ok = persistent_term:put({elvis_config_gitignore, read}, true).
+do_git_check_ignore() ->
+    case os:type() of
+        {win32, _} ->
+            os:cmd("git check-ignore '**/*'");
+        _ ->
+            os:cmd("git check-ignore **/*")
+    end.
 
-has_gitignore_been_read() ->
-    persistent_term:get({elvis_config_gitignore, read}, false).
+-ifdef(TEST).
+reset_validation() ->
+    [persistent_term:erase(K) || {{elvis_config_validation, _} = K, _} <- persistent_term:get()],
+    ok.
+-endif.
