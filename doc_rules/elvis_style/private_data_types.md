@@ -41,13 +41,15 @@ API.
 ## Options
 
 - `apply_to :: [record | map | tuple]`
-  - default: `[record, map, tuple]`
+  - default: `[record]`
 
 The default was changed, from `[record]`, to `[record, map, tuple]` in
-[4.2.0](https://github.com/inaka/elvis_core/releases/tag/4.2.0).
+[4.2.0](https://github.com/inaka/elvis_core/releases/tag/4.2.0) and
+back again to just `[record]` in
+[5.0.0](https://github.com/inaka/elvis_core/releases/tag/5.0.0).
 
 ## Example configuration
 
 ```erlang
-{elvis_style, private_data_types, #{ apply_to => [record] }}
+{elvis_style, private_data_types, #{ apply_to => [record, tuple, map] }}
 ```
