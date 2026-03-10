@@ -357,15 +357,10 @@ find_file_with_ignore(_Config) ->
         elvis_file:filter_files(Files, Globs, Ignore).
 
 ignore_gitignored(_Config) ->
-    % Force internals, as per current implementation.
-    elvis_config:update_gitignored_with(["test_good.hrl", "test_bad.hrl"]),
-    elvis_config:flag_gitignore_was_read(),
-
     ConfigPath = "../../../../config/elvis-test-hrl-files.config",
     ElvisConfig = elvis_config:from_file(ConfigPath),
-    ok = elvis_core:rock(ElvisConfig),
-
-    elvis_config:reset_gitignore().
+    WithGitignore = elvis_config:inject_ignore(ElvisConfig, ["test_good.hrl", "test_bad.hrl"]),
+    ok = elvis_core:rock(WithGitignore).
 
 invalid_file(_Config) ->
     ok =
