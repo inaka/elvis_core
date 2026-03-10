@@ -1294,7 +1294,7 @@ verify_prefer_sigils(Config) ->
                 #{line_num := 12},
                 #{line_num := 13},
                 #{line_num := 14},
-                #{line_num := 15}
+                #{line_num := 19}
             ] = Warnings
     end.
 
