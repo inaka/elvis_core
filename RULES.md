@@ -80,6 +80,7 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [Param Pattern-Matching](doc_rules/elvis_style/param_pattern_matching.md)
 - [Prefer Include](doc_rules/elvis_style/prefer_include.md)
 - [Prefer Robot Butt](doc_rules/elvis_style/prefer_robot_butt.md)
+- [Prefer Sigils](doc_rules/elvis_style/prefer_sigils.md)
 - [Prefer Strict Generators](doc_rules/elvis_style/prefer_strict_generators.md)
 - [Prefer Unquoted Atoms](doc_rules/elvis_style/prefer_unquoted_atoms.md)
 - [Private Data Types](doc_rules/elvis_style/private_data_types.md)

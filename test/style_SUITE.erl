@@ -73,6 +73,7 @@
     verify_simplify_anonymous_functions/1,
     verify_prefer_include/1,
     verify_prefer_strict_generators/1,
+    verify_prefer_sigils/1,
     verify_strict_term_equivalence/1,
     verify_macro_definition_parentheses/1,
     verify_code_complexity/1,
@@ -1274,6 +1275,29 @@ verify_simplify_anonymous_functions(Config) ->
         Config, elvis_style, simplify_anonymous_functions, #{}, PathPass
     ).
 
+verify_prefer_sigils(Config) ->
+    PassPath = "pass_prefer_sigils.erl",
+    [] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, prefer_sigils, #{}, PassPath
+        ),
+
+    FailPath = "fail_prefer_sigils.erl",
+    Warnings = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, prefer_sigils, #{}, FailPath
+    ),
+    case erlang:system_info(otp_release) of
+        R when R < 27 -> [] = Warnings;
+        _ ->
+            [
+                #{line_num := 11},
+                #{line_num := 12},
+                #{line_num := 13},
+                #{line_num := 14},
+                #{line_num := 15}
+            ] = Warnings
+    end.
+
 verify_prefer_include(Config) ->
     Group = proplists:get_value(group, Config, erl_files),
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
@@ -1304,10 +1328,12 @@ verify_prefer_strict_generators(Config) ->
             Config, elvis_style, prefer_strict_generators, #{}, PathFail
         ),
 
-    case Group of
-        beam_files ->
+    case {erlang:system_info(otp_release), Group} of
+        {R, _} when R < 28 ->
+            [] = Warnings;
+        {_, beam_files} ->
             [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _] = Warnings;
-        _ ->
+        {_, _} ->
             [
                 #{line_num := 7},
                 #{line_num := 8},

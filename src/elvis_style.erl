@@ -66,6 +66,7 @@
     no_boolean_in_comparison/2,
     no_operation_on_same_value/2,
     no_receive_without_timeout/2,
+    prefer_sigils/2,
     prefer_unquoted_atoms/2,
     guard_operators/2,
     simplify_anonymous_functions/2,
@@ -2584,6 +2585,38 @@ is_not_acceptable_number(NumberNode, Regex) ->
     Number = ktn_code:attr(text, NumberNode),
     Number =/= undefined andalso re_run(Number, Regex) =:= nomatch.
 
+-spec prefer_sigils(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
+prefer_sigils(Rule, ElvisConfig) ->
+    case erlang:system_info(otp_release) of
+        R when R < 27 -> [];
+        _ ->
+            {nodes, BinaryNodes} = elvis_code:find(#{
+                of_types => [binary],
+                inside => elvis_code:root(Rule, ElvisConfig),
+                filtered_by => fun is_binary_string/1,
+                traverse => all
+            }),
+            lists:map(
+                fun(BinaryNode) ->
+                    elvis_result:new_item(
+                        "binary string was found; prefer using sigils",
+                        [],
+                        #{node => BinaryNode}
+                    )
+                end,
+                BinaryNodes
+            )
+    end.
+
+is_binary_string(BinaryNode) ->
+    ktn_code:attr(text, BinaryNode) =:= "<<" andalso
+        empty_or_single_binary_element(ktn_code:content(BinaryNode)).
+
+empty_or_single_binary_element([BinaryElement]) ->
+    string =:= ktn_code:type(ktn_code:node_attr(value, BinaryElement));
+empty_or_single_binary_element(NonSingleton) ->
+    [] =:= NonSingleton.
+
 -spec prefer_unquoted_atoms(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 prefer_unquoted_atoms(Rule, ElvisConfig) ->
     QuotesRegex = doesnt_need_quotes_regex(),
@@ -2928,26 +2961,30 @@ is_simple_anonymous_function(FunNode) ->
 
 -spec prefer_strict_generators(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 prefer_strict_generators(Rule, ElvisConfig) ->
-    WeakGenerators = #{b_generate => '<=', generate => '<-', m_generate => '<-'},
-    StrictGenerators = #{b_generate => '<:=', generate => '<:-', m_generate => '<:-'},
+    case erlang:system_info(otp_release) of
+        R when R < 28 -> [];
+        _ ->
+            WeakGenerators = #{b_generate => '<=', generate => '<-', m_generate => '<-'},
+            StrictGenerators = #{b_generate => '<:=', generate => '<:-', m_generate => '<:-'},
 
-    {nodes, GenNodes} = elvis_code:find(#{
-        of_types => maps:keys(WeakGenerators),
-        inside => elvis_code:root(Rule, ElvisConfig),
-        traverse => all
-    }),
+            {nodes, GenNodes} = elvis_code:find(#{
+                of_types => maps:keys(WeakGenerators),
+                inside => elvis_code:root(Rule, ElvisConfig),
+                traverse => all
+            }),
 
-    [
-        elvis_result:new_item(
-            "unexpected weak generator ~p was found; prefer ~p",
             [
-                maps:get(ktn_code:type(GenNode), WeakGenerators),
-                maps:get(ktn_code:type(GenNode), StrictGenerators)
-            ],
-            #{node => GenNode}
-        )
-     || GenNode <- GenNodes
-    ].
+                elvis_result:new_item(
+                    "unexpected weak generator ~p was found; prefer ~p",
+                    [
+                        maps:get(ktn_code:type(GenNode), WeakGenerators),
+                        maps:get(ktn_code:type(GenNode), StrictGenerators)
+                    ],
+                    #{node => GenNode}
+                )
+             || GenNode <- GenNodes
+            ]
+    end.
 
 -spec prefer_include(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 prefer_include(Rule, ElvisConfig) ->
