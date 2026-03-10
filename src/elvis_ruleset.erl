@@ -193,6 +193,7 @@ elvis_style_stricter_rules() ->
         elvis_rule:new(elvis_style, prefer_strict_generators),
         elvis_rule:new(elvis_style, prefer_unquoted_atoms),
         elvis_rule:new(elvis_style, state_record_and_type),
+        elvis_rule:new(elvis_style, prefer_sigils),
         elvis_rule:new(elvis_style, prefer_include),
         elvis_rule:new(elvis_style, strict_term_equivalence),
         elvis_rule:new(elvis_style, macro_definition_parentheses)
@@ -227,7 +228,8 @@ not_on_beam() ->
         elvis_rule:new(elvis_style, no_space_after_pound),
         elvis_rule:new(elvis_style, no_space),
         elvis_rule:new(elvis_style, numeric_format),
-        elvis_rule:new(elvis_style, operator_spaces)
+        elvis_rule:new(elvis_style, operator_spaces),
+        elvis_rule:new(elvis_style, prefer_sigils)
     ].
 
 rebar_config_rules() ->
