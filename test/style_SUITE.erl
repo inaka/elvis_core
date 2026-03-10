@@ -88,7 +88,7 @@
     verify_elvis_attr_function_naming_convention/1,
     verify_elvis_attr_god_modules/1,
     verify_elvis_attr_invalid_dynamic_call/1,
-    verify_elvis_attr_line_length/1,
+    verify_elvis_attr_max_line_length/1,
     verify_elvis_attr_macro_names/1,
     verify_elvis_attr_max_anonymous_function_arity/1,
     verify_elvis_attr_max_function_arity/1,
@@ -3344,8 +3344,8 @@ verify_elvis_attr_god_modules(Config) ->
 verify_elvis_attr_invalid_dynamic_call(Config) ->
     verify_elvis_attr(Config, "pass_invalid_dynamic_call_elvis_attr").
 
-verify_elvis_attr_line_length(Config) ->
-    verify_elvis_attr(Config, "pass_line_length_elvis_attr").
+verify_elvis_attr_max_line_length(Config) ->
+    verify_elvis_attr(Config, "pass_max_line_length_elvis_attr").
 
 verify_elvis_attr_macro_names(Config) ->
     verify_elvis_attr(Config, "pass_macro_names_elvis_attr").

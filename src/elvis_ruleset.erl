@@ -164,7 +164,7 @@ erl_files_test_rules() ->
 
 elvis_text_style_rules() ->
     [
-        elvis_rule:new(elvis_text_style, line_length),
+        elvis_rule:new(elvis_text_style, max_line_length),
         elvis_rule:new(elvis_text_style, no_tabs),
         elvis_rule:new(elvis_text_style, no_trailing_whitespace)
     ].

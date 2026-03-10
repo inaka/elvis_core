@@ -1,4 +1,4 @@
--module(fail_line_length).
+-module(fail_max_line_length).
 
 -export([
          function_1/0,
@@ -10,7 +10,7 @@
          function_7/0
         ]).
 
-% Single line comment with a URL https://github.com/inaka/elvis_core/blob/main/doc_rules/elvis_text_style/line_length.md
+% Single line comment with a URL https://github.com/inaka/elvis_core/blob/main/doc_rules/elvis_text_style/max_line_length.md
 function_1() ->
     io:format("Hello").
 

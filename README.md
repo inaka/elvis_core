@@ -176,8 +176,8 @@ tabs instead of spaces. In that case, you need to override `erl_files`'s `rulese
 #{
     files => ["src/*.erl"],
     rules => [
-        % change line_length from 100 to 90
-        {elvis_text_style, line_length, #{limit => 90}},
+        % change max_line_length from 100 to 90
+        {elvis_text_style, max_line_length, #{limit => 90}},
         % disable no_tabs
         {elvis_text_style, no_tabs, disable}
     ],

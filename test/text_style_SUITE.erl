@@ -9,9 +9,9 @@
 ]).
 
 -export([
-    verify_line_length_rule/1,
-    verify_line_length_rule_latin1/1,
-    verify_unicode_line_length_rule/1,
+    verify_max_line_length_rule/1,
+    verify_max_line_length_rule_latin1/1,
+    verify_unicode_max_line_length_rule/1,
     verify_no_tabs_rule/1,
     verify_no_trailing_whitespace_rule/1,
     verify_no_trailing_whitespace_rule_lf_crlf/1,
@@ -34,14 +34,14 @@ end_per_suite(Config) ->
     ok = application:stop(elvis_core),
     Config.
 
-verify_line_length_rule(Config) ->
+verify_max_line_length_rule(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    Path = "fail_line_length." ++ Ext,
+    Path = "fail_max_line_length." ++ Ext,
 
     Result =
         elvis_test_utils:elvis_core_apply_rule(
-            Config, elvis_text_style, line_length, #{limit => 100}, Path
+            Config, elvis_text_style, max_line_length, #{limit => 100}, Path
         ),
     8 = length(Result),
     #{info := Info, message := Msg} = lists:nth(7, Result),
@@ -51,7 +51,7 @@ verify_line_length_rule(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_text_style,
-            line_length,
+            max_line_length,
             #{limit => 100, skip_comments => whole_line},
             Path
         ),
@@ -61,7 +61,7 @@ verify_line_length_rule(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_text_style,
-            line_length,
+            max_line_length,
             #{limit => 100, skip_comments => any},
             Path
         ),
@@ -71,7 +71,7 @@ verify_line_length_rule(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_text_style,
-            line_length,
+            max_line_length,
             #{
                 limit => 100,
                 skip_comments => false,
@@ -81,27 +81,27 @@ verify_line_length_rule(Config) ->
         ),
     3 = length(WhistespaceResult).
 
-verify_line_length_rule_latin1(Config) ->
+verify_max_line_length_rule_latin1(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
-    Path = "fail_line_length_latin1." ++ Ext,
+    Path = "fail_max_line_length_latin1." ++ Ext,
 
     Result =
         elvis_test_utils:elvis_core_apply_rule(
-            Config, elvis_text_style, line_length, #{limit => 100}, Path
+            Config, elvis_text_style, max_line_length, #{limit => 100}, Path
         ),
     1 = length(Result),
     #{info := Info, message := Msg} = lists:nth(1, Result),
     <<"At line 13, there are too many ", _/binary>> = list_to_binary(io_lib:format(Msg, Info)).
 
-verify_unicode_line_length_rule(Config) ->
+verify_unicode_max_line_length_rule(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
     Path = "pass_unicode_comments." ++ Ext,
 
     Result =
         elvis_test_utils:elvis_core_apply_rule(
-            Config, elvis_text_style, line_length, #{limit => 100}, Path
+            Config, elvis_text_style, max_line_length, #{limit => 100}, Path
         ),
     0 = length(Result).
 

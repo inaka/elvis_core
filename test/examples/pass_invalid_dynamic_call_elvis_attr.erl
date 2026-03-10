@@ -1,7 +1,7 @@
 -module(pass_invalid_dynamic_call_elvis_attr).
 
 -elvis([{elvis_style, no_invalid_dynamic_calls, disable}]).
--elvis([{elvis_text_style, line_length, #{limit => 100}}]).
+-elvis([{elvis_text_style, max_line_length, #{limit => 100}}]).
 -elvis([{elvis_style, atom_naming_convention, #{regex => "^([a-z][a-z0-9]*_?_?)*(_SUITE)?$"}}]).
 -elvis([{elvis_style, no_catch_expressions, disable}]).
 

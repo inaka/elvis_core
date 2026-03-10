@@ -1,6 +1,6 @@
--module(pass_line_length_elvis_attr).
+-module(pass_max_line_length_elvis_attr).
 
--elvis([{elvis_text_style, line_length, #{limit => 189}}]).
+-elvis([{elvis_text_style, max_line_length, #{limit => 189}}]).
 -elvis([{elvis_style, no_debug_call, disable}]).
 -elvis([{elvis_style, function_naming_convention, #{regex => "^function_[0-9]+$"}}]).
 

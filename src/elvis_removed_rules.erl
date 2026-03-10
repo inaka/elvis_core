@@ -47,5 +47,7 @@ find(elvis_style, macro_names) ->
     {renamed, "Rule 'elvis_style:macro_names' has been renamed to 'macro_naming_convention'."};
 find(elvis_style, consistent_generic_type) ->
     {renamed, "Rule 'elvis_style:consistent_generic_type' has been renamed to 'generic_type'."};
+find(elvis_text_style, line_length) ->
+    {renamed, "Rule 'elvis_text_style:line_length' has been renamed to 'max_line_length'."};
 find(_, _) ->
     valid.

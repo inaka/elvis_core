@@ -68,7 +68,7 @@ rock_with_rebar_default_config(_Config) ->
     {ok, _} = file:copy("../../../../config/rebar.config", "rebar.config"),
     ElvisConfig = elvis_config:from_rebar("rebar.config"),
     elvis_config:set_warnings_as_errors(false),
-    [#{name := line_length}] =
+    [#{name := max_line_length}] =
         try
             {warnings, Results} = elvis_core:rock(ElvisConfig),
             [Rule || #{rules := [Rule]} <- Results]
