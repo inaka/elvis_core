@@ -192,11 +192,12 @@ You can also `ignore` modules at a _check level_ or at a _ruleset (group of chec
 - at a _check level_, you set the `ignore` option in the rule you want to ignore, e.g.:
 
 ```erlang
-{elvis_style, no_debug_call, #{ ignore => [elvis, elvis_utils] }}
+{elvis_style, no_debug_call, #{ ignore => [elvis, elvis_utils, "not_a_module.hrl"] }}
 ```
 
-(we are telling `elvis` to **ignore** the `elvis` and `elvis_utils` modules when executing
-the `no_debug_call` check. You can also use wildcard patterns: `'_'` in any position matches any
+(we are telling `elvis` to **ignore** the `elvis` and `elvis_utils` modules and the
+`not_a_module.hrl` file (as a string, since it's not a module) when executing the
+`no_debug_call` check. You can also use wildcard patterns: `'_'` in any position matches any
 module, function, or arity (e.g. `[{mod, '_'}]` for all functions in a module, `[{'_', fun}]` for a
 function in any module).
 
@@ -207,11 +208,12 @@ ignore, e.g.:
 #{
     files => ["src/*.erl"],
     ruleset => erl_files,
-    ignore => [module1, module4]
+    ignore => [module1, module4, "path/to/header_file.hrl"]
 }.
 ```
 
-With this configuration, none of the checks for `erl_files` is applied to `module1` or `module4`.
+With this configuration, none of the checks for `erl_files` is applied to `module1`, `module4`,
+or `path/to/header_file.hrl`.
 
 ##### `.gitignore`
 
