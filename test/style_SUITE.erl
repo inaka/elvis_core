@@ -1287,7 +1287,7 @@ verify_prefer_sigils(Config) ->
         Config, elvis_style, prefer_sigils, #{}, FailPath
     ),
     case erlang:system_info(otp_release) of
-        R when R < 27 -> [] = Warnings;
+        R when R < "27" -> [] = Warnings;
         _ ->
             [
                 #{line_num := 11},
@@ -1329,7 +1329,7 @@ verify_prefer_strict_generators(Config) ->
         ),
 
     case {erlang:system_info(otp_release), Group} of
-        {R, _} when R < 28 ->
+        {R, _} when R < "28" ->
             [] = Warnings;
         {_, beam_files} ->
             [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _] = Warnings;
