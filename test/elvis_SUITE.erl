@@ -327,12 +327,9 @@ hrl_ruleset(_Config) ->
         #{
             file := "../../../../_build/test/lib/elvis_core/test/examples/test_bad.hrl",
             rules := [#{name := line_length}]
-        },
-        #{
-            file := "../../../../_build/test/lib/elvis_core/test/examples/test_good.hrl",
-            rules := []
         }
-    ] = lists:sort(Warnings),
+    ]} =
+        elvis_core:rock(ElvisConfig),
     ok.
 
 find_file_and_check_src(_Config) ->
