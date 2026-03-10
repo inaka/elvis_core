@@ -22,6 +22,80 @@ If you need to permit this call in your codebase, you have two primary options:
 - **customize the list**: modify the `caveat_functions` option to define a specific subset of
 functions that better fits your project's requirements.
 
+### Drop the `elvis` wrapper from your configuration
+
+**Before (4.x):**
+
+```erlang
+% elvis.config
+[
+  {elvis, [
+    {config, [...]},
+    ...
+  ]}
+].
+```
+
+**After (5.0.0):**
+
+```erlang
+% elvis.config
+[
+  {config, [...]},
+  ...
+].
+```
+
+### Using `elvis_core:rock/1`'s new interface
+
+The function `elvis_core:rock/1` has been updated to return `ok | {errors, _} | {warnings, _}`.
+
+The tuple label (`errors` or `warnings`) serves as a signal for the exit status code
+(use `0` for `warnings`, and non-`0` for `errors`).
+
+**Future compatibility**: we are intentionally treating the second element of the tuple as opaque.
+This allows us to refine the return type - likely replacing the placeholder with structured
+diagnostic data - once `elvis_core` implements a decoupled output framework (e.g., removing
+direct `io:format/2` calls).
+
+### Using `elvis_core:rock/1` instead of `_:rock_this/2`
+
+The function `_:rock_this/2` has been removed. Use the existing `elvis_core:rock/1`
+function, which utilizes a configuration list.
+
+**Before (4.x):**
+
+You could pass a single file or a module name directly:
+
+```erlang
+% As a filename
+elvis_core:rock_this("rebar.config", ElvisConfig).
+
+% As a module name
+elvis_core:rock_this(elvis_core, ElvisConfig).
+```
+
+**After (5.0.0):**
+
+You must now provide a list of configurations, with `files` and `ruleset`:
+
+```erlang
+% As a filename
+elvis_core:rock([#{
+    files => ["rebar.config"],
+    ruleset => rebar_config
+}]).
+
+% As a module (requires the explicit file path)
+elvis_core:rock([#{
+    files => ["src/elvis_core.erl"],
+    ruleset => erl_files
+}]).
+```
+
+**Note**: use `elvis_config:config/0` to retrieve the configuration for the current project, if
+required during the migration.
+
 ### Replace `dirs` and `filter` with `files`
 
 Config no longer uses `dirs` and `filter`. Use a single `files` key: a list of glob patterns that

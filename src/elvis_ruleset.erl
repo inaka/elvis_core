@@ -12,7 +12,7 @@
 load_custom(RulesetNames) ->
     case custom_names() of
         [] ->
-            elvis_utils:debug("loading custom rulesets into state", []),
+            _ = elvis_utils:debug("loading custom rulesets into state", []),
             lists:foreach(
                 fun({RulesetName, NSNameDefs}) ->
                     Rules = [elvis_rule:from_tuple(NSNameDef) || NSNameDef <- NSNameDefs],

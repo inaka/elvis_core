@@ -198,6 +198,6 @@ print_node(#{type := Type} = Node, CurrentLevel) ->
     Indentation = lists:duplicate(CurrentLevel * 4, $\s),
     Content = ktn_code:content(Node),
 
-    ok = elvis_utils:info("~s - [~p] ~p", [Indentation, CurrentLevel, Type]),
+    _ = elvis_utils:info("~s - [~p] ~p", [Indentation, CurrentLevel, Type]),
     _ = lists:map(fun(Child) -> print_node(Child, CurrentLevel + 1) end, Content),
     ok.

@@ -96,28 +96,34 @@ so here's an example of how the output looks when files break some of the rules:
 An `elvis.config` file looks something like this:
 
 ```erlang
-[{elvis, [
+[
     {config, [
-        #{ files   => ["src/*.erl"]
-         , ruleset => erl_files }
-      , #{ files   => ["include/*.hrl"]
-         , ruleset => hrl_files }
-      , #{ files   => ["rebar.config"]
-         , ruleset => rebar_config }
-    ]}
+        #{
+            files => ["src/*.erl"],
+            ruleset => erl_files
+        },
+        #{
+            files => ["include/*.hrl"],
+            ruleset => hrl_files
+        },
+        #{
+            files => ["rebar.config"],
+            ruleset => rebar_config
+        }
+    ]},
     % output_format (optional): how to format the output.
     % Possible values are 'plain', 'colors' or 'parsable' (default='colors').
-  , {output_format, colors}
+    {output_format, colors},
     % verbose (optional): when 'true' more information will
     % be printed (default=false).
-  , {verbose, true}
+    {verbose, true},
     % no_output (optional): when 'true' nothing will be printed
     % (default=false).
-  , {no_output, false}
+    {no_output, false},
     % parallel: determine how many files will be
     % analyzed in parallel (default=1).
-  , {parallel, 1}
-]}].
+    {parallel, 1}
+].
 ```
 
 To look at what is considered the "current default" configuration, do:
@@ -167,13 +173,16 @@ tabs instead of spaces. In that case, you need to override `erl_files`'s `rulese
 `rules` as follows:
 
 ```erlang
-#{ files => ["src/*.erl"]
- , rules => [
-       {elvis_text_style, line_length, #{ limit => 90 }} % change line_length from 100 to 90
-     , {elvis_text_style, no_tabs, disable} % disable no_tabs
-   ]
- , ruleset => erl_files
- }.
+#{
+    files => ["src/*.erl"],
+    rules => [
+        % change line_length from 100 to 90
+        {elvis_text_style, line_length, #{limit => 90}},
+        % disable no_tabs
+        {elvis_text_style, no_tabs, disable}
+    ],
+    ruleset => erl_files
+}.
 ```
 
 #### Ignoring modules
@@ -194,9 +203,10 @@ You can also `ignore` modules at a _check level_ or at a _ruleset (group of chec
 ignore, e.g.:
 
 ```erlang
-#{ files => ["src/*.erl"]
- , ruleset => erl_files
- , ignore => [module1, module4, "path/to/header_file.hrl"]
+#{
+    files => ["src/*.erl"],
+    ruleset => erl_files,
+    ignore => [module1, module4, "path/to/header_file.hrl"]
 }.
 ```
 
@@ -244,6 +254,17 @@ files gathered. The provided number should be less than or equal to the availabl
 value higher than that won't report any speedup benefits.
 
 The default value for `parallel` is `1`.
+
+### Warnings-as-errors
+
+The `warnings_as_errors` parameter determines how the analysis execution influences your system's
+exit code. This is particularly useful for governing build pipelines.
+
+- `true` (default): any detected warning or error will cause the process to fail with a non-zero
+exit code. Use this to enforce strict code quality standards.
+
+- `false`: the analysis will print all findings to the console, but the process will return an exit
+code of 0. This allows the build to continue even if issues are found.
 
 ## Configuration examples
 
