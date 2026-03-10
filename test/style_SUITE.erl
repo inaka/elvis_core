@@ -1286,8 +1286,8 @@ verify_prefer_sigils(Config) ->
     Warnings = elvis_test_utils:elvis_core_apply_rule(
         Config, elvis_style, prefer_sigils, #{}, FailPath
     ),
-    case erlang:system_info(otp_release) of
-        R when R < "27" -> [] = Warnings;
+    case string:to_integer(erlang:system_info(otp_release)) of
+        {R, _} when R < 27 -> [] = Warnings;
         _ ->
             [
                 #{line_num := 11},
@@ -1328,8 +1328,8 @@ verify_prefer_strict_generators(Config) ->
             Config, elvis_style, prefer_strict_generators, #{}, PathFail
         ),
 
-    case {erlang:system_info(otp_release), Group} of
-        {R, _} when R < "28" ->
+    case {string:to_integer(erlang:system_info(otp_release)), Group} of
+        {{R, _}, _} when R < 28 ->
             [] = Warnings;
         {_, beam_files} ->
             [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _] = Warnings;

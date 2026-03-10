@@ -2587,8 +2587,8 @@ is_not_acceptable_number(NumberNode, Regex) ->
 
 -spec prefer_sigils(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 prefer_sigils(Rule, ElvisConfig) ->
-    case erlang:system_info(otp_release) of
-        R when R < "27" -> [];
+    case string:to_integer(erlang:system_info(otp_release)) of
+        {R, _} when R < 27 -> [];
         _ ->
             {nodes, BinaryNodes} = elvis_code:find(#{
                 of_types => [binary],
@@ -2961,8 +2961,8 @@ is_simple_anonymous_function(FunNode) ->
 
 -spec prefer_strict_generators(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 prefer_strict_generators(Rule, ElvisConfig) ->
-    case erlang:system_info(otp_release) of
-        R when R < "28" -> [];
+    case string:to_integer(erlang:system_info(otp_release)) of
+        {R, _} when R < 28 -> [];
         _ ->
             WeakGenerators = #{b_generate => '<=', generate => '<-', m_generate => '<-'},
             StrictGenerators = #{b_generate => '<:=', generate => '<:-', m_generate => '<:-'},
