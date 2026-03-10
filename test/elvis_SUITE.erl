@@ -82,7 +82,7 @@ rock_with_list_config(_Config) ->
     ElvisConfig = [
         #{
             files => ["../../../../test/dirs/src/*.erl"],
-            rules => [{elvis_text_style, line_length, disable}]
+            rules => [{elvis_text_style, max_line_length, disable}]
         }
     ],
     ok = elvis_core:rock(ElvisConfig).
@@ -98,7 +98,7 @@ rock_with_glob_dirs_not_matching(_Config) ->
                     "absolutely/very/nonexistent/**/src/*.erl",
                     "../../../../test/dirs/src/*.erl"
                 ],
-            rules => [{elvis_text_style, line_length, disable}]
+            rules => [{elvis_text_style, max_line_length, disable}]
         }
     ],
     ok = elvis_core:rock(ElvisConfig).
@@ -222,7 +222,7 @@ rock_with_rule_groups(_Config) ->
                 files => ["src/*.erl"],
                 rules =>
                     [
-                        {elvis_text_style, line_length, #{limit => 90}},
+                        {elvis_text_style, max_line_length, #{limit => 90}},
                         {elvis_style, state_record_and_type, disable}
                     ]
             }
@@ -240,7 +240,7 @@ rock_with_rule_groups(_Config) ->
                 rules =>
                     % I like 90 chars per line.
                     [
-                        {elvis_text_style, line_length, #{limit => 90}},
+                        {elvis_text_style, max_line_length, #{limit => 90}},
                         % I like tabs so disable this rule.
                         {elvis_text_style, no_tabs, disable}
                     ]
@@ -326,7 +326,7 @@ hrl_ruleset(_Config) ->
         },
         #{
             file := "../../../../_build/test/lib/elvis_core/test/examples/test_bad.hrl",
-            rules := [#{name := line_length}]
+            rules := [#{name := max_line_length}]
         }
     ]} =
         elvis_core:rock(ElvisConfig),

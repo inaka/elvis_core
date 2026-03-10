@@ -4,7 +4,7 @@
 -export([default/1]).
 
 -export([
-    line_length/2,
+    max_line_length/2,
     no_tabs/2,
     no_trailing_whitespace/2,
     no_redundant_blank_lines/2
@@ -18,7 +18,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 -spec default(RuleName :: atom()) -> elvis_rule:def().
-default(line_length) ->
+default(max_line_length) ->
     elvis_rule:defmap(#{
         limit => 100,
         skip_comments => false,
@@ -41,8 +41,8 @@ default(_RuleName) ->
 
 %% @doc File can be either a filename or the
 %% name of a module.
--spec line_length(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
-line_length(Rule, _ElvisConfig) ->
+-spec max_line_length(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
+max_line_length(Rule, _ElvisConfig) ->
     Limit = elvis_rule:option(limit, Rule),
     SkipComments = elvis_rule:option(skip_comments, Rule),
     NoWhitespace = elvis_rule:option(no_whitespace_after_limit, Rule),

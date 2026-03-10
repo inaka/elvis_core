@@ -41,7 +41,7 @@ verify_line_length_rule(Config) ->
 
     Result =
         elvis_test_utils:elvis_core_apply_rule(
-            Config, elvis_text_style, line_length, #{limit => 100}, Path
+            Config, elvis_text_style, max_line_length, #{limit => 100}, Path
         ),
     8 = length(Result),
     #{info := Info, message := Msg} = lists:nth(7, Result),
@@ -51,7 +51,7 @@ verify_line_length_rule(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_text_style,
-            line_length,
+            max_line_length,
             #{limit => 100, skip_comments => whole_line},
             Path
         ),
@@ -61,7 +61,7 @@ verify_line_length_rule(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_text_style,
-            line_length,
+            max_line_length,
             #{limit => 100, skip_comments => any},
             Path
         ),
@@ -71,7 +71,7 @@ verify_line_length_rule(Config) ->
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_text_style,
-            line_length,
+            max_line_length,
             #{
                 limit => 100,
                 skip_comments => false,
@@ -88,7 +88,7 @@ verify_line_length_rule_latin1(Config) ->
 
     Result =
         elvis_test_utils:elvis_core_apply_rule(
-            Config, elvis_text_style, line_length, #{limit => 100}, Path
+            Config, elvis_text_style, max_line_length, #{limit => 100}, Path
         ),
     1 = length(Result),
     #{info := Info, message := Msg} = lists:nth(1, Result),
@@ -101,7 +101,7 @@ verify_unicode_line_length_rule(Config) ->
 
     Result =
         elvis_test_utils:elvis_core_apply_rule(
-            Config, elvis_text_style, line_length, #{limit => 100}, Path
+            Config, elvis_text_style, max_line_length, #{limit => 100}, Path
         ),
     0 = length(Result).
 

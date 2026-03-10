@@ -28,8 +28,9 @@ Use an Erlang code formatter that enforces strict line length limitations.
 ## Example configuration
 
 ```erlang
-{elvis_text_style, line_length, #{ limit => 100
-                                 , skip_comments => false
-                                 , no_whitespace_after_limit => true
-                                 }}
+{elvis_text_style, max_line_length, #{
+    limit => 100,
+    skip_comments => false,
+    no_whitespace_after_limit => true
+}},
 ```
