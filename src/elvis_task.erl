@@ -70,6 +70,8 @@ do_work(Parent, {M, F}, ExtraArgs, Arg) ->
     try erlang:apply(M, F, [Arg | ExtraArgs]) of
         {ok, Results} ->
             exit({Parent, {ok, Results}});
+        {error, _} = Error ->
+            exit({Parent, Error});
         Unexpected ->
             Error = {error, {badreturn, Unexpected}},
             exit({Parent, {error, Error}})
@@ -93,6 +95,8 @@ gather_results0(AccF, AccR, AccG, N, Timeout) ->
     case gather(Timeout, AccG) of
         timeout ->
             {AccR, AccG, N};
+        {error, _} = Error ->
+            {[Error | AccR], AccG, N};
         {AccG1, Res} ->
             AccR1 = accumulate(AccF, AccR, Res, AccG1),
             gather_results0(AccF, AccR1, AccG1, N + 1, Timeout)
@@ -125,7 +129,9 @@ gather(Timeout, AccG) ->
                     {AccG1, Res0};
                 {error, {T, E}} ->
                     _ = cleanup(AccG1),
-                    throw({T, E})
+                    throw({T, E});
+                {error, _} = Error ->
+                    Error
             end
     after Timeout ->
         timeout

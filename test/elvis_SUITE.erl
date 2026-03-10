@@ -8,7 +8,6 @@
     rock_with_empty_list_config/1,
     rock_with_incomplete_config/1,
     rock_with_list_config/1,
-    rock_this/1,
     rock_without_colors/1,
     rock_with_parsable/1,
     rock_with_no_output_has_no_output/1,
@@ -17,8 +16,6 @@
     rock_without_errors_has_no_output/1,
     rock_without_errors_and_with_verbose_has_output/1,
     rock_with_rule_groups/1,
-    rock_this_skipping_files/1,
-    rock_this_not_skipping_files/1,
     rock_with_glob_dirs_not_matching/1,
     rock_with_umbrella_apps/1,
     custom_ruleset/1,
@@ -61,17 +58,24 @@ end_per_suite(Config) ->
 %%% Rocking
 
 rock_with_empty_map_config(_Config) ->
-    {fail, [{throw, {invalid_config, _}}]} = elvis_core:rock([#{}]),
-    {fail, [{throw, {invalid_config, _}}]} = elvis_core:rock([]),
+    {errors, "in 'config', at list position number 1, 'files' is a compulsory option."} = elvis_core:rock(
+        [#{}]
+    ),
+    {errors, "'config' is expected to exist and be a non-empty list."} = elvis_core:rock([]),
     ok.
 
 rock_with_empty_list_config(_Config) ->
-    {fail, [{throw, {invalid_config, _}}]} = elvis_core:rock([#{}, #{}]),
+    {errors, "in 'config', at list position number 1, 'files' is a compulsory option."} = elvis_core:rock(
+        [#{}, #{}]
+    ),
     ok.
 
 rock_with_incomplete_config(_Config) ->
     ElvisConfig = [#{files => ["src/*.erl"]}],
-    {fail, [{throw, {invalid_config, _}}]} = elvis_core:rock(ElvisConfig),
+    {errors,
+        "in 'config', at list position number 1, no '<globs>' in 'src/*.erl' yielded any files to analyse."} = elvis_core:rock(
+        ElvisConfig
+    ),
     ok.
 
 rock_with_list_config(_Config) ->
@@ -98,23 +102,6 @@ rock_with_glob_dirs_not_matching(_Config) ->
         }
     ],
     ok = elvis_core:rock(ElvisConfig).
-
-rock_this(_Config) ->
-    ElvisConfig = elvis_test_utils:config(),
-    ok = elvis_core:rock_this(elvis_core, ElvisConfig),
-
-    ok =
-        try
-            {fail, _} = elvis_core:rock_this("bla.erl", ElvisConfig)
-        catch
-            _:{enoent, "bla.erl"} ->
-                ok
-        end,
-
-    Path = "../../../../_build/test/lib/elvis_core/test/examples/fail_line_length.erl",
-    {fail, _} = elvis_core:rock_this(Path, ElvisConfig),
-
-    ok.
 
 rock_without_colors(_Config) ->
     ElvisConfig = elvis_test_utils:config(),
@@ -155,15 +142,13 @@ rock_with_parsable(_Config) ->
         end.
 
 rock_with_non_parsable_file(_Config) ->
-    ElvisConfig = elvis_test_utils:config(),
     Path =
         "../../../../_build/test/lib/elvis_core/test/non_compilable_examples/fail_non_parsable_file.erl",
-    try
-        elvis_core:rock_this(Path, ElvisConfig)
-    catch
-        {fail, {error, {badmatch, _}}} ->
-            ok
-    end.
+    ElvisConfig = elvis_test_utils:config_erl_files(Path),
+    {errors, [{error, Result}]} = elvis_core:rock(ElvisConfig),
+    "{{red}}Error: {{reset}}{badmatch," ++ _ = Result,
+
+    ok.
 
 rock_with_no_output_has_no_output(_Config) ->
     application:set_env(elvis_core, no_output, true),
@@ -242,7 +227,10 @@ rock_with_rule_groups(_Config) ->
                     ]
             }
         ],
-    {fail, [{throw, {invalid_config, _}}]} = elvis_core:rock(OverrideFailConfig),
+    {errors,
+        "in 'config', at list position number 1, no '<globs>' in 'src/*.erl' yielded any files to analyse."} = elvis_core:rock(
+        OverrideFailConfig
+    ),
     % Override default elvis_core rules.
     OverrideConfig =
         [
@@ -264,35 +252,10 @@ rock_with_rule_groups(_Config) ->
         ],
     ok = elvis_core:rock(OverrideConfig).
 
-rock_this_skipping_files(_Config) ->
-    meck:new(elvis_file, [passthrough]),
-    Globs = ["../../../../_build/test/lib/elvis_core/test/examples/small.erl"],
-    [File] = elvis_file:find_files(Globs),
-    Path = elvis_file:path(File),
-    ConfigPath = "../../../../config/elvis-test-pa.config",
-    {ok, user_defined_rules} = compile:file("../../../../test/examples/user_defined_rules.erl"),
-    {module, user_defined_rules} = code:ensure_loaded(user_defined_rules),
-    ElvisConfig = elvis_config:from_file(ConfigPath),
-    ok = elvis_core:rock_this(Path, ElvisConfig),
-    0 = meck:num_calls(elvis_file, load_file_data, '_'),
-    meck:unload(elvis_file),
-    ok.
-
-rock_this_not_skipping_files(_Config) ->
-    meck:new(elvis_file, [passthrough]),
-    Globs = ["../../../../_build/test/lib/elvis_core/test/examples/small.erl"],
-    [File] = elvis_file:find_files(Globs),
-    Path = elvis_file:path(File),
-    ElvisConfig = elvis_test_utils:config(),
-    ok = elvis_core:rock_this(Path, ElvisConfig),
-    1 = meck:num_calls(elvis_file, load_file_data, '_'),
-    meck:unload(elvis_file),
-    ok.
-
 rock_with_umbrella_apps(_Config) ->
     ElvisUmbrellaConfigFile = "../../../../config/elvis-umbrella.config",
     ElvisConfig = elvis_config:from_file(ElvisUmbrellaConfigFile),
-    {fail, Failures} = elvis_core:rock(ElvisConfig),
+    {errors, Failures} = elvis_core:rock(ElvisConfig),
     [
         #{
             file :=
@@ -320,9 +283,10 @@ rock_with_umbrella_apps(_Config) ->
     ok.
 
 rock_with_invalid_rules(_Config) ->
-    _ = elvis_config:reset_validation(),
     ConfigPath = "../../../../test/examples/invalid_rules.elvis.config",
-    {fail, [{throw, {invalid_config, _}}]} = elvis_config:from_file(ConfigPath),
+    {error, Error} = elvis_config:from_file(ConfigPath),
+    Error =
+        "in 'config', at list position number 1, no '<globs>' in '../../_build/default/lib/elvis_core/src/*.erl' yielded any files to analyse.",
     ok.
 
 rock_with_removed_rules(_Config) ->
@@ -340,20 +304,22 @@ custom_ruleset(_Config) ->
     NoTabs = elvis_rule:new(elvis_text_style, no_tabs),
     [[NoTabs]] = elvis_config:rules(ElvisConfig),
 
-    %% this is also done by :rock and :rock_this
+    %% this is also done by elvis_core:rock/1
     _ = elvis_ruleset:drop_custom(),
 
     %% read unknown ruleset configuration to ensure rulesets from
     %% previous load do not stick around
     ConfigPathMissing = "../../../../config/elvis-test-unknown-ruleset.config",
-    ElvisConfigMissing = elvis_config:from_file(ConfigPathMissing),
-    [[]] = elvis_config:rules(ElvisConfigMissing),
+    {error,
+        "in 'config', at list position number 1, 'project' is expected to be either a custom or a default ruleset."} = elvis_config:from_file(
+        ConfigPathMissing
+    ),
     ok.
 
 hrl_ruleset(_Config) ->
     ConfigPath = "../../../../config/elvis-test-hrl-files.config",
     ElvisConfig = elvis_config:from_file(ConfigPath),
-    {fail, [
+    {errors, [
         #{
             file := "../../../../_build/test/lib/elvis_core/test/examples/test_good.hrl",
             rules := []
