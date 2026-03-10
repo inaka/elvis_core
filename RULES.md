@@ -20,6 +20,7 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [Always Shortcircuit](doc_rules/elvis_style/always_shortcircuit.md)
 - [Atom Naming Convention](doc_rules/elvis_style/atom_naming_convention.md)
 - [Behaviour Spelling](doc_rules/elvis_style/behaviour_spelling.md)
+- [Consistent Ok/Error Spec](doc_rules/elvis_style/consistent_ok_error_spec.md)
 - [Don't Repeat Yourself](doc_rules/elvis_style/dont_repeat_yourself.md)
 - [Export Used Types](doc_rules/elvis_style/export_used_types.md)
 - [Function Naming Convention](doc_rules/elvis_style/function_naming_convention.md)

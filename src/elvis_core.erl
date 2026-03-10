@@ -95,7 +95,7 @@ do_parallel_rock(ElvisConfig0) ->
     end.
 
 -spec do_rock(elvis_file:t(), [elvis_config:t()] | elvis_config:t()) ->
-    {ok, elvis_result:file()}.
+    {ok, elvis_result:file()} | {error, string()}.
 do_rock(File, ElvisConfig) ->
     maybe
         {ok, LoadedFile} ?= load_file_data(ElvisConfig, File),

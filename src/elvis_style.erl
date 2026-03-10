@@ -11,6 +11,7 @@
 -export([
     function_naming_convention/2,
     variable_naming_convention/2,
+    consistent_ok_error_spec/2,
     consistent_variable_naming/2,
     macro_naming_convention/2,
     no_macros/2,
@@ -675,7 +676,7 @@ no_specs(Rule, ElvisConfig) ->
 
     [
         elvis_result:new_item(
-            "an unexpected spec for was found function '~p'; avoid specs in .hrl files",
+            "an unexpected spec was found for function '~p'; avoid specs in .hrl files",
             [ktn_code:attr(name, SpecNode)],
             #{node => SpecNode}
         )
@@ -1109,6 +1110,40 @@ is_opaque_state(TypeAttrOrOpaqueNode) ->
         _ ->
             false
     end.
+
+-spec consistent_ok_error_spec(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
+consistent_ok_error_spec(Rule, ElvisConfig) ->
+    {nodes, SpecsWithJustOkResult} = elvis_code:find(#{
+        of_types => [spec],
+        inside => elvis_code:root(Rule, ElvisConfig),
+        filtered_by => fun spec_has_just_ok_result/1
+    }),
+
+    [
+        elvis_result:new_item(
+            "function ~p unnecessarily wraps its results in a tuple; prefer not "
+            "wrapping them or adding alternative/error results to the spec",
+            [ktn_code:attr(name, SpecWithJustOkResult)],
+            #{node => SpecWithJustOkResult}
+        )
+     || SpecWithJustOkResult <- SpecsWithJustOkResult
+    ].
+
+spec_has_just_ok_result(SpecNode) ->
+    lists:all(
+        fun(SpecType) ->
+            [Result | _] = lists:reverse(ktn_code:content(SpecType)),
+            case ktn_code:attr(name, Result) of
+                tuple ->
+                    [FirstElement | _] = ktn_code:content(Result),
+                    atom =:= ktn_code:type(FirstElement) andalso
+                        ok =:= ktn_code:attr(value, FirstElement);
+                _ ->
+                    false
+            end
+        end,
+        ktn_code:node_attr(types, SpecNode)
+    ).
 
 -spec no_spec_with_records(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_spec_with_records(Rule, ElvisConfig) ->
