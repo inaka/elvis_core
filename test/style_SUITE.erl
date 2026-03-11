@@ -70,6 +70,7 @@
     verify_ms_transform_included/1,
     verify_no_boolean_in_comparison/1,
     verify_no_operation_on_same_value/1,
+    verify_expression_can_be_simplified/1,
     verify_no_receive_without_timeout/1,
     verify_simplify_anonymous_functions/1,
     verify_prefer_include/1,
@@ -2507,6 +2508,32 @@ verify_no_operation_on_same_value(Config) ->
     ] =
         elvis_test_utils:elvis_core_apply_rule(
             Config, elvis_style, no_operation_on_same_value, #{operations => ['--', '++']}, FailPath
+        ).
+
+verify_expression_can_be_simplified(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PassPath = "pass_expression_can_be_simplified." ++ Ext,
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, expression_can_be_simplified, #{}, PassPath
+    ),
+
+    FailPath = "fail_expression_can_be_simplified." ++ Ext,
+    Results =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, expression_can_be_simplified, #{}, FailPath
+        ),
+    18 = length(Results),
+
+    %% Only add_zero_right enabled: only X + 0 is reported
+    %% With only add_zero_right enabled, only the X + 0 line is reported
+    [#{info := [add_zero_right, _]}] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config,
+            elvis_style,
+            expression_can_be_simplified,
+            #{simplifications => [add_zero_right]},
+            FailPath
         ).
 
 verify_strict_term_equivalence(Config) ->

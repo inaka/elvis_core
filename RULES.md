@@ -23,6 +23,7 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [Consistent Ok/Error Spec](doc_rules/elvis_style/consistent_ok_error_spec.md)
 - [Don't Repeat Yourself](doc_rules/elvis_style/dont_repeat_yourself.md)
 - [Export Used Types](doc_rules/elvis_style/export_used_types.md)
+- [Expression Can Be Simplified](doc_rules/elvis_style/expression_can_be_simplified.md)
 - [Function Naming Convention](doc_rules/elvis_style/function_naming_convention.md)
 - [Generic Type](doc_rules/elvis_style/generic_type.md)
 - [Guard Operators](doc_rules/elvis_style/guard_operators.md)

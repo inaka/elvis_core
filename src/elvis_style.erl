@@ -66,6 +66,7 @@
     ms_transform_included/2,
     no_boolean_in_comparison/2,
     no_operation_on_same_value/2,
+    expression_can_be_simplified/2,
     no_receive_without_timeout/2,
     prefer_sigils/2,
     prefer_unquoted_atoms/2,
@@ -342,6 +343,29 @@ default(no_operation_on_same_value) ->
             'orelse',
             '=',
             '--'
+        ]
+    });
+default(expression_can_be_simplified) ->
+    elvis_rule:defmap(#{
+        simplifications => [
+            list_append_left_empty,
+            list_append_right_empty,
+            list_subtract_from_empty,
+            list_subtract_empty,
+            add_zero_right,
+            subtract_zero,
+            subtract_from_zero,
+            multiply_by_one_right,
+            multiply_by_one_left,
+            div_by_one,
+            rem_by_one,
+            andalso_true,
+            orelse_false,
+            not_true,
+            not_false,
+            band_neg_one,
+            bor_zero,
+            bxor_zero
         ]
     });
 default(no_macros) ->
@@ -2091,6 +2115,116 @@ no_operation_on_same_value(Rule, ElvisConfig) ->
         )
      || OpNode <- lists:uniq(OpNodes)
     ].
+
+-spec expression_can_be_simplified(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
+expression_can_be_simplified(Rule, ElvisConfig) ->
+    Simplifications = elvis_rule:option(simplifications, Rule),
+    {nodes, OpNodes} = elvis_code:find(#{
+        of_types => [op],
+        inside => elvis_code:root(Rule, ElvisConfig),
+        filtered_by => fun(OpNode) ->
+            is_tuple(recommended_simplification(OpNode, Simplifications))
+        end,
+        traverse => all
+    }),
+    UniqOpNodes = lists:uniq(OpNodes),
+    lists:map(
+        fun(OpNode) ->
+            {Label, Msg} = recommended_simplification(OpNode, Simplifications),
+            elvis_result:new_item(
+                "expression can be simplified (~s): ~s",
+                [Label, Msg],
+                #{node => OpNode}
+            )
+        end,
+        UniqOpNodes
+    ).
+
+-spec recommended_simplification(ktn_code:tree_node(), [atom()]) -> false | {atom(), string()}.
+recommended_simplification(OpNode, Simplifications) ->
+    case ktn_code:content(OpNode) of
+        [Operand] ->
+            Op = ktn_code:attr(operation, OpNode),
+            Val = ktn_code:attr(value, Operand),
+            try_unary_patterns(Op, Val, Simplifications);
+        [Left, Right] ->
+            Op = ktn_code:attr(operation, OpNode),
+            try_binary_patterns(Op, Left, Right, Simplifications);
+        _ ->
+            false
+    end.
+
+try_unary_patterns('not', false, Simplifications) ->
+    %% Operand is the literal atom false
+    lists:member(not_false, Simplifications) andalso
+        {not_false, "not false can be simplified to true"};
+try_unary_patterns('not', true, Simplifications) ->
+    lists:member(not_true, Simplifications) andalso
+        {not_true, "not true can be simplified to false"};
+try_unary_patterns(_, _, _) ->
+    false.
+
+try_binary_patterns(Op, Left, Right, Simplifications) ->
+    Patterns = [
+        {'++', fun is_empty_list/1, no_check, list_append_left_empty,
+            "[] ++ X can be simplified to X"},
+        {'++', no_check, fun is_empty_list/1, list_append_right_empty,
+            "X ++ [] can be simplified to X"},
+        {'--', fun is_empty_list/1, no_check, list_subtract_from_empty,
+            "[] -- X can be simplified to []"},
+        {'--', no_check, fun is_empty_list/1, list_subtract_empty,
+            "X -- [] can be simplified to X"},
+        {'+', no_check, fun is_integer_zero/1, add_zero_right, "X + 0 can be simplified to X"},
+        {'-', no_check, fun is_integer_zero/1, subtract_zero, "X - 0 can be simplified to X"},
+        {'-', fun is_integer_zero/1, no_check, subtract_from_zero, "0 - X can be simplified to -X"},
+        {'*', no_check, fun is_integer_one/1, multiply_by_one_right,
+            "X * 1 can be simplified to X"},
+        {'*', fun is_integer_one/1, no_check, multiply_by_one_left, "1 * X can be simplified to X"},
+        {'div', no_check, fun is_integer_one/1, div_by_one, "X div 1 can be simplified to X"},
+        {'rem', no_check, fun is_integer_one/1, rem_by_one, "X rem 1 can be simplified to 0"},
+        {'andalso', fun(N) -> is_atom_val(N, true) end, no_check, andalso_true,
+            "true andalso X can be simplified to X"},
+        {'orelse', fun(N) -> is_atom_val(N, false) end, no_check, orelse_false,
+            "false orelse X can be simplified to X"},
+        {'band', no_check, fun is_negative_one/1, band_neg_one, "X band -1 can be simplified to X"},
+        {'bor', no_check, fun is_integer_zero/1, bor_zero, "X bor 0 can be simplified to X"},
+        {'bxor', no_check, fun is_integer_zero/1, bxor_zero, "X bxor 0 can be simplified to X"}
+    ],
+    Fun = fun({OpPat, LeftOk, RightOk, Label, Msg}) ->
+        Result =
+            Op =:= OpPat andalso
+                lists:member(Label, Simplifications) andalso
+                (LeftOk =:= no_check orelse LeftOk(Left)) andalso
+                (RightOk =:= no_check orelse RightOk(Right)),
+        case Result of
+            true -> {true, {Label, Msg}};
+            false -> false
+        end
+    end,
+    case lists:filtermap(Fun, Patterns) of
+        [First | _] -> First;
+        [] -> none
+    end.
+
+is_empty_list(Node) ->
+    ktn_code:type(Node) =:= nil.
+
+is_integer_zero(Node) ->
+    ktn_code:type(Node) =:= integer andalso ktn_code:attr(value, Node) =:= 0.
+
+is_integer_one(Node) ->
+    ktn_code:type(Node) =:= integer andalso ktn_code:attr(value, Node) =:= 1.
+
+is_atom_val(Node, V) ->
+    ktn_code:type(Node) =:= atom andalso ktn_code:attr(value, Node) =:= V.
+
+is_negative_one(Node) ->
+    (ktn_code:type(Node) =:= integer andalso ktn_code:attr(value, Node) =:= -1) orelse
+        (ktn_code:type(Node) =:= op andalso ktn_code:attr(operation, Node) =:= '-' andalso
+            case ktn_code:content(Node) of
+                [One] -> is_integer_one(One);
+                _ -> false
+            end).
 
 -spec prefer_robot_butt(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 prefer_robot_butt(Rule, ElvisConfig) ->

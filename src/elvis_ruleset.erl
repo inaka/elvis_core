@@ -134,6 +134,7 @@ elvis_style_rules() ->
         elvis_rule:new(elvis_style, no_match_in_condition),
         elvis_rule:new(elvis_style, no_nested_try_catch),
         elvis_rule:new(elvis_style, no_operation_on_same_value),
+        elvis_rule:new(elvis_style, expression_can_be_simplified),
         elvis_rule:new(elvis_style, no_receive_without_timeout),
         elvis_rule:new(elvis_style, no_single_clause_case),
         elvis_rule:new(elvis_style, no_single_match_maybe),
