@@ -25,7 +25,7 @@ or:
 
 Wrapping up results in an `{ok, …}` tuple doesn't serve any purpose other than leading its users
 to think that the function may also return errors. If that's the case, then those errors should
-be part of the funciton spec. If it's not, then it's better for consistency, composition, and
+be part of the function spec. If it's not, then it's better for consistency, composition, and
 refactoring to just return the expected output, without wrapping it up.
 
 ## Options
