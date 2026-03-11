@@ -30,6 +30,7 @@
     verify_state_record_and_type/1,
     verify_state_record_and_type_plus_export_used_types/1,
     verify_no_spec_with_records/1,
+    verify_consistent_ok_error_spec/1,
     verify_dont_repeat_yourself/1,
     verify_max_module_length/1,
     verify_max_anonymous_function_arity/1,
@@ -106,6 +107,7 @@
     verify_elvis_attr_no_nested_try_catch/1,
     verify_elvis_attr_no_successive_maps/1,
     verify_elvis_attr_no_spec_with_records/1,
+    verify_elvis_attr_consistent_ok_error_spec/1,
     verify_elvis_attr_no_tabs/1,
     verify_elvis_attr_no_trailing_whitespace/1,
     verify_elvis_attr_operator_spaces/1,
@@ -163,6 +165,7 @@ groups() ->
             verify_state_record_and_type,
             verify_state_record_and_type_plus_export_used_types,
             verify_no_spec_with_records,
+            verify_consistent_ok_error_spec,
             verify_dont_repeat_yourself,
             verify_no_debug_call,
             verify_ignore_wildcard_patterns,
@@ -1371,6 +1374,20 @@ verify_no_spec_with_records(Config) ->
     PathPass = "pass_no_spec_with_records." ++ Ext,
     [] = elvis_test_utils:elvis_core_apply_rule(
         Config, elvis_style, no_spec_with_records, #{}, PathPass
+    ).
+
+verify_consistent_ok_error_spec(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PathFail = "fail_consistent_ok_error_spec." ++ Ext,
+    [#{info := [arity_two]}, #{info := [arity_three]}, #{info := [multi]}] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, consistent_ok_error_spec, #{}, PathFail
+        ),
+
+    PathPass = "pass_consistent_ok_error_spec." ++ Ext,
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, consistent_ok_error_spec, #{}, PathPass
     ).
 
 verify_dont_repeat_yourself(Config) ->
@@ -3397,6 +3414,9 @@ verify_elvis_attr_no_successive_maps(Config) ->
 
 verify_elvis_attr_no_spec_with_records(Config) ->
     verify_elvis_attr(Config, "pass_no_spec_with_records_elvis_attr").
+
+verify_elvis_attr_consistent_ok_error_spec(Config) ->
+    verify_elvis_attr(Config, "pass_consistent_ok_error_spec_elvis_attr").
 
 verify_elvis_attr_no_tabs(Config) ->
     verify_elvis_attr(Config, "pass_no_tabs_elvis_attr").

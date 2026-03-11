@@ -177,6 +177,7 @@ elvis_style_stricter_rules() ->
         elvis_rule:new(elvis_style, abc_size),
         elvis_rule:new(elvis_style, always_shortcircuit),
         elvis_rule:new(elvis_style, code_complexity),
+        elvis_rule:new(elvis_style, consistent_ok_error_spec),
         elvis_rule:new(elvis_style, generic_type),
         elvis_rule:new(elvis_style, max_anonymous_function_clause_length),
         elvis_rule:new(elvis_style, max_anonymous_function_length),
