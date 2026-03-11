@@ -4,7 +4,6 @@
     {elvis_style, abc_size, #{ignore => [{elvis_style, default, 1}]}},
     {elvis_style, code_complexity, #{ignore => [{elvis_style, default, 1}]}}
 ]).
--hank([{unnecessary_function_arguments, [{true, 1}]}]).
 
 -behaviour(elvis_rule).
 -export([default/1]).
@@ -2088,13 +2087,15 @@ expression_can_be_simplified(Rule, ElvisConfig) ->
     {nodes, OpNodes} = elvis_code:find(#{
         of_types => [op],
         inside => elvis_code:root(Rule, ElvisConfig),
-        filtered_by => fun(OpNode) -> is_tuple(can_be_simplified(OpNode, Simplifications)) end,
+        filtered_by => fun(OpNode) ->
+            is_tuple(recommended_simplification(OpNode, Simplifications))
+        end,
         traverse => all
     }),
     UniqOpNodes = lists:uniq(OpNodes),
     lists:map(
         fun(OpNode) ->
-            {Label, Msg} = can_be_simplified(OpNode, Simplifications),
+            {Label, Msg} = recommended_simplification(OpNode, Simplifications),
             elvis_result:new_item(
                 "expression can be simplified (~s): ~s",
                 [Label, Msg],
@@ -2104,8 +2105,8 @@ expression_can_be_simplified(Rule, ElvisConfig) ->
         UniqOpNodes
     ).
 
--spec can_be_simplified(ktn_code:tree_node(), [atom()]) -> false | {atom(), string()}.
-can_be_simplified(OpNode, Simplifications) ->
+-spec recommended_simplification(ktn_code:tree_node(), [atom()]) -> false | {atom(), string()}.
+recommended_simplification(OpNode, Simplifications) ->
     case ktn_code:content(OpNode) of
         [Operand] ->
             Op = ktn_code:attr(operation, OpNode),
@@ -2129,67 +2130,55 @@ try_unary_patterns(_, _, _) ->
     false.
 
 try_binary_patterns(Op, Left, Right, Simplifications) ->
-    Pats = [
-        {'++', fun is_empty_list/1, fun true/1, list_append_left_empty,
+    Patterns = [
+        {'++', fun is_empty_list/1, no_check, list_append_left_empty,
             "[] ++ X can be simplified to X"},
-        {'++', fun true/1, fun is_empty_list/1, list_append_right_empty,
+        {'++', no_check, fun is_empty_list/1, list_append_right_empty,
             "X ++ [] can be simplified to X"},
-        {'--', fun is_empty_list/1, fun true/1, list_subtract_from_empty,
+        {'--', fun is_empty_list/1, no_check, list_subtract_from_empty,
             "[] -- X can be simplified to []"},
-        {'--', fun true/1, fun is_empty_list/1, list_subtract_empty,
+        {'--', no_check, fun is_empty_list/1, list_subtract_empty,
             "X -- [] can be simplified to X"},
-        {'+', fun true/1, fun(N) -> is_integer_val(N, 0) end, add_zero_right,
-            "X + 0 can be simplified to X"},
-        {'-', fun true/1, fun(N) -> is_integer_val(N, 0) end, subtract_zero,
-            "X - 0 can be simplified to X"},
-        {'-', fun(N) -> is_integer_val(N, 0) end, fun true/1, subtract_from_zero,
-            "0 - X can be simplified to -X"},
-        {'*', fun true/1, fun(N) -> is_integer_val(N, 1) end, multiply_by_one_right,
+        {'+', no_check, fun is_integer_zero/1, add_zero_right, "X + 0 can be simplified to X"},
+        {'-', no_check, fun is_integer_zero/1, subtract_zero, "X - 0 can be simplified to X"},
+        {'-', fun is_integer_zero/1, no_check, subtract_from_zero, "0 - X can be simplified to -X"},
+        {'*', no_check, fun is_integer_one/1, multiply_by_one_right,
             "X * 1 can be simplified to X"},
-        {'*', fun(N) -> is_integer_val(N, 1) end, fun true/1, multiply_by_one_left,
-            "1 * X can be simplified to X"},
-        {'div', fun true/1, fun(N) -> is_integer_val(N, 1) end, div_by_one,
-            "X div 1 can be simplified to X"},
-        {'rem', fun true/1, fun(N) -> is_integer_val(N, 1) end, rem_by_one,
-            "X rem 1 can be simplified to 0"},
-        {'andalso', fun(N) -> is_atom_val(N, true) end, fun true/1, andalso_true,
+        {'*', fun is_integer_one/1, no_check, multiply_by_one_left, "1 * X can be simplified to X"},
+        {'div', no_check, fun is_integer_one/1, div_by_one, "X div 1 can be simplified to X"},
+        {'rem', no_check, fun is_integer_one/1, rem_by_one, "X rem 1 can be simplified to 0"},
+        {'andalso', fun(N) -> is_atom_val(N, true) end, no_check, andalso_true,
             "true andalso X can be simplified to X"},
-        {'orelse', fun(N) -> is_atom_val(N, false) end, fun true/1, orelse_false,
+        {'orelse', fun(N) -> is_atom_val(N, false) end, no_check, orelse_false,
             "false orelse X can be simplified to X"},
-        {'band', fun true/1, fun is_negative_one/1, band_neg_one,
-            "X band -1 can be simplified to X"},
-        {'bor', fun true/1, fun(N) -> is_integer_val(N, 0) end, bor_zero,
-            "X bor 0 can be simplified to X"},
-        {'bxor', fun true/1, fun(N) -> is_integer_val(N, 0) end, bxor_zero,
-            "X bxor 0 can be simplified to X"}
+        {'band', no_check, fun is_negative_one/1, band_neg_one, "X band -1 can be simplified to X"},
+        {'bor', no_check, fun is_integer_zero/1, bor_zero, "X bor 0 can be simplified to X"},
+        {'bxor', no_check, fun is_integer_zero/1, bxor_zero, "X bxor 0 can be simplified to X"}
     ],
-    try_binary_patterns_loop(Pats, Op, Left, Right, Simplifications).
-
-try_binary_patterns_loop(
-    [{OpPat, LeftOk, RightOk, Label, Msg} | Rest], Op, Left, Right, Simplifications
-) ->
-    case
-        Op =:= OpPat andalso
-            lists:member(Label, Simplifications) andalso
-            LeftOk(Left) andalso
-            RightOk(Right)
-    of
-        true ->
-            {Label, Msg};
-        false ->
-            try_binary_patterns_loop(Rest, Op, Left, Right, Simplifications)
-    end;
-try_binary_patterns_loop([], _, _, _, _) ->
-    false.
-
-true(_) ->
-    true.
+    Fun = fun({OpPat, LeftOk, RightOk, Label, Msg}) ->
+        Result =
+            Op =:= OpPat andalso
+                lists:member(Label, Simplifications) andalso
+                (LeftOk =:= no_check orelse LeftOk(Left)) andalso
+                (RightOk =:= no_check orelse RightOk(Right)),
+        case Result of
+            true -> {true, {Label, Msg}};
+            false -> false
+        end
+    end,
+    case lists:filtermap(Fun, Patterns) of
+        [First | _] -> First;
+        [] -> none
+    end.
 
 is_empty_list(Node) ->
     ktn_code:type(Node) =:= nil.
 
-is_integer_val(Node, V) ->
-    ktn_code:type(Node) =:= integer andalso ktn_code:attr(value, Node) =:= V.
+is_integer_zero(Node) ->
+    ktn_code:type(Node) =:= integer andalso ktn_code:attr(value, Node) =:= 0.
+
+is_integer_one(Node) ->
+    ktn_code:type(Node) =:= integer andalso ktn_code:attr(value, Node) =:= 1.
 
 is_atom_val(Node, V) ->
     ktn_code:type(Node) =:= atom andalso ktn_code:attr(value, Node) =:= V.
@@ -2198,7 +2187,7 @@ is_negative_one(Node) ->
     (ktn_code:type(Node) =:= integer andalso ktn_code:attr(value, Node) =:= -1) orelse
         (ktn_code:type(Node) =:= op andalso ktn_code:attr(operation, Node) =:= '-' andalso
             case ktn_code:content(Node) of
-                [One] -> is_integer_val(One, 1);
+                [One] -> is_integer_one(One);
                 _ -> false
             end).
 
