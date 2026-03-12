@@ -34,9 +34,6 @@
 -type output_format() :: plain | colors | parsable.
 -export_type([output_format/0]).
 
--type fail_validation() :: {error, Message :: string()}.
--export_type([fail_validation/0]).
-
 % API exports, not consumed locally.
 -ignore_xref([from_rebar/1, from_file/1, default/0, resolve_files/2, apply_to_files/2]).
 -ignore_xref([
@@ -75,7 +72,7 @@ do_from_static(Key, {Type, Config}) ->
             Value
     end.
 
--spec config() -> [t()] | fail_validation().
+-spec config() -> [t()].
 config() ->
     for(config).
 
@@ -152,8 +149,6 @@ for(Key) ->
                 AppConfig0 ->
                     AppConfig0
             end,
-        % If we got this far, the configuration is valid...
-        % i.e. the return won't be {error, _}
         from_static(Key, {app, AppConfig})
     else
         {error, _} = Error -> Error
@@ -186,12 +181,12 @@ consult_rebar_config(File) ->
         end,
     from_static(elvis, {'rebar.config', AppConfig}).
 
--spec from_rebar(File :: string()) -> [t()] | fail_validation().
+-spec from_rebar(File :: string()) -> [t()] | {error, Message :: string()}.
 from_rebar(File) ->
     AppConfig = consult_rebar_config(File),
     fetch_elvis_config_from(AppConfig).
 
--spec from_file(File :: string()) -> [t()] | fail_validation().
+-spec from_file(File :: string()) -> [t()] | {error, Message :: string()}.
 from_file(File) ->
     maybe
         {ok, AppConfig} ?= consult_elvis_config(File),
@@ -212,8 +207,10 @@ fetch_elvis_config_from(AppConfig) ->
 default_for(app) ->
     % This is the top-level element
     [];
+default_for(elvis) ->
+    [];
 default_for('rebar.config') ->
-    [{elvis, []}];
+    [{elvis, default_for(elvis)}];
 default_for(config) ->
     [];
 default_for(output_format) ->
