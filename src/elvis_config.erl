@@ -653,7 +653,7 @@ get_config_opt(OptName, Config, true = _Compulsory) ->
 
 config_is_valid(CustomRulesetNames, Config) ->
     maybe
-        ok ?= map_keys_are_in(Config, [files, ignore, ruleset, rules]),
+        ok ?= map_keys_are_in(Config, [files, ignore, ruleset, rules, resolved_files]),
         {ok, FileGlobs} ?= get_config_opt(files, Config, true),
         ok ?= all_files_globs_are_valid(FileGlobs),
         {ok, Ignore} ?= get_config_opt(ignore, Config, false),
