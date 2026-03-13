@@ -323,17 +323,19 @@ custom_ruleset(_Config) ->
 hrl_ruleset(_Config) ->
     ConfigPath = "../../../../config/elvis-test-hrl-files.config",
     ElvisConfig = elvis_config:from_file(ConfigPath),
-    {errors, [
-        #{
-            file := "../../../../_build/test/lib/elvis_core/test/examples/test_good.hrl",
-            rules := []
-        },
+    {errors, Failures} =
+        elvis_core:rock({config, ElvisConfig}),
+    [
         #{
             file := "../../../../_build/test/lib/elvis_core/test/examples/test_bad.hrl",
             rules := [#{name := max_line_length}]
+        },
+        #{
+            file := "../../../../_build/test/lib/elvis_core/test/examples/test_good.hrl",
+            rules := []
         }
-    ]} =
-        elvis_core:rock({config, ElvisConfig}),
+    ] =
+        lists:sort(Failures),
     ok.
 
 find_file_and_check_src(_Config) ->
