@@ -4,7 +4,7 @@
 
 %% Public API
 
--export([rock/1]).
+-export([rock/0, rock/1, rock/2]).
 -export([start/0]).
 %% for internal use only
 -export([do_rock/2]).
@@ -28,10 +28,14 @@
 % For shell usage.
 -ignore_xref([start/0]).
 % API exports, not consumed locally.
--ignore_xref([rock/1]).
+-ignore_xref([rock/0, rock/1, rock/2]).
 
 -type source_filename() :: nonempty_string().
 -type target() :: source_filename() | module().
+-type error() :: _.
+-type warning() :: _.
+-type rock_result() :: ok | {errors, [error()]} | {warnings, [warning()]}.
+-export_type([rock_result/0]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Public API
@@ -43,18 +47,63 @@ start() ->
     {ok, _} = application:ensure_all_started(elvis_core),
     ok.
 
-%% In this context, `throw` means an error, e.g., validation or internal, not an actual
-%% call to `erlang:throw/1`.
--spec rock([elvis_config:t()]) -> ok | {errors, _} | {warnings, _}.
-rock(ElvisConfig) ->
+-spec rock() -> rock_result().
+rock() ->
+    rock({config_file, default}).
+
+-spec rock(FileOrConfig) -> rock_result() when
+    FileOrConfig :: {config_file, default | string()} | {config, [elvis_config:t()]}.
+rock(FileOrConfig) ->
+    rock(FileOrConfig, {files, undefined}).
+
+-spec rock(FileOrConfig, Files) -> rock_result() when
+    FileOrConfig :: {config_file, default | string()} | {config, [elvis_config:t()]},
+    Files :: {files, undefined | [string()]}.
+rock(FileOrConfig, {files, Files}) ->
     maybe
-        ok ?= elvis_config:validate_config(ElvisConfig),
+        {File, {ok, ElvisConfig0}} ?=
+            case FileOrConfig of
+                {config_file, default} ->
+                    {"elvis.config/rebar.config", config()};
+                {config_file, ConfigFilePath} ->
+                    {ConfigFilePath, from_file(ConfigFilePath)};
+                {config, Config} ->
+                    {undefined, {ok, Config}}
+            end,
+        {validate, ok} ?= {validate, elvis_config:validate(ElvisConfig0, File)},
+        ElvisConfig1 =
+            case Files of
+                undefined ->
+                    ElvisConfig0;
+                _ ->
+                    Paths = lists:map(fun file_to_path/1, Files),
+                    elvis_config:resolve_files(ElvisConfig0, Paths)
+            end,
         _ = elvis_ruleset:drop_custom(),
-        Results = lists:map(fun do_parallel_rock/1, ElvisConfig),
+        Results = lists:map(fun do_parallel_rock/1, ElvisConfig1),
         ok ?= lists:foldl(fun combine_results/2, ok, Results)
     else
+        {_, {error, Message}} ->
+            _ = elvis_utils:error(Message, []),
+            {errors, [Message]};
         {error, Term} ->
             {errors_or_warnings(), Term}
+    end.
+
+config() ->
+    case elvis_config:config() of
+        {error, _} = Error ->
+            Error;
+        Config ->
+            {ok, Config}
+    end.
+
+from_file(ConfigFilePath) ->
+    case elvis_config:from_file(ConfigFilePath) of
+        {error, _} = Error ->
+            Error;
+        Config ->
+            {ok, Config}
     end.
 
 errors_or_warnings() ->
@@ -63,6 +112,12 @@ errors_or_warnings() ->
             warnings;
         _ ->
             errors
+    end.
+
+file_to_path(File) ->
+    case elvis_file:find_files([File]) of
+        [] -> error({enoent, File});
+        [File0] -> File0
     end.
 
 %% In this context, `throw` means an error, e.g., validation or internal, not an actual
@@ -123,7 +178,7 @@ load_file_data(ElvisConfig, File) ->
 main([]) ->
     ok = application:load(elvis_core),
     {module, _} = code:ensure_loaded(elvis_style),
-    case rock(elvis_config:config()) of
+    case rock() of
         ok -> true;
         _ -> elvis_utils:erlang_halt(1)
     end.
