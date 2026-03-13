@@ -70,15 +70,15 @@ parse_colors(Message) ->
         },
     Opts = [global, {return, list}],
     case elvis_config:output_format() of
-        P when P =:= plain; P =:= parsable ->
-            re:replace(Message, "{{.*?}}", "", Opts);
         colors ->
             Fun = fun(Key, Acc) ->
                 Regex = ["{{", Key, "}}"],
                 Color = maps:get(Key, Colors),
                 re:replace(Acc, Regex, Color, Opts)
             end,
-            lists:foldl(Fun, Message, maps:keys(Colors))
+            lists:foldl(Fun, Message, maps:keys(Colors));
+        _ ->
+            re:replace(Message, "{{.*?}}", "", Opts)
     end.
 
 -spec escape_chars(string()) -> string().
@@ -138,7 +138,7 @@ do_output(info, Chars) ->
     case elvis_config:verbose() of
         true ->
             io:format(Chars);
-        false ->
+        _ ->
             ok
     end;
 do_output(notice, Chars) ->
