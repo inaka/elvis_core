@@ -32,7 +32,7 @@ end_per_suite(Config) ->
 rock_with_file_config(_Config) ->
     ConfigPath = "../../../../config/elvis.config",
     ElvisConfig = elvis_config:from_file(ConfigPath),
-    Fun = fun() -> elvis_core:rock(ElvisConfig) end,
+    Fun = fun() -> elvis_core:rock({config, ElvisConfig}) end,
     Expected =
         "# \\.\\./\\.\\./\\.\\./\\.\\./_build/test/lib/elvis_core/test/" ++
             "examples/.*\\.erl.*FAIL",
@@ -52,7 +52,7 @@ rock_with_bananas(_Config) ->
             file := File,
             rules := [#{name := behaviour_spelling}]
         }
-    ]} = elvis_core:rock(ElvisConfig),
+    ]} = elvis_core:rock({config, ElvisConfig}),
 
     elvis_config:set_warnings_as_errors(false),
     {warnings, [
@@ -60,7 +60,7 @@ rock_with_bananas(_Config) ->
             file := File,
             rules := [#{name := behaviour_spelling}]
         }
-    ]} = elvis_core:rock(ElvisConfig),
+    ]} = elvis_core:rock({config, ElvisConfig}),
 
     ok.
 
@@ -70,7 +70,7 @@ rock_with_rebar_default_config(_Config) ->
     elvis_config:set_warnings_as_errors(false),
     [#{name := max_line_length}] =
         try
-            {warnings, Results} = elvis_core:rock(ElvisConfig),
+            {warnings, Results} = elvis_core:rock({config, ElvisConfig}),
             [Rule || #{rules := [Rule]} <- Results]
         after
             file:delete("rebar.config")

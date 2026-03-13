@@ -46,9 +46,9 @@ functions that better fits your project's requirements.
 ].
 ```
 
-### Using `elvis_core:rock/1`'s new interface
+### Using the new interface: `elvis_core:rock/1,2,3`
 
-The function `elvis_core:rock/1` has been updated to return `ok | {errors, _} | {warnings, _}`.
+Functions `elvis_core:rock/1,2,3` have been updated to return `ok | {errors, _} | {warnings, _}`.
 
 The tuple label (`errors` or `warnings`) serves as a signal for the exit status code
 (use `0` for `warnings`, and non-`0` for `errors`).
@@ -81,16 +81,16 @@ You must now provide a list of configurations, with `files` and `ruleset`:
 
 ```erlang
 % As a filename
-elvis_core:rock([#{
+elvis_core:rock({config, [#{
     files => ["rebar.config"],
     ruleset => rebar_config
-}]).
+}]}).
 
 % As a module (requires the explicit file path)
-elvis_core:rock([#{
+elvis_core:rock({config, [#{
     files => ["src/elvis_core.erl"],
     ruleset => erl_files
-}]).
+}]}).
 ```
 
 **Note**: use `elvis_config:config/0` to retrieve the configuration for the current project, if

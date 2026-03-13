@@ -58,23 +58,26 @@ end_per_suite(Config) ->
 %%% Rocking
 
 rock_with_empty_map_config(_Config) ->
-    {errors, "in 'config', at list position number 1, 'files' is a compulsory option."} = elvis_core:rock(
-        [#{}]
+    {errors, ["in 'config', at list position number 1, 'files' is a compulsory option."]} = elvis_core:rock(
+        {config, [#{}]}
     ),
-    {errors, "'config' is expected to exist and be a non-empty list."} = elvis_core:rock([]),
+    {errors, ["'config' is expected to exist and be a non-empty list."]} = elvis_core:rock(
+        {config, []}
+    ),
     ok.
 
 rock_with_empty_list_config(_Config) ->
-    {errors, "in 'config', at list position number 1, 'files' is a compulsory option."} = elvis_core:rock(
-        [#{}, #{}]
+    {errors, ["in 'config', at list position number 1, 'files' is a compulsory option."]} = elvis_core:rock(
+        {config, [#{}, #{}]}
     ),
     ok.
 
 rock_with_incomplete_config(_Config) ->
     ElvisConfig = [#{files => ["src/*.erl"]}],
-    {errors,
-        "in 'config', at list position number 1, no '<globs>' in 'src/*.erl' yielded any files to analyse."} = elvis_core:rock(
-        ElvisConfig
+    {errors, [
+        "in 'config', at list position number 1, no '<globs>' in 'src/*.erl' yielded any files to analyse."
+    ]} = elvis_core:rock(
+        {config, ElvisConfig}
     ),
     ok.
 
@@ -85,7 +88,7 @@ rock_with_list_config(_Config) ->
             rules => [{elvis_text_style, max_line_length, disable}]
         }
     ],
-    ok = elvis_core:rock(ElvisConfig).
+    ok = elvis_core:rock({config, ElvisConfig}).
 
 %% Regression test for https://github.com/inaka/elvis_core/issues/543
 %% Glob patterns that don't match any existing paths should not cause
@@ -101,11 +104,11 @@ rock_with_glob_dirs_not_matching(_Config) ->
             rules => [{elvis_text_style, max_line_length, disable}]
         }
     ],
-    ok = elvis_core:rock(ElvisConfig).
+    ok = elvis_core:rock({config, ElvisConfig}).
 
 rock_without_colors(_Config) ->
     ElvisConfig = elvis_test_utils:config(),
-    Fun = fun() -> elvis_core:rock(ElvisConfig) end,
+    Fun = fun() -> elvis_core:rock({config, ElvisConfig}) end,
     Expected = "\\e.*?m",
     ok =
         try
@@ -124,7 +127,7 @@ rock_with_parsable(_Config) ->
     {ok, Default} = application:get_env(elvis_core, output_format),
     application:set_env(elvis_core, output_format, parsable),
     ElvisConfig = elvis_test_utils:config(),
-    Fun = fun() -> elvis_core:rock(ElvisConfig) end,
+    Fun = fun() -> elvis_core:rock({config, ElvisConfig}) end,
     Expected = ".*\\.erl:\\d:[a-zA-Z0-9_]+:.*",
     ok =
         try
@@ -145,7 +148,7 @@ rock_with_non_parsable_file(_Config) ->
     Path =
         "../../../../_build/test/lib/elvis_core/test/non_compilable_examples/fail_non_parsable_file.erl",
     ElvisConfig = elvis_test_utils:config_erl_files(Path),
-    {errors, [{error, Result}]} = elvis_core:rock(ElvisConfig),
+    {errors, [{error, Result}]} = elvis_core:rock({config, ElvisConfig}),
     "{{red}}Error: {{reset}}{badmatch," ++ _ = Result,
 
     ok.
@@ -153,14 +156,14 @@ rock_with_non_parsable_file(_Config) ->
 rock_with_no_output_has_no_output(_Config) ->
     application:set_env(elvis_core, no_output, true),
     ElvisConfig = elvis_test_utils:config(),
-    Fun = fun() -> elvis_core:rock(ElvisConfig) end,
+    Fun = fun() -> elvis_core:rock({config, ElvisConfig}) end,
     [] = get_output(Fun),
     application:unset_env(elvis_core, no_output),
     ok.
 
 rock_with_errors_has_output(_Config) ->
     ElvisConfig = elvis_test_utils:config(),
-    Fun = fun() -> elvis_core:rock(ElvisConfig) end,
+    Fun = fun() -> elvis_core:rock({config, ElvisConfig}) end,
     Expected = "FAIL",
     [_ | _] = elvis_test_utils:check_some_line_output(
         Fun, Expected, fun elvis_test_utils:matches_regex/2
@@ -170,7 +173,7 @@ rock_with_errors_has_output(_Config) ->
 rock_without_errors_has_no_output(_Config) ->
     ConfigPath = "../../../../config/test.pass.config",
     ElvisConfig = elvis_config:from_file(ConfigPath),
-    Fun = fun() -> elvis_core:rock(ElvisConfig) end,
+    Fun = fun() -> elvis_core:rock({config, ElvisConfig}) end,
     Output = get_output(Fun),
     %% This is related to the test case `rock_with_non_parsable_file`,
     %% which will print an error to the standard output
@@ -188,7 +191,7 @@ rock_without_errors_has_no_output(_Config) ->
 rock_without_errors_and_with_verbose_has_output(_Config) ->
     application:set_env(elvis_core, verbose, true),
     ElvisConfig = elvis_test_utils:config(),
-    Fun = fun() -> elvis_core:rock(ElvisConfig) end,
+    Fun = fun() -> elvis_core:rock({config, ElvisConfig}) end,
     Expected = "OK",
     [_ | _] = elvis_test_utils:check_some_line_output(
         Fun, Expected, fun elvis_test_utils:matches_regex/2
@@ -214,7 +217,7 @@ rock_with_rule_groups(_Config) ->
                 ruleset => rebar_config
             }
         ],
-    ok = elvis_core:rock(RulesGroupConfig),
+    ok = elvis_core:rock({config, RulesGroupConfig}),
     % Override default elvis_core rules without ruleset should fail.
     OverrideFailConfig =
         [
@@ -227,9 +230,10 @@ rock_with_rule_groups(_Config) ->
                     ]
             }
         ],
-    {errors,
-        "in 'config', at list position number 1, no '<globs>' in 'src/*.erl' yielded any files to analyse."} = elvis_core:rock(
-        OverrideFailConfig
+    {errors, [
+        "in 'config', at list position number 1, no '<globs>' in 'src/*.erl' yielded any files to analyse."
+    ]} = elvis_core:rock(
+        {config, OverrideFailConfig}
     ),
     % Override default elvis_core rules.
     OverrideConfig =
@@ -250,12 +254,12 @@ rock_with_rule_groups(_Config) ->
                 ruleset => rebar_config
             }
         ],
-    ok = elvis_core:rock(OverrideConfig).
+    ok = elvis_core:rock({config, OverrideConfig}).
 
 rock_with_umbrella_apps(_Config) ->
     ElvisUmbrellaConfigFile = "../../../../config/elvis-umbrella.config",
     ElvisConfig = elvis_config:from_file(ElvisUmbrellaConfigFile),
-    {errors, Failures} = elvis_core:rock(ElvisConfig),
+    {errors, Failures} = elvis_core:rock({config, ElvisConfig}),
     [
         #{
             file :=
@@ -293,7 +297,7 @@ rock_with_removed_rules(_Config) ->
     ConfigPath = "../../../../test/examples/removed_rules.elvis.config",
     ElvisConfig = elvis_config:from_file(ConfigPath),
     %% Should not crash; removed rules are skipped with a warning
-    ok = elvis_core:rock(ElvisConfig).
+    ok = elvis_core:rock({config, ElvisConfig}).
 
 %%%%%%%%%%%%%%%
 %%% Utils
@@ -329,7 +333,7 @@ hrl_ruleset(_Config) ->
             rules := [#{name := max_line_length}]
         }
     ]} =
-        elvis_core:rock(ElvisConfig),
+        elvis_core:rock({config, ElvisConfig}),
     ok.
 
 find_file_and_check_src(_Config) ->
@@ -360,7 +364,7 @@ ignore_gitignored(_Config) ->
     ConfigPath = "../../../../config/elvis-test-hrl-files.config",
     ElvisConfig = elvis_config:from_file(ConfigPath),
     WithGitignore = elvis_config:inject_ignore(ElvisConfig, ["test_good.hrl", "test_bad.hrl"]),
-    ok = elvis_core:rock(WithGitignore).
+    ok = elvis_core:rock({config, WithGitignore}).
 
 invalid_file(_Config) ->
     ok =

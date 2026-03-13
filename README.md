@@ -37,9 +37,7 @@ Once this is done you can apply the style rules in the following ways.
 #### Loading configuration from a file
 
 ```shell
-1> ElvisConfig = elvis_config:config().
-<loaded_config>
-2> application:set_env(elvis_core, verbose, true), elvis_core:rock(ElvisConfig).
+1> elvis_core:rock({config_file, "elvis.config"}).
 Loading src/elvis_code.erl
 # src/elvis_code.erl [OK]
 Loading src/elvis_config.erl
@@ -50,7 +48,7 @@ Loading src/elvis_file.erl
 # src/elvis_file.erl [OK]
 ...
 ok
-3>
+2>
 ```
 
 This will load the [configuration](#configuration), specified in file `elvis.config`, from the
@@ -70,7 +68,7 @@ an argument to `elvis_core:rock/1`:
 ```shell
 1> ElvisConfig = [#{files => ["src/elvis_rule.erl"], ruleset => erl_files}].
 [#{files => ["src/elvis_rule.erl"],rules => []}]
-2> application:set_env(elvis_core, verbose, true), elvis_core:rock(ElvisConfig).
+2> elvis_core:rock({config, ElvisConfig}).
 Loading src/elvis_rule.erl
 # src/elvis_rule.erl [OK]
 ok

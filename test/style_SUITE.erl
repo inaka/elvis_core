@@ -3336,7 +3336,7 @@ verify_private_data_types(Config) ->
 
 results_are_ordered_by_line(_Config) ->
     ElvisConfig = elvis_test_utils:config(),
-    {errors, Results} = elvis_core:rock(ElvisConfig),
+    {errors, Results} = elvis_core:rock({config, ElvisConfig}),
     true = lists:all(fun(X) -> X end, is_item_line_sort(Results)).
 
 oddities(_Config) ->
@@ -3348,7 +3348,7 @@ oddities(_Config) ->
                 rules => [{elvis_style, no_god_modules, #{limit => 0}}]
             }
         ],
-    {errors, [#{rules := [_, _, _, _]}]} = elvis_core:rock(ElvisConfig),
+    {errors, [#{rules := [_, _, _, _]}]} = elvis_core:rock({config, ElvisConfig}),
     true.
 
 verify_macro_definition_parentheses(Config) ->
