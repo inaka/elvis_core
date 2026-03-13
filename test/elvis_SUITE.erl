@@ -73,9 +73,9 @@ rock_with_empty_list_config(_Config) ->
     ok.
 
 rock_with_incomplete_config(_Config) ->
-    ElvisConfig = [#{files => ["src/*.erl"]}],
+    ElvisConfig = [#{files => ["src/*.erl", "test/*.erl"]}],
     {errors, [
-        "key 'config', at list position number 1, yielded no files to analyse in 'src/*.erl'."
+        "key 'config', at list position number 1, yielded no files to analyse in [\"src/*.erl\", \"test/*.erl\"]."
     ]} = elvis_core:rock(
         {config, ElvisConfig}
     ),
@@ -231,7 +231,7 @@ rock_with_rule_groups(_Config) ->
             }
         ],
     {errors, [
-        "key 'config', at list position number 1, yielded no files to analyse in 'src/*.erl'."
+        "key 'config', at list position number 1, yielded no files to analyse in [\"src/*.erl\"]."
     ]} = elvis_core:rock(
         {config, OverrideFailConfig}
     ),
@@ -290,7 +290,7 @@ rock_with_invalid_rules(_Config) ->
     ConfigPath = "../../../../test/examples/invalid_rules.elvis.config",
     {error, Error} = elvis_config:from_file(ConfigPath),
     Error =
-        "in file '../../../../test/examples/invalid_rules.elvis.config', key 'config', at list position number 1, yielded no files to analyse in '../../_build/default/lib/elvis_core/src/*.erl'.",
+        "in file '../../../../test/examples/invalid_rules.elvis.config', key 'config', at list position number 1, yielded no files to analyse in [\"../../_build/default/lib/elvis_core/src/*.erl\"].",
     ok.
 
 rock_with_removed_rules(_Config) ->

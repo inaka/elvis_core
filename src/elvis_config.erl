@@ -711,8 +711,8 @@ all_files_globs_are_valid(FileGlobs) ->
                     ok;
                 false ->
                     {error,
-                        io_lib:format("yielded no files to analyse in '~s'.", [
-                            FileGlobs
+                        io_lib:format("yielded no files to analyse in [\"~s\"].", [
+                            lists:join("\", \"", FileGlobs)
                         ])}
             end;
         false ->
