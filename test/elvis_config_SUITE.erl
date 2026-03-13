@@ -118,7 +118,8 @@ validate(_Config) ->
         end,
         [
             % invalid top-level content (non-existing file)
-            {"-1.config", "'elvis.config' is expected to exist and be a non-empty list."},
+            {"-1.config",
+                "'../../../../test/examples/configs/-1.config' is expected to exist and be a non-empty list."},
 
             % invalid elvis.config (unconsultable file)
             {"1_1.config",
@@ -161,7 +162,8 @@ validate(_Config) ->
                 "in 'config', at list position number 1, either 'rules' is a non-empty list or 'ruleset' is defined."},
 
             % invalid elvis (unknown key)
-            {"6_1.config", "in 'elvis.config', the following keys are unknown: [<<\"key\">>]."},
+            {"6_1.config",
+                "in '../../../../test/examples/configs/6_1.config', the following keys are unknown: [<<\"key\">>]."},
             % invalid elvis.output_format (not "one of")
             {"6_2.config",
                 "'output_format' is expected to be one of the following: [parsable, plain, colors]."},

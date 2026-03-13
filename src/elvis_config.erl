@@ -26,6 +26,7 @@
     #{
         files := [nonempty_string()],
         ruleset := atom(),
+        rules => [tuple()],
         resolved_files => dynamic(),
         ignore => [string()]
     }.
@@ -138,7 +139,7 @@ for(Key) ->
     maybe
         AppDefault = default_for(app),
         {ok, ElvisConfig} ?= consult_elvis_config("elvis.config"),
-        AppConfig =
+        {ok, AppConfig} ?=
             case ElvisConfig of
                 AppDefault ->
                     % This might happen whether we fail to parse the file or it actually is []
@@ -147,7 +148,7 @@ for(Key) ->
                     ),
                     consult_rebar_config("rebar.config");
                 AppConfig0 ->
-                    AppConfig0
+                    {ok, AppConfig0}
             end,
         from_static(Key, {app, AppConfig})
     else
@@ -170,33 +171,40 @@ consult_elvis_config(File) ->
     end.
 
 consult_rebar_config(File) ->
-    AppConfig =
-        case file:consult(File) of
-            {ok, AppConfig0} when is_list(AppConfig0) ->
-                _ = elvis_utils:debug("rebar.config is consultable; using it", []),
-                AppConfig0;
-            _ ->
-                _ = elvis_utils:debug("rebar.config os unconsultable", []),
-                default_for('rebar.config')
-        end,
-    from_static(elvis, {'rebar.config', AppConfig}).
+    case file:consult(File) of
+        {ok, AppConfig} when is_list(AppConfig) ->
+            _ = elvis_utils:debug("rebar.config is consultable; using it", []),
+            {ok, from_static(elvis, {'rebar.config', AppConfig})};
+        {error, {Line, Mod, Term}} ->
+            {error,
+                lists:flatten(
+                    io_lib:format("rebar.config is unconsultable: ~p, ~p, ~p", [Line, Mod, Term])
+                )};
+        _ ->
+            _ = elvis_utils:debug("rebar.config is unconsultable", []),
+            {ok, default_for('rebar.config')}
+    end.
 
 -spec from_rebar(File :: string()) -> [t()] | {error, Message :: string()}.
 from_rebar(File) ->
-    AppConfig = consult_rebar_config(File),
-    fetch_elvis_config_from(AppConfig).
+    maybe
+        {ok, AppConfig} ?= consult_rebar_config(File),
+        fetch_elvis_config_from(AppConfig, File)
+    else
+        {error, _} = Error -> Error
+    end.
 
 -spec from_file(File :: string()) -> [t()] | {error, Message :: string()}.
 from_file(File) ->
     maybe
         {ok, AppConfig} ?= consult_elvis_config(File),
-        fetch_elvis_config_from(AppConfig)
+        fetch_elvis_config_from(AppConfig, File)
     else
         {error, _} = Error -> Error
     end.
 
-fetch_elvis_config_from(AppConfig) ->
-    try do_validate({app, AppConfig}) of
+fetch_elvis_config_from(AppConfig, File) ->
+    try do_validate({app, AppConfig, File}) of
         ok ->
             from_static(config, {app, AppConfig})
     catch
@@ -433,12 +441,12 @@ get_elvis_opt(OptName, Elvis) ->
 elvis_control_opts() ->
     [output_format, verbose, no_output, parallel, warnings_as_errors].
 
-do_validate({app = _Option, Elvis}) ->
+do_validate({app = _Option, Elvis, File}) ->
     maybe
-        ok ?= is_nonempty_list("elvis.config", Elvis),
+        ok ?= is_nonempty_list(File, Elvis),
         ok ?=
             proplist_keys_are_in(
-                'elvis.config', Elvis, elvis_control_opts() ++ [rulesets, config]
+                File, Elvis, elvis_control_opts() ++ [rulesets, config]
             ),
         OutputFormat = get_elvis_opt(output_format, Elvis),
         ok ?= is_one_of(output_format, OutputFormat, [colors, plain, parsable]),
