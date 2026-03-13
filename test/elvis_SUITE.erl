@@ -58,16 +58,16 @@ end_per_suite(Config) ->
 %%% Rocking
 
 rock_with_empty_map_config(_Config) ->
-    {errors, ["in 'config', at list position number 1, 'files' is a compulsory option."]} = elvis_core:rock(
+    {errors, ["key 'config', at list position number 1, is missing compulsory map key 'files'."]} = elvis_core:rock(
         {config, [#{}]}
     ),
-    {errors, ["'config' is expected to exist and be a non-empty list."]} = elvis_core:rock(
+    {errors, ["key 'config' is expected to exist and be a non-empty list."]} = elvis_core:rock(
         {config, []}
     ),
     ok.
 
 rock_with_empty_list_config(_Config) ->
-    {errors, ["in 'config', at list position number 1, 'files' is a compulsory option."]} = elvis_core:rock(
+    {errors, ["key 'config', at list position number 1, is missing compulsory map key 'files'."]} = elvis_core:rock(
         {config, [#{}, #{}]}
     ),
     ok.
@@ -75,7 +75,7 @@ rock_with_empty_list_config(_Config) ->
 rock_with_incomplete_config(_Config) ->
     ElvisConfig = [#{files => ["src/*.erl"]}],
     {errors, [
-        "in 'config', at list position number 1, no '<globs>' in 'src/*.erl' yielded any files to analyse."
+        "key 'config', at list position number 1, yielded no files to analyse in 'src/*.erl'."
     ]} = elvis_core:rock(
         {config, ElvisConfig}
     ),
@@ -231,7 +231,7 @@ rock_with_rule_groups(_Config) ->
             }
         ],
     {errors, [
-        "in 'config', at list position number 1, no '<globs>' in 'src/*.erl' yielded any files to analyse."
+        "key 'config', at list position number 1, yielded no files to analyse in 'src/*.erl'."
     ]} = elvis_core:rock(
         {config, OverrideFailConfig}
     ),
@@ -290,7 +290,7 @@ rock_with_invalid_rules(_Config) ->
     ConfigPath = "../../../../test/examples/invalid_rules.elvis.config",
     {error, Error} = elvis_config:from_file(ConfigPath),
     Error =
-        "in 'config', at list position number 1, no '<globs>' in '../../_build/default/lib/elvis_core/src/*.erl' yielded any files to analyse.",
+        "in file '../../../../test/examples/invalid_rules.elvis.config', key 'config', at list position number 1, yielded no files to analyse in '../../_build/default/lib/elvis_core/src/*.erl'.",
     ok.
 
 rock_with_removed_rules(_Config) ->
@@ -315,7 +315,7 @@ custom_ruleset(_Config) ->
     %% previous load do not stick around
     ConfigPathMissing = "../../../../config/elvis-test-unknown-ruleset.config",
     {error,
-        "in 'config', at list position number 1, 'project' is expected to be either a custom or a default ruleset."} = elvis_config:from_file(
+        "in file '../../../../config/elvis-test-unknown-ruleset.config', key 'config', at list position number 1, 'project' is expected to be either a custom or a default ruleset."} = elvis_config:from_file(
         ConfigPathMissing
     ),
     ok.

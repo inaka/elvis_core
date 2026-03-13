@@ -96,7 +96,7 @@ validate_config_with_string_ignore(_Config) ->
             ruleset => erl_files
         }
     ],
-    ok = elvis_config:validate_config(Config).
+    ok = elvis_config:validate(Config, undefined).
 
 validate(_Config) ->
     ConfigDir = filename:join(["test", "examples", "configs"]),
@@ -119,63 +119,71 @@ validate(_Config) ->
         [
             % invalid top-level content (non-existing file)
             {"-1.config",
-                "'../../../../test/examples/configs/-1.config' is expected to exist and be a non-empty list."},
+                "file '../../../../test/examples/configs/-1.config' is expected to exist and be a non-empty list."},
 
             % invalid elvis.config (unconsultable file)
             {"1_1.config",
                 "elvis.config is unconsultable: 1, erl_parse, [\"syntax error before: \",\"'.'\"]"},
 
             % invalid elvis.config (does not exist)
-            {"2_1.config", "'config' is expected to exist and be a non-empty list."},
+            {"2_1.config",
+                "in file '../../../../test/examples/configs/2_1.config', key 'config' is expected to exist and be a non-empty list."},
             % invalid elvis.config (is not a list)
-            {"2_2.config", "'config' is expected to exist and be a non-empty list."},
+            {"2_2.config",
+                "in file '../../../../test/examples/configs/2_2.config', key 'config' is expected to exist and be a non-empty list."},
             % invalid elvis.config (is an empty list)
-            {"2_3.config", "'config' is expected to exist and be a non-empty list."},
+            {"2_3.config",
+                "in file '../../../../test/examples/configs/2_3.config', key 'config' is expected to exist and be a non-empty list."},
             % invalid elvis.config element (is not a map)
             {"2_4.config",
-                "in 'config', at list position number 1, element is expected to be a map."},
+                "in file '../../../../test/examples/configs/2_4.config', key 'config', at list position number 1, element is expected to be a map."},
             % invalid elvis.config element (unknown key)
             {"2_5.config",
-                "in 'config', at list position number 1, the following keys are unknown: [<<\"key\">>]."},
+                "in file '../../../../test/examples/configs/2_5.config', key 'config', at list position number 1, the following keys are unknown: [<<\"key\">>]."},
 
             % invalid config > files (does not exist)
             {"3_1.config",
-                "in 'config', at list position number 1, 'files' is a compulsory option."},
+                "in file '../../../../test/examples/configs/3_1.config', key 'config', at list position number 1, is missing compulsory map key 'files'."},
             % invalid elvis.config > files (is not a list)
             {"3_2.config",
-                "in 'config', at list position number 1, 'files' is expected to be a non-empty list."},
+                "in file '../../../../test/examples/configs/3_2.config', key 'config', at list position number 1, 'files' is expected to be a non-empty list."},
             % invalid elvis.config > files (is an empty list)
             {"3_3.config",
-                "in 'config', at list position number 1, 'files' is expected to be a non-empty list."},
+                "in file '../../../../test/examples/configs/3_3.config', key 'config', at list position number 1, 'files' is expected to be a non-empty list."},
 
             % invalid config > rules + ruleset combo (one has to be defined)
             {"5_1.config",
-                "in 'config', at list position number 1, either 'rules' is a non-empty list or 'ruleset' is defined."},
+                "in file '../../../../test/examples/configs/5_1.config', key 'config', at list position number 1, either 'rules' is a non-empty list or 'ruleset' is defined."},
             % invalid elvis.config > rules (is not a list)
             {"5_2.config",
-                "in 'config', at list position number 1, 'rules' is expected to be a list."},
+                "in file '../../../../test/examples/configs/5_2.config', key 'config', at list position number 1, 'rules' is expected to be a list."},
             % invalid elvis.config > ruleset (is not valid)
             {"5_3.config",
-                "in 'config', at list position number 1, 'not_a_ruleset' is expected to be either a custom or a default ruleset."},
+                "in file '../../../../test/examples/configs/5_3.config', key 'config', at list position number 1, 'not_a_ruleset' is expected to be either a custom or a default ruleset."},
             % invalid elvis.config > rules (is an empty list), ruleset is undefined
             {"5_4.config",
-                "in 'config', at list position number 1, either 'rules' is a non-empty list or 'ruleset' is defined."},
+                "in file '../../../../test/examples/configs/5_4.config', key 'config', at list position number 1, either 'rules' is a non-empty list or 'ruleset' is defined."},
 
             % invalid elvis (unknown key)
             {"6_1.config",
-                "in '../../../../test/examples/configs/6_1.config', the following keys are unknown: [<<\"key\">>]."},
+                "in file '../../../../test/examples/configs/6_1.config', the following keys are unknown: [<<\"key\">>]."},
             % invalid elvis.output_format (not "one of")
             {"6_2.config",
-                "'output_format' is expected to be one of the following: [parsable, plain, colors]."},
+                "in file '../../../../test/examples/configs/6_2.config', key 'output_format' is expected to be one of the following: [parsable, plain, colors]."},
             % invalid elvis.verbose (not a boolean)
-            {"6_3.config", "'verbose' is expected to be a boolean."},
+            {"6_3.config",
+                "in file '../../../../test/examples/configs/6_3.config', key 'verbose' is expected to be a boolean."},
             % invalid elvis.no_output (not a boolean)
-            {"6_4.config", "'no_output' is expected to be a boolean."},
+            {"6_4.config",
+                "in file '../../../../test/examples/configs/6_4.config', key 'no_output' is expected to be a boolean."},
             % invalid elvis.parallel (not an integer)
-            {"6_5.config", "'parallel' is expected to be a positive integer."},
+            {"6_5.config",
+                "in file '../../../../test/examples/configs/6_5.config', key 'parallel' is expected to be a positive integer."},
             % invalid elvis.parallel (not a positive integer)
-            {"6_6.config", "'parallel' is expected to be a positive integer."},
+            {"6_6.config",
+                "in file '../../../../test/examples/configs/6_6.config', key 'parallel' is expected to be a positive integer."},
             % invalid elvis.warnings_as_errors (not a boolean)
-            {"6_7.config", "'warnings_as_errors' is expected to be a boolean."}
+            {"6_7.config",
+                "in file '../../../../test/examples/configs/6_7.config', key 'warnings_as_errors' is expected to be a boolean."}
         ]
     ).

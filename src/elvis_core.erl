@@ -61,15 +61,16 @@ rock(FileOrConfig) ->
     Files :: {files, undefined | [string()]}.
 rock(FileOrConfig, {files, Files}) ->
     maybe
-        ElvisConfig0 =
+        {File, {ok, ElvisConfig0}} ?=
             case FileOrConfig of
                 {config_file, default} ->
-                    elvis_config:config();
+                    {"elvis.config/rebar.config", config()};
                 {config_file, ConfigFilePath} ->
-                    elvis_config:from_file(ConfigFilePath);
+                    {ConfigFilePath, from_file(ConfigFilePath)};
                 {config, Config} ->
-                    Config
+                    {undefined, {ok, Config}}
             end,
+        {validate, ok} ?= {validate, elvis_config:validate(ElvisConfig0, File)},
         ElvisConfig1 =
             case Files of
                 undefined ->
@@ -78,15 +79,31 @@ rock(FileOrConfig, {files, Files}) ->
                     Paths = lists:map(fun file_to_path/1, Files),
                     elvis_config:resolve_files(ElvisConfig0, Paths)
             end,
-        {validate_config, ok} ?= {validate_config, elvis_config:validate_config(ElvisConfig1)},
         _ = elvis_ruleset:drop_custom(),
         Results = lists:map(fun do_parallel_rock/1, ElvisConfig1),
         ok ?= lists:foldl(fun combine_results/2, ok, Results)
     else
-        {validate_config, {error, Message}} ->
+        {_, {error, Message}} ->
+            _ = elvis_utils:error(Message, []),
             {errors, [Message]};
         {error, Term} ->
             {errors_or_warnings(), Term}
+    end.
+
+config() ->
+    case elvis_config:config() of
+        {error, _} = Error ->
+            Error;
+        Config ->
+            {ok, Config}
+    end.
+
+from_file(ConfigFilePath) ->
+    case elvis_config:from_file(ConfigFilePath) of
+        {error, _} = Error ->
+            Error;
+        Config ->
+            {ok, Config}
     end.
 
 errors_or_warnings() ->
