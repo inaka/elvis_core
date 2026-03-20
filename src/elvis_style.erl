@@ -3307,7 +3307,7 @@ macro_definition_parentheses(Rule, ElvisConfig) ->
                 {call, op} ->
                     false;
                 {call, _} ->
-                    true;
+                    macro_define_call_args(Elem1);
                 {var, tree} ->
                     is_stringified_function(get_tree_content(Elem2), StringifiedRegex);
                 _ ->
@@ -3339,6 +3339,12 @@ macro_attr_type({Type, _, _, _}) ->
     Type;
 macro_attr_type({Type, _, _, _, _}) ->
     Type.
+
+%% Only -define(NAME(), rhs) (empty arg list) can be a constant with stray ().
+macro_define_call_args({call, _, _, []}) ->
+    true;
+macro_define_call_args(_) ->
+    false.
 
 is_stringified_function_regex() ->
     re_compile("^[a-zA-Z_][a-zA-Z0-9_]* ?:? ?[a-zA-Z0-9_]*\\([^)]*\\)$").

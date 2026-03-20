@@ -12,6 +12,12 @@
         (Error =:= ssl_error andalso element(2, State) =:= ssl))
 ).
 
+%% Multiline body with list: LHS has macro parameters (issue #610).
+-define(BAD(Macro), [
+    multiline,
+    Macro
+]).
+
 -define(SOMETHING(), something:poorly(written).
 
 -define(THE_MACRO, io:format("~p\n", [).
