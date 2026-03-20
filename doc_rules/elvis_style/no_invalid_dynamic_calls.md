@@ -1,6 +1,7 @@
 # No Invalid Dynamic Calls ![](https://img.shields.io/badge/BEAM-yes-orange)
 
-> [!NOTE]
+> #### Note {: .info}
+>
 > This rule was named `invalid_dynamic_call` before [4.2.0](https://github.com/inaka/elvis_core/releases/tag/4.2.0).
 
 Calls to non-local and non-external functions, in modules that do not include a `callback`

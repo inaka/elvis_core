@@ -3,9 +3,10 @@
 Dependencies in `rebar.config` should not use branch `master` (e.g., `{branch, "master"}`); use
 `{tag, "..."}` or `{ref, "..."}` instead.
 
-> [!WARNING]
+> #### Warning {: .warning}
+>
 > This rule was removed in version [2.0.0](https://github.com/inaka/elvis_core/releases/tag/2.0.0);
-use `no_branch_deps` instead.
+> use `no_branch_deps` instead.
 
 ## Options
 

@@ -1,6 +1,7 @@
 # No God Modules ![](https://img.shields.io/badge/BEAM-yes-orange)
 
-> [!NOTE]
+> #### Note {: .info}
+>
 > This rule was named `god_modules` before [4.2.0](https://github.com/inaka/elvis_core/releases/tag/4.2.0).
 
 The number of exported functions in a module should be limited to a maximum threshold.

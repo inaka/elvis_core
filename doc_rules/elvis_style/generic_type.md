@@ -1,6 +1,7 @@
 # Generic Type [![](https://img.shields.io/badge/since-2.0.1-blue)](https://github.com/inaka/elvis_core/releases/tag/2.0.1) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
-> [!NOTE]
+> #### Note {: .info}
+>
 > This rule was named `consistent_generic_type` before [4.2.0](https://github.com/inaka/elvis_core/releases/tag/4.2.0).
 
 `term()` or `any()` should be used consistently in typespecs.

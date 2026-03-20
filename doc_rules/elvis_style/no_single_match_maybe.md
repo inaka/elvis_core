@@ -2,7 +2,8 @@
 
 Single-match `maybe` blocks should be avoided.
 
-> [!NOTE]  
+> #### Note {: .info}
+>
 > This rule only works under Erlang/OTP 27+.
 
 ## Avoid
