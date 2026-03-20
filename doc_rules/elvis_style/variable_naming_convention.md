@@ -8,13 +8,13 @@ match the `forbidden_regex` option pattern, in which case they are disallowed.
 > This is a convention aimed at ensuring consistency, rather than a coding issue.
 
 ```erlang
-My____var = 123.
+My____var = 123
 ```
 
 ## Prefer
 
 ```erlang
-MyVar = 123.
+MyVar = 123
 ```
 
 ## Rationale
@@ -31,7 +31,8 @@ By defining a regular expression for naming variables you increase consistency a
 ## Example configuration
 
 ```erlang
-{elvis_style, variable_naming_convention, #{ regex => "^_?([A-Z][0-9a-zA-Z]*)$"
-                                           , forbidden_regex => undefined
-                                           }}
+{elvis_style, variable_naming_convention, #{
+    regex => "^_?([A-Z][0-9a-zA-Z]*)$",
+    forbidden_regex => undefined
+}}
 ```

@@ -9,13 +9,14 @@ Function argument capture pattern-matching should be consistently defined in the
 Depending on your choice, you should avoid:
 
 ```erlang
-myfunc(Params = #{pattern := ToMatch}) % the default "avoid"
+% the default "avoid".
+myfunc(Params = #{pattern := ToMatch})
 ```
 
 or:
 
 ```erlang
-myfunc(#{pattern := ToMatch} = Params)
+myfunc(#{pattern := ToMatch} = Params).
 ```
 
 ## Prefer
@@ -23,13 +24,14 @@ myfunc(#{pattern := ToMatch} = Params)
 Depending on your choice, you should prefer:
 
 ```erlang
-myfunc(#{pattern := ToMatch} = Params) % the default "prefer"
+% the default "prefer".
+myfunc(#{pattern := ToMatch} = Params)
 ```
 
 or:
 
 ```erlang
-myfunc(Params = #{pattern := ToMatch})
+myfunc(Params = #{pattern := ToMatch}).
 ```
 
 ## Rationale
@@ -49,5 +51,5 @@ pattern matching for function arguments is uniform throughout the codebase.
 ## Example configuration
 
 ```erlang
-{elvis_style, param_pattern_matching, #{ side => right }}
+{elvis_style, param_pattern_matching, #{side => right}}
 ```

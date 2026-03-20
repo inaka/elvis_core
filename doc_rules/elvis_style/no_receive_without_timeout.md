@@ -17,9 +17,8 @@ end
 receive
     something ->
         do:something()
-after
-    60_000 ->
-        exit(nothing_received)
+after 60_000 ->
+    exit(nothing_received)
 end
 ```
 

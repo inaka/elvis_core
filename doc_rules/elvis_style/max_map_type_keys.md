@@ -24,5 +24,5 @@ focused logic and makes it easier to navigate the codebase.
 ## Example configuration
 
 ```erlang
-{elvis_style, max_map_type_keys, #{ max_keys => 30 }}
+{elvis_style, max_map_type_keys, #{max_keys => 30}}
 ```

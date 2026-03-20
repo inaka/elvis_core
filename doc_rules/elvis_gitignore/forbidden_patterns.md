@@ -15,5 +15,5 @@ are those a majority of bootstrap projects should not adopt.
 ## Example configuration
 
 ```erlang
-{elvis_gitignore, forbidden_patterns, #{ regexes => ["^rebar.lock$"] }}
+{elvis_gitignore, forbidden_patterns, #{regexes => ["^rebar.lock$"]}}
 ```

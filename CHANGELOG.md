@@ -1,7 +1,7 @@
 <!-- markdownlint-disable MD013 -->
 # Changelog
 
-For more recent releases check the [Releases](../../releases) page.
+For more recent releases check the [Releases](https://github.com/inaka/elvis_core/releases) page.
 
 ## [1.3.1](https://github.com/inaka/elvis_core/tree/1.3.1) (2021-10-18)
 

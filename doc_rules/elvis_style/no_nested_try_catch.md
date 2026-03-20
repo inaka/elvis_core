@@ -23,19 +23,27 @@
 ## Prefer
 
 ```erlang
-    try do:something() of
-        {ok, KeepGoing} ->
-            try
-                do:something_else("and", KeepGoing)
-            catch
-                _:_ -> {ignore, errors, here}
-            end
+try do:something() of
+    {ok, KeepGoing} ->
+        try
+            do:something_else("and", KeepGoing)
+        catch
+            _:_ -> {ignore, errors, here}
+        end
+catch
+    Kind:Error ->
+        try
+            this:block(is, also, not_nested)
+        catch
+            _:_ -> {Kind, Error}
+        end
+after
+    try
+        this:one(is, "not", nested, either)
     catch
-        Kind:Error ->
-            try this:block(is, also, not_nested) catch _:_ -> {Kind, Error} end
-    after
-        try this:one(is, "not", nested, either) catch _:_ -> ok end
-    end.
+        _:_ -> ok
+    end
+end
 ```
 
 ## Rationale

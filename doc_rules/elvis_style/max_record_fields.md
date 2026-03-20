@@ -19,5 +19,5 @@ focused logic and makes it easier to navigate the codebase.
 ## Example configuration
 
 ```erlang
-{elvis_style, max_record_fields, #{ max_fields => 30 }}
+{elvis_style, max_record_fields, #{max_fields => 30}}
 ```

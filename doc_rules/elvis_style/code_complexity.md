@@ -24,7 +24,8 @@ complex_handler(Request) ->
                                 error:badarg -> {error, format};
                                 _:_ -> {error, unknown}
                             end;
-                        {error, R} -> {error, R}
+                        {error, R} ->
+                            {error, R}
                     end;
                 true ->
                     {error, invalid}
@@ -72,5 +73,5 @@ improves readability and testability.
 ## Example configuration
 
 ```erlang
-{elvis_style, code_complexity, #{ max_complexity => 10 }}
+{elvis_style, code_complexity, #{max_complexity => 10}}
 ```

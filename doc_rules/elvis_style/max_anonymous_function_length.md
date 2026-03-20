@@ -24,8 +24,9 @@ focused logic and makes it easier to navigate the codebase.
 ## Example configuration
 
 ```erlang
-{elvis_style, max_anonymous_function_length, #{ max_length => 30
-                                              , count_comments => false
-                                              , count_whitespace => false
-                                              }}
+{elvis_style, max_anonymous_function_length, #{
+    max_length => 30,
+    count_comments => false,
+    count_whitespace => false
+}}
 ```

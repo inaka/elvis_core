@@ -9,24 +9,20 @@ the `forbidden_regex` option pattern, in which case they are disallowed.
 
 ```erlang
 a____function() -> ok.
-
-...
+    ...
 
 another___function() ->
     ...
-    ok.
 ```
 
 ## Prefer
 
 ```erlang
 a_function() -> ok.
-
-...
+    ...
 
 another_function() ->
     ...
-    ok.
 ```
 
 ## Rationale
@@ -45,7 +41,8 @@ By defining a regular expression for naming functions you increase consistency a
 ## Example configuration
 
 ```erlang
-{elvis_style, function_naming_convention, #{ regex => "^[a-z](_?[a-z0-9]+)*(_test_)?$"
-                                           , forbidden_regex => undefined
-                                           }}
+{elvis_style, function_naming_convention, #{
+    regex => "^[a-z](_?[a-z0-9]+)*(_test_)?$",
+    forbidden_regex => undefined
+}}
 ```

@@ -2,7 +2,8 @@
 
 The use of macros in dynamic function calls should be avoided.
 
-> [!WARNING]
+> #### Warning {: .warning}
+>
 > This rule was removed in version [4.1.0](https://github.com/inaka/elvis_core/releases/tag/4.1.0).
 
 ## Exceptions

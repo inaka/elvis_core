@@ -1,0 +1,51 @@
+%% -*- erlang -*-
+%% Adds every project markdown extra (including doc_rules/**) to ex_doc so HexDocs
+%% resolves links from README / RULES, and groups sidebar entries by category.
+
+%% helper funs
+SetOpt = fun(Key, Value, Opts) ->
+    lists:keystore(Key, 1, lists:keydelete(Key, 1, Opts), {Key, Value})
+end,
+
+InDir = fun(Dir) ->
+    fun(F) ->
+        lists:prefix(Dir, F)
+    end
+end,
+
+AsBin = fun(ListOfCharLists) ->
+    [list_to_binary(CharList) || CharList <- ListOfCharLists]
+end,
+
+RootExtras = [
+    "README.md",
+    "RULES.md",
+    "MIGRATION.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    "CODE_OF_CONDUCT.md",
+    "LICENSE"
+],
+DocRuleFiles = lists:sort(filelib:wildcard("doc_rules/**/*.md")),
+
+StyleFiles = lists:filter(InDir("doc_rules/elvis_style/"), DocRuleFiles),
+TextStyleFiles = lists:filter(InDir("doc_rules/elvis_text_style/"), DocRuleFiles),
+ProjectRuleFiles = lists:filter(InDir("doc_rules/elvis_project/"), DocRuleFiles),
+GitignoreFiles = lists:filter(InDir("doc_rules/elvis_gitignore/"), DocRuleFiles),
+
+GroupsForExtras = [
+    {<<"Overview">>, AsBin(RootExtras)},
+    {<<"Style rules">>, AsBin(StyleFiles)},
+    {<<"Text style rules">>, AsBin(TextStyleFiles)},
+    {<<"Project rules">>, AsBin(ProjectRuleFiles)},
+    {<<"Gitignore rules">>, AsBin(GitignoreFiles)}
+],
+
+AllExtras = RootExtras ++ DocRuleFiles,
+
+ExDoc0 = proplists:get_value(ex_doc, CONFIG, []),
+ExDoc1 = SetOpt(extras, AllExtras, ExDoc0),
+ExDoc2 = SetOpt(groups_for_extras, GroupsForExtras, ExDoc1),
+
+lists:keystore(ex_doc, 1, CONFIG, {ex_doc, ExDoc2}).

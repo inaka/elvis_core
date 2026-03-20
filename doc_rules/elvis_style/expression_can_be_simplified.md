@@ -69,8 +69,7 @@ which targets expressions like `X op X` where both operands are the same.
             bor_zero,
             bxor_zero
         ]
-    }
-}
+}}
 ```
 
 To enable only a subset (e.g. list and arithmetic simplifications):
@@ -87,6 +86,5 @@ To enable only a subset (e.g. list and arithmetic simplifications):
             multiply_by_one_right,
             multiply_by_one_left
         ]
-    }
-}
+}}
 ```

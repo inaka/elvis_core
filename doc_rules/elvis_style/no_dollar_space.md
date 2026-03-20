@@ -9,7 +9,7 @@ Use of <code>$&nbsp;</code> should be avoided.
 case Char of
     $ -> "It's a space";
     _ -> "It's something else"
-end.
+end
 ```
 
 ## Prefer
@@ -18,7 +18,7 @@ end.
 case Char of
     $\s -> "It's a space";
     _ -> "It's something else"
-end.
+end
 ```
 
 ## Rationale

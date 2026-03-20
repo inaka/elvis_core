@@ -1,5 +1,9 @@
 ---
 default: true
+# ExDoc admonitions are blockquotes with ###/#### {: .class} headings right under the page # title,
+# which skips ## and violates MD001 if enabled. See
+# https://hexdocs.pm/ex_doc/readme.html#admonition-blocks
+MD001: false
 MD013:
   line_length: 100
 MD024:

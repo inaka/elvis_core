@@ -77,7 +77,7 @@ third_function(X) when X == c orelse X == d orelse X >= 10 -> {clause, 3}.
 ```
 
 ```erlang
-{elvis_style, guard_operators, #{ preferred_syntax => punctuation }}
+{elvis_style, guard_operators, #{preferred_syntax => punctuation}}
 ```
 
 This configuration will emit a warning for:
@@ -86,7 +86,7 @@ This configuration will emit a warning for:
 - all clauses in the third function
 
 ```erlang
-{elvis_style, guard_operators, #{ preferred_syntax => words }}
+{elvis_style, guard_operators, #{preferred_syntax => words}}
 ```
 
 This configuration will emit a warning for:
@@ -95,7 +95,7 @@ This configuration will emit a warning for:
 - all clauses in the second function
 
 ```erlang
-{elvis_style, guard_operators, #{ preferred_syntax => per_expression }}
+{elvis_style, guard_operators, #{preferred_syntax => per_expression}}
 ```
 
 This configuration will emit a warning for:
@@ -103,7 +103,7 @@ This configuration will emit a warning for:
 - clauses 2 and 3 in the first function
 
 ```erlang
-{elvis_style, guard_operators, #{ preferred_syntax => per_clause }}
+{elvis_style, guard_operators, #{preferred_syntax => per_clause}}
 ```
 
 This configuration will emit a warning for:

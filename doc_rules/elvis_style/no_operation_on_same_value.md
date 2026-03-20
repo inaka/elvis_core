@@ -52,21 +52,23 @@ never revised. Removing or rewriting them improves code clarity and avoids misle
 ## Example configuration
 
 ```erlang
-{elvis_style, no_operation_on_same_value, #{ operations => ['and'
-                                                          , 'or'
-                                                          , 'xor'
-                                                          , '=='
-                                                          , '/='
-                                                          , '=<'
-                                                          , '<'
-                                                          , '>='
-                                                          , '>'
-                                                          , '=:='
-                                                          , '=/='
-                                                          , 'andalso'
-                                                          , 'orelse'
-                                                          , '='
-                                                          , '--'
-                                                           ]
-                                           }}
+{elvis_style, no_operation_on_same_value, #{
+    operations => [
+        'and',
+        'or',
+        'xor',
+        '==',
+        '/=',
+        '=<',
+        '<',
+        '>=',
+        '>',
+        '=:=',
+        '=/=',
+        'andalso',
+        'orelse',
+        '=',
+        '--'
+    ]
+}}
 ```

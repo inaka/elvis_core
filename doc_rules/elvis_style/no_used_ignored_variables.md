@@ -1,6 +1,7 @@
 # No Used Ignored Variables ![](https://img.shields.io/badge/BEAM-yes-orange)
 
-> [!NOTE]
+> #### Note {: .info}
+>
 > This rule was named `used_ignored_variable` before [4.2.0](https://github.com/inaka/elvis_core/releases/tag/4.2.0).
 
 Declared anonymous variables (prefixed with `_`) should not be used.
@@ -16,7 +17,7 @@ do_something(_Ignored).
 
 ```erlang
 Value = some_function(),
-do_something(Value).
+do_something(Value)
 ```
 
 ## Rationale

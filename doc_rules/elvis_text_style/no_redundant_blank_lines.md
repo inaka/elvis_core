@@ -15,5 +15,5 @@ Use an Erlang code formatter that enforces strict rules for blank lines.
 ## Example configuration
 
 ```erlang
-{elvis_text_style, no_redundant_blank_lines, #{ max_lines => 1 }}
+{elvis_text_style, no_redundant_blank_lines, #{max_lines => 1}}
 ```

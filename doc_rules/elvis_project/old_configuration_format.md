@@ -2,7 +2,8 @@
 
 `elvis.config` files should not use an outdated format.
 
-> [!WARNING]
+> #### Warning {: .warning}
+>
 > This rule was removed in version [4.2.0](https://github.com/inaka/elvis_core/releases/tag/4.2.0).
 
 ## Avoid

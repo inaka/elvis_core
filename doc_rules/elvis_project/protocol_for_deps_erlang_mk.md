@@ -2,7 +2,8 @@
 
 `erlang.mk` dependencies should use known protocols.
 
-> [!WARNING]
+> #### Warning {: .warning}
+>
 > This rule was removed in version [2.0.0](https://github.com/inaka/elvis_core/releases/tag/2.0.0).
 
 ## Options
@@ -13,5 +14,5 @@
 ## Example configuration
 
 ```erlang
-{elvis_project, protocol_for_deps_erlang_mk, #{ regex => "(https://.*|[0-9]+([.][0-9]+)*)" }}
+{elvis_project, protocol_for_deps_erlang_mk, #{regex => "(https://.*|[0-9]+([.][0-9]+)*)"}}
 ```

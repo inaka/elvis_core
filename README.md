@@ -26,7 +26,7 @@ style reviewer into your application or library. Be sure to check that out for f
 After adding `elvis_core` as a dependency to your project and starting a shell, you will need to
 make sure the application is started:
 
-```shell
+```erlang
 1> {ok, _} = application:ensure_all_started(elvis_core).
 {ok,[zipper,katana_code,elvis_core]}
 2>
@@ -36,7 +36,7 @@ Once this is done you can apply the style rules in the following ways.
 
 #### Loading configuration from a file
 
-```shell
+```erlang
 1> elvis_core:rock({config_file, "elvis.config"}).
 Loading src/elvis_code.erl
 # src/elvis_code.erl [OK]
@@ -65,7 +65,7 @@ settings.
 Another option for using `elvis_core` from the shell is to explicitly provide the configuration as
 an argument to `elvis_core:rock/1`:
 
-```shell
+```erlang
 1> ElvisConfig = [#{files => ["src/elvis_rule.erl"], ruleset => erl_files}].
 [#{files => ["src/elvis_rule.erl"],rules => []}]
 2> elvis_core:rock({config, ElvisConfig}).
@@ -80,7 +80,7 @@ ok
 We have only presented results where all files were well-behaved (i.e. they respect all the rules),
 so here's an example of how the output looks when files break some of the rules:
 
-```shell
+```text
 # test/examples/british_behaviour_spelling.erl [FAIL]
   - state_record_and_type (https://github.com/inaka/elvis_core/tree/main/doc_rules/elvis_style/state_record_and_type.md)
     - This module implements an OTP behavior but is missing a '#state{}' record.
@@ -126,7 +126,7 @@ An `elvis.config` file looks something like this:
 
 To look at what is considered the "current default" configuration, do:
 
-```console
+```erlang
 rebar3 shell
 ...
 1> elvis_config:default().
@@ -225,8 +225,8 @@ Option `output_format` allows you to configure the output format. Possible value
 to the one presented by `dialyzer`, like `<file>:<line>:<rule>:<message>`:
 
 <!-- markdownlint-disable MD013 -->
-```shell
-test/examples/british_behaviour_spelling.erl:-1:state_record_and_type:This module implements an OTP behavior but is missing a '#state{}' record.```
+```text
+test/examples/british_behaviour_spelling.erl:-1:state_record_and_type:This module implements an OTP behavior but is missing a '#state{}' record.
 test/examples/fail_always_shortcircuit.erl:5:always_shortcircuit:At line 5, column 45, unexpected non-shortcircuiting operator ''or'' was found; prefer 'orelse'.
 ```
 <!-- markdownlint-enable MD013 -->
@@ -280,8 +280,8 @@ environment variables, i.e. as they would be found by `application:get_env/2,3`.
 
 ### Pre-defined rules
 
-A reference to all pre-defined rules (and some other information) implemented in `elvis_core` can be
-found in this repository's [RULES.md](https://github.com/inaka/elvis_core/blob/main/RULES.md).
+A reference to all pre-defined rules (and some other information) implemented in `elvis_core` is in
+[RULES.md](RULES.md).
 
 ### User-defined rules
 
@@ -291,7 +291,7 @@ To implement your own rules, see the [User-defined rules](RULES.md#user-defined-
 ## Versioning
 
 From 5.x, `elvis_core` adheres to [Semantic Versioning](https://semver.org/). All breaking changes
-and upgrade paths for major versions are documented in [`MIGRATION.md`](https://github.com/inaka/elvis_core/blob/main/MIGRATION.md).
+and upgrade paths for major versions are documented in [MIGRATION.md](MIGRATION.md).
 
 ## Contributing and reporting bugs
 
