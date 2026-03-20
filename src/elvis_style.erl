@@ -513,11 +513,16 @@ canonical_variable_tokenisation(Name, CamelRe, HyphenRe) ->
     string:lexemes(S3, "_").
 
 unique_other_names(OtherVarZippers, FirstName) ->
-    lists:usort([
-        OtherName
-     || OtherVarZipper <- OtherVarZippers,
-        (OtherName = canonical_variable_name(OtherVarZipper)) =/= FirstName
-    ]).
+    FilteredZippers = lists:filtermap(
+        fun(OtherVarZipper) ->
+            case canonical_variable_name(OtherVarZipper) of
+                FirstName -> false;
+                OtherName -> {true, OtherName}
+            end
+        end,
+        OtherVarZippers
+    ),
+    lists:usort(FilteredZippers).
 
 canonical_variable_name(VarZipper) ->
     VarNode = zipper:node(VarZipper),
