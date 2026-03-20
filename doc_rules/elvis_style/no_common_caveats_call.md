@@ -42,17 +42,19 @@ were added in
 ## Example configuration
 
 ```erlang
-{elvis_style, no_common_caveats_call, #{ caveat_functions => [{timer, send_after, 2}
-                                                            , {timer, send_after, 3}
-                                                            , {timer, send_interval, 2}
-                                                            , {timer, send_interval, 3}
-                                                            , {erlang, size, 1}
-                                                            , {gen_statem, call, 2}
-                                                            , {gen_server, call, 2}
-                                                            , {gen_event, call, 3}
-                                                            , {erlang, list_to_atom, 1}
-                                                            , {erlang, binary_to_atom, 1}
-                                                            , {erlang, binary_to_atom, 2}
-                                                             ]
-                                       }}
+{elvis_style, no_common_caveats_call, #{
+    caveat_functions => [
+        {timer, send_after, 2},
+        {timer, send_after, 3},
+        {timer, send_interval, 2},
+        {timer, send_interval, 3},
+        {erlang, size, 1},
+        {gen_statem, call, 2},
+        {gen_server, call, 2},
+        {gen_event, call, 3},
+        {erlang, list_to_atom, 1},
+        {erlang, binary_to_atom, 1},
+        {erlang, binary_to_atom, 2}
+    ]
+}}
 ```

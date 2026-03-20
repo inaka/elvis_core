@@ -9,7 +9,8 @@ Behavior attribute names in modules should follow a consistent spelling conventi
 Depending on your choice, you should avoid:
 
 ```erlang
--behavior(_). % the default "avoid"
+% the default "avoid".
+-behavior(_).
 ```
 
 or:
@@ -23,7 +24,8 @@ or:
 Depending on your choice, you should prefer:
 
 ```erlang
--behaviour(_). % the default "prefer"
+% the default "prefer".
+-behaviour(_).
 ```
 
 or:
@@ -47,5 +49,5 @@ documentation. However, the spelling `behavior` is also accepted.
 ## Example configuration
 
 ```erlang
-{elvis_style, behaviour_spelling, #{ spelling => behaviour }}
+{elvis_style, behaviour_spelling, #{spelling => behaviour}}
 ```

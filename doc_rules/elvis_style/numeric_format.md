@@ -26,8 +26,9 @@ and receive warnings when deviations occur.
 ## Example configuration
 
 ```erlang
-{elvis_style, numeric_format, #{ regex => ".*"
-                               , int_regex => same
-                               , float_regex => same
-                               }}
+{elvis_style, numeric_format, #{
+    regex => ".*",
+    int_regex => same,
+    float_regex => same
+}}
 ```

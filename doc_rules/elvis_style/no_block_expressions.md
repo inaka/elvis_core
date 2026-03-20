@@ -24,24 +24,26 @@ An example refactoring (no performance considerations taken into account) could 
 
 ```erlang
 check(Vehicle, Height, Age) ->
-    Checks = [check_height(Height),
-              check_age(Age),
-              check_is_car(Vehicle)],
-    not(lists:member(false, Checks)).
+    Checks = [
+        check_height(Height),
+        check_age(Age),
+        check_is_car(Vehicle)
+    ],
+    not (lists:member(false, Checks)).
 
 check_height(Height) ->
     Res = Height > 140,
-    not(Res) andalso io:format("Insuffient height"),
+    not (Res) andalso io:format("Insuffient height"),
     Res.
 
 check_age(Age) ->
     Res = Age > 12,
-    not(Res) andalso io:format("Insuffient age"),
+    not (Res) andalso io:format("Insuffient age"),
     Res.
 
 check_is_car(Vehicle) ->
     Res = Vehicle =:= car,
-    not(Res) andalso io:format("Not a car"),
+    not (Res) andalso io:format("Not a car"),
     Res.
 ```
 

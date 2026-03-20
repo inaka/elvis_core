@@ -13,5 +13,5 @@
 ## Example configuration
 
 ```erlang
-{elvis_project, protocol_for_deps_erlang_mk, #{ regex => "(https://.*|[0-9]+([.][0-9]+)*)" }}
+{elvis_project, protocol_for_deps_erlang_mk, #{regex => "(https://.*|[0-9]+([.][0-9]+)*)"}}
 ```

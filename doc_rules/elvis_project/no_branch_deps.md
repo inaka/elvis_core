@@ -35,5 +35,5 @@ branch heads.
 ## Example configuration
 
 ```erlang
-{elvis_project, no_branch_deps, #{ ignore => [] }}
+{elvis_project, no_branch_deps, #{ignore => []}}
 ```

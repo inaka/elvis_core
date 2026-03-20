@@ -46,7 +46,8 @@ the standard.
 ## Example configuration
 
 ```erlang
-{elvis_style, macro_naming_convention, #{ regex => "^[A-Z](_?[A-Z0-9]+)*$"
-                                        , forbidden_regex => undefined
-                                        }}
+{elvis_style, macro_naming_convention, #{
+    regex => "^[A-Z](_?[A-Z0-9]+)*$",
+    forbidden_regex => undefined
+}}
 ```

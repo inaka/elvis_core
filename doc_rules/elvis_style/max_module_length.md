@@ -26,9 +26,10 @@ focused logic and makes it easier to navigate the codebase.
 ## Example configuration
 
 ```erlang
-{elvis_style, max_module_length, #{ max_length => 500
-                                  , count_comments => false
-                                  , count_whitespace => false
-                                  , count_docs => false
-                                  }}
+{elvis_style, max_module_length, #{
+    max_length => 500,
+    count_comments => false,
+    count_whitespace => false,
+    count_docs => false
+}}
 ```

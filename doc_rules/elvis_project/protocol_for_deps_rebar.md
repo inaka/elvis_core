@@ -14,5 +14,5 @@ use `protocol_for_deps` instead.
 ## Example configuration
 
 ```erlang
-{elvis_project, protocol_for_deps_rebar, #{ regex => "(https://.*|[0-9]+([.][0-9]+)*)" }}
+{elvis_project, protocol_for_deps_rebar, #{regex => "(https://.*|[0-9]+([.][0-9]+)*)"}}
 ```

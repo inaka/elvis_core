@@ -7,7 +7,7 @@ Types based on records, maps or tuples should be exported as
 
 ```erlang
 -type person_rec() :: #person{name :: string(), age :: integer()}.
--type person_map() :: #{ name := string(), age := integer() }.
+-type person_map() :: #{name := string(), age := integer()}.
 
 -export_type([person_rec/0]).
 -export_type([person_map/0]).
@@ -19,7 +19,7 @@ Types based on records, maps or tuples should be exported as
 
 ```erlang
 -opaque person_rec() :: #person{name :: string(), age :: integer()}.
--opaque person_map() :: #{ name := string(), age := integer() }.
+-opaque person_map() :: #{name := string(), age := integer()}.
 
 -export_type([person_rec/0]).
 -export_type([person_map/0]).
@@ -51,5 +51,5 @@ back again to just `[record]` in
 ## Example configuration
 
 ```erlang
-{elvis_style, private_data_types, #{ apply_to => [record, tuple, map] }}
+{elvis_style, private_data_types, #{apply_to => [record, tuple, map]}}
 ```

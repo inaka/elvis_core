@@ -7,8 +7,8 @@ maximum.
 
 ```erlang
 request(Method, Host, Port, Path, Query, Headers, Body, Timeout, Retries, ExpectedCode) ->
-    ...
-end.
+    %% ...
+    ok.
 ```
 
 ## Prefer
@@ -23,20 +23,20 @@ request(Method, Target, Data, ReqOptions, RespOptions) ->
         port := Port,
         path := Path,
         query := Query
-     } = Target,
+    } = Target,
     #{
         headers := Headers,
         body := Body
-     } = Data,
+    } = Data,
     #{
         timeout := Timeout,
         retries := Retries
-     } = ReqOptions,
+    } = ReqOptions,
     #{
         expected_code := ExpectedCode
-     } = RespOptions,
-    ...
-end.
+    } = RespOptions
+    % ...
+    ok.
 ```
 
 ## Rationale
@@ -56,7 +56,8 @@ lead to cleaner and more manageable code.
 ## Example configuration
 
 ```erlang
-{elvis_style, max_function_arity, #{ max_arity => 8
-                                   , non_exported_max_arity => 8
-                                   }}
+{elvis_style, max_function_arity, #{
+    max_arity => 8,
+    non_exported_max_arity => 8
+}}
 ```

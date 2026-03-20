@@ -91,5 +91,5 @@ developers.
 ## Example configuration
 
 ```erlang
-{elvis_style, no_deep_nesting, #{ level => 4 }}
+{elvis_style, no_deep_nesting, #{level => 4}}
 ```

@@ -20,5 +20,5 @@ and maintain consistency across a codebase.
 ## Example configuration
 
 ```erlang
-{elvis_style, no_call, #{ no_call_functions => [] }}
+{elvis_style, no_call, #{no_call_functions => []}}
 ```

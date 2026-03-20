@@ -22,13 +22,14 @@ big_function(Input) ->
     X3 = lists:filter(fun(X) -> X > 5 end, X2),
     X4 = lists:sum(X3),
     X5 = lists:reverse(X2),
-    X6 = case X4 > 100 andalso X4 < 1000 of
-        true ->
-            io:format("range: ~p~n", [X4]),
-            X4 * 2;
-        false ->
-            0
-    end,
+    X6 =
+        case X4 > 100 andalso X4 < 1000 of
+            true ->
+                io:format("range: ~p~n", [X4]),
+                X4 * 2;
+            false ->
+                0
+        end,
     {X5, X6}.
 ```
 
@@ -65,5 +66,5 @@ smaller, more focused units improves readability and testability.
 ## Example configuration
 
 ```erlang
-{elvis_style, abc_size, #{ max_abc_size => 30 }}
+{elvis_style, abc_size, #{max_abc_size => 30}}
 ```

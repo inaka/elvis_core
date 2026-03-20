@@ -8,13 +8,11 @@ Lists as the argument for the `init/1` callback should be avoided when implement
 ```erlang
 -behaviour(gen_server).
 
-...
-
 start_link(Name, Timeout) ->
     gen_server:start_link(?MODULE, _Args = [Name, Timeout], _Options = []).
 
 init([Name, Timeout]) ->
-    ...
+    {ok, #{state => {Name, Timeout}}}.
 ```
 
 ## Prefer
@@ -24,13 +22,11 @@ Using a map as an example:
 ```erlang
 -behaviour(gen_server).
 
-...
-
 start_link(Name, Timeout) ->
     gen_server:start_link(?MODULE, _Args = #{name => Name, timeout => Timeout}, _Options = []).
 
-init(#{ name := Name, timeout := Timeout }) ->
-    ...
+init(#{name := Name, timeout := Timeout}) ->
+    {ok, #{state => {Name, Timeout}}}.
 ```
 
 ## Rationale
@@ -53,12 +49,14 @@ maintainable code in this context.
 ## Example configuration
 
 ```erlang
-{elvis_style, no_init_lists, #{ behaviours => [gen_server
-                                             , gen_statem
-                                             , gen_fsm
-                                             , supervisor
-                                             , supervisor_bridge
-                                             , gen_event
-                                              ]
-                              }}
+{elvis_style, no_init_lists, #{
+    behaviours => [
+        gen_server,
+        gen_statem,
+        gen_fsm,
+        supervisor,
+        supervisor_bridge,
+        gen_event
+    ]
+}}
 ```

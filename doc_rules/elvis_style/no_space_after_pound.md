@@ -17,7 +17,7 @@ BadRecord =     #      this_record{has = spaces, af_ter = pound}.
 
 ```erlang
 GoodMap = #{this => map, has => no_spaces, af_ter => pound}.
-GoodRecord =     #this_record{has = no_spaces, af_ter = pound}.
+GoodRecord = #this_record{has = no_spaces, af_ter = pound}
 ```
 
 ## Rationale

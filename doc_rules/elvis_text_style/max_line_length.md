@@ -32,5 +32,5 @@ Use an Erlang code formatter that enforces strict line length limitations.
     limit => 100,
     skip_comments => false,
     no_whitespace_after_limit => true
-}},
+}}
 ```

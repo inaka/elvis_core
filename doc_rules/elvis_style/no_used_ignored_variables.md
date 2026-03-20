@@ -16,7 +16,7 @@ do_something(_Ignored).
 
 ```erlang
 Value = some_function(),
-do_something(Value).
+do_something(Value)
 ```
 
 ## Rationale

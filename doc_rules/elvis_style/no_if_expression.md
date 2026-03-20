@@ -17,9 +17,9 @@ my_function(X) ->
 ```erlang
 my_function(X) ->
     case X > 10 of
-      true -> ok;
-      _Else -> error
-    % ^ no binding required
+        true -> ok;
+        _Else -> error
+        % ^ no binding required
     end.
 ```
 

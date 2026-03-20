@@ -19,24 +19,24 @@ custom data structures. This reduces the arity of the function while preserving 
 ```erlang
 caller() ->
     fun(Method, Target, Data, ReqOptions, RespOptions) ->
-      #{
-          host := Host,
-          port := Port,
-          path := Path,
-          query := Query
-       } = Target,
-      #{
-          headers := Headers,
-          body := Body
-       } = Data,
-      #{
-          timeout := Timeout,
-          retries := Retries
-       } = ReqOptions,
-      #{
-          expected_code := ExpectedCode
-       } = RespOptions,
-       ...
+        #{
+            host := Host,
+            port := Port,
+            path := Path,
+            query := Query
+        } = Target,
+        #{
+            headers := Headers,
+            body := Body
+        } = Data,
+        #{
+            timeout := Timeout,
+            retries := Retries
+        } = ReqOptions,
+        #{
+            expected_code := ExpectedCode
+        } = RespOptions
+        ...
     end.
 ```
 
@@ -55,5 +55,5 @@ lead to cleaner and more manageable code.
 ## Example configuration
 
 ```erlang
-{elvis_style, max_anonymous_function_arity, #{ max_arity => 5 }}
+{elvis_style, max_anonymous_function_arity, #{max_arity => 5}}
 ```

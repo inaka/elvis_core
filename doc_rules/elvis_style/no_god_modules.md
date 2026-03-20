@@ -21,5 +21,5 @@ you encourage smaller, more focused modules that adhere to the [Single Responsib
 ## Example configuration
 
 ```erlang
-{elvis_style, no_god_modules, #{ limit => 25 }}
+{elvis_style, no_god_modules, #{limit => 25}}
 ```

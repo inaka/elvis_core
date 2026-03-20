@@ -7,7 +7,7 @@
 ```erlang
 {deps, [
     {elvis_core, {git, "git@github.com:inaka/elvis_core.git", {tag, "4.0.0"}}}
-]}.
+]}
 ```
 
 ## Prefer
@@ -15,7 +15,7 @@
 ```erlang
 {deps, [
     {elvis_core, {git, "https://github.com/inaka/elvis_core.git", {tag, "4.0.0"}}}
-]}.
+]}
 ```
 
 ## Rationale
@@ -37,6 +37,8 @@ obscure errors during fetching or compilation. It also increases consistency acr
 ## Example configuration
 
 ```erlang
-{elvis_project, protocol_for_deps, #{ regex => "^(https://|git://|\\d+(\\.\\d+)*)"
-                                    , ignore => [] }}
+{elvis_project, protocol_for_deps, #{
+    regex => "^(https://|git://|\\d+(\\.\\d+)*)",
+    ignore => []
+}}
 ```

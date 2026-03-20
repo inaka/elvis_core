@@ -6,7 +6,7 @@ should be avoided; they can be more concisely expressed using the function refer
 ## Avoid
 
 ```erlang
-fun(Pattern) -> is_match_node(Pattern) end
+fun(Pattern) -> is_match_node(Pattern) end.
 ```
 
 ## Prefer

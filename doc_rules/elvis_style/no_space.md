@@ -9,15 +9,15 @@ Use an Erlang code formatter that enforces strict spacing.
 ## Avoid
 
 ```erlang
-Text = ( value).
-Label = # {key => err}.
+Text = (value).
+Label = #{key => err}
 ```
 
 ## Prefer
 
 ```erlang
 Text = (value).
-Label = #{key => err}.
+Label = #{key => err}
 ```
 
 ## Rationale
@@ -41,15 +41,17 @@ codebase.
 ## Example configuration
 
 ```erlang
-{elvis_style, no_space, #{ rules => [{right, "("}
-                                   , {left, ")"}
-                                   , {left, ","}
-                                   , {left, ":"}
-                                   , {right, "#"}
-                                   , {right, "?"}
-                                   , {right, "?"}
-                                   , {left, "."}
-                                   , {left, ";"}
-                                    ]
-                                }}
+{elvis_style, no_space, #{
+    rules => [
+        {right, "("},
+        {left, ")"},
+        {left, ","},
+        {left, ":"},
+        {right, "#"},
+        {right, "?"},
+        {right, "?"},
+        {left, "."},
+        {left, ";"}
+    ]
+}}
 ```

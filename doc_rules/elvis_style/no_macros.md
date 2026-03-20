@@ -22,5 +22,5 @@ use macros.
 ## Example configuration
 
 ```erlang
-{elvis_style, no_macros, #{ allow => [] }}
+{elvis_style, no_macros, #{allow => []}}
 ```

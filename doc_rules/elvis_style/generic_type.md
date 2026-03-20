@@ -12,7 +12,8 @@
 Depending on your choice, you should avoid:
 
 ```erlang
--type mytype() :: any(). % the default "avoid"
+% the default "avoid".
+-type mytype() :: any().
 ```
 
 or:
@@ -26,7 +27,8 @@ or:
 Depending on your choice, you should prefer:
 
 ```erlang
--type mytype() :: term(). % the default "prefer"
+% the default "prefer".
+-type mytype() :: term().
 ```
 
 or:
@@ -47,5 +49,5 @@ Defining a specific "term" type enhances consistency across your codebase.
 ## Example configuration
 
 ```erlang
-{elvis_style, generic_type, #{ preferred_type => term }}
+{elvis_style, generic_type, #{preferred_type => term}}
 ```

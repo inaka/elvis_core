@@ -21,13 +21,15 @@ are those a majority of bootstrap projects should adopt.
 ## Example configuration
 
 ```erlang
-{elvis_gitignore, required_patterns, #{ regexes => ["^.rebar3/$"
-                                                  , "^_build/$"
-                                                  , "^_checkouts/$"
-                                                  , "^doc/$"
-                                                  , "^/erl_crash.dump$"
-                                                  , "^/rebar3.crashdump$"
-                                                  , "^test/logs/$"
-                                                   ]
-                                      }}
+{elvis_gitignore, required_patterns, #{
+    regexes => [
+        "^.rebar3/$",
+        "^_build/$",
+        "^_checkouts/$",
+        "^doc/$",
+        "^/erl_crash.dump$",
+        "^/rebar3.crashdump$",
+        "^test/logs/$"
+    ]
+}}
 ```
