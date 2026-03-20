@@ -4,18 +4,27 @@ Use of functions that are intended primarily for debugging should be avoided.
 
 ## Rationale
 
-Debug-specific functions - such as `io:format/2`, and `erlang:display/1`, are often used temporarily
-during development or testing to trace execution or inspect values. However, they may be
-inadvertently left behind in code that is later deployed. Their presence in production code can
-lead to performance degradation, unwanted output, or inconsistent logging behavior.
+Debug-oriented APIs are invaluable while developing, but they are easy to leave in paths that later
+run in CI, libraries, or production. They often write to the console, bypass structured logging,
+or enable heavy tracing—hurting performance, polluting output, and making behavior harder to control
+than a proper `logger` configuration.
 
 **Note**: the specific functions to flag are configured via the `debug_functions` option.
 
-## Options
+## Rationale for default `debug_functions`
 
-- `debug_functions :: [{module(), function(), arity()} | {module(), function()}]`
-  - default: `[{ct, pal}, {ct, print}, {io, format, 1}, {io, format, 2}, {erlang, display, 1},
-    {io, put_chars, 1}, {io, put_chars, 2}, {dbg, '_'}, {dyntrace, '_'}, {instrument, '_'}]`
+Defaults favor “obvious debug helpers” and tracing hooks; adjust the list if your project uses some
+of these intentionally in non-debug code.
+
+- **`ct:pal/*` and `ct:print/*`** — Common Test helpers for interactive runs; they should not appear
+  outside test code.
+- **`erlang:display/1`** — Prints to standard output for ad hoc inspection; prefer logging or
+  explicit test assertions.
+- **`io:format/1,2` and `io:put_chars/1,2`** — Often used as quick prints; production diagnostics
+  should go through **`logger`** (or your application’s logging facade) for levels, formatters, and
+  sinks.
+- **`dbg`**, **`dyntrace`**, and **`instrument`** (any function) — Low-level tracing and debugging
+  facilities; leaving calls in normal code paths can enable expensive work or surprise operators.
 
 `{erlang, display, 1}` was added in [1.5.0](https://github.com/inaka/elvis_core/releases/tag/1.5.0).
 
@@ -23,19 +32,27 @@ lead to performance degradation, unwanted output, or inconsistent logging behavi
 
 `{dbg, '_'}, {dyntrace, '_'}, {instrument, '_'}` was added in [4.1.0](https://github.com/inaka/elvis_core/releases/tag/4.1.0).
 
+## Options
+
+- `debug_functions :: [{module(), function(), arity()} | {module(), function()}]`
+  - default: `[{ct, pal}, {ct, print}, {erlang, display, 1}, {io, format, 1}, {io, format, 2},
+    {io, put_chars, 1}, {io, put_chars, 2}, {dbg, '_'}, {dyntrace, '_'}, {instrument, '_'}]`
+
 ## Example configuration
 
 ```erlang
-{elvis_style, no_debug_call, #{ debug_functions => [{ct, pal}
-                                                  , {ct, print}
-                                                  , {io, format, 1}
-                                                  , {io, format, 2}
-                                                  , {erlang, display, 1}
-                                                  , {io, put_chars, 1}
-                                                  , {io, put_chars, 2},
-                                                  , {dbg, '_'},
-                                                  , {dyntrace, '_'}
-                                                  , {instrument, '_'}
-                                                   ]
-                              }}
+{elvis_style, no_debug_call, #{
+    debug_functions => [
+        {ct, pal},
+        {ct, print},
+        {erlang, display, 1},
+        {io, format, 1},
+        {io, format, 2},
+        {io, put_chars, 1},
+        {io, put_chars, 2},
+        {dbg, '_'},
+        {dyntrace, '_'},
+        {instrument, '_'}
+    ]
+}}
 ```
