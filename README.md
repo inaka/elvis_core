@@ -269,7 +269,7 @@ code of 0. This allows the build to continue even if issues are found.
 ## Configuration examples
 
 You can find examples for configuration files in this project's
-[`config`](https://github.com/inaka/elvis_core/tree/main/config) directory.
+[`config`](https://github.com/inaka/elvis_core/tree/HEAD/config) directory.
 
 ## Application environment
 

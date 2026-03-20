@@ -7,7 +7,7 @@ Use of <code>$&nbsp;</code> should be avoided.
 
 ```erlang
 case Char of
-    $\s -> "It's a space";
+    $ -> "It's a space";
     _ -> "It's something else"
 end
 ```
