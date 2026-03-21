@@ -6,6 +6,32 @@
 
 Atoms should not be quoted unless syntactically necessary.
 
+## Avoid
+
+```erlang
+case Value of
+    'ok' -> done
+end.
+```
+
+## Prefer
+
+```erlang
+case Value of
+    ok -> done
+end.
+```
+
+When the atom letters are lowercase and the atom is not a reserved word, quotes add noise without
+helping the parser.
+
+## Rationale
+
+Unquoted atoms are the usual Erlang style when the language allows them. Removing unnecessary
+`'`...`'` improves readability and matches what readers expect. Atoms that **must** stay
+quoted—reserved words like `maybe`, uppercase names, or atoms with special characters—are **not**
+reported by this rule.
+
 ## Quick fix
 
 Use an Erlang code formatter that enforces strict rules for quoted atoms.
