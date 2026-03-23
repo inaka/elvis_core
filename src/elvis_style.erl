@@ -3645,10 +3645,10 @@ is_var(Zipper) ->
 find_token(Root, Location) ->
     Fun = fun(Token) -> is_at_location(Token, Location) end,
     Tokens = ktn_code:attr(tokens, Root),
-    case lists:filter(Fun, Tokens) of
-        [] ->
+    case lists:search(Fun, Tokens) of
+        false ->
             not_found;
-        [Token | _] ->
+        {value, Token} ->
             {ok, Token}
     end.
 
