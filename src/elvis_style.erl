@@ -919,6 +919,9 @@ exported_functions(Root) ->
         ExportNodes
     ).
 
+exported_functions_set(Root) ->
+    sets:from_list(exported_functions(Root), [{version, 2}]).
+
 exported_types(Root) ->
     {nodes, ExportNodes} = elvis_code:find(#{
         of_types => [export_type],
@@ -930,6 +933,9 @@ exported_types(Root) ->
         end,
         ExportNodes
     ).
+
+exported_types_set(Root) ->
+    sets:from_list(exported_types(Root), [{version, 2}]).
 
 -spec no_if_expression(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_if_expression(Rule, ElvisConfig) ->
@@ -1328,7 +1334,7 @@ max_function_arity(Rule, ElvisConfig) ->
     NonExportedMaxArity = specific_or_default(NonExportedMaxArity0, ExportedMaxArity),
 
     Root = elvis_code:root(Rule, ElvisConfig),
-    ExportedFunctions = exported_functions(Root),
+    ExportedFunctionsSet = exported_functions_set(Root),
 
     {nodes, FunctionNodes0} = elvis_code:find(#{
         of_types => [function],
@@ -1339,7 +1345,7 @@ max_function_arity(Rule, ElvisConfig) ->
     FunctionNodeMaxArities = lists:filtermap(
         fun(FunctionNode) ->
             MaxArity = arity_for_function_exports(
-                ExportedFunctions, FunctionNode, ExportedMaxArity, NonExportedMaxArity
+                ExportedFunctionsSet, FunctionNode, ExportedMaxArity, NonExportedMaxArity
             ),
 
             case ktn_code:attr(arity, FunctionNode) > MaxArity of
@@ -1369,10 +1375,10 @@ arity_for_function_exports(ExportedFunctions, FunctionNode, ExportedMaxArity, No
             NonExportedMaxArity
     end.
 
-is_exported_function(FunctionNode, ExportedFunctions) ->
+is_exported_function(FunctionNode, ExportedFunctionsSet) ->
     Name = ktn_code:attr(name, FunctionNode),
     Arity = ktn_code:attr(arity, FunctionNode),
-    lists:member({Name, Arity}, ExportedFunctions).
+    sets:is_element({Name, Arity}, ExportedFunctionsSet).
 
 -spec max_anonymous_function_clause_length(elvis_rule:t(), elvis_config:t()) ->
     [elvis_result:item()].
@@ -3185,13 +3191,13 @@ export_used_types(Rule, ElvisConfig) ->
 
     case is_otp_behaviour(Root) of
         false ->
-            ExportedFunctions = exported_functions(Root),
-            ExportedTypes = exported_types(Root),
+            ExportedFunctionsSet = exported_functions_set(Root),
+            ExportedTypesSet = exported_types_set(Root),
 
-            SpecNodes = spec_nodes(Root, ExportedFunctions),
+            SpecNodes = spec_nodes(Root, ExportedFunctionsSet),
             UsedTypes = used_types(SpecNodes),
 
-            UnexportedUsedTypes = lists:subtract(UsedTypes, ExportedTypes),
+            UnexportedUsedTypes = [T || T <- UsedTypes, not sets:is_element(T, ExportedTypesSet)],
 
             Locations = map_type_declarations_to_location(Root),
 
@@ -3247,8 +3253,8 @@ private_data_types(Rule, ElvisConfig) ->
     TypesToCheck = elvis_rule:option(apply_to, Rule),
 
     Root = elvis_code:root(Rule, ElvisConfig),
-    ExportedTypes = exported_types(Root),
-    PublicDataTypes = public_data_types(TypesToCheck, Root, ExportedTypes),
+    ExportedTypesSet = exported_types_set(Root),
+    PublicDataTypes = public_data_types(TypesToCheck, Root, ExportedTypesSet),
     Locations = map_type_declarations_to_location(Root),
 
     lists:map(
@@ -3264,7 +3270,7 @@ private_data_types(Rule, ElvisConfig) ->
         PublicDataTypes
     ).
 
-public_data_types(TypesToCheck, Root, ExportedTypes) ->
+public_data_types(TypesToCheck, Root, ExportedTypesSet) ->
     {nodes, TypeAttrNodes} = elvis_code:find(#{
         of_types => [type_attr],
         inside => Root,
@@ -3283,8 +3289,8 @@ public_data_types(TypesToCheck, Root, ExportedTypes) ->
     ),
 
     lists:filter(
-        fun({Name, Arity}) ->
-            lists:member({Name, Arity}, ExportedTypes)
+        fun(NameArity) ->
+            sets:is_element(NameArity, ExportedTypesSet)
         end,
         NameArities
     ).
