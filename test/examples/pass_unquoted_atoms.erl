@@ -7,7 +7,7 @@ test(_Test) -> ok.
 test(_A, nice_atom_name) -> perfect_atomname;
 test(_Reserved, _Words) -> ['after', 'and', 'andalso', 'band', 'begin', 'bnot', 'bor', 'bsl', 'bsr', 'bxor', 'case',
          'catch', 'cond', 'div', 'end', 'fun', 'if', 'let', 'not', 'of', 'or', 'orelse', 'receive',
-         'rem', 'try', 'when', 'xor', 'maybe'].
+         'rem', 'try', 'when', 'xor', 'maybe', 'else'].
 
 %% Unicode atoms that genuinely need quotes should not crash the rule (GH-545)
 test_unicode() -> 'Πλάτων'.
