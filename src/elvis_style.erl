@@ -2822,7 +2822,8 @@ doesnt_need_quotes(AtomNode, Regex) ->
         match ->
             AtomName = string:trim(AtomName0, both, "'"),
             Atom = list_to_atom(AtomName),
-            Atom =/= 'maybe' andalso not erl_scan:f_reserved_word(Atom);
+            not lists:member(Atom, ['maybe', 'else']) andalso
+                not erl_scan:f_reserved_word(Atom);
         _ ->
             false
     end.
