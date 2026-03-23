@@ -3719,7 +3719,7 @@ find_repeated_nodes(Root, MinComplexity) ->
             case zipper:size(Zipper) of
                 Count when Count >= MinComplexity ->
                     Loc = ktn_code:attr(location, Node),
-                    StrippedNode = remove_attrs_zipper(Zipper, TypeAttrs),
+                    StrippedNode = remove_attrs(Node, TypeAttrs),
 
                     ValsSet = maps:get(StrippedNode, Map, sets:new()),
                     NewValsSet = sets:add_element(Loc, ValsSet),
@@ -3737,14 +3737,26 @@ find_repeated_nodes(Root, MinComplexity) ->
 
     lists:map(fun lists:sort/1, Locations).
 
--spec remove_attrs_zipper(zipper:zipper(_), map()) -> ktn_code:tree_node().
-remove_attrs_zipper(Zipper, TypeAttrs) ->
-    zipper:fmap(fun remove_attrs/2, [TypeAttrs], Zipper).
-
 -spec remove_attrs(ktn_code:tree_node() | [ktn_code:tree_node()], map()) ->
     ktn_code:tree_node().
 remove_attrs(Nodes, TypeAttrs) when is_list(Nodes) ->
     [remove_attrs(Node, TypeAttrs) || Node <- Nodes];
+remove_attrs(
+    #{
+        attrs := Attrs,
+        type := Type,
+        node_attrs := NodeAttrs,
+        content := Content
+    } =
+        Node,
+    TypeAttrs
+) ->
+    AttrsName = maps:get(Type, TypeAttrs, [location]),
+    AttrsNoLoc = maps:without(AttrsName, Attrs),
+    NodeAttrsNoLoc =
+        maps:map(fun(_Key, Value) -> remove_attrs(Value, TypeAttrs) end, NodeAttrs),
+    ContentNoLoc = [remove_attrs(Child, TypeAttrs) || Child <- Content],
+    Node#{attrs => AttrsNoLoc, node_attrs => NodeAttrsNoLoc, content => ContentNoLoc};
 remove_attrs(
     #{
         attrs := Attrs,
@@ -3757,12 +3769,13 @@ remove_attrs(
     AttrsName = maps:get(Type, TypeAttrs, [location]),
     AttrsNoLoc = maps:without(AttrsName, Attrs),
     NodeAttrsNoLoc =
-        [
-            {Key, remove_attrs_zipper(elvis_code:zipper(Value), TypeAttrs)}
-         || {Key, Value} <- maps:to_list(NodeAttrs)
-        ],
-
-    Node#{attrs => AttrsNoLoc, node_attrs => maps:from_list(NodeAttrsNoLoc)};
+        maps:map(fun(_Key, Value) -> remove_attrs(Value, TypeAttrs) end, NodeAttrs),
+    Node#{attrs => AttrsNoLoc, node_attrs => NodeAttrsNoLoc};
+remove_attrs(#{attrs := Attrs, type := Type, content := Content} = Node, TypeAttrs) ->
+    AttrsName = maps:get(Type, TypeAttrs, [location]),
+    AttrsNoLoc = maps:without(AttrsName, Attrs),
+    ContentNoLoc = [remove_attrs(Child, TypeAttrs) || Child <- Content],
+    Node#{attrs => AttrsNoLoc, content => ContentNoLoc};
 remove_attrs(#{attrs := Attrs, type := Type} = Node, TypeAttrs) ->
     AttrsName = maps:get(Type, TypeAttrs, [location]),
     AttrsNoLoc = maps:without(AttrsName, Attrs),
@@ -3790,8 +3803,15 @@ filter_repeated(NodesLocs) ->
     maps:without(Nested, RepeatedMap).
 
 is_children(Parent, Node) ->
-    Zipper = elvis_code:zipper(Parent),
-    zipper:filter(fun(Child) -> Child =:= Node end, Zipper) =/= [].
+    case ktn_code:content(Parent) of
+        [] ->
+            false;
+        Content ->
+            lists:any(
+                fun(Child) -> Child =:= Node orelse is_children(Child, Node) end,
+                Content
+            )
+    end.
 
 no_call_common(Rule, ElvisConfig, NoCallFuns, Msg) ->
     {nodes, CallNodes} = elvis_code:find(#{
