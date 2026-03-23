@@ -1328,6 +1328,7 @@ max_function_arity(Rule, ElvisConfig) ->
     NonExportedMaxArity = specific_or_default(NonExportedMaxArity0, ExportedMaxArity),
 
     Root = elvis_code:root(Rule, ElvisConfig),
+    ExportedFunctions = exported_functions(Root),
 
     {nodes, FunctionNodes0} = elvis_code:find(#{
         of_types => [function],
@@ -1338,7 +1339,7 @@ max_function_arity(Rule, ElvisConfig) ->
     FunctionNodeMaxArities = lists:filtermap(
         fun(FunctionNode) ->
             MaxArity = arity_for_function_exports(
-                Root, FunctionNode, ExportedMaxArity, NonExportedMaxArity
+                ExportedFunctions, FunctionNode, ExportedMaxArity, NonExportedMaxArity
             ),
 
             case ktn_code:attr(arity, FunctionNode) > MaxArity of
@@ -1360,8 +1361,7 @@ max_function_arity(Rule, ElvisConfig) ->
      || {FunctionNode, MaxArity} <- FunctionNodeMaxArities
     ].
 
-arity_for_function_exports(Root, FunctionNode, ExportedMaxArity, NonExportedMaxArity) ->
-    ExportedFunctions = exported_functions(Root),
+arity_for_function_exports(ExportedFunctions, FunctionNode, ExportedMaxArity, NonExportedMaxArity) ->
     case is_exported_function(FunctionNode, ExportedFunctions) of
         true ->
             ExportedMaxArity;
