@@ -3189,17 +3189,31 @@ prefer_include(Rule, ElvisConfig) ->
 export_used_types(Rule, ElvisConfig) ->
     Root = elvis_code:root(Rule, ElvisConfig),
 
-    case is_otp_behaviour(Root) of
-        false ->
-            ExportedFunctionsSet = exported_functions_set(Root),
-            ExportedTypesSet = exported_types_set(Root),
+    %% Single traversal to collect all needed node types.
+    {nodes, AllNodes} = elvis_code:find(#{
+        of_types => [behaviour, behavior, export, export_type, spec, type_attr],
+        inside => Root
+    }),
+    {BehaviourNodes, ExportNodes, ExportTypeNodes, SpecNodes0, TypeAttrNodes} =
+        partition_export_used_types_nodes(AllNodes),
 
-            SpecNodes = spec_nodes(Root, ExportedFunctionsSet),
+    case is_otp_behaviour_from_nodes(BehaviourNodes) of
+        false ->
+            ExportedFunctionsSet = sets:from_list(
+                lists:flatmap(fun(N) -> ktn_code:attr(value, N) end, ExportNodes),
+                [{version, 2}]
+            ),
+            ExportedTypesSet = sets:from_list(
+                lists:flatmap(fun(N) -> ktn_code:attr(value, N) end, ExportTypeNodes),
+                [{version, 2}]
+            ),
+
+            SpecNodes = [S || S <- SpecNodes0, is_exported_function(S, ExportedFunctionsSet)],
             UsedTypes = used_types(SpecNodes),
 
             UnexportedUsedTypes = [T || T <- UsedTypes, not sets:is_element(T, ExportedTypesSet)],
 
-            Locations = map_type_declarations_to_location(Root),
+            Locations = type_attr_locations(TypeAttrNodes),
 
             lists:map(
                 fun({Name, Arity}) ->
@@ -3217,16 +3231,41 @@ export_used_types(Rule, ElvisConfig) ->
             []
     end.
 
-spec_nodes(Root, ExportedFunctions) ->
-    {nodes, SpecNodes} = elvis_code:find(#{
-        of_types => [spec],
-        inside => Root,
-        filtered_by =>
-            fun(SpecNode) ->
-                is_exported_function(SpecNode, ExportedFunctions)
+partition_export_used_types_nodes(Nodes) ->
+    lists:foldl(
+        fun(Node, {Behaviours, Exports, ExportTypes, Specs, TypeAttrs}) ->
+            case ktn_code:type(Node) of
+                behaviour -> {[Node | Behaviours], Exports, ExportTypes, Specs, TypeAttrs};
+                behavior -> {[Node | Behaviours], Exports, ExportTypes, Specs, TypeAttrs};
+                export -> {Behaviours, [Node | Exports], ExportTypes, Specs, TypeAttrs};
+                export_type -> {Behaviours, Exports, [Node | ExportTypes], Specs, TypeAttrs};
+                spec -> {Behaviours, Exports, ExportTypes, [Node | Specs], TypeAttrs};
+                type_attr -> {Behaviours, Exports, ExportTypes, Specs, [Node | TypeAttrs]}
             end
-    }),
-    SpecNodes.
+        end,
+        {[], [], [], [], []},
+        Nodes
+    ).
+
+is_otp_behaviour_from_nodes([]) ->
+    false;
+is_otp_behaviour_from_nodes(BehaviourNodes) ->
+    OtpSet = sets:from_list([gen_server, gen_event, gen_fsm, gen_statem, supervisor_bridge]),
+    Names = lists:map(fun(Node) -> ktn_code:attr(value, Node) end, BehaviourNodes),
+    BehaviorsSet = sets:from_list(Names),
+    not sets:is_empty(sets:intersection(OtpSet, BehaviorsSet)).
+
+type_attr_locations(TypeAttrNodes) ->
+    lists:foldl(
+        fun
+            (#{attrs := #{location := Location, name := Name}, node_attrs := #{args := Args}}, Acc) ->
+                maps:put({Name, length(Args)}, Location, Acc);
+            (_, Acc) ->
+                Acc
+        end,
+        #{},
+        TypeAttrNodes
+    ).
 
 used_types(SpecNodes) ->
     lists:usort(
