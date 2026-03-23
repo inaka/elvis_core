@@ -1247,9 +1247,12 @@ max_module_length(Rule, _ElvisConfig) ->
     Lines0 = elvis_utils:split_all_lines(Src, [trim]),
 
     LineIsCommentRegex = line_is_comment_regex(),
+    LineIsWhitespaceRegex = line_is_whitespace_regex(),
     Lines = lists:filter(
         fun(Line) ->
-            filter_comments_and_whitespace(Line, CountComments, CountWhitespace, LineIsCommentRegex)
+            filter_comments_and_whitespace(
+                Line, CountComments, CountWhitespace, LineIsCommentRegex, LineIsWhitespaceRegex
+            )
         end,
         Lines0
     ),
@@ -1401,9 +1404,11 @@ max_anonymous_function_clause_length(Rule, ElvisConfig) ->
         traverse => all
     }),
 
-    Regex = line_is_comment_regex(),
+    CommentRegex = line_is_comment_regex(),
+    WhitespaceRegex = line_is_whitespace_regex(),
     BigClauses = big_clauses(
-        ClauseZippers, Lines, CountComments, CountWhitespace, MaxLength, Regex
+        ClauseZippers, Lines, CountComments, CountWhitespace, MaxLength,
+        CommentRegex, WhitespaceRegex
     ),
 
     lists:map(
@@ -1440,8 +1445,10 @@ max_function_clause_length(Rule, ElvisConfig) ->
     }),
 
     LineIsCommentRegex = line_is_comment_regex(),
+    LineIsWhitespaceRegex = line_is_whitespace_regex(),
     BigClauses = big_clauses(
-        ClauseZippers, Lines, CountComments, CountWhitespace, MaxLength, LineIsCommentRegex
+        ClauseZippers, Lines, CountComments, CountWhitespace, MaxLength,
+        LineIsCommentRegex, LineIsWhitespaceRegex
     ),
 
     lists:map(
@@ -1463,7 +1470,8 @@ max_function_clause_length(Rule, ElvisConfig) ->
         lists:reverse(BigClauses)
     ).
 
-big_clauses(ClauseZippers, Lines, CountComments, CountWhitespace, MaxLength, LineIsCommentRegex) ->
+big_clauses(ClauseZippers, Lines, CountComments, CountWhitespace, MaxLength,
+            LineIsCommentRegex, LineIsWhitespaceRegex) ->
     % We do this to recover the clause number and apply the configured filters
     {BigClauses, _} = lists:foldl(
         fun(ClauseZipper, {BigClauses0, ClauseNum}) ->
@@ -1473,7 +1481,8 @@ big_clauses(ClauseZippers, Lines, CountComments, CountWhitespace, MaxLength, Lin
                 Lines,
                 CountComments,
                 CountWhitespace,
-                LineIsCommentRegex
+                LineIsCommentRegex,
+                LineIsWhitespaceRegex
             ),
             LineLen = length(FilteredLines),
             AccOut =
@@ -1490,7 +1499,8 @@ big_clauses(ClauseZippers, Lines, CountComments, CountWhitespace, MaxLength, Lin
     ),
     BigClauses.
 
-filtered_lines_in(Node, Lines, CountComments, CountWhitespace, LineIsCommentRegex) ->
+filtered_lines_in(Node, Lines, CountComments, CountWhitespace,
+                  LineIsCommentRegex, LineIsWhitespaceRegex) ->
     {Min, Max} = node_line_limits(Node),
     NodeLines = lists:sublist(Lines, Min, Max - Min + 1),
     lists:filter(
@@ -1499,15 +1509,17 @@ filtered_lines_in(Node, Lines, CountComments, CountWhitespace, LineIsCommentRege
                 NodeLine,
                 CountComments,
                 CountWhitespace,
-                LineIsCommentRegex
+                LineIsCommentRegex,
+                LineIsWhitespaceRegex
             )
         end,
         NodeLines
     ).
 
-filter_comments_and_whitespace(NodeLine, CountComments, CountWhitespace, LineIsCommentRegex) ->
+filter_comments_and_whitespace(NodeLine, CountComments, CountWhitespace,
+                               LineIsCommentRegex, LineIsWhitespaceRegex) ->
     (CountComments orelse not line_is_comment(NodeLine, LineIsCommentRegex)) andalso
-        (CountWhitespace orelse not line_is_whitespace(NodeLine)).
+        (CountWhitespace orelse not line_is_whitespace(NodeLine, LineIsWhitespaceRegex)).
 
 parse_clause_num(Num) when Num rem 100 >= 11, Num rem 100 =< 13 ->
     integer_to_list(Num) ++ "th";
@@ -1536,8 +1548,10 @@ max_anonymous_function_length(Rule, ElvisConfig) ->
     }),
 
     LineIsCommentRegex = line_is_comment_regex(),
+    LineIsWhitespaceRegex = line_is_whitespace_regex(),
     BigFunctions = big_functions(
-        FunctionNodes, Lines, CountComments, CountWhitespace, MaxLength, LineIsCommentRegex
+        FunctionNodes, Lines, CountComments, CountWhitespace, MaxLength,
+        LineIsCommentRegex, LineIsWhitespaceRegex
     ),
 
     lists:map(
@@ -1567,8 +1581,10 @@ max_function_length(Rule, ElvisConfig) ->
     }),
 
     LineIsCommentRegex = line_is_comment_regex(),
+    LineIsWhitespaceRegex = line_is_whitespace_regex(),
     BigFunctions = big_functions(
-        FunctionNodes, Lines, CountComments, CountWhitespace, MaxLength, LineIsCommentRegex
+        FunctionNodes, Lines, CountComments, CountWhitespace, MaxLength,
+        LineIsCommentRegex, LineIsWhitespaceRegex
     ),
 
     lists:map(
@@ -1589,7 +1605,8 @@ big_functions(
     CountComments,
     CountWhitespace,
     MaxLength,
-    LineIsCommentRegex
+    LineIsCommentRegex,
+    LineIsWhitespaceRegex
 ) ->
     % We do this to apply the configured filters
     lists:filtermap(
@@ -1599,7 +1616,8 @@ big_functions(
                 Lines,
                 CountComments,
                 CountWhitespace,
-                LineIsCommentRegex
+                LineIsCommentRegex,
+                LineIsWhitespaceRegex
             ),
             LineLen = length(FilteredLines),
             case LineLen > MaxLength of
@@ -3471,8 +3489,8 @@ line_is_comment(Line, Regex) ->
 line_is_whitespace_regex() ->
     re_compile("^[ \t]*$").
 
-line_is_whitespace(Line) ->
-    case re_run(Line, line_is_whitespace_regex()) of
+line_is_whitespace(Line, Regex) ->
+    case re_run(Line, Regex) of
         nomatch ->
             false;
         {match, _} ->
