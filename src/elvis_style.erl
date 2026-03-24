@@ -1407,8 +1407,13 @@ max_anonymous_function_clause_length(Rule, ElvisConfig) ->
     CommentRegex = line_is_comment_regex(),
     WhitespaceRegex = line_is_whitespace_regex(),
     BigClauses = big_clauses(
-        ClauseZippers, Lines, CountComments, CountWhitespace, MaxLength,
-        CommentRegex, WhitespaceRegex
+        ClauseZippers,
+        Lines,
+        CountComments,
+        CountWhitespace,
+        MaxLength,
+        CommentRegex,
+        WhitespaceRegex
     ),
 
     lists:map(
@@ -1447,8 +1452,13 @@ max_function_clause_length(Rule, ElvisConfig) ->
     LineIsCommentRegex = line_is_comment_regex(),
     LineIsWhitespaceRegex = line_is_whitespace_regex(),
     BigClauses = big_clauses(
-        ClauseZippers, Lines, CountComments, CountWhitespace, MaxLength,
-        LineIsCommentRegex, LineIsWhitespaceRegex
+        ClauseZippers,
+        Lines,
+        CountComments,
+        CountWhitespace,
+        MaxLength,
+        LineIsCommentRegex,
+        LineIsWhitespaceRegex
     ),
 
     lists:map(
@@ -1470,8 +1480,15 @@ max_function_clause_length(Rule, ElvisConfig) ->
         lists:reverse(BigClauses)
     ).
 
-big_clauses(ClauseZippers, Lines, CountComments, CountWhitespace, MaxLength,
-            LineIsCommentRegex, LineIsWhitespaceRegex) ->
+big_clauses(
+    ClauseZippers,
+    Lines,
+    CountComments,
+    CountWhitespace,
+    MaxLength,
+    LineIsCommentRegex,
+    LineIsWhitespaceRegex
+) ->
     % We do this to recover the clause number and apply the configured filters
     {BigClauses, _} = lists:foldl(
         fun(ClauseZipper, {BigClauses0, ClauseNum}) ->
@@ -1499,8 +1516,14 @@ big_clauses(ClauseZippers, Lines, CountComments, CountWhitespace, MaxLength,
     ),
     BigClauses.
 
-filtered_lines_in(Node, Lines, CountComments, CountWhitespace,
-                  LineIsCommentRegex, LineIsWhitespaceRegex) ->
+filtered_lines_in(
+    Node,
+    Lines,
+    CountComments,
+    CountWhitespace,
+    LineIsCommentRegex,
+    LineIsWhitespaceRegex
+) ->
     {Min, Max} = node_line_limits(Node),
     NodeLines = lists:sublist(Lines, Min, Max - Min + 1),
     lists:filter(
@@ -1516,8 +1539,13 @@ filtered_lines_in(Node, Lines, CountComments, CountWhitespace,
         NodeLines
     ).
 
-filter_comments_and_whitespace(NodeLine, CountComments, CountWhitespace,
-                               LineIsCommentRegex, LineIsWhitespaceRegex) ->
+filter_comments_and_whitespace(
+    NodeLine,
+    CountComments,
+    CountWhitespace,
+    LineIsCommentRegex,
+    LineIsWhitespaceRegex
+) ->
     (CountComments orelse not line_is_comment(NodeLine, LineIsCommentRegex)) andalso
         (CountWhitespace orelse not line_is_whitespace(NodeLine, LineIsWhitespaceRegex)).
 
@@ -1550,8 +1578,13 @@ max_anonymous_function_length(Rule, ElvisConfig) ->
     LineIsCommentRegex = line_is_comment_regex(),
     LineIsWhitespaceRegex = line_is_whitespace_regex(),
     BigFunctions = big_functions(
-        FunctionNodes, Lines, CountComments, CountWhitespace, MaxLength,
-        LineIsCommentRegex, LineIsWhitespaceRegex
+        FunctionNodes,
+        Lines,
+        CountComments,
+        CountWhitespace,
+        MaxLength,
+        LineIsCommentRegex,
+        LineIsWhitespaceRegex
     ),
 
     lists:map(
@@ -1583,8 +1616,13 @@ max_function_length(Rule, ElvisConfig) ->
     LineIsCommentRegex = line_is_comment_regex(),
     LineIsWhitespaceRegex = line_is_whitespace_regex(),
     BigFunctions = big_functions(
-        FunctionNodes, Lines, CountComments, CountWhitespace, MaxLength,
-        LineIsCommentRegex, LineIsWhitespaceRegex
+        FunctionNodes,
+        Lines,
+        CountComments,
+        CountWhitespace,
+        MaxLength,
+        LineIsCommentRegex,
+        LineIsWhitespaceRegex
     ),
 
     lists:map(
@@ -1636,20 +1674,21 @@ max_record_fields(Rule, ElvisConfig) ->
 
     MaxFields = elvis_rule:option(max_fields, Rule),
 
-    {nodes, LargeRecordNodes} =
+    {nodes, RecordNodes} =
         elvis_code:find(#{
             of_types => [record_attr],
-            inside => Root,
-            filtered_by => fun(RecordNode) -> length(ktn_code:content(RecordNode)) > MaxFields end
+            inside => Root
         }),
 
     [
         elvis_result:new_item(
             "record ~p has ~p fields, which is higher than the configured limit",
-            [ktn_code:attr(name, LargeRecordNode), length(ktn_code:content(LargeRecordNode))],
-            #{node => LargeRecordNode, limit => MaxFields}
+            [ktn_code:attr(name, RecordNode), FieldCount],
+            #{node => RecordNode, limit => MaxFields}
         )
-     || LargeRecordNode <- LargeRecordNodes
+     || RecordNode <- RecordNodes,
+        FieldCount <- [length(ktn_code:content(RecordNode))],
+        FieldCount > MaxFields
     ].
 
 -spec max_map_type_keys(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
@@ -1669,14 +1708,12 @@ max_map_type_keys_on_types(Root, MaxFields) ->
     [
         elvis_result:new_item(
             "map type ~p has ~p fields, which is higher than the configured limit",
-            [
-                ktn_code:attr(name, MapTypeNode),
-                length(ktn_code:content(ktn_code:node_attr(type, MapTypeNode)))
-            ],
+            [ktn_code:attr(name, MapTypeNode), FieldCount],
             #{node => MapTypeNode, limit => MaxFields}
         )
      || MapTypeNode <- MapTypeNodes,
-        length(ktn_code:content(ktn_code:node_attr(type, MapTypeNode))) > MaxFields
+        FieldCount <- [length(ktn_code:content(ktn_code:node_attr(type, MapTypeNode)))],
+        FieldCount > MaxFields
     ].
 
 is_map_type_with_atom_keys(TypeAttrNode) ->
@@ -1709,15 +1746,13 @@ max_map_type_keys_on_opaques(Root, MaxFields) ->
     [
         elvis_result:new_item(
             "map type ~p has ~p fields, which is higher than the configured limit",
-            [
-                MapOpaqueName,
-                length(erl_syntax:type_application_arguments(MapOpaqueTypeAST))
-            ],
+            [MapOpaqueName, FieldCount],
             #{node => MapOpaqueNode, limit => MaxFields}
         )
      || MapOpaqueNode <- MapOpaqueNodes,
         {MapOpaqueName, MapOpaqueTypeAST, _} <- [ktn_code:attr(value, MapOpaqueNode)],
-        length(erl_syntax:type_application_arguments(MapOpaqueTypeAST)) > MaxFields
+        FieldCount <- [length(erl_syntax:type_application_arguments(MapOpaqueTypeAST))],
+        FieldCount > MaxFields
     ].
 
 is_map_opaque_with_atom_keys(OpaqueNode) ->
@@ -1944,9 +1979,8 @@ no_init_lists(Rule, ElvisConfig) ->
                 lists:flatmap(
                     fun(InitFun) ->
                         Content = ktn_code:content(InitFun),
-                        ListAttrClauses = list_nodes(Content),
-                        case length(ListAttrClauses) =:= length(Content) of
-                            true -> ListAttrClauses;
+                        case lists:all(fun is_list_clause/1, Content) of
+                            true -> Content;
                             false -> []
                         end
                     end,
@@ -1970,14 +2004,9 @@ is_init_1(FunctionNode) ->
     ktn_code:attr(name, FunctionNode) =:= init andalso
         ktn_code:attr(arity, FunctionNode) =:= 1.
 
-list_nodes(Content) ->
-    lists:filter(
-        fun(Clause) ->
-            [Attribute] = ktn_code:node_attr(pattern, Clause),
-            is_list_node(Attribute)
-        end,
-        Content
-    ).
+is_list_clause(Clause) ->
+    [Attribute] = ktn_code:node_attr(pattern, Clause),
+    is_list_node(Attribute).
 
 is_behaviour_in(Root, ConfigBehaviors) ->
     {nodes, Behaviours} = elvis_code:find(#{of_types => [behaviour, behavior], inside => Root}),
@@ -2420,7 +2449,7 @@ tuple_length_indices(TupleNode) ->
     Elements = ktn_code:content(TupleNode),
     [
         I
-     || {I, E} <- lists:zip(lists:seq(1, length(Elements)), Elements),
+     || {I, E} <- lists:enumerate(1, Elements),
         is_length_call(E)
     ].
 
@@ -2448,10 +2477,10 @@ clause_pattern(Clause) ->
     end.
 
 tuple_elem(TupleNode, OneBasedIdx) ->
-    Content = ktn_code:content(TupleNode),
-    case OneBasedIdx =< length(Content) of
-        true -> lists:nth(OneBasedIdx, Content);
-        false -> undefined
+    try
+        lists:nth(OneBasedIdx, ktn_code:content(TupleNode))
+    catch
+        error:function_clause -> undefined
     end.
 
 is_int_in_allowed(Node, AllowedEq) ->
@@ -4157,12 +4186,16 @@ add_branch(_) -> 0.
 %% Counts direct clause children of a node (not deeply nested ones).
 -spec count_direct_clauses(ktn_code:tree_node()) -> non_neg_integer().
 count_direct_clauses(Node) ->
-    case ktn_code:content(Node) of
-        [] ->
-            0;
-        Content ->
-            length([C || C <- Content, ktn_code:type(C) =:= clause])
-    end.
+    lists:foldl(
+        fun(C, Acc) ->
+            case ktn_code:type(C) of
+                clause -> Acc + 1;
+                _ -> Acc
+            end
+        end,
+        0,
+        ktn_code:content(Node)
+    ).
 
 line(Node) ->
     {Line, _} = ktn_code:attr(location, Node),
