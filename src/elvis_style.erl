@@ -1084,23 +1084,17 @@ module_name_from(ModuleNode, File) ->
 state_record_and_type(Rule, ElvisConfig) ->
     Root = elvis_code:root(Rule, ElvisConfig),
 
-    case is_otp_behaviour(Root) of
-        true ->
-            {nodes, StateRecordNodes} =
-                elvis_code:find(#{
-                    of_types => [record_attr],
-                    inside => Root,
-                    filtered_by => fun is_state_record/1
-                }),
-            HasStateRecord = StateRecordNodes =/= [],
+    {nodes, AllNodes} = elvis_code:find(#{
+        of_types => [behaviour, behavior, record_attr, type_attr, opaque],
+        inside => Root
+    }),
+    {BehaviourNodes, RecordAttrNodes, TypeOrOpaqueNodes} =
+        partition_state_record_nodes(AllNodes),
 
-            {nodes, StateTypeNodes} =
-                elvis_code:find(#{
-                    of_types => [type_attr, opaque],
-                    inside => Root,
-                    filtered_by => fun is_type_or_opaque_state/1
-                }),
-            HasStateType = StateTypeNodes =/= [],
+    case is_otp_behaviour_from_nodes(BehaviourNodes) of
+        true ->
+            HasStateRecord = lists:any(fun is_state_record/1, RecordAttrNodes),
+            HasStateType = lists:any(fun is_type_or_opaque_state/1, TypeOrOpaqueNodes),
 
             case {HasStateRecord, HasStateType} of
                 {true, true} ->
@@ -1123,6 +1117,20 @@ state_record_and_type(Rule, ElvisConfig) ->
         false ->
             []
     end.
+
+partition_state_record_nodes(Nodes) ->
+    lists:foldl(
+        fun(Node, {Behaviours, Records, TypesOrOpaques}) ->
+            case ktn_code:type(Node) of
+                behaviour -> {[Node | Behaviours], Records, TypesOrOpaques};
+                behavior -> {[Node | Behaviours], Records, TypesOrOpaques};
+                record_attr -> {Behaviours, [Node | Records], TypesOrOpaques};
+                _ -> {Behaviours, Records, [Node | TypesOrOpaques]}
+            end
+        end,
+        {[], [], []},
+        Nodes
+    ).
 
 is_state_record(RecordAttrNode) ->
     ktn_code:attr(name, RecordAttrNode) =:= state.
@@ -3781,20 +3789,6 @@ parent_is_not_remote(Zipper) ->
             ktn_code:type(Parent) =/= remote
     end.
 
-is_otp_behaviour(Root) ->
-    OtpSet = sets:from_list([gen_server, gen_event, gen_fsm, gen_statem, supervisor_bridge]),
-    {nodes, Behaviors} = elvis_code:find(#{of_types => [behaviour, behavior], inside => Root}),
-    case Behaviors of
-        [] ->
-            false;
-        Behaviors ->
-            ValueFun = fun(Node) -> ktn_code:attr(value, Node) end,
-            Names = lists:map(ValueFun, Behaviors),
-            BehaviorsSet = sets:from_list(Names),
-            not sets:is_empty(
-                sets:intersection(OtpSet, BehaviorsSet)
-            )
-    end.
 
 find_repeated_nodes(Root, MinComplexity) ->
     TypeAttrs = #{var => [location, name, text], clause => [location, text]},
