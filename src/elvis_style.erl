@@ -447,6 +447,7 @@ function_name(FunctionNode) ->
 -spec consistent_variable_naming(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 consistent_variable_naming(Rule, ElvisConfig) ->
     Root = elvis_code:root(Rule, ElvisConfig),
+    TokenIndex = build_token_index(Root),
 
     % Compile regexes once; canonical_variable_tokenisation/1 used to compile per variable.
     CamelRe = re_compile("([a-z])([A-Z])"),
@@ -455,7 +456,7 @@ consistent_variable_naming(Rule, ElvisConfig) ->
     {zippers, VarZippers} = elvis_code:find(#{
         of_types => [var],
         inside => Root,
-        filtered_by => fun is_var/1,
+        filtered_by => fun(Z) -> is_var(Z, TokenIndex) end,
         filtered_from => zipper,
         traverse => all
     }),
@@ -542,10 +543,13 @@ variable_naming_convention(Rule, ElvisConfig) ->
     RegexAllow = re_compile(Regex),
     RegexBlock = re_compile(ForbiddenRegex),
 
+    Root = elvis_code:root(Rule, ElvisConfig),
+    TokenIndex = build_token_index(Root),
+
     {zippers, VarZippers} = elvis_code:find(#{
         of_types => [var],
-        inside => elvis_code:root(Rule, ElvisConfig),
-        filtered_by => fun is_var/1,
+        inside => Root,
+        filtered_by => fun(Z) -> is_var(Z, TokenIndex) end,
         filtered_from => zipper,
         traverse => all
     }),
@@ -3717,7 +3721,22 @@ is_dynamic_call(Node) ->
 is_the_module_macro(Module) ->
     ktn_code:type(Module) =:= macro andalso ktn_code:attr(name, Module) =:= "MODULE".
 
-is_var(Zipper) ->
+build_token_index(Root) ->
+    Tokens = ktn_code:attr(tokens, Root),
+    lists:foldl(fun index_token/2, #{}, Tokens).
+
+index_token(#{attrs := #{location := {Line, Col}}} = Token, Acc) ->
+    Text = ktn_code:attr(text, Token),
+    Len = length(Text),
+    lists:foldl(
+        fun(C, A) -> A#{{Line, C} => Token} end,
+        Acc,
+        lists:seq(Col, Col + Len - 1)
+    );
+index_token(_, Acc) ->
+    Acc.
+
+is_var(Zipper, TokenIndex) ->
     PrevLocation =
         case ktn_code:attr(location, zipper:node(Zipper)) of
             {L, 1} ->
@@ -3725,33 +3744,12 @@ is_var(Zipper) ->
             {L, C} ->
                 {L, C - 1}
         end,
-    case
-        find_token(
-            zipper:root(Zipper), PrevLocation
-        )
-    of
-        not_found ->
-            true;
-        {ok, PrevToken} ->
-            ktn_code:type(PrevToken) =/= '?'
+    case TokenIndex of
+        #{PrevLocation := PrevToken} ->
+            ktn_code:type(PrevToken) =/= '?';
+        #{} ->
+            true
     end.
-
-find_token(Root, Location) ->
-    Fun = fun(Token) -> is_at_location(Token, Location) end,
-    Tokens = ktn_code:attr(tokens, Root),
-    case lists:search(Fun, Tokens) of
-        false ->
-            not_found;
-        {value, Token} ->
-            {ok, Token}
-    end.
-
-is_at_location(#{attrs := #{location := {Line, NodeCol}}} = Node, {Line, Column}) ->
-    Text = ktn_code:attr(text, Node),
-    Length = length(Text),
-    NodeCol =< Column andalso Column < NodeCol + Length;
-is_at_location(_, _) ->
-    false.
 
 is_ignored_var(Zipper) ->
     Node = zipper:node(Zipper),
