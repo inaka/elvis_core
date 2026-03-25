@@ -14,6 +14,8 @@
 
 % These are local debug functions.
 -ignore_xref([print_node/1, print_node/2]).
+% Kept for backward compatibility; no longer used internally.
+-ignore_xref([zipper/1]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Public API
@@ -41,61 +43,79 @@ find(#{of_types := OfTypes, inside := Inside} = Options) ->
     FilteredFrom = maps:get(filtered_from, Options, node),
     Traverse = maps:get(traverse, Options, content),
 
-    NonFilteredResults = find(
-        fun(NodeOrZipper) ->
-            Node =
-                case FilteredFrom of
-                    _ when OfTypes =:= undefined ->
-                        undefined;
-                    node ->
-                        NodeOrZipper;
-                    zipper ->
-                        Zipper = NodeOrZipper,
-                        zipper:node(Zipper)
-                end,
-            OfTypes =:= undefined orelse lists:member(ktn_code:type(Node), OfTypes)
-        end,
-        Inside,
-        FilteredFrom,
-        Traverse
-    ),
-
-    Results =
-        case FilteredBy of
-            undefined ->
-                NonFilteredResults;
-            _ ->
-                [Result || Result <- NonFilteredResults, FilteredBy(Result)]
-        end,
-
     case FilteredFrom of
         node ->
-            {nodes, Results};
+            Pred = build_node_pred(OfTypes, FilteredBy),
+            {nodes, find_nodes(Pred, Inside, Traverse)};
         zipper ->
+            TypePred =
+                fun(Zipper) ->
+                    OfTypes =:= undefined orelse
+                        lists:member(ktn_code:type(zipper:node(Zipper)), OfTypes)
+                end,
+            ZipperObj = zipper(Inside, Traverse),
+            NonFilteredResults = find_with_zipper(TypePred, ZipperObj, [], #{}, zipper),
+            Results =
+                case FilteredBy of
+                    undefined -> NonFilteredResults;
+                    _ -> [Z || Z <- NonFilteredResults, FilteredBy(Z)]
+                end,
             {zippers, Results}
     end.
 
-%% @doc Find all nodes in the tree for which the predicate function returns
-%%      `true'. The options map has two keys:
-%%      <ul>
-%%        <li>
-%%        - `filtered_from': when the value `node' is specified the predicate function
-%%          receives a tree_node() as its argument. When `zipper' is specified
-%%          the argument is the zipper location for the current node.
-%%        </li>
-%%        <li>
-%%        - `traverse': the value `content' indicates to only take into account
-%%          nodes in the parent-child hierarchy. When `all' is provided the
-%%          nodes held in the `node_attrs' map are also taken into account in
-%%          the search.
-%%        </li>
-%%      </ul>
-%% @end
--spec find(fun((tree_node_zipper()) -> boolean()), tree_node(), node | zipper, content | all) ->
-    [tree_node() | tree_node_zipper()].
-find(Pred, Root, FilteredFrom, Traverse) ->
-    Zipper = zipper(Root, Traverse),
-    find_with_zipper(Pred, Zipper, [], #{}, FilteredFrom).
+build_node_pred(OfTypes, undefined) ->
+    fun(Node) ->
+        OfTypes =:= undefined orelse lists:member(ktn_code:type(Node), OfTypes)
+    end;
+build_node_pred(OfTypes, FilteredBy) ->
+    fun(Node) ->
+        (OfTypes =:= undefined orelse lists:member(ktn_code:type(Node), OfTypes))
+            andalso FilteredBy(Node)
+    end.
+
+find_nodes(Pred, Node, content) ->
+    find_nodes_content(Pred, Node);
+find_nodes(Pred, Node, all) ->
+    {Results, _Seen} = find_nodes_all(Pred, Node, #{}),
+    Results.
+
+find_nodes_content(Pred, #{content := Content} = Node) ->
+    Match = [Node || Pred(Node)],
+    Match ++ lists:flatmap(fun(Child) -> find_nodes_content(Pred, Child) end, Content);
+find_nodes_content(Pred, Node) when is_map(Node) ->
+    [Node || Pred(Node)];
+find_nodes_content(_Pred, _Node) ->
+    [].
+
+find_nodes_all(Pred, Node, Seen) when is_map(Node) ->
+    case Seen of
+        #{Node := _} ->
+            {[], Seen};
+        #{} ->
+            Seen1 = Seen#{Node => true},
+            Match = [Node || Pred(Node)],
+            {ChildResults, Seen2} =
+                lists:foldl(
+                    fun(Child, {A, S}) ->
+                        {R, S1} = find_nodes_all(Pred, Child, S),
+                        {[R | A], S1}
+                    end,
+                    {[], Seen1},
+                    all_children(Node)
+                ),
+            {Match ++ lists:append(lists:reverse(ChildResults)), Seen2}
+    end;
+find_nodes_all(_Pred, _Node, Seen) ->
+    {[], Seen}.
+
+all_children(#{content := Content, node_attrs := NodeAttrs}) ->
+    Content ++ lists:flatten(maps:values(NodeAttrs));
+all_children(#{content := Content}) ->
+    Content;
+all_children(#{node_attrs := NodeAttrs}) ->
+    lists:flatten(maps:values(NodeAttrs));
+all_children(_) ->
+    [].
 
 -spec zipper(tree_node()) -> tree_node_zipper().
 zipper(Root) ->

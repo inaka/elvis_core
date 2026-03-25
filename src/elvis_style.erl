@@ -453,32 +453,31 @@ consistent_variable_naming(Rule, ElvisConfig) ->
     CamelRe = re_compile("([a-z])([A-Z])"),
     HyphenRe = re_compile("-"),
 
-    {zippers, VarZippers} = elvis_code:find(#{
+    {nodes, VarNodes} = elvis_code:find(#{
         of_types => [var],
         inside => Root,
-        filtered_by => fun(Z) -> is_var(Z, TokenIndex) end,
-        filtered_from => zipper,
+        filtered_by => fun(N) -> is_var_node(N, TokenIndex) end,
         traverse => all
     }),
 
     GroupedByTokens = maps:groups_from_list(
-        fun(Z) ->
+        fun(N) ->
             canonical_variable_tokenisation(
-                canonical_variable_name(Z),
+                canonical_variable_name_from_node(N),
                 CamelRe,
                 HyphenRe
             )
         end,
-        VarZippers
+        VarNodes
     ),
 
     maps:fold(
         fun
             (_Tokens, [_], Acc) ->
                 Acc;
-            (_Tokens, [FirstVarZipper | OtherVarZippers], Acc) ->
-                FirstName = canonical_variable_name(FirstVarZipper),
-                case unique_other_names(OtherVarZippers, FirstName) of
+            (_Tokens, [FirstVarNode | OtherVarNodes], Acc) ->
+                FirstName = canonical_variable_name_from_node(FirstVarNode),
+                case unique_other_names_from_nodes(OtherVarNodes, FirstName) of
                     [] ->
                         Acc;
                     OtherNames ->
@@ -487,11 +486,11 @@ consistent_variable_naming(Rule, ElvisConfig) ->
                                 "variable '~s' (first used in line ~p) has ~w with: ~p",
                                 [
                                     FirstName,
-                                    line(zipper:node(FirstVarZipper)),
+                                    line(FirstVarNode),
                                     syntax_or_casing_difference,
                                     OtherNames
                                 ],
-                                #{zipper => FirstVarZipper}
+                                #{node => FirstVarNode}
                             )
                             | Acc
                         ]
@@ -513,21 +512,19 @@ canonical_variable_tokenisation(Name, CamelRe, HyphenRe) ->
     % 4. Split by underscore and automatically drop empty tokens
     string:lexemes(S3, "_").
 
-unique_other_names(OtherVarZippers, FirstName) ->
-    FilteredZippers = lists:filtermap(
-        fun(OtherVarZipper) ->
-            case canonical_variable_name(OtherVarZipper) of
+unique_other_names_from_nodes(OtherVarNodes, FirstName) ->
+    FilteredNames = lists:filtermap(
+        fun(OtherVarNode) ->
+            case canonical_variable_name_from_node(OtherVarNode) of
                 FirstName -> false;
                 OtherName -> {true, OtherName}
             end
         end,
-        OtherVarZippers
+        OtherVarNodes
     ),
-    lists:usort(FilteredZippers).
+    lists:usort(FilteredNames).
 
-canonical_variable_name(VarZipper) ->
-    VarNode = zipper:node(VarZipper),
-
+canonical_variable_name_from_node(VarNode) ->
     case atom_to_list(ktn_code:attr(name, VarNode)) of
         [$_ | Rest] ->
             Rest;
@@ -546,17 +543,16 @@ variable_naming_convention(Rule, ElvisConfig) ->
     Root = elvis_code:root(Rule, ElvisConfig),
     TokenIndex = build_token_index(Root),
 
-    {zippers, VarZippers} = elvis_code:find(#{
+    {nodes, VarNodes} = elvis_code:find(#{
         of_types => [var],
         inside => Root,
-        filtered_by => fun(Z) -> is_var(Z, TokenIndex) end,
-        filtered_from => zipper,
+        filtered_by => fun(N) -> is_var_node(N, TokenIndex) end,
         traverse => all
     }),
 
     lists:filtermap(
-        fun(VarZipper) ->
-            VariableName = variable_name(VarZipper),
+        fun(VarNode) ->
+            VariableName = atom_to_list(ktn_code:attr(name, VarNode)),
 
             case re_run(VariableName, RegexAllow) of
                 nomatch when VariableName =/= "_" ->
@@ -565,7 +561,7 @@ variable_naming_convention(Rule, ElvisConfig) ->
                             "the name of variable ~p is not acceptable by regular "
                             "expression '~s'",
                             [VariableName, Regex],
-                            #{zipper => VarZipper}
+                            #{node => VarNode}
                         )};
                 {match, _} when ForbiddenRegex =/= undefined ->
                     % We check for forbidden names only after accepted names
@@ -576,7 +572,7 @@ variable_naming_convention(Rule, ElvisConfig) ->
                                     "the name of variable ~p is forbidden by regular "
                                     "expression '~s'",
                                     [VariableName, ForbiddenRegex],
-                                    #{zipper => VarZipper}
+                                    #{node => VarNode}
                                 )};
                         nomatch ->
                             false
@@ -585,12 +581,8 @@ variable_naming_convention(Rule, ElvisConfig) ->
                     false
             end
         end,
-        VarZippers
+        VarNodes
     ).
-
-variable_name(VarZipper) ->
-    VarNode = zipper:node(VarZipper),
-    atom_to_list(ktn_code:attr(name, VarNode)).
 
 -spec macro_naming_convention(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 macro_naming_convention(Rule, ElvisConfig) ->
@@ -3721,6 +3713,21 @@ is_dynamic_call(Node) ->
 is_the_module_macro(Module) ->
     ktn_code:type(Module) =:= macro andalso ktn_code:attr(name, Module) =:= "MODULE".
 
+is_var_node(Node, TokenIndex) ->
+    PrevLocation =
+        case ktn_code:attr(location, Node) of
+            {L, 1} ->
+                {L - 1, 9999};
+            {L, C} ->
+                {L, C - 1}
+        end,
+    case TokenIndex of
+        #{PrevLocation := PrevToken} ->
+            ktn_code:type(PrevToken) =/= '?';
+        #{} ->
+            true
+    end.
+
 build_token_index(Root) ->
     Tokens = ktn_code:attr(tokens, Root),
     lists:foldl(fun index_token/2, #{}, Tokens).
@@ -3736,20 +3743,6 @@ index_token(#{attrs := #{location := {Line, Col}}} = Token, Acc) ->
 index_token(_, Acc) ->
     Acc.
 
-is_var(Zipper, TokenIndex) ->
-    PrevLocation =
-        case ktn_code:attr(location, zipper:node(Zipper)) of
-            {L, 1} ->
-                {L - 1, 9999};
-            {L, C} ->
-                {L, C - 1}
-        end,
-    case TokenIndex of
-        #{PrevLocation := PrevToken} ->
-            ktn_code:type(PrevToken) =/= '?';
-        #{} ->
-            true
-    end.
 
 is_ignored_var(Zipper) ->
     Node = zipper:node(Zipper),
