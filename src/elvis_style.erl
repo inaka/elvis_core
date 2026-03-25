@@ -986,20 +986,20 @@ has_callbacks(Root) ->
 
 -spec no_used_ignored_variables(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_used_ignored_variables(Rule, ElvisConfig) ->
-    {zippers, IgnoredVarZippers} = elvis_code:find(#{
+    {nodes_and_ancestors, IgnoredVars} = elvis_code:find(#{
         of_types => [var],
         inside => elvis_code:root(Rule, ElvisConfig),
-        filtered_by => fun is_ignored_var/1,
-        filtered_from => zipper
+        filtered_by => fun is_ignored_var_with_ancestors/1,
+        filtered_from => node_and_ancestors
     }),
 
     [
         elvis_result:new_item(
             "an unexpected use of an ignored variable was found",
             [],
-            #{zipper => IgnoredVarZipper}
+            #{node => Node}
         )
-     || IgnoredVarZipper <- IgnoredVarZippers
+     || {Node, _Ancestors} <- IgnoredVars
     ].
 
 -spec no_behavior_info(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
@@ -1397,21 +1397,21 @@ max_anonymous_function_clause_length(Rule, ElvisConfig) ->
     {Src, _} = elvis_file:src(elvis_rule:file(Rule)),
     Lines = elvis_utils:split_all_lines(Src, [trim]),
 
-    {zippers, ClauseZippers} = elvis_code:find(#{
+    {nodes_and_ancestors, ClauseResults} = elvis_code:find(#{
         of_types => [clause],
         inside => elvis_code:root(Rule, ElvisConfig),
         filtered_by =>
-            fun(ClauseZipper) ->
-                is_function_clause(ClauseZipper, ['fun', named_fun])
+            fun({_Node, Ancestors}) ->
+                is_function_clause_by_parent(Ancestors, ['fun', named_fun])
             end,
-        filtered_from => zipper,
+        filtered_from => node_and_ancestors,
         traverse => all
     }),
 
     CommentRegex = line_is_comment_regex(),
     WhitespaceRegex = line_is_whitespace_regex(),
     BigClauses = big_clauses(
-        ClauseZippers,
+        ClauseResults,
         Lines,
         CountComments,
         CountWhitespace,
@@ -1421,14 +1421,12 @@ max_anonymous_function_clause_length(Rule, ElvisConfig) ->
     ),
 
     lists:map(
-        fun({ClauseZipper, ClauseNum, LineLen}) ->
-            FunctionNode = zipper:node(zipper:up(ClauseZipper)),
-
+        fun({_ClauseNode, Parent, ClauseNum, LineLen}) ->
             elvis_result:new_item(
                 "the code for the ~s clause of the anonymous function has ~p lines, "
                 "which is higher than the configured limit",
                 [parse_clause_num(ClauseNum), LineLen],
-                #{node => FunctionNode, limit => MaxLength}
+                #{node => Parent, limit => MaxLength}
             )
         end,
         lists:reverse(BigClauses)
@@ -1443,20 +1441,20 @@ max_function_clause_length(Rule, ElvisConfig) ->
     {Src, _} = elvis_file:src(elvis_rule:file(Rule)),
     Lines = elvis_utils:split_all_lines(Src, [trim]),
 
-    {zippers, ClauseZippers} = elvis_code:find(#{
+    {nodes_and_ancestors, ClauseResults} = elvis_code:find(#{
         of_types => [clause],
         inside => elvis_code:root(Rule, ElvisConfig),
         filtered_by =>
-            fun(ClauseZipper) ->
-                is_function_clause(ClauseZipper, [function])
+            fun({_Node, Ancestors}) ->
+                is_function_clause_by_parent(Ancestors, [function])
             end,
-        filtered_from => zipper
+        filtered_from => node_and_ancestors
     }),
 
     LineIsCommentRegex = line_is_comment_regex(),
     LineIsWhitespaceRegex = line_is_whitespace_regex(),
     BigClauses = big_clauses(
-        ClauseZippers,
+        ClauseResults,
         Lines,
         CountComments,
         CountWhitespace,
@@ -1466,9 +1464,7 @@ max_function_clause_length(Rule, ElvisConfig) ->
     ),
 
     lists:map(
-        fun({ClauseZipper, ClauseNum, LineLen}) ->
-            FunctionNode = zipper:node(zipper:up(ClauseZipper)),
-
+        fun({_ClauseNode, FunctionNode, ClauseNum, LineLen}) ->
             elvis_result:new_item(
                 "the code for the ~s clause of function '~p/~p' has ~p lines, which is higher than "
                 "the configured limit",
@@ -1495,8 +1491,7 @@ big_clauses(
 ) ->
     % We do this to recover the clause number and apply the configured filters
     {BigClauses, _} = lists:foldl(
-        fun(ClauseZipper, {BigClauses0, ClauseNum}) ->
-            ClauseNode = zipper:node(ClauseZipper),
+        fun({ClauseNode, [Parent | _]}, {BigClauses0, ClauseNum}) ->
             FilteredLines = filtered_lines_in(
                 ClauseNode,
                 Lines,
@@ -1509,7 +1504,7 @@ big_clauses(
             AccOut =
                 case LineLen > MaxLength of
                     true ->
-                        [{ClauseZipper, ClauseNum, LineLen} | BigClauses0];
+                        [{ClauseNode, Parent, ClauseNum, LineLen} | BigClauses0];
                     false ->
                         BigClauses0
                 end,
@@ -1883,17 +1878,17 @@ atom_naming_convention(Rule, ElvisConfig) ->
 
     % Use content only: 'all' would also traverse node_attrs (location, text, value, etc.),
     % multiplying visited nodes and making the rule much slower.
-    {zippers, AtomZippers} = elvis_code:find(#{
+    {nodes_and_ancestors, AtomResults} = elvis_code:find(#{
         of_types => [atom],
         inside => elvis_code:root(Rule, ElvisConfig),
         filtered_by => fun parent_is_not_remote/1,
-        filtered_from => zipper,
+        filtered_from => node_and_ancestors,
         traverse => content
     }),
 
     lists:filtermap(
-        fun(AtomZipper) ->
-            case atom_name_matches_regexes(AtomZipper, Compiled, Source) of
+        fun({AtomNode, _Ancestors}) ->
+            case atom_name_matches_regexes(AtomNode, Compiled, Source) of
                 ok ->
                     false;
                 {not_acceptable, Kind, AtomName, RegexAllowSource} ->
@@ -1902,7 +1897,7 @@ atom_naming_convention(Rule, ElvisConfig) ->
                             "the name of ~ts ~p is not acceptable by regular "
                             "expression '~s'",
                             [Kind, AtomName, RegexAllowSource],
-                            #{zipper => AtomZipper}
+                            #{node => AtomNode}
                         )};
                 {blocked, Kind, AtomName, RegexBlockSource} ->
                     {true,
@@ -1910,15 +1905,15 @@ atom_naming_convention(Rule, ElvisConfig) ->
                             "the name of ~ts ~p is forbidden by regular "
                             "expression '~s'",
                             [Kind, AtomName, RegexBlockSource],
-                            #{zipper => AtomZipper}
+                            #{node => AtomNode}
                         )}
             end
         end,
-        AtomZippers
+        AtomResults
     ).
 
-atom_name_matches_regexes(AtomZipper, Compiled, Source) ->
-    {AtomName0, AtomNodeValue} = atom_name_and_node_value(AtomZipper),
+atom_name_matches_regexes(AtomNode, Compiled, Source) ->
+    {AtomName0, AtomNodeValue} = atom_name_and_node_value(AtomNode),
     {IsEnclosed, AtomName} = string_strip_enclosed(AtomName0),
     IsExceptionClass = is_exception_or_non_reversible(AtomNodeValue),
 
@@ -1961,8 +1956,7 @@ atom_name_matches_regexes(AtomZipper, Compiled, Source) ->
             ok
     end.
 
-atom_name_and_node_value(AtomZipper) ->
-    AtomNode = zipper:node(AtomZipper),
+atom_name_and_node_value(AtomNode) ->
     {ktn_code:attr(text, AtomNode), ktn_code:attr(value, AtomNode)}.
 
 -spec no_init_lists(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
@@ -2640,32 +2634,33 @@ no_import(Rule, ElvisConfig) ->
 
 -spec no_catch_expressions(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_catch_expressions(Rule, ElvisConfig) ->
-    {zippers, CatchExprZippers} = elvis_code:find(#{
+    {nodes_and_ancestors, CatchExprResults} = elvis_code:find(#{
         of_types => ['catch'],
         inside => elvis_code:root(Rule, ElvisConfig),
-        filtered_from => zipper,
-        filtered_by => fun(Zipper) -> not result_discarded(Zipper) end
+        filtered_from => node_and_ancestors,
+        filtered_by => fun(NA) -> not result_discarded(NA) end
     }),
 
     [
         elvis_result:new_item(
             "an unexpected 'catch' expression was found; prefer a 'try' expression",
             [],
-            #{node => zipper:node(CatchExprZipper)}
+            #{node => Node}
         )
-     || CatchExprZipper <- lists:uniq(CatchExprZippers)
+     || {Node, _Ancestors} <- lists:uniq(CatchExprResults)
     ].
 
 %% @doc is this node in a _ = ... expression, where the result is explicitly discarded?
-result_discarded(Zipper) ->
-    Parent = zipper:node(zipper:up(Zipper)),
+result_discarded({_Node, [Parent | _]}) ->
     case ktn_code:type(Parent) of
         match ->
             [LeftSide | _] = ktn_code:content(Parent),
             ktn_code:type(LeftSide) =:= var andalso ktn_code:attr(name, LeftSide) =:= '_';
         _ ->
             false
-    end.
+    end;
+result_discarded({_Node, []}) ->
+    false.
 
 -spec no_single_clause_case(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_single_clause_case(Rule, ElvisConfig) ->
@@ -2908,21 +2903,18 @@ behaviour_spelling(Rule, ElvisConfig) ->
 guard_operators(Rule, ElvisConfig) ->
     case elvis_rule:option(preferred_syntax, Rule) of
         per_expression ->
-            {zippers, GuardedClauseZippers} = elvis_code:find(#{
+            {nodes_and_ancestors, GuardedClauseResults} = elvis_code:find(#{
                 of_types => [clause],
                 inside => elvis_code:root(Rule, ElvisConfig),
                 filtered_by =>
-                    fun(ClauseZipper) ->
-                        has_guards(zipper:node(ClauseZipper))
+                    fun({Node, _Ancestors}) ->
+                        has_guards(Node)
                     end,
-                filtered_from => zipper,
+                filtered_from => node_and_ancestors,
                 traverse => all
             }),
             GuardedExpressionNodes =
-                [
-                    zipper:node(zipper:up(GuardedClauseZipper))
-                 || GuardedClauseZipper <- GuardedClauseZippers
-                ],
+                [Parent || {_Node, [Parent | _]} <- GuardedClauseResults],
             check_guard_operators(per_expression, GuardedExpressionNodes);
         PreferredSyntax ->
             {nodes, GuardedClauseNodes} = elvis_code:find(#{
@@ -3022,18 +3014,18 @@ is_two_sided_boolean_op(Node) ->
 param_pattern_matching(Rule, ElvisConfig) ->
     Side = elvis_rule:option(side, Rule),
 
-    {zippers, ClauseZippers} = elvis_code:find(#{
+    {nodes_and_ancestors, ClauseResults} = elvis_code:find(#{
         of_types => [clause],
         inside => elvis_code:root(Rule, ElvisConfig),
         filtered_by =>
-            fun(ClauseZipper) ->
-                is_function_clause(ClauseZipper, [function, 'fun', named_fun])
+            fun({_Node, Ancestors}) ->
+                is_function_clause_by_parent(Ancestors, [function, 'fun', named_fun])
             end,
-        filtered_from => zipper,
+        filtered_from => node_and_ancestors,
         traverse => all
     }),
 
-    MatchesInFunctionClauses = matches_in_function_clauses(ClauseZippers),
+    MatchesInFunctionClauses = matches_in_function_clauses(ClauseResults),
     MatchVars = match_vars_at(Side, MatchesInFunctionClauses),
 
     [
@@ -3065,11 +3057,10 @@ match_vars_at(Side, MatchesInFunctionClauses) ->
         MatchesInFunctionClauses
     ).
 
-matches_in_function_clauses(ClauseZippers) ->
+matches_in_function_clauses(ClauseResults) ->
     lists:append(
         lists:map(
-            fun(ClauseZipper) ->
-                ClauseNode = zipper:node(ClauseZipper),
+            fun({ClauseNode, _Ancestors}) ->
                 ClausePatterns = ktn_code:node_attr(pattern, ClauseNode),
                 lists:filter(
                     fun(ClausePattern) ->
@@ -3078,15 +3069,14 @@ matches_in_function_clauses(ClauseZippers) ->
                     ClausePatterns
                 )
             end,
-            ClauseZippers
+            ClauseResults
         )
     ).
 
-is_function_clause(ClauseZipper, ParentNodeTypes) ->
-    ClauseParent = zipper:up(ClauseZipper),
-    ParentNode = zipper:node(ClauseParent),
-    ParentNodeType = ktn_code:type(ParentNode),
-    lists:member(ParentNodeType, ParentNodeTypes).
+is_function_clause_by_parent([Parent | _], ParentNodeTypes) ->
+    lists:member(ktn_code:type(Parent), ParentNodeTypes);
+is_function_clause_by_parent([], _ParentNodeTypes) ->
+    false.
 
 -spec generic_type(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 generic_type(Rule, ElvisConfig) ->
@@ -3743,43 +3733,37 @@ index_token(#{attrs := #{location := {Line, Col}}} = Token, Acc) ->
 index_token(_, Acc) ->
     Acc.
 
-
-is_ignored_var(Zipper) ->
-    Node = zipper:node(Zipper),
+is_ignored_var_with_ancestors({Node, Ancestors}) ->
     case ktn_code:type(Node) of
         var ->
             Name = ktn_code:attr(name, Node),
             [FirstChar | _] = atom_to_list(Name),
             (FirstChar =:= $_) andalso (Name =/= '_') andalso
-                not check_parent_match_or_macro(Zipper);
+                not is_first_child_of_match_or_macro(Node, Ancestors);
         _OtherType ->
             false
     end.
 
-check_parent_match_or_macro(Zipper) ->
-    case zipper:up(Zipper) of
-        undefined ->
-            false;
-        ParentZipper ->
-            Parent = zipper:node(ParentZipper),
-            IsMatchOrMacro = lists:member(ktn_code:type(Parent), [macro | match_operators()]),
-            case IsMatchOrMacro of
-                true ->
-                    zipper:down(ParentZipper) =:= Zipper;
+is_first_child_of_match_or_macro(_Node, []) ->
+    false;
+is_first_child_of_match_or_macro(Node, [Parent | Rest]) ->
+    IsMatchOrMacro = lists:member(ktn_code:type(Parent), [macro | match_operators()]),
+    case IsMatchOrMacro of
+        true ->
+            case ktn_code:content(Parent) of
+                [FirstChild | _] ->
+                    ktn_code:attr(location, FirstChild) =:= ktn_code:attr(location, Node);
                 _ ->
-                    check_parent_match_or_macro(ParentZipper)
-            end
+                    false
+            end;
+        false ->
+            is_first_child_of_match_or_macro(Parent, Rest)
     end.
 
-parent_is_not_remote(Zipper) ->
-    case zipper:up(Zipper) of
-        undefined ->
-            true;
-        ParentZipper ->
-            Parent = zipper:node(ParentZipper),
-            ktn_code:type(Parent) =/= remote
-    end.
-
+parent_is_not_remote({_Node, []}) ->
+    true;
+parent_is_not_remote({_Node, [Parent | _]}) ->
+    ktn_code:type(Parent) =/= remote.
 
 find_repeated_nodes(Root, MinComplexity) ->
     TypeAttrs = #{var => [location, name, text], clause => [location, text]},

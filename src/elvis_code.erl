@@ -47,6 +47,9 @@ find(#{of_types := OfTypes, inside := Inside} = Options) ->
         node ->
             Pred = build_node_pred(OfTypes, FilteredBy),
             {nodes, find_nodes(Pred, Inside, Traverse)};
+        node_and_ancestors ->
+            Pred = build_ancestors_pred(OfTypes, FilteredBy),
+            {nodes_and_ancestors, find_nodes_with_ancestors(Pred, Inside, Traverse)};
         zipper ->
             TypePred =
                 fun(Zipper) ->
@@ -69,9 +72,59 @@ build_node_pred(OfTypes, undefined) ->
     end;
 build_node_pred(OfTypes, FilteredBy) ->
     fun(Node) ->
-        (OfTypes =:= undefined orelse lists:member(ktn_code:type(Node), OfTypes))
-            andalso FilteredBy(Node)
+        (OfTypes =:= undefined orelse lists:member(ktn_code:type(Node), OfTypes)) andalso
+            FilteredBy(Node)
     end.
+
+build_ancestors_pred(OfTypes, undefined) ->
+    fun({Node, _Ancestors}) ->
+        OfTypes =:= undefined orelse lists:member(ktn_code:type(Node), OfTypes)
+    end;
+build_ancestors_pred(OfTypes, FilteredBy) ->
+    fun({Node, _Ancestors} = NodeAndAncestors) ->
+        (OfTypes =:= undefined orelse lists:member(ktn_code:type(Node), OfTypes)) andalso
+            FilteredBy(NodeAndAncestors)
+    end.
+
+find_nodes_with_ancestors(Pred, Node, content) ->
+    find_nodes_content_ancestors(Pred, Node, []);
+find_nodes_with_ancestors(Pred, Node, all) ->
+    {Results, _Seen} = find_nodes_all_ancestors(Pred, Node, [], #{}),
+    Results.
+
+find_nodes_content_ancestors(Pred, #{content := Content} = Node, Ancestors) ->
+    Match = [{Node, Ancestors} || Pred({Node, Ancestors})],
+    Match ++
+        lists:flatmap(
+            fun(Child) -> find_nodes_content_ancestors(Pred, Child, [Node | Ancestors]) end,
+            Content
+        );
+find_nodes_content_ancestors(Pred, Node, Ancestors) when is_map(Node) ->
+    [{Node, Ancestors} || Pred({Node, Ancestors})];
+find_nodes_content_ancestors(_Pred, _Node, _Ancestors) ->
+    [].
+
+find_nodes_all_ancestors(Pred, Node, Ancestors, Seen) when is_map(Node) ->
+    case Seen of
+        #{Node := _} ->
+            {[], Seen};
+        #{} ->
+            Seen1 = Seen#{Node => true},
+            Match = [{Node, Ancestors} || Pred({Node, Ancestors})],
+            NewAncestors = [Node | Ancestors],
+            {ChildResults, Seen2} =
+                lists:foldl(
+                    fun(Child, {A, S}) ->
+                        {R, S1} = find_nodes_all_ancestors(Pred, Child, NewAncestors, S),
+                        {[R | A], S1}
+                    end,
+                    {[], Seen1},
+                    all_children(Node)
+                ),
+            {Match ++ lists:append(lists:reverse(ChildResults)), Seen2}
+    end;
+find_nodes_all_ancestors(_Pred, _Node, _Ancestors, Seen) ->
+    {[], Seen}.
 
 find_nodes(Pred, Node, content) ->
     find_nodes_content(Pred, Node);
