@@ -1790,20 +1790,19 @@ no_common_caveats_call(Rule, ElvisConfig) ->
 
 -spec node_line_limits(ktn_code:tree_node()) -> {Min :: integer(), Max :: integer()}.
 node_line_limits(FunctionNode) ->
-    Zipper = elvis_code:zipper(FunctionNode),
-    % The first number in `lineNums' list is the location of the first
-    % line of the function. That's why we use it for the `Min' value.
-    LineNums = zipper:map(fun line/1, Zipper),
-    % Last function's line
-    Max = lists:max(LineNums),
-    % If you use `lists:min/1' here, you will get weird results when using
-    % macros because most of the time macros are defined at the beginning of
-    % the module, but your function's first line could be in the middle or
-    % even at the end of the module.
-
-    % Min = first function's line
-    [Min | _] = LineNums,
+    % Min = first line of the function node itself (not lists:min, because
+    % macros are often defined at the top of the module, skewing the minimum).
+    Min = line(FunctionNode),
+    Max = max_line(FunctionNode, Min),
     {Min, Max}.
+
+max_line(#{content := Content} = Node, Acc) ->
+    Acc1 = erlang:max(line(Node), Acc),
+    lists:foldl(fun(Child, A) -> max_line(Child, A) end, Acc1, Content);
+max_line(Node, Acc) when is_map(Node) ->
+    erlang:max(line(Node), Acc);
+max_line(_, Acc) ->
+    Acc.
 
 -spec no_nested_try_catch(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_nested_try_catch(Rule, ElvisConfig) ->
@@ -3770,8 +3769,7 @@ find_repeated_nodes(Root, MinComplexity) ->
 
     FoldFun =
         fun(Node, Map) ->
-            Zipper = elvis_code:zipper(Node),
-            case zipper:size(Zipper) of
+            case node_size(Node) of
                 Count when Count >= MinComplexity ->
                     Loc = ktn_code:attr(location, Node),
                     StrippedNode = remove_attrs(Node, TypeAttrs),
@@ -3783,14 +3781,28 @@ find_repeated_nodes(Root, MinComplexity) ->
                     Map
             end
         end,
-    ZipperRoot = elvis_code:zipper(Root),
-    Grouped = zipper:fold(FoldFun, #{}, ZipperRoot),
+    Grouped = fold_content(FoldFun, #{}, Root),
 
     Repeated = filter_repeated(Grouped),
     LocationSets = maps:values(Repeated),
     Locations = lists:map(fun sets:to_list/1, LocationSets),
 
     lists:map(fun lists:sort/1, Locations).
+
+node_size(#{content := Content}) ->
+    1 + lists:sum([node_size(Child) || Child <- Content]);
+node_size(Node) when is_map(Node) ->
+    1;
+node_size(_) ->
+    0.
+
+fold_content(Fun, Acc, #{content := Content} = Node) ->
+    Acc1 = Fun(Node, Acc),
+    lists:foldl(fun(Child, A) -> fold_content(Fun, A, Child) end, Acc1, Content);
+fold_content(Fun, Acc, Node) when is_map(Node) ->
+    Fun(Node, Acc);
+fold_content(_Fun, Acc, _) ->
+    Acc.
 
 -spec remove_attrs(ktn_code:tree_node() | [ktn_code:tree_node()], map()) ->
     ktn_code:tree_node().
