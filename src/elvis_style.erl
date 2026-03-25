@@ -1374,7 +1374,9 @@ max_function_arity(Rule, ElvisConfig) ->
      || {FunctionNode, MaxArity} <- FunctionNodeMaxArities
     ].
 
-arity_for_function_exports(ExportedFunctions, FunctionNode, ExportedMaxArity, NonExportedMaxArity) ->
+arity_for_function_exports(
+    ExportedFunctions, FunctionNode, ExportedMaxArity, NonExportedMaxArity
+) ->
     case is_exported_function(FunctionNode, ExportedFunctions) of
         true ->
             ExportedMaxArity;
@@ -1798,7 +1800,7 @@ node_line_limits(FunctionNode) ->
 
 max_line(#{content := Content} = Node, Acc) ->
     Acc1 = erlang:max(line(Node), Acc),
-    lists:foldl(fun(Child, A) -> max_line(Child, A) end, Acc1, Content);
+    lists:foldl(fun max_line/2, Acc1, Content);
 max_line(Node, Acc) when is_map(Node) ->
     erlang:max(line(Node), Acc);
 max_line(_, Acc) ->
@@ -3298,8 +3300,8 @@ is_otp_behaviour_from_nodes(BehaviourNodes) ->
 type_attr_locations(TypeAttrNodes) ->
     lists:foldl(
         fun
-            (#{attrs := #{location := Location, name := Name}, node_attrs := #{args := Args}}, Acc) ->
-                maps:put({Name, length(Args)}, Location, Acc);
+            (#{attrs := #{location := Loc, name := Name}, node_attrs := #{args := Args}}, Acc) ->
+                maps:put({Name, length(Args)}, Loc, Acc);
             (_, Acc) ->
                 Acc
         end,

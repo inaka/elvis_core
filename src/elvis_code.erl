@@ -26,14 +26,19 @@
 
 -export_type([tree_node/0, tree_node_zipper/0]).
 
--spec find(Options) -> {nodes, [Node]} | {zippers, [Zipper]} when
+-type ancestors() :: [tree_node()].
+-export_type([ancestors/0]).
+
+-spec find(Options) ->
+    {nodes, [Node]} | {nodes_and_ancestors, [{Node, ancestors()}]} | {zippers, [Zipper]}
+when
     Options :: #{
         % undefined means "all types"
         of_types := [ktn_code:tree_node_type()] | undefined,
         inside := Node,
         % undefined means "don't filter"
-        filtered_by => fun((Node | Zipper) -> boolean()),
-        filtered_from => node | zipper,
+        filtered_by => fun((Node | Zipper | {Node, ancestors()}) -> boolean()),
+        filtered_from => node | node_and_ancestors | zipper,
         traverse => content | all
     },
     Node :: tree_node(),
@@ -57,7 +62,7 @@ find(#{of_types := OfTypes, inside := Inside} = Options) ->
                         lists:member(ktn_code:type(zipper:node(Zipper)), OfTypes)
                 end,
             ZipperObj = zipper(Inside, Traverse),
-            NonFilteredResults = find_with_zipper(TypePred, ZipperObj, [], #{}, zipper),
+            NonFilteredResults = find_with_zipper(TypePred, ZipperObj, [], #{}),
             Results =
                 case FilteredBy of
                     undefined -> NonFilteredResults;
@@ -214,18 +219,12 @@ all_zipper(Root) ->
     MakeNode = fun(Node, _) -> Node end,
     zipper:new(IsBranch, Children, MakeNode, Root).
 
-find_with_zipper(Pred, Zipper, Results, Keys, Mode) ->
+find_with_zipper(Pred, Zipper, Results, Keys) ->
     case zipper:is_end(Zipper) of
         true ->
             lists:reverse(Results);
         false ->
-            Value =
-                case Mode of
-                    zipper ->
-                        Zipper;
-                    node ->
-                        zipper:node(Zipper)
-                end,
+            Value = Zipper,
             {NewResults, NewKeys} =
                 case Pred(Value) of
                     true ->
@@ -243,7 +242,7 @@ find_with_zipper(Pred, Zipper, Results, Keys, Mode) ->
                     false ->
                         {Results, Keys}
                 end,
-            find_with_zipper(Pred, zipper:next(Zipper), NewResults, NewKeys, Mode)
+            find_with_zipper(Pred, zipper:next(Zipper), NewResults, NewKeys)
     end.
 
 -spec root(Rule, ElvisConfig) -> Res when
