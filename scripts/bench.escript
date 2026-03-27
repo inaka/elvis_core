@@ -1,12 +1,12 @@
 #!/usr/bin/env escript
 %%% Benchmark elvis_core linting on a target project.
-%%% Usage: ./bench.escript [/path/to/project] [runs]
-%%% Defaults: project = this directory, runs = 3
+%%% Usage: ./bench.escript [/path/to/project] [runs] [--timetrap ms]
+%%% Defaults: project = this directory, runs = 3, timetrap = infinity
 
 -mode(compile).
 
 main(Args) ->
-    {ProjectDir, Runs} = parse_args(Args),
+    {ProjectDir, Runs, Timetrap} = parse_args(Args),
     {ok, OldCwd} = file:get_cwd(),
     ok = setup_code_paths(),
     {ok, _} = application:ensure_all_started(elvis_core),
@@ -27,7 +27,7 @@ main(Args) ->
     _ = elvis_core:rock({config_file, "elvis.config"}),
 
     %% Benchmark total time
-    io:format("=== Total lint time ===~n"),
+    group_start("Total lint time"),
     Times = lists:map(
         fun(_) ->
             {USec, _} = timer:tc(fun() -> elvis_core:rock({config_file, "elvis.config"}) end),
@@ -39,19 +39,22 @@ main(Args) ->
     ),
     AvgMs = lists:sum(Times) / length(Times) / 1000,
     MinMs = lists:min(Times) / 1000,
-    io:format("  avg: ~.1f ms, min: ~.1f ms~n~n", [AvgMs, MinMs]),
+    io:format("  avg: ~.1f ms, min: ~.1f ms~n", [AvgMs, MinMs]),
+    group_end(),
 
     %% Per-rule profiling
-    io:format("=== Per-rule breakdown (single run) ===~n"),
+    group_start("Per-rule breakdown (single run)"),
     RuleTimes = profile_per_rule(),
     print_rule_times(RuleTimes),
+    group_end(),
 
     %% eprof
-    io:format("~n=== eprof top 20 functions ===~n"),
+    group_start("eprof top functions"),
     profile_eprof(),
+    group_end(),
 
     file:set_cwd(OldCwd),
-    ok.
+    check_timetrap(AvgMs, Timetrap).
 
 profile_per_rule() ->
     {ok, ConfigTerms} = file:consult("elvis.config"),
@@ -133,16 +136,49 @@ profile_eprof() ->
     eprof:analyze(total, [{sort, time}]),
     eprof:stop().
 
-parse_args([]) ->
-    ScriptDir = filename:dirname(filename:absname(escript:script_name())),
-    {ScriptDir, 3};
-parse_args([Dir]) ->
+group_start(Title) ->
+    case os:getenv("GITHUB_ACTIONS") of
+        "true" -> io:format("::group::~s~n", [Title]);
+        _ -> io:format("=== ~s ===~n", [Title])
+    end.
+
+group_end() ->
+    case os:getenv("GITHUB_ACTIONS") of
+        "true" -> io:format("::endgroup::~n");
+        _ -> io:format("~n")
+    end.
+
+check_timetrap(_AvgMs, infinity) ->
+    ok;
+check_timetrap(AvgMs, MaxMs) when AvgMs =< MaxMs ->
+    io:format("~nTimetrap: ~.1f ms <= ~b ms [PASS]~n", [AvgMs, MaxMs]),
+    ok;
+check_timetrap(AvgMs, MaxMs) ->
+    io:format("~nTimetrap: ~.1f ms > ~b ms [FAIL]~n", [AvgMs, MaxMs]),
+    halt(1).
+
+parse_args(Args) ->
+    {Timetrap, Rest} = extract_timetrap(Args),
+    {ProjectDir, Runs} = parse_positional(Rest),
+    {ProjectDir, Runs, Timetrap}.
+
+extract_timetrap(["--timetrap", MsStr | Rest]) ->
+    {list_to_integer(MsStr), Rest};
+extract_timetrap(Args) ->
+    {infinity, Args}.
+
+parse_positional([]) ->
+    {project_dir(), 3};
+parse_positional([Dir]) ->
     {Dir, 3};
-parse_args([Dir, RunsStr | _]) ->
+parse_positional([Dir, RunsStr | _]) ->
     {Dir, list_to_integer(RunsStr)}.
 
+project_dir() ->
+    filename:dirname(filename:absname(filename:dirname(escript:script_name()))).
+
 setup_code_paths() ->
-    BaseDir = filename:absname(filename:dirname(escript:script_name())),
+    BaseDir = project_dir(),
     LibDir = filename:join([BaseDir, "_build", "default", "lib"]),
     case file:list_dir(LibDir) of
         {ok, Libs} ->
