@@ -888,7 +888,7 @@ no_god_modules(Rule, ElvisConfig) ->
 
     Root = elvis_code:root(Rule, ElvisConfig),
     ExportedFunctions = exported_functions(Root),
-    Count = length(ExportedFunctions),
+    Count = sets:size(ExportedFunctions),
 
     case Count > Limit of
         true ->
@@ -908,30 +908,20 @@ exported_functions(Root) ->
         of_types => [export],
         inside => Root
     }),
-    lists:flatmap(
-        fun(Node) ->
-            ktn_code:attr(value, Node)
-        end,
-        ExportNodes
+    sets:from_list(
+        lists:flatmap(fun(Node) -> ktn_code:attr(value, Node) end, ExportNodes),
+        [{version, 2}]
     ).
-
-exported_functions_set(Root) ->
-    sets:from_list(exported_functions(Root), [{version, 2}]).
 
 exported_types(Root) ->
     {nodes, ExportNodes} = elvis_code:find(#{
         of_types => [export_type],
         inside => Root
     }),
-    lists:flatmap(
-        fun(Node) ->
-            ktn_code:attr(value, Node)
-        end,
-        ExportNodes
+    sets:from_list(
+        lists:flatmap(fun(Node) -> ktn_code:attr(value, Node) end, ExportNodes),
+        [{version, 2}]
     ).
-
-exported_types_set(Root) ->
-    sets:from_list(exported_types(Root), [{version, 2}]).
 
 -spec no_if_expression(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_if_expression(Rule, ElvisConfig) ->
@@ -1341,7 +1331,7 @@ max_function_arity(Rule, ElvisConfig) ->
     NonExportedMaxArity = specific_or_default(NonExportedMaxArity0, ExportedMaxArity),
 
     Root = elvis_code:root(Rule, ElvisConfig),
-    ExportedFunctionsSet = exported_functions_set(Root),
+    ExportedFunctionsSet = exported_functions(Root),
 
     {nodes, FunctionNodes0} = elvis_code:find(#{
         of_types => [function],
@@ -3334,7 +3324,7 @@ private_data_types(Rule, ElvisConfig) ->
     TypesToCheck = elvis_rule:option(apply_to, Rule),
 
     Root = elvis_code:root(Rule, ElvisConfig),
-    ExportedTypesSet = exported_types_set(Root),
+    ExportedTypesSet = exported_types(Root),
     PublicDataTypes = public_data_types(TypesToCheck, Root, ExportedTypesSet),
     Locations = map_type_declarations_to_location(Root),
 
