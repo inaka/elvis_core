@@ -2863,12 +2863,14 @@ verify_no_init_lists(Config) ->
     PassPath3 = ExamplesDir ++ "pass_no_init_lists3." ++ Ext,
     PassPath4 = ExamplesDir ++ "pass_no_init_lists4." ++ Ext,
     PassPath5 = ExamplesDir ++ "pass_no_init_lists5." ++ Ext,
+    PassPath6 = ExamplesDir ++ "pass_no_init_lists6." ++ Ext,
 
     [] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, PassPath),
     [] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, PassPath2),
     [] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, PassPath3),
     [] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, PassPath4),
     [] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, PassPath5),
+    [] = elvis_test_utils:elvis_core_apply_rule(Config, elvis_style, no_init_lists, #{}, PassPath6),
     ok.
 
 verify_no_throw(Config) ->

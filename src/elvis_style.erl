@@ -1917,20 +1917,17 @@ no_init_lists(Rule, ElvisConfig) ->
                     filtered_by => fun is_init_1/1
                 }),
 
-                case FunctionNodes of
-                    [] ->
-                        [];
-                    [Init1Fun] ->
-                        Content = ktn_code:content(Init1Fun),
+                lists:flatmap(
+                    fun(InitFun) ->
+                        Content = ktn_code:content(InitFun),
                         ListAttrClauses = list_nodes(Content),
-
                         case length(ListAttrClauses) =:= length(Content) of
-                            true ->
-                                ListAttrClauses;
-                            false ->
-                                []
+                            true -> ListAttrClauses;
+                            false -> []
                         end
-                end;
+                    end,
+                    FunctionNodes
+                );
             false ->
                 []
         end,
