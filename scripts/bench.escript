@@ -134,15 +134,17 @@ profile_eprof() ->
     eprof:stop().
 
 parse_args([]) ->
-    ScriptDir = filename:dirname(filename:absname(escript:script_name())),
-    {ScriptDir, 3};
+    {project_dir(), 3};
 parse_args([Dir]) ->
     {Dir, 3};
 parse_args([Dir, RunsStr | _]) ->
     {Dir, list_to_integer(RunsStr)}.
 
+project_dir() ->
+    filename:dirname(filename:absname(filename:dirname(escript:script_name()))).
+
 setup_code_paths() ->
-    BaseDir = filename:absname(filename:dirname(escript:script_name())),
+    BaseDir = project_dir(),
     LibDir = filename:join([BaseDir, "_build", "default", "lib"]),
     case file:list_dir(LibDir) of
         {ok, Libs} ->
