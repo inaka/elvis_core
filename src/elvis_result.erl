@@ -199,7 +199,6 @@ print_rules(
     File,
     [
         #{
-            ns := Scope,
             items := Items,
             name := Name
         }
@@ -213,8 +212,8 @@ print_rules(
             _ ->
                 elvis_utils:notice(
                     "  - ~p "
-                    "(https://github.com/inaka/elvis_core/tree/main/doc_rules/~p/~p.md)",
-                    [Name, Scope, Name]
+                    "(https://hexdocs.pm/elvis_core/~p.html)",
+                    [Name, Name]
                 )
         end,
     print_item(Format, File, Name, Items),
