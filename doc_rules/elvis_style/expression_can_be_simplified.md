@@ -1,4 +1,4 @@
-# Expression Can Be Simplified [![](https://img.shields.io/badge/since-4.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/4.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
+# Expression Can Be Simplified [![](https://img.shields.io/badge/since-5.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/5.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Expressions that are mathematically or logically redundant (e.g. identity or absorbing constants)
 should be simplified.
