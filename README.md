@@ -28,7 +28,7 @@ make sure the application is started:
 
 ```erlang
 1> {ok, _} = application:ensure_all_started(elvis_core).
-{ok,[zipper,katana_code,elvis_core]}
+{ok,[katana_code,elvis_core]}
 2>
 ```
 

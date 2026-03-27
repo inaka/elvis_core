@@ -35,7 +35,7 @@ chunk_fold({M, F} = FunWork, FunAcc, InitialAcc, ExtraArgs, List, ChunkSize) whe
                 _MaxW = ChunkSize,
                 _RemainW = ChunkSize,
                 InitialAcc,
-                []
+                #{}
             ),
         {ok, Term}
     catch
@@ -57,13 +57,14 @@ do_in_parallel(FunWork, FunAcc, ExtraArgs, List, MaxW, RemainW, AccR, AccG) ->
                 {List, []}
         end,
 
-    WrkRefs = [start_worker(FunWork, ExtraArgs, WorkPiece) || WorkPiece <- WorkToBeDone],
-    do_in_parallel(FunWork, FunAcc, ExtraArgs, WorkRemain, MaxW, 0, AccR, WrkRefs ++ AccG).
+    WrkMap = maps:from_list(
+        [start_worker(FunWork, ExtraArgs, WorkPiece) || WorkPiece <- WorkToBeDone]
+    ),
+    do_in_parallel(FunWork, FunAcc, ExtraArgs, WorkRemain, MaxW, 0, AccR, maps:merge(AccG, WrkMap)).
 
 start_worker(FunWork, ExtraArgs, Arg) ->
     Parent = self(),
-    Key = spawn_monitor(fun() -> do_work(Parent, FunWork, ExtraArgs, Arg) end),
-    Key.
+    spawn_monitor(fun() -> do_work(Parent, FunWork, ExtraArgs, Arg) end).
 
 -spec do_work(pid(), {module(), atom()}, list(), term()) -> no_return().
 do_work(Parent, {M, F}, ExtraArgs, Arg) ->
@@ -89,8 +90,8 @@ gather_results(AccF, AccR, AccG) ->
     AccR1 = accumulate(AccF, AccR, Res, AccG1),
     gather_results0(AccF, AccR1, AccG1, 1, 0).
 
-gather_results0(_AccF, AccR, [], N, _Timeout) ->
-    {AccR, [], N};
+gather_results0(_AccF, AccR, AccG, N, _Timeout) when map_size(AccG) =:= 0 ->
+    {AccR, AccG, N};
 gather_results0(AccF, AccR, AccG, N, Timeout) ->
     case gather(Timeout, AccG) of
         timeout ->
@@ -113,7 +114,7 @@ accumulate(AccF, AccR, Res, AccG) ->
     end.
 
 cleanup(AccG) ->
-    [demonitor_and_exit(MRef, Pid) || {Pid, MRef} <- AccG].
+    maps:foreach(fun(Pid, MRef) -> demonitor_and_exit(MRef, Pid) end, AccG).
 
 demonitor_and_exit(MRef, Pid) ->
     erlang:demonitor(MRef, [flush]),
@@ -123,7 +124,7 @@ gather(Timeout, AccG) ->
     Self = self(),
     receive
         {'DOWN', _MonRef, process, Pid, {Self, Res}} ->
-            AccG1 = lists:keydelete(Pid, 1, AccG),
+            AccG1 = maps:remove(Pid, AccG),
             case Res of
                 {ok, Res0} ->
                     {AccG1, Res0};

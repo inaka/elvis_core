@@ -3,7 +3,6 @@
 %% General
 -export([
     find/1,
-    zipper/1,
     root/2
 ]).
 %% Specific
@@ -20,158 +19,142 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 -type tree_node() :: ktn_code:tree_node().
--type tree_node_zipper() :: zipper:zipper(tree_node()).
 
--export_type([tree_node/0, tree_node_zipper/0]).
+-export_type([tree_node/0]).
 
--spec find(Options) -> {nodes, [Node]} | {zippers, [Zipper]} when
+-type ancestors() :: [tree_node()].
+-export_type([ancestors/0]).
+
+-spec find(Options) ->
+    {nodes, [Node]} | {nodes_and_ancestors, [{Node, ancestors()}]}
+when
     Options :: #{
         % undefined means "all types"
         of_types := [ktn_code:tree_node_type()] | undefined,
         inside := Node,
         % undefined means "don't filter"
-        filtered_by => fun((Node | Zipper) -> boolean()),
-        filtered_from => node | zipper,
+        filtered_by => fun((Node | {Node, ancestors()}) -> boolean()),
+        filtered_from => node | node_and_ancestors,
         traverse => content | all
     },
-    Node :: tree_node(),
-    Zipper :: tree_node_zipper().
+    Node :: tree_node().
 find(#{of_types := OfTypes, inside := Inside} = Options) ->
     FilteredBy = maps:get(filtered_by, Options, undefined),
     FilteredFrom = maps:get(filtered_from, Options, node),
     Traverse = maps:get(traverse, Options, content),
 
-    NonFilteredResults = find(
-        fun(NodeOrZipper) ->
-            Node =
-                case FilteredFrom of
-                    _ when OfTypes =:= undefined ->
-                        undefined;
-                    node ->
-                        NodeOrZipper;
-                    zipper ->
-                        Zipper = NodeOrZipper,
-                        zipper:node(Zipper)
-                end,
-            OfTypes =:= undefined orelse lists:member(ktn_code:type(Node), OfTypes)
-        end,
-        Inside,
-        FilteredFrom,
-        Traverse
-    ),
-
-    Results =
-        case FilteredBy of
-            undefined ->
-                NonFilteredResults;
-            _ ->
-                [Result || Result <- NonFilteredResults, FilteredBy(Result)]
-        end,
-
     case FilteredFrom of
         node ->
-            {nodes, Results};
-        zipper ->
-            {zippers, Results}
+            Pred = build_node_pred(OfTypes, FilteredBy),
+            {nodes, find_nodes(Pred, Inside, Traverse)};
+        node_and_ancestors ->
+            Pred = build_ancestors_pred(OfTypes, FilteredBy),
+            {nodes_and_ancestors, find_nodes_with_ancestors(Pred, Inside, Traverse)}
     end.
 
-%% @doc Find all nodes in the tree for which the predicate function returns
-%%      `true'. The options map has two keys:
-%%      <ul>
-%%        <li>
-%%        - `filtered_from': when the value `node' is specified the predicate function
-%%          receives a tree_node() as its argument. When `zipper' is specified
-%%          the argument is the zipper location for the current node.
-%%        </li>
-%%        <li>
-%%        - `traverse': the value `content' indicates to only take into account
-%%          nodes in the parent-child hierarchy. When `all' is provided the
-%%          nodes held in the `node_attrs' map are also taken into account in
-%%          the search.
-%%        </li>
-%%      </ul>
-%% @end
--spec find(fun((tree_node_zipper()) -> boolean()), tree_node(), node | zipper, content | all) ->
-    [tree_node() | tree_node_zipper()].
-find(Pred, Root, FilteredFrom, Traverse) ->
-    Zipper = zipper(Root, Traverse),
-    find_with_zipper(Pred, Zipper, [], #{}, FilteredFrom).
-
--spec zipper(tree_node()) -> tree_node_zipper().
-zipper(Root) ->
-    zipper(Root, content).
-
--spec zipper(tree_node(), content | all) -> tree_node_zipper().
-zipper(Root, content) ->
-    content_zipper(Root);
-zipper(Root, all) ->
-    all_zipper(Root).
-
--spec content_zipper(tree_node()) -> tree_node_zipper().
-content_zipper(Root) ->
-    IsBranch =
-        fun
-            (#{content := [_ | _]}) ->
-                true;
-            (_) ->
-                false
-        end,
-    Children = fun(#{content := Content}) -> Content end,
-    MakeNode = fun(Node, Content) -> Node#{content => Content} end,
-    zipper:new(IsBranch, Children, MakeNode, Root).
-
--spec all_zipper(tree_node()) -> tree_node_zipper().
-all_zipper(Root) ->
-    IsBranch =
-        fun(#{} = Node) -> ktn_code:content(Node) =/= [] orelse maps:is_key(node_attrs, Node) end,
-    Children =
-        fun
-            (#{content := Content, node_attrs := NodeAttrs}) ->
-                Content ++
-                    lists:flatten(
-                        maps:values(NodeAttrs)
-                    );
-            (#{node_attrs := NodeAttrs}) ->
-                lists:flatten(
-                    maps:values(NodeAttrs)
-                );
-            (#{content := Content}) ->
-                Content
-        end,
-    MakeNode = fun(Node, _) -> Node end,
-    zipper:new(IsBranch, Children, MakeNode, Root).
-
-find_with_zipper(Pred, Zipper, Results, Keys, Mode) ->
-    case zipper:is_end(Zipper) of
-        true ->
-            lists:reverse(Results);
-        false ->
-            Value =
-                case Mode of
-                    zipper ->
-                        Zipper;
-                    node ->
-                        zipper:node(Zipper)
-                end,
-            {NewResults, NewKeys} =
-                case Pred(Value) of
-                    true ->
-                        case is_map_key(Value, Keys) of
-                            true ->
-                                %% Note: I'm not sure why, sometimes, traversing a zipper may
-                                %%       result in going through the same node twice, but it has
-                                %%       happened. You can see it for yourself: Just add a ct:pal
-                                %%       here, run the tests and simplify_anonymous_functions will
-                                %%       show duplicate results.
-                                {Results, Keys};
-                            false ->
-                                {[Value | Results], Keys#{Value => true}}
-                        end;
-                    false ->
-                        {Results, Keys}
-                end,
-            find_with_zipper(Pred, zipper:next(Zipper), NewResults, NewKeys, Mode)
+build_node_pred(OfTypes, undefined) ->
+    fun(Node) ->
+        OfTypes =:= undefined orelse lists:member(ktn_code:type(Node), OfTypes)
+    end;
+build_node_pred(OfTypes, FilteredBy) ->
+    fun(Node) ->
+        (OfTypes =:= undefined orelse lists:member(ktn_code:type(Node), OfTypes)) andalso
+            FilteredBy(Node)
     end.
+
+build_ancestors_pred(OfTypes, undefined) ->
+    fun({Node, _Ancestors}) ->
+        OfTypes =:= undefined orelse lists:member(ktn_code:type(Node), OfTypes)
+    end;
+build_ancestors_pred(OfTypes, FilteredBy) ->
+    fun({Node, _Ancestors} = NodeAndAncestors) ->
+        (OfTypes =:= undefined orelse lists:member(ktn_code:type(Node), OfTypes)) andalso
+            FilteredBy(NodeAndAncestors)
+    end.
+
+find_nodes_with_ancestors(Pred, Node, content) ->
+    find_nodes_content_ancestors(Pred, Node, []);
+find_nodes_with_ancestors(Pred, Node, all) ->
+    {Results, _Seen} = find_nodes_all_ancestors(Pred, Node, [], #{}),
+    Results.
+
+find_nodes_content_ancestors(Pred, #{content := Content} = Node, Ancestors) ->
+    Match = [{Node, Ancestors} || Pred({Node, Ancestors})],
+    Match ++
+        lists:flatmap(
+            fun(Child) -> find_nodes_content_ancestors(Pred, Child, [Node | Ancestors]) end,
+            Content
+        );
+find_nodes_content_ancestors(Pred, Node, Ancestors) when is_map(Node) ->
+    [{Node, Ancestors} || Pred({Node, Ancestors})];
+find_nodes_content_ancestors(_Pred, _Node, _Ancestors) ->
+    [].
+
+find_nodes_all_ancestors(Pred, Node, Ancestors, Seen) when is_map(Node) ->
+    case Seen of
+        #{Node := _} ->
+            {[], Seen};
+        #{} ->
+            Seen1 = Seen#{Node => true},
+            Match = [{Node, Ancestors} || Pred({Node, Ancestors})],
+            NewAncestors = [Node | Ancestors],
+            {ChildResults, Seen2} =
+                lists:foldl(
+                    fun(Child, {A, S}) ->
+                        {R, S1} = find_nodes_all_ancestors(Pred, Child, NewAncestors, S),
+                        {[R | A], S1}
+                    end,
+                    {[], Seen1},
+                    all_children(Node)
+                ),
+            {Match ++ lists:append(lists:reverse(ChildResults)), Seen2}
+    end;
+find_nodes_all_ancestors(_Pred, _Node, _Ancestors, Seen) ->
+    {[], Seen}.
+
+find_nodes(Pred, Node, content) ->
+    find_nodes_content(Pred, Node);
+find_nodes(Pred, Node, all) ->
+    {Results, _Seen} = find_nodes_all(Pred, Node, #{}),
+    Results.
+
+find_nodes_content(Pred, #{content := Content} = Node) ->
+    Match = [Node || Pred(Node)],
+    Match ++ lists:flatmap(fun(Child) -> find_nodes_content(Pred, Child) end, Content);
+find_nodes_content(Pred, Node) when is_map(Node) ->
+    [Node || Pred(Node)];
+find_nodes_content(_Pred, _Node) ->
+    [].
+
+find_nodes_all(Pred, Node, Seen) when is_map(Node) ->
+    case Seen of
+        #{Node := _} ->
+            {[], Seen};
+        #{} ->
+            Seen1 = Seen#{Node => true},
+            Match = [Node || Pred(Node)],
+            {ChildResults, Seen2} =
+                lists:foldl(
+                    fun(Child, {A, S}) ->
+                        {R, S1} = find_nodes_all(Pred, Child, S),
+                        {[R | A], S1}
+                    end,
+                    {[], Seen1},
+                    all_children(Node)
+                ),
+            {Match ++ lists:append(lists:reverse(ChildResults)), Seen2}
+    end;
+find_nodes_all(_Pred, _Node, Seen) ->
+    {[], Seen}.
+
+all_children(#{content := Content, node_attrs := NodeAttrs}) ->
+    Content ++ lists:flatten(maps:values(NodeAttrs));
+all_children(#{content := Content}) ->
+    Content;
+all_children(#{node_attrs := NodeAttrs}) ->
+    lists:flatten(maps:values(NodeAttrs));
+all_children(_) ->
+    [].
 
 -spec root(Rule, ElvisConfig) -> Res when
     Rule :: elvis_rule:t(),

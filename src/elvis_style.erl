@@ -447,37 +447,37 @@ function_name(FunctionNode) ->
 -spec consistent_variable_naming(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 consistent_variable_naming(Rule, ElvisConfig) ->
     Root = elvis_code:root(Rule, ElvisConfig),
+    TokenIndex = build_token_index(Root),
 
     % Compile regexes once; canonical_variable_tokenisation/1 used to compile per variable.
     CamelRe = re_compile("([a-z])([A-Z])"),
     HyphenRe = re_compile("-"),
 
-    {zippers, VarZippers} = elvis_code:find(#{
+    {nodes, VarNodes} = elvis_code:find(#{
         of_types => [var],
         inside => Root,
-        filtered_by => fun is_var/1,
-        filtered_from => zipper,
+        filtered_by => fun(N) -> is_var(N, TokenIndex) end,
         traverse => all
     }),
 
     GroupedByTokens = maps:groups_from_list(
-        fun(Z) ->
+        fun(N) ->
             canonical_variable_tokenisation(
-                canonical_variable_name(Z),
+                canonical_variable_name(N),
                 CamelRe,
                 HyphenRe
             )
         end,
-        VarZippers
+        VarNodes
     ),
 
     maps:fold(
         fun
             (_Tokens, [_], Acc) ->
                 Acc;
-            (_Tokens, [FirstVarZipper | OtherVarZippers], Acc) ->
-                FirstName = canonical_variable_name(FirstVarZipper),
-                case unique_other_names(OtherVarZippers, FirstName) of
+            (_Tokens, [FirstVarNode | OtherVarNodes], Acc) ->
+                FirstName = canonical_variable_name(FirstVarNode),
+                case unique_other_names(OtherVarNodes, FirstName) of
                     [] ->
                         Acc;
                     OtherNames ->
@@ -486,11 +486,11 @@ consistent_variable_naming(Rule, ElvisConfig) ->
                                 "variable '~s' (first used in line ~p) has ~w with: ~p",
                                 [
                                     FirstName,
-                                    line(zipper:node(FirstVarZipper)),
+                                    line(FirstVarNode),
                                     syntax_or_casing_difference,
                                     OtherNames
                                 ],
-                                #{zipper => FirstVarZipper}
+                                #{node => FirstVarNode}
                             )
                             | Acc
                         ]
@@ -512,21 +512,19 @@ canonical_variable_tokenisation(Name, CamelRe, HyphenRe) ->
     % 4. Split by underscore and automatically drop empty tokens
     string:lexemes(S3, "_").
 
-unique_other_names(OtherVarZippers, FirstName) ->
-    FilteredZippers = lists:filtermap(
-        fun(OtherVarZipper) ->
-            case canonical_variable_name(OtherVarZipper) of
+unique_other_names(OtherVarNodes, FirstName) ->
+    FilteredNames = lists:filtermap(
+        fun(OtherVarNode) ->
+            case canonical_variable_name(OtherVarNode) of
                 FirstName -> false;
                 OtherName -> {true, OtherName}
             end
         end,
-        OtherVarZippers
+        OtherVarNodes
     ),
-    lists:usort(FilteredZippers).
+    lists:usort(FilteredNames).
 
-canonical_variable_name(VarZipper) ->
-    VarNode = zipper:node(VarZipper),
-
+canonical_variable_name(VarNode) ->
     case atom_to_list(ktn_code:attr(name, VarNode)) of
         [$_ | Rest] ->
             Rest;
@@ -542,17 +540,19 @@ variable_naming_convention(Rule, ElvisConfig) ->
     RegexAllow = re_compile(Regex),
     RegexBlock = re_compile(ForbiddenRegex),
 
-    {zippers, VarZippers} = elvis_code:find(#{
+    Root = elvis_code:root(Rule, ElvisConfig),
+    TokenIndex = build_token_index(Root),
+
+    {nodes, VarNodes} = elvis_code:find(#{
         of_types => [var],
-        inside => elvis_code:root(Rule, ElvisConfig),
-        filtered_by => fun is_var/1,
-        filtered_from => zipper,
+        inside => Root,
+        filtered_by => fun(N) -> is_var(N, TokenIndex) end,
         traverse => all
     }),
 
     lists:filtermap(
-        fun(VarZipper) ->
-            VariableName = variable_name(VarZipper),
+        fun(VarNode) ->
+            VariableName = variable_name(VarNode),
 
             case re_run(VariableName, RegexAllow) of
                 nomatch when VariableName =/= "_" ->
@@ -561,7 +561,7 @@ variable_naming_convention(Rule, ElvisConfig) ->
                             "the name of variable ~p is not acceptable by regular "
                             "expression '~s'",
                             [VariableName, Regex],
-                            #{zipper => VarZipper}
+                            #{node => VarNode}
                         )};
                 {match, _} when ForbiddenRegex =/= undefined ->
                     % We check for forbidden names only after accepted names
@@ -572,7 +572,7 @@ variable_naming_convention(Rule, ElvisConfig) ->
                                     "the name of variable ~p is forbidden by regular "
                                     "expression '~s'",
                                     [VariableName, ForbiddenRegex],
-                                    #{zipper => VarZipper}
+                                    #{node => VarNode}
                                 )};
                         nomatch ->
                             false
@@ -581,11 +581,10 @@ variable_naming_convention(Rule, ElvisConfig) ->
                     false
             end
         end,
-        VarZippers
+        VarNodes
     ).
 
-variable_name(VarZipper) ->
-    VarNode = zipper:node(VarZipper),
+variable_name(VarNode) ->
     atom_to_list(ktn_code:attr(name, VarNode)).
 
 -spec macro_naming_convention(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
@@ -892,7 +891,7 @@ no_god_modules(Rule, ElvisConfig) ->
 
     Root = elvis_code:root(Rule, ElvisConfig),
     ExportedFunctions = exported_functions(Root),
-    Count = length(ExportedFunctions),
+    Count = sets:size(ExportedFunctions),
 
     case Count > Limit of
         true ->
@@ -908,27 +907,16 @@ no_god_modules(Rule, ElvisConfig) ->
     end.
 
 exported_functions(Root) ->
-    {nodes, ExportNodes} = elvis_code:find(#{
-        of_types => [export],
-        inside => Root
-    }),
-    lists:flatmap(
-        fun(Node) ->
-            ktn_code:attr(value, Node)
-        end,
-        ExportNodes
-    ).
+    exported_set(Root, export).
 
 exported_types(Root) ->
-    {nodes, ExportNodes} = elvis_code:find(#{
-        of_types => [export_type],
-        inside => Root
-    }),
-    lists:flatmap(
-        fun(Node) ->
-            ktn_code:attr(value, Node)
-        end,
-        ExportNodes
+    exported_set(Root, export_type).
+
+exported_set(Root, Type) ->
+    {nodes, ExportNodes} = elvis_code:find(#{of_types => [Type], inside => Root}),
+    sets:from_list(
+        lists:flatmap(fun(Node) -> ktn_code:attr(value, Node) end, ExportNodes),
+        [{version, 2}]
     ).
 
 -spec no_if_expression(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
@@ -984,20 +972,20 @@ has_callbacks(Root) ->
 
 -spec no_used_ignored_variables(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_used_ignored_variables(Rule, ElvisConfig) ->
-    {zippers, IgnoredVarZippers} = elvis_code:find(#{
+    {nodes_and_ancestors, IgnoredVars} = elvis_code:find(#{
         of_types => [var],
         inside => elvis_code:root(Rule, ElvisConfig),
         filtered_by => fun is_ignored_var/1,
-        filtered_from => zipper
+        filtered_from => node_and_ancestors
     }),
 
     [
         elvis_result:new_item(
             "an unexpected use of an ignored variable was found",
             [],
-            #{zipper => IgnoredVarZipper}
+            #{node => Node}
         )
-     || IgnoredVarZipper <- IgnoredVarZippers
+     || {Node, _Ancestors} <- IgnoredVars
     ].
 
 -spec no_behavior_info(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
@@ -1078,23 +1066,23 @@ module_name_from(ModuleNode, File) ->
 state_record_and_type(Rule, ElvisConfig) ->
     Root = elvis_code:root(Rule, ElvisConfig),
 
-    case is_otp_behaviour(Root) of
-        true ->
-            {nodes, StateRecordNodes} =
-                elvis_code:find(#{
-                    of_types => [record_attr],
-                    inside => Root,
-                    filtered_by => fun is_state_record/1
-                }),
-            HasStateRecord = StateRecordNodes =/= [],
+    {nodes, AllNodes} = elvis_code:find(#{
+        of_types => [behaviour, behavior, record_attr, type_attr, opaque],
+        inside => Root
+    }),
+    #{behaviours := BehaviourNodes, records := RecordAttrNodes, types := TypeOrOpaqueNodes} =
+        partition_nodes(AllNodes, #{
+            behaviour => behaviours,
+            behavior => behaviours,
+            record_attr => records,
+            type_attr => types,
+            opaque => types
+        }),
 
-            {nodes, StateTypeNodes} =
-                elvis_code:find(#{
-                    of_types => [type_attr, opaque],
-                    inside => Root,
-                    filtered_by => fun is_type_or_opaque_state/1
-                }),
-            HasStateType = StateTypeNodes =/= [],
+    case is_otp_behaviour(BehaviourNodes) of
+        true ->
+            HasStateRecord = lists:any(fun is_state_record/1, RecordAttrNodes),
+            HasStateType = lists:any(fun is_type_or_opaque_state/1, TypeOrOpaqueNodes),
 
             case {HasStateRecord, HasStateType} of
                 {true, true} ->
@@ -1241,9 +1229,12 @@ max_module_length(Rule, _ElvisConfig) ->
     Lines0 = elvis_utils:split_all_lines(Src, [trim]),
 
     LineIsCommentRegex = line_is_comment_regex(),
+    LineIsWhitespaceRegex = line_is_whitespace_regex(),
     Lines = lists:filter(
         fun(Line) ->
-            filter_comments_and_whitespace(Line, CountComments, CountWhitespace, LineIsCommentRegex)
+            filter_comments_and_whitespace(
+                Line, CountComments, CountWhitespace, LineIsCommentRegex, LineIsWhitespaceRegex
+            )
         end,
         Lines0
     ),
@@ -1328,6 +1319,7 @@ max_function_arity(Rule, ElvisConfig) ->
     NonExportedMaxArity = specific_or_default(NonExportedMaxArity0, ExportedMaxArity),
 
     Root = elvis_code:root(Rule, ElvisConfig),
+    ExportedFunctionsSet = exported_functions(Root),
 
     {nodes, FunctionNodes0} = elvis_code:find(#{
         of_types => [function],
@@ -1338,7 +1330,7 @@ max_function_arity(Rule, ElvisConfig) ->
     FunctionNodeMaxArities = lists:filtermap(
         fun(FunctionNode) ->
             MaxArity = arity_for_function_exports(
-                Root, FunctionNode, ExportedMaxArity, NonExportedMaxArity
+                ExportedFunctionsSet, FunctionNode, ExportedMaxArity, NonExportedMaxArity
             ),
 
             case ktn_code:attr(arity, FunctionNode) > MaxArity of
@@ -1360,8 +1352,9 @@ max_function_arity(Rule, ElvisConfig) ->
      || {FunctionNode, MaxArity} <- FunctionNodeMaxArities
     ].
 
-arity_for_function_exports(Root, FunctionNode, ExportedMaxArity, NonExportedMaxArity) ->
-    ExportedFunctions = exported_functions(Root),
+arity_for_function_exports(
+    ExportedFunctions, FunctionNode, ExportedMaxArity, NonExportedMaxArity
+) ->
     case is_exported_function(FunctionNode, ExportedFunctions) of
         true ->
             ExportedMaxArity;
@@ -1369,10 +1362,10 @@ arity_for_function_exports(Root, FunctionNode, ExportedMaxArity, NonExportedMaxA
             NonExportedMaxArity
     end.
 
-is_exported_function(FunctionNode, ExportedFunctions) ->
+is_exported_function(FunctionNode, ExportedFunctionsSet) ->
     Name = ktn_code:attr(name, FunctionNode),
     Arity = ktn_code:attr(arity, FunctionNode),
-    lists:member({Name, Arity}, ExportedFunctions).
+    sets:is_element({Name, Arity}, ExportedFunctionsSet).
 
 -spec max_anonymous_function_clause_length(elvis_rule:t(), elvis_config:t()) ->
     [elvis_result:item()].
@@ -1384,31 +1377,36 @@ max_anonymous_function_clause_length(Rule, ElvisConfig) ->
     {Src, _} = elvis_file:src(elvis_rule:file(Rule)),
     Lines = elvis_utils:split_all_lines(Src, [trim]),
 
-    {zippers, ClauseZippers} = elvis_code:find(#{
+    {nodes_and_ancestors, ClauseResults} = elvis_code:find(#{
         of_types => [clause],
         inside => elvis_code:root(Rule, ElvisConfig),
         filtered_by =>
-            fun(ClauseZipper) ->
-                is_function_clause(ClauseZipper, ['fun', named_fun])
+            fun({_Node, Ancestors}) ->
+                is_function_clause(Ancestors, ['fun', named_fun])
             end,
-        filtered_from => zipper,
+        filtered_from => node_and_ancestors,
         traverse => all
     }),
 
-    Regex = line_is_comment_regex(),
+    CommentRegex = line_is_comment_regex(),
+    WhitespaceRegex = line_is_whitespace_regex(),
     BigClauses = big_clauses(
-        ClauseZippers, Lines, CountComments, CountWhitespace, MaxLength, Regex
+        ClauseResults,
+        Lines,
+        CountComments,
+        CountWhitespace,
+        MaxLength,
+        CommentRegex,
+        WhitespaceRegex
     ),
 
     lists:map(
-        fun({ClauseZipper, ClauseNum, LineLen}) ->
-            FunctionNode = zipper:node(zipper:up(ClauseZipper)),
-
+        fun({_ClauseNode, Parent, ClauseNum, LineLen}) ->
             elvis_result:new_item(
                 "the code for the ~s clause of the anonymous function has ~p lines, "
                 "which is higher than the configured limit",
                 [parse_clause_num(ClauseNum), LineLen],
-                #{node => FunctionNode, limit => MaxLength}
+                #{node => Parent, limit => MaxLength}
             )
         end,
         lists:reverse(BigClauses)
@@ -1423,25 +1421,30 @@ max_function_clause_length(Rule, ElvisConfig) ->
     {Src, _} = elvis_file:src(elvis_rule:file(Rule)),
     Lines = elvis_utils:split_all_lines(Src, [trim]),
 
-    {zippers, ClauseZippers} = elvis_code:find(#{
+    {nodes_and_ancestors, ClauseResults} = elvis_code:find(#{
         of_types => [clause],
         inside => elvis_code:root(Rule, ElvisConfig),
         filtered_by =>
-            fun(ClauseZipper) ->
-                is_function_clause(ClauseZipper, [function])
+            fun({_Node, Ancestors}) ->
+                is_function_clause(Ancestors, [function])
             end,
-        filtered_from => zipper
+        filtered_from => node_and_ancestors
     }),
 
     LineIsCommentRegex = line_is_comment_regex(),
+    LineIsWhitespaceRegex = line_is_whitespace_regex(),
     BigClauses = big_clauses(
-        ClauseZippers, Lines, CountComments, CountWhitespace, MaxLength, LineIsCommentRegex
+        ClauseResults,
+        Lines,
+        CountComments,
+        CountWhitespace,
+        MaxLength,
+        LineIsCommentRegex,
+        LineIsWhitespaceRegex
     ),
 
     lists:map(
-        fun({ClauseZipper, ClauseNum, LineLen}) ->
-            FunctionNode = zipper:node(zipper:up(ClauseZipper)),
-
+        fun({_ClauseNode, FunctionNode, ClauseNum, LineLen}) ->
             elvis_result:new_item(
                 "the code for the ~s clause of function '~p/~p' has ~p lines, which is higher than "
                 "the configured limit",
@@ -1457,34 +1460,49 @@ max_function_clause_length(Rule, ElvisConfig) ->
         lists:reverse(BigClauses)
     ).
 
-big_clauses(ClauseZippers, Lines, CountComments, CountWhitespace, MaxLength, LineIsCommentRegex) ->
+big_clauses(
+    ClauseResults,
+    Lines,
+    CountComments,
+    CountWhitespace,
+    MaxLength,
+    LineIsCommentRegex,
+    LineIsWhitespaceRegex
+) ->
     % We do this to recover the clause number and apply the configured filters
     {BigClauses, _} = lists:foldl(
-        fun(ClauseZipper, {BigClauses0, ClauseNum}) ->
-            ClauseNode = zipper:node(ClauseZipper),
+        fun({ClauseNode, [Parent | _]}, {BigClauses0, ClauseNum}) ->
             FilteredLines = filtered_lines_in(
                 ClauseNode,
                 Lines,
                 CountComments,
                 CountWhitespace,
-                LineIsCommentRegex
+                LineIsCommentRegex,
+                LineIsWhitespaceRegex
             ),
             LineLen = length(FilteredLines),
             AccOut =
                 case LineLen > MaxLength of
                     true ->
-                        [{ClauseZipper, ClauseNum, LineLen} | BigClauses0];
+                        [{ClauseNode, Parent, ClauseNum, LineLen} | BigClauses0];
                     false ->
                         BigClauses0
                 end,
             {AccOut, ClauseNum + 1}
         end,
         {[], 1},
-        ClauseZippers
+        ClauseResults
     ),
     BigClauses.
 
-filtered_lines_in(Node, Lines, CountComments, CountWhitespace, LineIsCommentRegex) ->
+filtered_lines_in(
+    Node,
+    Lines,
+    CountComments,
+    CountWhitespace,
+    LineIsCommentRegex,
+    LineIsWhitespaceRegex
+) ->
     {Min, Max} = node_line_limits(Node),
     NodeLines = lists:sublist(Lines, Min, Max - Min + 1),
     lists:filter(
@@ -1493,15 +1511,22 @@ filtered_lines_in(Node, Lines, CountComments, CountWhitespace, LineIsCommentRege
                 NodeLine,
                 CountComments,
                 CountWhitespace,
-                LineIsCommentRegex
+                LineIsCommentRegex,
+                LineIsWhitespaceRegex
             )
         end,
         NodeLines
     ).
 
-filter_comments_and_whitespace(NodeLine, CountComments, CountWhitespace, LineIsCommentRegex) ->
+filter_comments_and_whitespace(
+    NodeLine,
+    CountComments,
+    CountWhitespace,
+    LineIsCommentRegex,
+    LineIsWhitespaceRegex
+) ->
     (CountComments orelse not line_is_comment(NodeLine, LineIsCommentRegex)) andalso
-        (CountWhitespace orelse not line_is_whitespace(NodeLine)).
+        (CountWhitespace orelse not line_is_whitespace(NodeLine, LineIsWhitespaceRegex)).
 
 parse_clause_num(Num) when Num rem 100 >= 11, Num rem 100 =< 13 ->
     integer_to_list(Num) ++ "th";
@@ -1530,8 +1555,15 @@ max_anonymous_function_length(Rule, ElvisConfig) ->
     }),
 
     LineIsCommentRegex = line_is_comment_regex(),
+    LineIsWhitespaceRegex = line_is_whitespace_regex(),
     BigFunctions = big_functions(
-        FunctionNodes, Lines, CountComments, CountWhitespace, MaxLength, LineIsCommentRegex
+        FunctionNodes,
+        Lines,
+        CountComments,
+        CountWhitespace,
+        MaxLength,
+        LineIsCommentRegex,
+        LineIsWhitespaceRegex
     ),
 
     lists:map(
@@ -1561,8 +1593,15 @@ max_function_length(Rule, ElvisConfig) ->
     }),
 
     LineIsCommentRegex = line_is_comment_regex(),
+    LineIsWhitespaceRegex = line_is_whitespace_regex(),
     BigFunctions = big_functions(
-        FunctionNodes, Lines, CountComments, CountWhitespace, MaxLength, LineIsCommentRegex
+        FunctionNodes,
+        Lines,
+        CountComments,
+        CountWhitespace,
+        MaxLength,
+        LineIsCommentRegex,
+        LineIsWhitespaceRegex
     ),
 
     lists:map(
@@ -1583,7 +1622,8 @@ big_functions(
     CountComments,
     CountWhitespace,
     MaxLength,
-    LineIsCommentRegex
+    LineIsCommentRegex,
+    LineIsWhitespaceRegex
 ) ->
     % We do this to apply the configured filters
     lists:filtermap(
@@ -1593,7 +1633,8 @@ big_functions(
                 Lines,
                 CountComments,
                 CountWhitespace,
-                LineIsCommentRegex
+                LineIsCommentRegex,
+                LineIsWhitespaceRegex
             ),
             LineLen = length(FilteredLines),
             case LineLen > MaxLength of
@@ -1612,20 +1653,21 @@ max_record_fields(Rule, ElvisConfig) ->
 
     MaxFields = elvis_rule:option(max_fields, Rule),
 
-    {nodes, LargeRecordNodes} =
+    {nodes, RecordNodes} =
         elvis_code:find(#{
             of_types => [record_attr],
-            inside => Root,
-            filtered_by => fun(RecordNode) -> length(ktn_code:content(RecordNode)) > MaxFields end
+            inside => Root
         }),
 
     [
         elvis_result:new_item(
             "record ~p has ~p fields, which is higher than the configured limit",
-            [ktn_code:attr(name, LargeRecordNode), length(ktn_code:content(LargeRecordNode))],
-            #{node => LargeRecordNode, limit => MaxFields}
+            [ktn_code:attr(name, RecordNode), FieldCount],
+            #{node => RecordNode, limit => MaxFields}
         )
-     || LargeRecordNode <- LargeRecordNodes
+     || RecordNode <- RecordNodes,
+        FieldCount <- [length(ktn_code:content(RecordNode))],
+        FieldCount > MaxFields
     ].
 
 -spec max_map_type_keys(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
@@ -1645,14 +1687,12 @@ max_map_type_keys_on_types(Root, MaxFields) ->
     [
         elvis_result:new_item(
             "map type ~p has ~p fields, which is higher than the configured limit",
-            [
-                ktn_code:attr(name, MapTypeNode),
-                length(ktn_code:content(ktn_code:node_attr(type, MapTypeNode)))
-            ],
+            [ktn_code:attr(name, MapTypeNode), FieldCount],
             #{node => MapTypeNode, limit => MaxFields}
         )
      || MapTypeNode <- MapTypeNodes,
-        length(ktn_code:content(ktn_code:node_attr(type, MapTypeNode))) > MaxFields
+        FieldCount <- [length(ktn_code:content(ktn_code:node_attr(type, MapTypeNode)))],
+        FieldCount > MaxFields
     ].
 
 is_map_type_with_atom_keys(TypeAttrNode) ->
@@ -1685,15 +1725,13 @@ max_map_type_keys_on_opaques(Root, MaxFields) ->
     [
         elvis_result:new_item(
             "map type ~p has ~p fields, which is higher than the configured limit",
-            [
-                MapOpaqueName,
-                length(erl_syntax:type_application_arguments(MapOpaqueTypeAST))
-            ],
+            [MapOpaqueName, FieldCount],
             #{node => MapOpaqueNode, limit => MaxFields}
         )
      || MapOpaqueNode <- MapOpaqueNodes,
         {MapOpaqueName, MapOpaqueTypeAST, _} <- [ktn_code:attr(value, MapOpaqueNode)],
-        length(erl_syntax:type_application_arguments(MapOpaqueTypeAST)) > MaxFields
+        FieldCount <- [length(erl_syntax:type_application_arguments(MapOpaqueTypeAST))],
+        FieldCount > MaxFields
     ].
 
 is_map_opaque_with_atom_keys(OpaqueNode) ->
@@ -1732,20 +1770,19 @@ no_common_caveats_call(Rule, ElvisConfig) ->
 
 -spec node_line_limits(ktn_code:tree_node()) -> {Min :: integer(), Max :: integer()}.
 node_line_limits(FunctionNode) ->
-    Zipper = elvis_code:zipper(FunctionNode),
-    % The first number in `lineNums' list is the location of the first
-    % line of the function. That's why we use it for the `Min' value.
-    LineNums = zipper:map(fun line/1, Zipper),
-    % Last function's line
-    Max = lists:max(LineNums),
-    % If you use `lists:min/1' here, you will get weird results when using
-    % macros because most of the time macros are defined at the beginning of
-    % the module, but your function's first line could be in the middle or
-    % even at the end of the module.
-
-    % Min = first function's line
-    [Min | _] = LineNums,
+    % Min = first line of the function node itself (not lists:min, because
+    % macros are often defined at the top of the module, skewing the minimum).
+    Min = line(FunctionNode),
+    Max = max_line(FunctionNode, Min),
     {Min, Max}.
+
+max_line(#{content := Content} = Node, Acc) ->
+    Acc1 = erlang:max(line(Node), Acc),
+    lists:foldl(fun max_line/2, Acc1, Content);
+max_line(Node, Acc) when is_map(Node) ->
+    erlang:max(line(Node), Acc);
+max_line(_, Acc) ->
+    Acc.
 
 -spec no_nested_try_catch(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_nested_try_catch(Rule, ElvisConfig) ->
@@ -1820,17 +1857,17 @@ atom_naming_convention(Rule, ElvisConfig) ->
 
     % Use content only: 'all' would also traverse node_attrs (location, text, value, etc.),
     % multiplying visited nodes and making the rule much slower.
-    {zippers, AtomZippers} = elvis_code:find(#{
+    {nodes_and_ancestors, AtomResults} = elvis_code:find(#{
         of_types => [atom],
         inside => elvis_code:root(Rule, ElvisConfig),
         filtered_by => fun parent_is_not_remote/1,
-        filtered_from => zipper,
+        filtered_from => node_and_ancestors,
         traverse => content
     }),
 
     lists:filtermap(
-        fun(AtomZipper) ->
-            case atom_name_matches_regexes(AtomZipper, Compiled, Source) of
+        fun({AtomNode, _Ancestors}) ->
+            case atom_name_matches_regexes(AtomNode, Compiled, Source) of
                 ok ->
                     false;
                 {not_acceptable, Kind, AtomName, RegexAllowSource} ->
@@ -1839,7 +1876,7 @@ atom_naming_convention(Rule, ElvisConfig) ->
                             "the name of ~ts ~p is not acceptable by regular "
                             "expression '~s'",
                             [Kind, AtomName, RegexAllowSource],
-                            #{zipper => AtomZipper}
+                            #{node => AtomNode}
                         )};
                 {blocked, Kind, AtomName, RegexBlockSource} ->
                     {true,
@@ -1847,15 +1884,15 @@ atom_naming_convention(Rule, ElvisConfig) ->
                             "the name of ~ts ~p is forbidden by regular "
                             "expression '~s'",
                             [Kind, AtomName, RegexBlockSource],
-                            #{zipper => AtomZipper}
+                            #{node => AtomNode}
                         )}
             end
         end,
-        AtomZippers
+        AtomResults
     ).
 
-atom_name_matches_regexes(AtomZipper, Compiled, Source) ->
-    {AtomName0, AtomNodeValue} = atom_name_and_node_value(AtomZipper),
+atom_name_matches_regexes(AtomNode, Compiled, Source) ->
+    {AtomName0, AtomNodeValue} = atom_name_and_node_value(AtomNode),
     {IsEnclosed, AtomName} = string_strip_enclosed(AtomName0),
     IsExceptionClass = is_exception_or_non_reversible(AtomNodeValue),
 
@@ -1898,8 +1935,7 @@ atom_name_matches_regexes(AtomZipper, Compiled, Source) ->
             ok
     end.
 
-atom_name_and_node_value(AtomZipper) ->
-    AtomNode = zipper:node(AtomZipper),
+atom_name_and_node_value(AtomNode) ->
     {ktn_code:attr(text, AtomNode), ktn_code:attr(value, AtomNode)}.
 
 -spec no_init_lists(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
@@ -1920,9 +1956,8 @@ no_init_lists(Rule, ElvisConfig) ->
                 lists:flatmap(
                     fun(InitFun) ->
                         Content = ktn_code:content(InitFun),
-                        ListAttrClauses = list_nodes(Content),
-                        case length(ListAttrClauses) =:= length(Content) of
-                            true -> ListAttrClauses;
+                        case lists:all(fun is_list_clause/1, Content) of
+                            true -> Content;
                             false -> []
                         end
                     end,
@@ -1946,14 +1981,9 @@ is_init_1(FunctionNode) ->
     ktn_code:attr(name, FunctionNode) =:= init andalso
         ktn_code:attr(arity, FunctionNode) =:= 1.
 
-list_nodes(Content) ->
-    lists:filter(
-        fun(Clause) ->
-            [Attribute] = ktn_code:node_attr(pattern, Clause),
-            is_list_node(Attribute)
-        end,
-        Content
-    ).
+is_list_clause(Clause) ->
+    [Attribute] = ktn_code:node_attr(pattern, Clause),
+    is_list_node(Attribute).
 
 is_behaviour_in(Root, ConfigBehaviors) ->
     {nodes, Behaviours} = elvis_code:find(#{of_types => [behaviour, behavior], inside => Root}),
@@ -2396,7 +2426,7 @@ tuple_length_indices(TupleNode) ->
     Elements = ktn_code:content(TupleNode),
     [
         I
-     || {I, E} <- lists:zip(lists:seq(1, length(Elements)), Elements),
+     || {I, E} <- lists:enumerate(1, Elements),
         is_length_call(E)
     ].
 
@@ -2424,10 +2454,10 @@ clause_pattern(Clause) ->
     end.
 
 tuple_elem(TupleNode, OneBasedIdx) ->
-    Content = ktn_code:content(TupleNode),
-    case OneBasedIdx =< length(Content) of
-        true -> lists:nth(OneBasedIdx, Content);
-        false -> undefined
+    try
+        lists:nth(OneBasedIdx, ktn_code:content(TupleNode))
+    catch
+        error:function_clause -> undefined
     end.
 
 is_int_in_allowed(Node, AllowedEq) ->
@@ -2583,32 +2613,33 @@ no_import(Rule, ElvisConfig) ->
 
 -spec no_catch_expressions(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_catch_expressions(Rule, ElvisConfig) ->
-    {zippers, CatchExprZippers} = elvis_code:find(#{
+    {nodes_and_ancestors, CatchExprResults} = elvis_code:find(#{
         of_types => ['catch'],
         inside => elvis_code:root(Rule, ElvisConfig),
-        filtered_from => zipper,
-        filtered_by => fun(Zipper) -> not result_discarded(Zipper) end
+        filtered_from => node_and_ancestors,
+        filtered_by => fun(NA) -> not result_discarded(NA) end
     }),
 
     [
         elvis_result:new_item(
             "an unexpected 'catch' expression was found; prefer a 'try' expression",
             [],
-            #{node => zipper:node(CatchExprZipper)}
+            #{node => Node}
         )
-     || CatchExprZipper <- lists:uniq(CatchExprZippers)
+     || {Node, _Ancestors} <- lists:uniq(CatchExprResults)
     ].
 
 %% @doc is this node in a _ = ... expression, where the result is explicitly discarded?
-result_discarded(Zipper) ->
-    Parent = zipper:node(zipper:up(Zipper)),
+result_discarded({_Node, [Parent | _]}) ->
     case ktn_code:type(Parent) of
         match ->
             [LeftSide | _] = ktn_code:content(Parent),
             ktn_code:type(LeftSide) =:= var andalso ktn_code:attr(name, LeftSide) =:= '_';
         _ ->
             false
-    end.
+    end;
+result_discarded({_Node, []}) ->
+    false.
 
 -spec no_single_clause_case(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 no_single_clause_case(Rule, ElvisConfig) ->
@@ -2851,21 +2882,18 @@ behaviour_spelling(Rule, ElvisConfig) ->
 guard_operators(Rule, ElvisConfig) ->
     case elvis_rule:option(preferred_syntax, Rule) of
         per_expression ->
-            {zippers, GuardedClauseZippers} = elvis_code:find(#{
+            {nodes_and_ancestors, GuardedClauseResults} = elvis_code:find(#{
                 of_types => [clause],
                 inside => elvis_code:root(Rule, ElvisConfig),
                 filtered_by =>
-                    fun(ClauseZipper) ->
-                        has_guards(zipper:node(ClauseZipper))
+                    fun({Node, _Ancestors}) ->
+                        has_guards(Node)
                     end,
-                filtered_from => zipper,
+                filtered_from => node_and_ancestors,
                 traverse => all
             }),
             GuardedExpressionNodes =
-                [
-                    zipper:node(zipper:up(GuardedClauseZipper))
-                 || GuardedClauseZipper <- GuardedClauseZippers
-                ],
+                [Parent || {_Node, [Parent | _]} <- GuardedClauseResults],
             check_guard_operators(per_expression, GuardedExpressionNodes);
         PreferredSyntax ->
             {nodes, GuardedClauseNodes} = elvis_code:find(#{
@@ -2965,18 +2993,18 @@ is_two_sided_boolean_op(Node) ->
 param_pattern_matching(Rule, ElvisConfig) ->
     Side = elvis_rule:option(side, Rule),
 
-    {zippers, ClauseZippers} = elvis_code:find(#{
+    {nodes_and_ancestors, ClauseResults} = elvis_code:find(#{
         of_types => [clause],
         inside => elvis_code:root(Rule, ElvisConfig),
         filtered_by =>
-            fun(ClauseZipper) ->
-                is_function_clause(ClauseZipper, [function, 'fun', named_fun])
+            fun({_Node, Ancestors}) ->
+                is_function_clause(Ancestors, [function, 'fun', named_fun])
             end,
-        filtered_from => zipper,
+        filtered_from => node_and_ancestors,
         traverse => all
     }),
 
-    MatchesInFunctionClauses = matches_in_function_clauses(ClauseZippers),
+    MatchesInFunctionClauses = matches_in_function_clauses(ClauseResults),
     MatchVars = match_vars_at(Side, MatchesInFunctionClauses),
 
     [
@@ -3008,11 +3036,10 @@ match_vars_at(Side, MatchesInFunctionClauses) ->
         MatchesInFunctionClauses
     ).
 
-matches_in_function_clauses(ClauseZippers) ->
+matches_in_function_clauses(ClauseResults) ->
     lists:append(
         lists:map(
-            fun(ClauseZipper) ->
-                ClauseNode = zipper:node(ClauseZipper),
+            fun({ClauseNode, _Ancestors}) ->
                 ClausePatterns = ktn_code:node_attr(pattern, ClauseNode),
                 lists:filter(
                     fun(ClausePattern) ->
@@ -3021,15 +3048,14 @@ matches_in_function_clauses(ClauseZippers) ->
                     ClausePatterns
                 )
             end,
-            ClauseZippers
+            ClauseResults
         )
     ).
 
-is_function_clause(ClauseZipper, ParentNodeTypes) ->
-    ClauseParent = zipper:up(ClauseZipper),
-    ParentNode = zipper:node(ClauseParent),
-    ParentNodeType = ktn_code:type(ParentNode),
-    lists:member(ParentNodeType, ParentNodeTypes).
+is_function_clause([Parent | _], ParentNodeTypes) ->
+    lists:member(ktn_code:type(Parent), ParentNodeTypes);
+is_function_clause([], _ParentNodeTypes) ->
+    false.
 
 -spec generic_type(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 generic_type(Rule, ElvisConfig) ->
@@ -3183,17 +3209,43 @@ prefer_include(Rule, ElvisConfig) ->
 export_used_types(Rule, ElvisConfig) ->
     Root = elvis_code:root(Rule, ElvisConfig),
 
-    case is_otp_behaviour(Root) of
-        false ->
-            ExportedFunctions = exported_functions(Root),
-            ExportedTypes = exported_types(Root),
+    %% Single traversal to collect all needed node types.
+    {nodes, AllNodes} = elvis_code:find(#{
+        of_types => [behaviour, behavior, export, export_type, spec, type_attr],
+        inside => Root
+    }),
+    #{
+        behaviours := BehaviourNodes,
+        exports := ExportNodes,
+        export_types := ExportTypeNodes,
+        specs := SpecNodes0,
+        type_attrs := TypeAttrNodes
+    } = partition_nodes(AllNodes, #{
+        behaviour => behaviours,
+        behavior => behaviours,
+        export => exports,
+        export_type => export_types,
+        spec => specs,
+        type_attr => type_attrs
+    }),
 
-            SpecNodes = spec_nodes(Root, ExportedFunctions),
+    case is_otp_behaviour(BehaviourNodes) of
+        false ->
+            ExportedFunctionsSet = sets:from_list(
+                lists:flatmap(fun(N) -> ktn_code:attr(value, N) end, ExportNodes),
+                [{version, 2}]
+            ),
+            ExportedTypesSet = sets:from_list(
+                lists:flatmap(fun(N) -> ktn_code:attr(value, N) end, ExportTypeNodes),
+                [{version, 2}]
+            ),
+
+            SpecNodes = [S || S <- SpecNodes0, is_exported_function(S, ExportedFunctionsSet)],
             UsedTypes = used_types(SpecNodes),
 
-            UnexportedUsedTypes = lists:subtract(UsedTypes, ExportedTypes),
+            UnexportedUsedTypes = [T || T <- UsedTypes, not sets:is_element(T, ExportedTypesSet)],
 
-            Locations = map_type_declarations_to_location(Root),
+            Locations = type_attr_locations(TypeAttrNodes),
 
             lists:map(
                 fun({Name, Arity}) ->
@@ -3211,16 +3263,36 @@ export_used_types(Rule, ElvisConfig) ->
             []
     end.
 
-spec_nodes(Root, ExportedFunctions) ->
-    {nodes, SpecNodes} = elvis_code:find(#{
-        of_types => [spec],
-        inside => Root,
-        filtered_by =>
-            fun(SpecNode) ->
-                is_exported_function(SpecNode, ExportedFunctions)
-            end
-    }),
-    SpecNodes.
+partition_nodes(Nodes, TypeToKey) ->
+    Init = maps:from_keys(lists:usort(maps:values(TypeToKey)), []),
+    lists:foldl(
+        fun(Node, Acc) ->
+            Key = maps:get(ktn_code:type(Node), TypeToKey),
+            Acc#{Key := [Node | maps:get(Key, Acc)]}
+        end,
+        Init,
+        Nodes
+    ).
+
+is_otp_behaviour([]) ->
+    false;
+is_otp_behaviour(BehaviourNodes) ->
+    OtpSet = sets:from_list([gen_server, gen_event, gen_fsm, gen_statem, supervisor_bridge]),
+    Names = lists:map(fun(Node) -> ktn_code:attr(value, Node) end, BehaviourNodes),
+    BehaviorsSet = sets:from_list(Names),
+    not sets:is_empty(sets:intersection(OtpSet, BehaviorsSet)).
+
+type_attr_locations(TypeAttrNodes) ->
+    lists:foldl(
+        fun
+            (#{attrs := #{location := Loc, name := Name}, node_attrs := #{args := Args}}, Acc) ->
+                maps:put({Name, length(Args)}, Loc, Acc);
+            (_, Acc) ->
+                Acc
+        end,
+        #{},
+        TypeAttrNodes
+    ).
 
 used_types(SpecNodes) ->
     lists:usort(
@@ -3247,8 +3319,8 @@ private_data_types(Rule, ElvisConfig) ->
     TypesToCheck = elvis_rule:option(apply_to, Rule),
 
     Root = elvis_code:root(Rule, ElvisConfig),
-    ExportedTypes = exported_types(Root),
-    PublicDataTypes = public_data_types(TypesToCheck, Root, ExportedTypes),
+    ExportedTypesSet = exported_types(Root),
+    PublicDataTypes = public_data_types(TypesToCheck, Root, ExportedTypesSet),
     Locations = map_type_declarations_to_location(Root),
 
     lists:map(
@@ -3264,7 +3336,7 @@ private_data_types(Rule, ElvisConfig) ->
         PublicDataTypes
     ).
 
-public_data_types(TypesToCheck, Root, ExportedTypes) ->
+public_data_types(TypesToCheck, Root, ExportedTypesSet) ->
     {nodes, TypeAttrNodes} = elvis_code:find(#{
         of_types => [type_attr],
         inside => Root,
@@ -3283,8 +3355,8 @@ public_data_types(TypesToCheck, Root, ExportedTypes) ->
     ),
 
     lists:filter(
-        fun({Name, Arity}) ->
-            lists:member({Name, Arity}, ExportedTypes)
+        fun(NameArity) ->
+            sets:is_element(NameArity, ExportedTypesSet)
         end,
         NameArities
     ).
@@ -3426,8 +3498,8 @@ line_is_comment(Line, Regex) ->
 line_is_whitespace_regex() ->
     re_compile("^[ \t]*$").
 
-line_is_whitespace(Line) ->
-    case re_run(Line, line_is_whitespace_regex()) of
+line_is_whitespace(Line, Regex) ->
+    case re_run(Line, Regex) of
         nomatch ->
             false;
         {match, _} ->
@@ -3617,103 +3689,77 @@ is_dynamic_call(Node) ->
 is_the_module_macro(Module) ->
     ktn_code:type(Module) =:= macro andalso ktn_code:attr(name, Module) =:= "MODULE".
 
-is_var(Zipper) ->
+is_var(Node, TokenIndex) ->
     PrevLocation =
-        case ktn_code:attr(location, zipper:node(Zipper)) of
+        case ktn_code:attr(location, Node) of
             {L, 1} ->
                 {L - 1, 9999};
             {L, C} ->
                 {L, C - 1}
         end,
-    case
-        find_token(
-            zipper:root(Zipper), PrevLocation
-        )
-    of
-        not_found ->
-            true;
-        {ok, PrevToken} ->
-            ktn_code:type(PrevToken) =/= '?'
+    case TokenIndex of
+        #{PrevLocation := PrevToken} ->
+            ktn_code:type(PrevToken) =/= '?';
+        #{} ->
+            true
     end.
 
-find_token(Root, Location) ->
-    Fun = fun(Token) -> is_at_location(Token, Location) end,
+build_token_index(Root) ->
     Tokens = ktn_code:attr(tokens, Root),
-    case lists:filter(Fun, Tokens) of
-        [] ->
-            not_found;
-        [Token | _] ->
-            {ok, Token}
-    end.
+    lists:foldl(fun index_token/2, #{}, Tokens).
 
-is_at_location(#{attrs := #{location := {Line, NodeCol}}} = Node, {Line, Column}) ->
-    Text = ktn_code:attr(text, Node),
-    Length = length(Text),
-    NodeCol =< Column andalso Column < NodeCol + Length;
-is_at_location(_, _) ->
-    false.
+index_token(#{attrs := #{location := {Line, Col}}} = Token, Acc) ->
+    Text = ktn_code:attr(text, Token),
+    Len = length(Text),
+    lists:foldl(
+        fun(C, A) -> A#{{Line, C} => Token} end,
+        Acc,
+        lists:seq(Col, Col + Len - 1)
+    );
+index_token(_, Acc) ->
+    Acc.
 
-is_ignored_var(Zipper) ->
-    Node = zipper:node(Zipper),
+is_ignored_var({Node, Ancestors}) ->
     case ktn_code:type(Node) of
         var ->
             Name = ktn_code:attr(name, Node),
             [FirstChar | _] = atom_to_list(Name),
             (FirstChar =:= $_) andalso (Name =/= '_') andalso
-                not check_parent_match_or_macro(Zipper);
+                not is_first_child_of_match_or_macro(Node, Ancestors);
         _OtherType ->
             false
     end.
 
-check_parent_match_or_macro(Zipper) ->
-    case zipper:up(Zipper) of
-        undefined ->
-            false;
-        ParentZipper ->
-            Parent = zipper:node(ParentZipper),
-            IsMatchOrMacro = lists:member(ktn_code:type(Parent), [macro | match_operators()]),
-            case IsMatchOrMacro of
-                true ->
-                    zipper:down(ParentZipper) =:= Zipper;
+is_first_child_of_match_or_macro(_Node, []) ->
+    false;
+is_first_child_of_match_or_macro(Node, [Parent | Rest]) ->
+    IsMatchOrMacro = lists:member(ktn_code:type(Parent), [macro | match_operators()]),
+    case IsMatchOrMacro of
+        true ->
+            case ktn_code:content(Parent) of
+                [FirstChild | _] ->
+                    ktn_code:attr(location, FirstChild) =:= ktn_code:attr(location, Node);
                 _ ->
-                    check_parent_match_or_macro(ParentZipper)
-            end
+                    false
+            end;
+        false ->
+            is_first_child_of_match_or_macro(Parent, Rest)
     end.
 
-parent_is_not_remote(Zipper) ->
-    case zipper:up(Zipper) of
-        undefined ->
-            true;
-        ParentZipper ->
-            Parent = zipper:node(ParentZipper),
-            ktn_code:type(Parent) =/= remote
-    end.
-
-is_otp_behaviour(Root) ->
-    OtpSet = sets:from_list([gen_server, gen_event, gen_fsm, gen_statem, supervisor_bridge]),
-    {nodes, Behaviors} = elvis_code:find(#{of_types => [behaviour, behavior], inside => Root}),
-    case Behaviors of
-        [] ->
-            false;
-        Behaviors ->
-            ValueFun = fun(Node) -> ktn_code:attr(value, Node) end,
-            Names = lists:map(ValueFun, Behaviors),
-            BehaviorsSet = sets:from_list(Names),
-            not sets:is_empty(
-                sets:intersection(OtpSet, BehaviorsSet)
-            )
-    end.
+parent_is_not_remote({_Node, []}) ->
+    true;
+parent_is_not_remote({_Node, [Parent | _]}) ->
+    ktn_code:type(Parent) =/= remote.
 
 find_repeated_nodes(Root, MinComplexity) ->
     TypeAttrs = #{var => [location, name, text], clause => [location, text]},
 
     FoldFun =
         fun(Node, Map) ->
-            Zipper = elvis_code:zipper(Node),
-            case zipper:size(Zipper) of
+            case node_size(Node) of
                 Count when Count >= MinComplexity ->
                     Loc = ktn_code:attr(location, Node),
-                    StrippedNode = remove_attrs_zipper(Zipper, TypeAttrs),
+                    StrippedNode = remove_attrs(Node, TypeAttrs),
 
                     ValsSet = maps:get(StrippedNode, Map, sets:new()),
                     NewValsSet = sets:add_element(Loc, ValsSet),
@@ -3722,8 +3768,7 @@ find_repeated_nodes(Root, MinComplexity) ->
                     Map
             end
         end,
-    ZipperRoot = elvis_code:zipper(Root),
-    Grouped = zipper:fold(FoldFun, #{}, ZipperRoot),
+    Grouped = fold_content(FoldFun, #{}, Root),
 
     Repeated = filter_repeated(Grouped),
     LocationSets = maps:values(Repeated),
@@ -3731,14 +3776,41 @@ find_repeated_nodes(Root, MinComplexity) ->
 
     lists:map(fun lists:sort/1, Locations).
 
--spec remove_attrs_zipper(zipper:zipper(_), map()) -> ktn_code:tree_node().
-remove_attrs_zipper(Zipper, TypeAttrs) ->
-    zipper:fmap(fun remove_attrs/2, [TypeAttrs], Zipper).
+node_size(#{content := Content}) ->
+    1 + lists:sum([node_size(Child) || Child <- Content]);
+node_size(Node) when is_map(Node) ->
+    1;
+node_size(_) ->
+    0.
+
+fold_content(Fun, Acc, #{content := Content} = Node) ->
+    Acc1 = Fun(Node, Acc),
+    lists:foldl(fun(Child, A) -> fold_content(Fun, A, Child) end, Acc1, Content);
+fold_content(Fun, Acc, Node) when is_map(Node) ->
+    Fun(Node, Acc);
+fold_content(_Fun, Acc, _) ->
+    Acc.
 
 -spec remove_attrs(ktn_code:tree_node() | [ktn_code:tree_node()], map()) ->
     ktn_code:tree_node().
 remove_attrs(Nodes, TypeAttrs) when is_list(Nodes) ->
     [remove_attrs(Node, TypeAttrs) || Node <- Nodes];
+remove_attrs(
+    #{
+        attrs := Attrs,
+        type := Type,
+        node_attrs := NodeAttrs,
+        content := Content
+    } =
+        Node,
+    TypeAttrs
+) ->
+    AttrsName = maps:get(Type, TypeAttrs, [location]),
+    AttrsNoLoc = maps:without(AttrsName, Attrs),
+    NodeAttrsNoLoc =
+        maps:map(fun(_Key, Value) -> remove_attrs(Value, TypeAttrs) end, NodeAttrs),
+    ContentNoLoc = [remove_attrs(Child, TypeAttrs) || Child <- Content],
+    Node#{attrs => AttrsNoLoc, node_attrs => NodeAttrsNoLoc, content => ContentNoLoc};
 remove_attrs(
     #{
         attrs := Attrs,
@@ -3751,12 +3823,13 @@ remove_attrs(
     AttrsName = maps:get(Type, TypeAttrs, [location]),
     AttrsNoLoc = maps:without(AttrsName, Attrs),
     NodeAttrsNoLoc =
-        [
-            {Key, remove_attrs_zipper(elvis_code:zipper(Value), TypeAttrs)}
-         || {Key, Value} <- maps:to_list(NodeAttrs)
-        ],
-
-    Node#{attrs => AttrsNoLoc, node_attrs => maps:from_list(NodeAttrsNoLoc)};
+        maps:map(fun(_Key, Value) -> remove_attrs(Value, TypeAttrs) end, NodeAttrs),
+    Node#{attrs => AttrsNoLoc, node_attrs => NodeAttrsNoLoc};
+remove_attrs(#{attrs := Attrs, type := Type, content := Content} = Node, TypeAttrs) ->
+    AttrsName = maps:get(Type, TypeAttrs, [location]),
+    AttrsNoLoc = maps:without(AttrsName, Attrs),
+    ContentNoLoc = [remove_attrs(Child, TypeAttrs) || Child <- Content],
+    Node#{attrs => AttrsNoLoc, content => ContentNoLoc};
 remove_attrs(#{attrs := Attrs, type := Type} = Node, TypeAttrs) ->
     AttrsName = maps:get(Type, TypeAttrs, [location]),
     AttrsNoLoc = maps:without(AttrsName, Attrs),
@@ -3784,8 +3857,15 @@ filter_repeated(NodesLocs) ->
     maps:without(Nested, RepeatedMap).
 
 is_children(Parent, Node) ->
-    Zipper = elvis_code:zipper(Parent),
-    zipper:filter(fun(Child) -> Child =:= Node end, Zipper) =/= [].
+    case ktn_code:content(Parent) of
+        [] ->
+            false;
+        Content ->
+            lists:any(
+                fun(Child) -> Child =:= Node orelse is_children(Child, Node) end,
+                Content
+            )
+    end.
 
 no_call_common(Rule, ElvisConfig, NoCallFuns, Msg) ->
     {nodes, CallNodes} = elvis_code:find(#{
@@ -4074,12 +4154,16 @@ add_branch(_) -> 0.
 %% Counts direct clause children of a node (not deeply nested ones).
 -spec count_direct_clauses(ktn_code:tree_node()) -> non_neg_integer().
 count_direct_clauses(Node) ->
-    case ktn_code:content(Node) of
-        [] ->
-            0;
-        Content ->
-            length([C || C <- Content, ktn_code:type(C) =:= clause])
-    end.
+    lists:foldl(
+        fun(C, Acc) ->
+            case ktn_code:type(C) of
+                clause -> Acc + 1;
+                _ -> Acc
+            end
+        end,
+        0,
+        ktn_code:content(Node)
+    ).
 
 line(Node) ->
     {Line, _} = ktn_code:attr(location, Node),
