@@ -4,7 +4,7 @@ Lines should not exceed the defined length limit.
 
 > #### Note {: .info}
 >
-> Prior to v5.0.0, this rule was named **`elvis_text_style:line_length`**;
+> Prior to 5.0.0, this rule was named **`elvis_text_style:line_length`**;
 > (see [`elvis_removed_rules`](https://github.com/inaka/elvis_core/blob/main/src/elvis_removed_rules.erl)).
 
 ## Exceptions
