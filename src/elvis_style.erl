@@ -552,7 +552,7 @@ variable_naming_convention(Rule, ElvisConfig) ->
 
     lists:filtermap(
         fun(VarNode) ->
-            VariableName = atom_to_list(ktn_code:attr(name, VarNode)),
+            VariableName = variable_name(VarNode),
 
             case re_run(VariableName, RegexAllow) of
                 nomatch when VariableName =/= "_" ->
@@ -583,6 +583,9 @@ variable_naming_convention(Rule, ElvisConfig) ->
         end,
         VarNodes
     ).
+
+variable_name(VarNode) ->
+    atom_to_list(ktn_code:attr(name, VarNode)).
 
 -spec macro_naming_convention(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 macro_naming_convention(Rule, ElvisConfig) ->
