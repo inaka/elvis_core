@@ -9,7 +9,8 @@ the `forbidden_regex` option pattern, in which case they are disallowed.
 
 ```erlang
 a____function() -> ok.
-    ...
+
+...
 
 another___function() ->
     ...
@@ -19,7 +20,8 @@ another___function() ->
 
 ```erlang
 a_function() -> ok.
-    ...
+
+...
 
 another_function() ->
     ...

@@ -11,7 +11,7 @@ mycondition(Assumptions) == false
 
 mycondition(Assumptions) =/= true
 
-mycondition(Assumptions) =:= false.
+mycondition(Assumptions) =:= false
 ```
 
 ## Prefer
@@ -23,7 +23,7 @@ not(mycondition(Assumptions))
 
 not(mycondition(Assumptions))
 
-not(mycondition(Assumptions)).
+not(mycondition(Assumptions))
 ```
 
 ## Rationale

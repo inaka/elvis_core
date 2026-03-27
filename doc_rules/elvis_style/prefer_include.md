@@ -5,13 +5,13 @@ Using `-include_lib("myinc.hrl").`, when including a single file, should be avoi
 ## Avoid
 
 ```erlang
--include_lib("myinc.hrl").
+-include_lib("myinc.hrl")
 ```
 
 ## Prefer
 
 ```erlang
--include("myinc.hrl").
+-include("myinc.hrl")
 ```
 
 ## Rationale

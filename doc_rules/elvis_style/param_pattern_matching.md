@@ -16,7 +16,7 @@ myfunc(Params = #{pattern := ToMatch})
 or:
 
 ```erlang
-myfunc(#{pattern := ToMatch} = Params).
+myfunc(#{pattern := ToMatch} = Params)
 ```
 
 ## Prefer
@@ -31,7 +31,7 @@ myfunc(#{pattern := ToMatch} = Params)
 or:
 
 ```erlang
-myfunc(Params = #{pattern := ToMatch}).
+myfunc(Params = #{pattern := ToMatch})
 ```
 
 ## Rationale
