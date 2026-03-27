@@ -1,12 +1,12 @@
 #!/usr/bin/env escript
 %%% Benchmark elvis_core linting on a target project.
-%%% Usage: ./bench.escript [/path/to/project] [runs]
-%%% Defaults: project = this directory, runs = 3
+%%% Usage: ./bench.escript [/path/to/project] [runs] [--timetrap ms]
+%%% Defaults: project = this directory, runs = 3, timetrap = infinity
 
 -mode(compile).
 
 main(Args) ->
-    {ProjectDir, Runs} = parse_args(Args),
+    {ProjectDir, Runs, Timetrap} = parse_args(Args),
     {ok, OldCwd} = file:get_cwd(),
     ok = setup_code_paths(),
     {ok, _} = application:ensure_all_started(elvis_core),
@@ -51,7 +51,7 @@ main(Args) ->
     profile_eprof(),
 
     file:set_cwd(OldCwd),
-    ok.
+    check_timetrap(AvgMs, Timetrap).
 
 profile_per_rule() ->
     {ok, ConfigTerms} = file:consult("elvis.config"),
@@ -133,11 +133,30 @@ profile_eprof() ->
     eprof:analyze(total, [{sort, time}]),
     eprof:stop().
 
-parse_args([]) ->
+check_timetrap(_AvgMs, infinity) ->
+    ok;
+check_timetrap(AvgMs, MaxMs) when AvgMs =< MaxMs ->
+    io:format("~nTimetrap: ~.1f ms <= ~b ms [PASS]~n", [AvgMs, MaxMs]),
+    ok;
+check_timetrap(AvgMs, MaxMs) ->
+    io:format("~nTimetrap: ~.1f ms > ~b ms [FAIL]~n", [AvgMs, MaxMs]),
+    halt(1).
+
+parse_args(Args) ->
+    {Timetrap, Rest} = extract_timetrap(Args),
+    {ProjectDir, Runs} = parse_positional(Rest),
+    {ProjectDir, Runs, Timetrap}.
+
+extract_timetrap(["--timetrap", MsStr | Rest]) ->
+    {list_to_integer(MsStr), Rest};
+extract_timetrap(Args) ->
+    {infinity, Args}.
+
+parse_positional([]) ->
     {project_dir(), 3};
-parse_args([Dir]) ->
+parse_positional([Dir]) ->
     {Dir, 3};
-parse_args([Dir, RunsStr | _]) ->
+parse_positional([Dir, RunsStr | _]) ->
     {Dir, list_to_integer(RunsStr)}.
 
 project_dir() ->
