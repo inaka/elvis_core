@@ -27,7 +27,7 @@ main(Args) ->
     _ = elvis_core:rock({config_file, "elvis.config"}),
 
     %% Benchmark total time
-    io:format("=== Total lint time ===~n"),
+    group_start("Total lint time"),
     Times = lists:map(
         fun(_) ->
             {USec, _} = timer:tc(fun() -> elvis_core:rock({config_file, "elvis.config"}) end),
@@ -39,16 +39,19 @@ main(Args) ->
     ),
     AvgMs = lists:sum(Times) / length(Times) / 1000,
     MinMs = lists:min(Times) / 1000,
-    io:format("  avg: ~.1f ms, min: ~.1f ms~n~n", [AvgMs, MinMs]),
+    io:format("  avg: ~.1f ms, min: ~.1f ms~n", [AvgMs, MinMs]),
+    group_end(),
 
     %% Per-rule profiling
-    io:format("=== Per-rule breakdown (single run) ===~n"),
+    group_start("Per-rule breakdown (single run)"),
     RuleTimes = profile_per_rule(),
     print_rule_times(RuleTimes),
+    group_end(),
 
     %% eprof
-    io:format("~n=== eprof top 20 functions ===~n"),
+    group_start("eprof top functions"),
     profile_eprof(),
+    group_end(),
 
     file:set_cwd(OldCwd),
     check_timetrap(AvgMs, Timetrap).
@@ -132,6 +135,18 @@ profile_eprof() ->
     eprof:stop_profiling(),
     eprof:analyze(total, [{sort, time}]),
     eprof:stop().
+
+group_start(Title) ->
+    case os:getenv("GITHUB_ACTIONS") of
+        "true" -> io:format("::group::~s~n", [Title]);
+        _ -> io:format("=== ~s ===~n", [Title])
+    end.
+
+group_end() ->
+    case os:getenv("GITHUB_ACTIONS") of
+        "true" -> io:format("::endgroup::~n");
+        _ -> io:format("~n")
+    end.
 
 check_timetrap(_AvgMs, infinity) ->
     ok;
