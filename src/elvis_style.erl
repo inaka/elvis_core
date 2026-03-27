@@ -907,20 +907,13 @@ no_god_modules(Rule, ElvisConfig) ->
     end.
 
 exported_functions(Root) ->
-    {nodes, ExportNodes} = elvis_code:find(#{
-        of_types => [export],
-        inside => Root
-    }),
-    sets:from_list(
-        lists:flatmap(fun(Node) -> ktn_code:attr(value, Node) end, ExportNodes),
-        [{version, 2}]
-    ).
+    exported_set(Root, export).
 
 exported_types(Root) ->
-    {nodes, ExportNodes} = elvis_code:find(#{
-        of_types => [export_type],
-        inside => Root
-    }),
+    exported_set(Root, export_type).
+
+exported_set(Root, Type) ->
+    {nodes, ExportNodes} = elvis_code:find(#{of_types => [Type], inside => Root}),
     sets:from_list(
         lists:flatmap(fun(Node) -> ktn_code:attr(value, Node) end, ExportNodes),
         [{version, 2}]
