@@ -456,14 +456,14 @@ consistent_variable_naming(Rule, ElvisConfig) ->
     {nodes, VarNodes} = elvis_code:find(#{
         of_types => [var],
         inside => Root,
-        filtered_by => fun(N) -> is_var_node(N, TokenIndex) end,
+        filtered_by => fun(N) -> is_var(N, TokenIndex) end,
         traverse => all
     }),
 
     GroupedByTokens = maps:groups_from_list(
         fun(N) ->
             canonical_variable_tokenisation(
-                canonical_variable_name_from_node(N),
+                canonical_variable_name(N),
                 CamelRe,
                 HyphenRe
             )
@@ -476,8 +476,8 @@ consistent_variable_naming(Rule, ElvisConfig) ->
             (_Tokens, [_], Acc) ->
                 Acc;
             (_Tokens, [FirstVarNode | OtherVarNodes], Acc) ->
-                FirstName = canonical_variable_name_from_node(FirstVarNode),
-                case unique_other_names_from_nodes(OtherVarNodes, FirstName) of
+                FirstName = canonical_variable_name(FirstVarNode),
+                case unique_other_names(OtherVarNodes, FirstName) of
                     [] ->
                         Acc;
                     OtherNames ->
@@ -512,10 +512,10 @@ canonical_variable_tokenisation(Name, CamelRe, HyphenRe) ->
     % 4. Split by underscore and automatically drop empty tokens
     string:lexemes(S3, "_").
 
-unique_other_names_from_nodes(OtherVarNodes, FirstName) ->
+unique_other_names(OtherVarNodes, FirstName) ->
     FilteredNames = lists:filtermap(
         fun(OtherVarNode) ->
-            case canonical_variable_name_from_node(OtherVarNode) of
+            case canonical_variable_name(OtherVarNode) of
                 FirstName -> false;
                 OtherName -> {true, OtherName}
             end
@@ -524,7 +524,7 @@ unique_other_names_from_nodes(OtherVarNodes, FirstName) ->
     ),
     lists:usort(FilteredNames).
 
-canonical_variable_name_from_node(VarNode) ->
+canonical_variable_name(VarNode) ->
     case atom_to_list(ktn_code:attr(name, VarNode)) of
         [$_ | Rest] ->
             Rest;
@@ -546,7 +546,7 @@ variable_naming_convention(Rule, ElvisConfig) ->
     {nodes, VarNodes} = elvis_code:find(#{
         of_types => [var],
         inside => Root,
-        filtered_by => fun(N) -> is_var_node(N, TokenIndex) end,
+        filtered_by => fun(N) -> is_var(N, TokenIndex) end,
         traverse => all
     }),
 
@@ -989,7 +989,7 @@ no_used_ignored_variables(Rule, ElvisConfig) ->
     {nodes_and_ancestors, IgnoredVars} = elvis_code:find(#{
         of_types => [var],
         inside => elvis_code:root(Rule, ElvisConfig),
-        filtered_by => fun is_ignored_var_with_ancestors/1,
+        filtered_by => fun is_ignored_var/1,
         filtered_from => node_and_ancestors
     }),
 
@@ -1087,7 +1087,7 @@ state_record_and_type(Rule, ElvisConfig) ->
     {BehaviourNodes, RecordAttrNodes, TypeOrOpaqueNodes} =
         partition_state_record_nodes(AllNodes),
 
-    case is_otp_behaviour_from_nodes(BehaviourNodes) of
+    case is_otp_behaviour(BehaviourNodes) of
         true ->
             HasStateRecord = lists:any(fun is_state_record/1, RecordAttrNodes),
             HasStateType = lists:any(fun is_type_or_opaque_state/1, TypeOrOpaqueNodes),
@@ -1404,7 +1404,7 @@ max_anonymous_function_clause_length(Rule, ElvisConfig) ->
         inside => elvis_code:root(Rule, ElvisConfig),
         filtered_by =>
             fun({_Node, Ancestors}) ->
-                is_function_clause_by_parent(Ancestors, ['fun', named_fun])
+                is_function_clause(Ancestors, ['fun', named_fun])
             end,
         filtered_from => node_and_ancestors,
         traverse => all
@@ -1448,7 +1448,7 @@ max_function_clause_length(Rule, ElvisConfig) ->
         inside => elvis_code:root(Rule, ElvisConfig),
         filtered_by =>
             fun({_Node, Ancestors}) ->
-                is_function_clause_by_parent(Ancestors, [function])
+                is_function_clause(Ancestors, [function])
             end,
         filtered_from => node_and_ancestors
     }),
@@ -3020,7 +3020,7 @@ param_pattern_matching(Rule, ElvisConfig) ->
         inside => elvis_code:root(Rule, ElvisConfig),
         filtered_by =>
             fun({_Node, Ancestors}) ->
-                is_function_clause_by_parent(Ancestors, [function, 'fun', named_fun])
+                is_function_clause(Ancestors, [function, 'fun', named_fun])
             end,
         filtered_from => node_and_ancestors,
         traverse => all
@@ -3074,9 +3074,9 @@ matches_in_function_clauses(ClauseResults) ->
         )
     ).
 
-is_function_clause_by_parent([Parent | _], ParentNodeTypes) ->
+is_function_clause([Parent | _], ParentNodeTypes) ->
     lists:member(ktn_code:type(Parent), ParentNodeTypes);
-is_function_clause_by_parent([], _ParentNodeTypes) ->
+is_function_clause([], _ParentNodeTypes) ->
     false.
 
 -spec generic_type(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
@@ -3239,7 +3239,7 @@ export_used_types(Rule, ElvisConfig) ->
     {BehaviourNodes, ExportNodes, ExportTypeNodes, SpecNodes0, TypeAttrNodes} =
         partition_export_used_types_nodes(AllNodes),
 
-    case is_otp_behaviour_from_nodes(BehaviourNodes) of
+    case is_otp_behaviour(BehaviourNodes) of
         false ->
             ExportedFunctionsSet = sets:from_list(
                 lists:flatmap(fun(N) -> ktn_code:attr(value, N) end, ExportNodes),
@@ -3289,9 +3289,9 @@ partition_export_used_types_nodes(Nodes) ->
         Nodes
     ).
 
-is_otp_behaviour_from_nodes([]) ->
+is_otp_behaviour([]) ->
     false;
-is_otp_behaviour_from_nodes(BehaviourNodes) ->
+is_otp_behaviour(BehaviourNodes) ->
     OtpSet = sets:from_list([gen_server, gen_event, gen_fsm, gen_statem, supervisor_bridge]),
     Names = lists:map(fun(Node) -> ktn_code:attr(value, Node) end, BehaviourNodes),
     BehaviorsSet = sets:from_list(Names),
@@ -3704,7 +3704,7 @@ is_dynamic_call(Node) ->
 is_the_module_macro(Module) ->
     ktn_code:type(Module) =:= macro andalso ktn_code:attr(name, Module) =:= "MODULE".
 
-is_var_node(Node, TokenIndex) ->
+is_var(Node, TokenIndex) ->
     PrevLocation =
         case ktn_code:attr(location, Node) of
             {L, 1} ->
@@ -3734,7 +3734,7 @@ index_token(#{attrs := #{location := {Line, Col}}} = Token, Acc) ->
 index_token(_, Acc) ->
     Acc.
 
-is_ignored_var_with_ancestors({Node, Ancestors}) ->
+is_ignored_var({Node, Ancestors}) ->
     case ktn_code:type(Node) of
         var ->
             Name = ktn_code:attr(name, Node),
