@@ -1483,7 +1483,7 @@ max_function_clause_length(Rule, ElvisConfig) ->
     ).
 
 big_clauses(
-    ClauseZippers,
+    ClauseResults,
     Lines,
     CountComments,
     CountWhitespace,
@@ -1513,7 +1513,7 @@ big_clauses(
             {AccOut, ClauseNum + 1}
         end,
         {[], 1},
-        ClauseZippers
+        ClauseResults
     ),
     BigClauses.
 

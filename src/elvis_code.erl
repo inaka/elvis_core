@@ -3,7 +3,6 @@
 %% General
 -export([
     find/1,
-    zipper/1,
     root/2
 ]).
 %% Specific
@@ -14,35 +13,31 @@
 
 % These are local debug functions.
 -ignore_xref([print_node/1, print_node/2]).
-% Kept for backward compatibility; no longer used internally.
--ignore_xref([zipper/1]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Public API
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 -type tree_node() :: ktn_code:tree_node().
--type tree_node_zipper() :: zipper:zipper(tree_node()).
 
--export_type([tree_node/0, tree_node_zipper/0]).
+-export_type([tree_node/0]).
 
 -type ancestors() :: [tree_node()].
 -export_type([ancestors/0]).
 
 -spec find(Options) ->
-    {nodes, [Node]} | {nodes_and_ancestors, [{Node, ancestors()}]} | {zippers, [Zipper]}
+    {nodes, [Node]} | {nodes_and_ancestors, [{Node, ancestors()}]}
 when
     Options :: #{
         % undefined means "all types"
         of_types := [ktn_code:tree_node_type()] | undefined,
         inside := Node,
         % undefined means "don't filter"
-        filtered_by => fun((Node | Zipper | {Node, ancestors()}) -> boolean()),
-        filtered_from => node | node_and_ancestors | zipper,
+        filtered_by => fun((Node | {Node, ancestors()}) -> boolean()),
+        filtered_from => node | node_and_ancestors,
         traverse => content | all
     },
-    Node :: tree_node(),
-    Zipper :: tree_node_zipper().
+    Node :: tree_node().
 find(#{of_types := OfTypes, inside := Inside} = Options) ->
     FilteredBy = maps:get(filtered_by, Options, undefined),
     FilteredFrom = maps:get(filtered_from, Options, node),
@@ -54,21 +49,7 @@ find(#{of_types := OfTypes, inside := Inside} = Options) ->
             {nodes, find_nodes(Pred, Inside, Traverse)};
         node_and_ancestors ->
             Pred = build_ancestors_pred(OfTypes, FilteredBy),
-            {nodes_and_ancestors, find_nodes_with_ancestors(Pred, Inside, Traverse)};
-        zipper ->
-            TypePred =
-                fun(Zipper) ->
-                    OfTypes =:= undefined orelse
-                        lists:member(ktn_code:type(zipper:node(Zipper)), OfTypes)
-                end,
-            ZipperObj = zipper(Inside, Traverse),
-            NonFilteredResults = find_with_zipper(TypePred, ZipperObj, [], #{}),
-            Results =
-                case FilteredBy of
-                    undefined -> NonFilteredResults;
-                    _ -> [Z || Z <- NonFilteredResults, FilteredBy(Z)]
-                end,
-            {zippers, Results}
+            {nodes_and_ancestors, find_nodes_with_ancestors(Pred, Inside, Traverse)}
     end.
 
 build_node_pred(OfTypes, undefined) ->
@@ -174,76 +155,6 @@ all_children(#{node_attrs := NodeAttrs}) ->
     lists:flatten(maps:values(NodeAttrs));
 all_children(_) ->
     [].
-
--spec zipper(tree_node()) -> tree_node_zipper().
-zipper(Root) ->
-    zipper(Root, content).
-
--spec zipper(tree_node(), content | all) -> tree_node_zipper().
-zipper(Root, content) ->
-    content_zipper(Root);
-zipper(Root, all) ->
-    all_zipper(Root).
-
--spec content_zipper(tree_node()) -> tree_node_zipper().
-content_zipper(Root) ->
-    IsBranch =
-        fun
-            (#{content := [_ | _]}) ->
-                true;
-            (_) ->
-                false
-        end,
-    Children = fun(#{content := Content}) -> Content end,
-    MakeNode = fun(Node, Content) -> Node#{content => Content} end,
-    zipper:new(IsBranch, Children, MakeNode, Root).
-
--spec all_zipper(tree_node()) -> tree_node_zipper().
-all_zipper(Root) ->
-    IsBranch =
-        fun(#{} = Node) -> ktn_code:content(Node) =/= [] orelse maps:is_key(node_attrs, Node) end,
-    Children =
-        fun
-            (#{content := Content, node_attrs := NodeAttrs}) ->
-                Content ++
-                    lists:flatten(
-                        maps:values(NodeAttrs)
-                    );
-            (#{node_attrs := NodeAttrs}) ->
-                lists:flatten(
-                    maps:values(NodeAttrs)
-                );
-            (#{content := Content}) ->
-                Content
-        end,
-    MakeNode = fun(Node, _) -> Node end,
-    zipper:new(IsBranch, Children, MakeNode, Root).
-
-find_with_zipper(Pred, Zipper, Results, Keys) ->
-    case zipper:is_end(Zipper) of
-        true ->
-            lists:reverse(Results);
-        false ->
-            Value = Zipper,
-            {NewResults, NewKeys} =
-                case Pred(Value) of
-                    true ->
-                        case is_map_key(Value, Keys) of
-                            true ->
-                                %% Note: I'm not sure why, sometimes, traversing a zipper may
-                                %%       result in going through the same node twice, but it has
-                                %%       happened. You can see it for yourself: Just add a ct:pal
-                                %%       here, run the tests and simplify_anonymous_functions will
-                                %%       show duplicate results.
-                                {Results, Keys};
-                            false ->
-                                {[Value | Results], Keys#{Value => true}}
-                        end;
-                    false ->
-                        {Results, Keys}
-                end,
-            find_with_zipper(Pred, zipper:next(Zipper), NewResults, NewKeys)
-    end.
 
 -spec root(Rule, ElvisConfig) -> Res when
     Rule :: elvis_rule:t(),
