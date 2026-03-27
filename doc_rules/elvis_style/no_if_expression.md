@@ -19,7 +19,7 @@ my_function(X) ->
     case X > 10 of
         true -> ok;
         _Else -> error
-        % ^ no binding required
+      % ^ no binding required
     end.
 ```
 

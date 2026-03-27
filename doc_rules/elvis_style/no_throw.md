@@ -7,7 +7,7 @@ Raising exceptions with `throw` should be avoided.
 Especially when not used for non-local returns from functions (e.g. early return).
 
 ```erlang
-throw({error, "Something went wrong!"}).
+throw({error, "Something went wrong!"})
 ```
 
 ## Prefer
@@ -15,7 +15,7 @@ throw({error, "Something went wrong!"}).
 The preferred way to raise an exception is by using `error/1`:
 
 ```erlang
-error({error, "Something went wrong!"}).
+error({error, "Something went wrong!"})
 ```
 
 ## Rationale

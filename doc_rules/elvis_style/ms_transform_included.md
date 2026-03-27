@@ -5,8 +5,9 @@ The `ms_transform` parse transform should be included when the module uses `ets:
 ## Avoid
 
 ```erlang
-Fun = fun(Emp) -> Emp#emp.empno end,
-ets:select(emp_tab, ets:fun2ms(Fun)).
+myfun() ->
+  Fun = fun(Emp) -> Emp#emp.empno end,
+  ets:select(emp_tab, ets:fun2ms(Fun)).
 ```
 
 ## Prefer
@@ -15,8 +16,9 @@ ets:select(emp_tab, ets:fun2ms(Fun)).
 -include_lib("stdlib/include/ms_transform.hrl").
 % ^ include this
 
-Fun = fun(Emp) -> Emp#emp.empno end,
-ets:select(emp_tab, ets:fun2ms(Fun)).
+myfun() ->
+  Fun = fun(Emp) -> Emp#emp.empno end,
+  ets:select(emp_tab, ets:fun2ms(Fun)).
 ```
 
 ## Rationale

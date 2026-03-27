@@ -13,7 +13,7 @@ Successive map expressions should be avoided.
 
 ```erlang
 [#{a => 1,
-   b => 2}].
+   b => 2}]
 ```
 
 ## Rationale

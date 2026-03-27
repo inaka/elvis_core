@@ -10,7 +10,7 @@ Declared anonymous variables (prefixed with `_`) should not be used.
 
 ```erlang
 _Ignored = some_function(),
-do_something(_Ignored).
+do_something(_Ignored)
 ```
 
 ## Prefer

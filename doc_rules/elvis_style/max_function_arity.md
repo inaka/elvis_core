@@ -7,7 +7,7 @@ maximum.
 
 ```erlang
 request(Method, Host, Port, Path, Query, Headers, Body, Timeout, Retries, ExpectedCode) ->
-    %% ...
+    ...
     ok.
 ```
 
@@ -35,7 +35,7 @@ request(Method, Target, Data, ReqOptions, RespOptions) ->
     #{
         expected_code := ExpectedCode
     } = RespOptions
-    % ...
+    ...
     ok.
 ```
 

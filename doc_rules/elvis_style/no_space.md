@@ -9,14 +9,14 @@ Use an Erlang code formatter that enforces strict spacing.
 ## Avoid
 
 ```erlang
-Text = (value).
-Label = #{key => err}
+Text = ( value),
+Label =  # {key => err}
 ```
 
 ## Prefer
 
 ```erlang
-Text = (value).
+Text = (value),
 Label = #{key => err}
 ```
 

@@ -9,14 +9,14 @@ Use an Erlang code formatter that enforces strict spacing.
 ## Avoid
 
 ```erlang
-BadMap = #   {this => map, has => spaces, af_ter => pound}.
-BadRecord =     #      this_record{has = spaces, af_ter = pound}.
+BadMap = #   {this => map, has => spaces, af_ter => pound},
+BadRecord =     #      this_record{has = spaces, af_ter = pound}
 ```
 
 ## Prefer
 
 ```erlang
-GoodMap = #{this => map, has => no_spaces, af_ter => pound}.
+GoodMap = #{this => map, has => no_spaces, af_ter => pound},
 GoodRecord = #this_record{has = no_spaces, af_ter = pound}
 ```
 
