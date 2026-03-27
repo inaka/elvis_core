@@ -1070,8 +1070,14 @@ state_record_and_type(Rule, ElvisConfig) ->
         of_types => [behaviour, behavior, record_attr, type_attr, opaque],
         inside => Root
     }),
-    {BehaviourNodes, RecordAttrNodes, TypeOrOpaqueNodes} =
-        partition_state_record_nodes(AllNodes),
+    #{behaviours := BehaviourNodes, records := RecordAttrNodes, types := TypeOrOpaqueNodes} =
+        partition_nodes(AllNodes, #{
+            behaviour => behaviours,
+            behavior => behaviours,
+            record_attr => records,
+            type_attr => types,
+            opaque => types
+        }),
 
     case is_otp_behaviour(BehaviourNodes) of
         true ->
@@ -1099,20 +1105,6 @@ state_record_and_type(Rule, ElvisConfig) ->
         false ->
             []
     end.
-
-partition_state_record_nodes(Nodes) ->
-    lists:foldl(
-        fun(Node, {Behaviours, Records, TypesOrOpaques}) ->
-            case ktn_code:type(Node) of
-                behaviour -> {[Node | Behaviours], Records, TypesOrOpaques};
-                behavior -> {[Node | Behaviours], Records, TypesOrOpaques};
-                record_attr -> {Behaviours, [Node | Records], TypesOrOpaques};
-                _ -> {Behaviours, Records, [Node | TypesOrOpaques]}
-            end
-        end,
-        {[], [], []},
-        Nodes
-    ).
 
 is_state_record(RecordAttrNode) ->
     ktn_code:attr(name, RecordAttrNode) =:= state.
@@ -3222,8 +3214,20 @@ export_used_types(Rule, ElvisConfig) ->
         of_types => [behaviour, behavior, export, export_type, spec, type_attr],
         inside => Root
     }),
-    {BehaviourNodes, ExportNodes, ExportTypeNodes, SpecNodes0, TypeAttrNodes} =
-        partition_export_used_types_nodes(AllNodes),
+    #{
+        behaviours := BehaviourNodes,
+        exports := ExportNodes,
+        export_types := ExportTypeNodes,
+        specs := SpecNodes0,
+        type_attrs := TypeAttrNodes
+    } = partition_nodes(AllNodes, #{
+        behaviour => behaviours,
+        behavior => behaviours,
+        export => exports,
+        export_type => export_types,
+        spec => specs,
+        type_attr => type_attrs
+    }),
 
     case is_otp_behaviour(BehaviourNodes) of
         false ->
@@ -3259,19 +3263,14 @@ export_used_types(Rule, ElvisConfig) ->
             []
     end.
 
-partition_export_used_types_nodes(Nodes) ->
+partition_nodes(Nodes, TypeToKey) ->
+    Init = maps:from_keys(lists:usort(maps:values(TypeToKey)), []),
     lists:foldl(
-        fun(Node, {Behaviours, Exports, ExportTypes, Specs, TypeAttrs}) ->
-            case ktn_code:type(Node) of
-                behaviour -> {[Node | Behaviours], Exports, ExportTypes, Specs, TypeAttrs};
-                behavior -> {[Node | Behaviours], Exports, ExportTypes, Specs, TypeAttrs};
-                export -> {Behaviours, [Node | Exports], ExportTypes, Specs, TypeAttrs};
-                export_type -> {Behaviours, Exports, [Node | ExportTypes], Specs, TypeAttrs};
-                spec -> {Behaviours, Exports, ExportTypes, [Node | Specs], TypeAttrs};
-                type_attr -> {Behaviours, Exports, ExportTypes, Specs, [Node | TypeAttrs]}
-            end
+        fun(Node, Acc) ->
+            Key = maps:get(ktn_code:type(Node), TypeToKey),
+            Acc#{Key := [Node | maps:get(Key, Acc)]}
         end,
-        {[], [], [], [], []},
+        Init,
         Nodes
     ).
 
