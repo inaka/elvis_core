@@ -127,7 +127,8 @@
 
 -if(?OTP_RELEASE >= 28).
 -export([
-    verify_operator_spaces_otp28/1
+    verify_operator_spaces_otp28/1,
+    verify_state_record_and_type_otp28/1
 ]).
 -endif.
 %% Non-rule
@@ -1032,6 +1033,21 @@ verify_state_record_and_type(Config) ->
             #{},
             PathPassGenStateMState
         ).
+
+-if(?OTP_RELEASE >= 28).
+verify_state_record_and_type_otp28(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PathPassWithNominal = "pass_state_record_and_type_nominal." ++ Ext,
+    [] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config,
+            elvis_style,
+            state_record_and_type,
+            #{},
+            PathPassWithNominal
+        ).
+-endif.
 
 verify_state_record_and_type_plus_export_used_types(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),

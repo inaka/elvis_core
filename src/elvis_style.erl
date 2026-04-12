@@ -1077,7 +1077,7 @@ state_record_and_type(Rule, ElvisConfig) ->
     Root = elvis_code:root(Rule, ElvisConfig),
 
     {nodes, AllNodes} = elvis_code:find(#{
-        of_types => [behaviour, behavior, record_attr, type_attr, opaque],
+        of_types => [behaviour, behavior, record_attr, type_attr, opaque, nominal],
         inside => Root
     }),
     #{behaviours := BehaviourNodes, records := RecordAttrNodes, types := TypeOrOpaqueNodes} =
@@ -1086,13 +1086,14 @@ state_record_and_type(Rule, ElvisConfig) ->
             behavior => behaviours,
             record_attr => records,
             type_attr => types,
-            opaque => types
+            opaque => types,
+            nominal => types
         }),
 
     case is_otp_behaviour(BehaviourNodes) of
         true ->
             HasStateRecord = lists:any(fun is_state_record/1, RecordAttrNodes),
-            HasStateType = lists:any(fun is_type_or_opaque_state/1, TypeOrOpaqueNodes),
+            HasStateType = lists:any(fun is_state_type/1, TypeOrOpaqueNodes),
 
             case {HasStateRecord, HasStateType} of
                 {true, true} ->
@@ -1119,23 +1120,17 @@ state_record_and_type(Rule, ElvisConfig) ->
 is_state_record(RecordAttrNode) ->
     ktn_code:attr(name, RecordAttrNode) =:= state.
 
-is_type_or_opaque_state(TypeAttrOrOpaqueNode) ->
-    case ktn_code:type(TypeAttrOrOpaqueNode) of
+is_state_type(Node) ->
+    case ktn_code:type(Node) of
         type_attr ->
-            is_type_state(TypeAttrOrOpaqueNode);
-        opaque ->
-            is_opaque_state(TypeAttrOrOpaqueNode)
-    end.
-
-is_type_state(TypeAttrOrOpaqueNode) ->
-    ktn_code:attr(name, TypeAttrOrOpaqueNode) =:= state.
-
-is_opaque_state(TypeAttrOrOpaqueNode) ->
-    case ktn_code:attr(value, TypeAttrOrOpaqueNode) of
-        {state, _, _} ->
-            true;
-        _ ->
-            false
+            ktn_code:attr(name, Node) =:= state;
+        Type when Type =:= opaque; Type =:= nominal ->
+            case ktn_code:attr(value, Node) of
+                {state, _, _} ->
+                    true;
+                _ ->
+                    false
+            end
     end.
 
 -spec consistent_ok_error_spec(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
