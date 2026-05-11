@@ -1,6 +1,19 @@
 -module(fail_consistent_ok_error_spec).
 
--export([arity_two/0, arity_three/1, multi/1]).
+-behaviour(gen_server).
+
+-export([init/1, handle_call/3, handle_cast/2, arity_two/0, arity_three/1, multi/1]).
+
+-type state() :: #{}.
+
+-spec init(noargs) -> {ok, state()}.
+init(noargs) -> {ok, #{}}.
+
+-spec handle_call(term(), term(), state()) -> {noreply, state()}.
+handle_call(_Request, _From, State) -> {noreply, State}.
+
+-spec handle_cast(term(), state()) -> {noreply, state()}.
+handle_cast(_Request, State) -> {noreply, State}.
 
 -spec arity_two() -> {ok, number()}.
 arity_two() -> {ok, rand:uniform()}.
