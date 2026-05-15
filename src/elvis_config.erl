@@ -156,6 +156,7 @@ for(Key) ->
     end.
 
 consult_elvis_config(File) ->
+    % safe-ignore file:consult/1
     case file:consult(File) of
         {ok, [AppConfig]} when is_list(AppConfig) ->
             _ = elvis_utils:debug("elvis.config is consultable; using it", []),
@@ -171,6 +172,7 @@ consult_elvis_config(File) ->
     end.
 
 consult_rebar_config(File) ->
+    % safe-ignore file:consult/1
     case file:consult(File) of
         {ok, AppConfig} when is_list(AppConfig) ->
             _ = elvis_utils:debug("rebar.config is consultable; using it", []),

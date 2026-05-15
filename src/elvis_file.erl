@@ -138,6 +138,7 @@ module(#{path := Path}) ->
         BaseName,
         [".hrl", ".erl", ".beam"]
     ),
+    % safe-ignore list_to_atom/1
     list_to_atom(Stripped).
 
 -spec get_abstract_parse_tree(t()) -> ktn_code:tree_node().

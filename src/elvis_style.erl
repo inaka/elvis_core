@@ -658,6 +658,7 @@ no_macros(Rule, ElvisConfig) ->
     ].
 
 is_allowed_macro(MacroNode, AllowedMacros) ->
+    % safe-ignore list_to_atom/1
     Macro = list_to_atom(ktn_code:attr(name, MacroNode)),
     not lists:member(Macro, AllowedMacros).
 
@@ -2904,6 +2905,7 @@ doesnt_need_quotes(AtomNode, Regex) ->
     case re:run(AtomName0, Regex, [{capture, none}]) of
         match ->
             AtomName = string:trim(AtomName0, both, "'"),
+            % safe-ignore list_to_atom/1
             Atom = list_to_atom(AtomName),
             not lists:member(Atom, ['maybe', 'else']) andalso
                 not erl_scan:f_reserved_word(Atom);
