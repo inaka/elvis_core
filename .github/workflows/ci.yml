@@ -49,10 +49,10 @@ jobs:
         run: rebar3 test
         env:
           SAFE_LICENSE: ${{ secrets.SAFE_LICENSE }}
-          ERL_FLAGS: "-args_file config/vm.args"
+          ERL_FLAGS: "-enable-feature maybe_expr"
       - name: Run elvis on elvis
         run: |
           rebar3 escriptize
           _build/default/bin/elvis_core
         env:
-          ERL_FLAGS: "-args_file config/vm.args"
+          ERL_FLAGS: "-enable-feature maybe_expr"
