@@ -43,15 +43,21 @@ jobs:
                 -rebar3-${{steps.setup-beam.outputs.rebar3-version}}\
                 -hash-${{hashFiles('rebar.lock')}}"
       - name: Format check
-        if: ${{ matrix.os == 'ubuntu-24.04' && matrix.otp_vsn == '26' }}
+        if: ${{ matrix.os == 'ubuntu-24.04' }}
         run: rebar3 fmt --check
+      - name: SAFE check
+        if: ${{ matrix.os == 'ubuntu-24.04' }}
+        env:
+          SAFE_LICENSE: ${{ secrets.SAFE_LICENSE }}
+        run: rebar3 safe analyse
       - name: Run test
         run: rebar3 test
         env:
-          ERL_FLAGS: "-args_file config/vm.args"
+          SAFE_LICENSE: ${{ secrets.SAFE_LICENSE }}
+          ERL_FLAGS: "-enable-feature maybe_expr"
       - name: Run elvis on elvis
         run: |
           rebar3 escriptize
           _build/default/bin/elvis_core
         env:
-          ERL_FLAGS: "-args_file config/vm.args"
+          ERL_FLAGS: "-enable-feature maybe_expr"
