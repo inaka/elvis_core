@@ -1286,18 +1286,18 @@ max_module_length(Rule, _ElvisConfig) ->
 
     LineIsCommentRegex = line_is_comment_regex(),
     LineIsWhitespaceRegex = line_is_whitespace_regex(),
-    Lines = lists:filter(
+    LineCount = count_matching(
+        Lines0,
         fun(Line) ->
             filter_comments_and_whitespace(
                 Line, CountComments, CountWhitespace, LineIsCommentRegex, LineIsWhitespaceRegex
             )
-        end,
-        Lines0
+        end
     ),
 
     DocLines = doc_lines(CountDocs, Docs),
 
-    ModLength = length(Lines) + length(DocLines),
+    ModLength = LineCount + length(DocLines),
 
     case ModLength > MaxLength of
         true ->
@@ -1528,7 +1528,7 @@ big_clauses(
     % We do this to recover the clause number and apply the configured filters
     {BigClauses, _} = lists:foldl(
         fun({ClauseNode, [Parent | _]}, {BigClauses0, ClauseNum}) ->
-            FilteredLines = filtered_lines_in(
+            LineLen = filtered_line_count_in(
                 ClauseNode,
                 Lines,
                 CountComments,
@@ -1536,7 +1536,6 @@ big_clauses(
                 LineIsCommentRegex,
                 LineIsWhitespaceRegex
             ),
-            LineLen = length(FilteredLines),
             AccOut =
                 case LineLen > MaxLength of
                     true ->
@@ -1551,7 +1550,7 @@ big_clauses(
     ),
     BigClauses.
 
-filtered_lines_in(
+filtered_line_count_in(
     Node,
     Lines,
     CountComments,
@@ -1561,7 +1560,10 @@ filtered_lines_in(
 ) ->
     {Min, Max} = node_line_limits(Node),
     NodeLines = lists:sublist(Lines, Min, Max - Min + 1),
-    lists:filter(
+    %% Count matching lines directly rather than building a filtered list only to
+    %% take its length.
+    count_matching(
+        NodeLines,
         fun(NodeLine) ->
             filter_comments_and_whitespace(
                 NodeLine,
@@ -1570,8 +1572,19 @@ filtered_lines_in(
                 LineIsCommentRegex,
                 LineIsWhitespaceRegex
             )
+        end
+    ).
+
+count_matching(List, Pred) ->
+    lists:foldl(
+        fun(Elem, Count) ->
+            case Pred(Elem) of
+                true -> Count + 1;
+                false -> Count
+            end
         end,
-        NodeLines
+        0,
+        List
     ).
 
 filter_comments_and_whitespace(
@@ -1684,7 +1697,7 @@ big_functions(
     % We do this to apply the configured filters
     lists:filtermap(
         fun(FunctionNode) ->
-            FilteredLines = filtered_lines_in(
+            LineLen = filtered_line_count_in(
                 FunctionNode,
                 Lines,
                 CountComments,
@@ -1692,7 +1705,6 @@ big_functions(
                 LineIsCommentRegex,
                 LineIsWhitespaceRegex
             ),
-            LineLen = length(FilteredLines),
             case LineLen > MaxLength of
                 true ->
                     {true, {FunctionNode, LineLen}};
