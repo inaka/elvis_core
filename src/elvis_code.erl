@@ -115,8 +115,11 @@ find_nodes_all_ancestors(_Pred, _Node, _Ancestors, Seen) ->
 find_nodes(Pred, Node, content) ->
     find_nodes_content(Pred, Node);
 find_nodes(Pred, Node, all) ->
-    {Results, _Seen} = find_nodes_all(Pred, Node, #{}),
-    Results.
+    %% The AST is a DAG: a node can be reached via both `content` and `node_attrs`
+    %% (see all_children/1), so the walk may yield duplicates. Dedup the (small)
+    %% result list with lists:uniq/1 instead of tracking a `Seen` set keyed by whole
+    %% node maps, which deep-hashes every node (an O(n^2) hotspot).
+    lists:uniq(find_nodes_all(Pred, Node)).
 
 find_nodes_content(Pred, #{content := Content} = Node) ->
     Match = [Node || Pred(Node)],
@@ -126,26 +129,11 @@ find_nodes_content(Pred, Node) when is_map(Node) ->
 find_nodes_content(_Pred, _Node) ->
     [].
 
-find_nodes_all(Pred, Node, Seen) when is_map(Node) ->
-    case Seen of
-        #{Node := _} ->
-            {[], Seen};
-        #{} ->
-            Seen1 = Seen#{Node => true},
-            Match = [Node || Pred(Node)],
-            {ChildResults, Seen2} =
-                lists:foldl(
-                    fun(Child, {A, S}) ->
-                        {R, S1} = find_nodes_all(Pred, Child, S),
-                        {[R | A], S1}
-                    end,
-                    {[], Seen1},
-                    all_children(Node)
-                ),
-            {Match ++ lists:append(lists:reverse(ChildResults)), Seen2}
-    end;
-find_nodes_all(_Pred, _Node, Seen) ->
-    {[], Seen}.
+find_nodes_all(Pred, Node) when is_map(Node) ->
+    Match = [Node || Pred(Node)],
+    Match ++ lists:flatmap(fun(Child) -> find_nodes_all(Pred, Child) end, all_children(Node));
+find_nodes_all(_Pred, _Node) ->
+    [].
 
 all_children(#{content := Content, node_attrs := NodeAttrs}) ->
     Content ++ lists:flatten(maps:values(NodeAttrs));
