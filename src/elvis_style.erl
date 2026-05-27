@@ -769,13 +769,22 @@ no_space_after_pound(Rule, ElvisConfig) ->
         filtered_by => fun is_text_node/1
     }),
 
-    {Lines, Encoding} = lines_in(elvis_rule:file(Rule)),
-    generate_space_check_results({Lines, Encoding}, TextNodes, {right, "#"}, {should_not_have, []}).
+    Lines = lines_in(elvis_rule:file(Rule)),
+    generate_space_check_results(Lines, TextNodes, {right, "#"}, {should_not_have, []}).
 
 lines_in(File) ->
     {Src, File1} = elvis_file:src(File),
     Encoding = elvis_file:encoding(File1),
-    {elvis_utils:split_all_lines(Src), Encoding}.
+    Lines = elvis_utils:split_all_lines(Src),
+    %% Index lines (and their characters) by 1-based line number so the space
+    %% checks can use O(1) element/2 lookups instead of lists:nth/2 over the line
+    %% list and the character list once per token.
+    list_to_tuple([index_line(Line, Encoding) || Line <- Lines]).
+
+-spec index_line(binary(), latin1 | utf8) -> {binary(), tuple(), non_neg_integer()}.
+index_line(Line, Encoding) ->
+    Chars = unicode:characters_to_list(Line, Encoding),
+    {Line, list_to_tuple(Chars), length(Chars)}.
 
 -spec operator_spaces(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 operator_spaces(Rule, ElvisConfig) ->
@@ -796,11 +805,11 @@ operator_spaces(Rule, ElvisConfig) ->
 
     AllNodes = OpNodes ++ PunctuationTokens,
 
-    {Lines, Encoding} = lines_in(elvis_rule:file(Rule)),
+    Lines = lines_in(elvis_rule:file(Rule)),
 
     lists:flatmap(
         fun(OptRule) ->
-            generate_space_check_results({Lines, Encoding}, AllNodes, OptRule, {should_have, []})
+            generate_space_check_results(Lines, AllNodes, OptRule, {should_have, []})
         end,
         OptRules
     ).
@@ -842,12 +851,12 @@ no_space(Rule, ElvisConfig) ->
      || {left, Text} <- OptRules
     ],
 
-    {Lines, Encoding} = lines_in(elvis_rule:file(Rule)),
+    Lines = lines_in(elvis_rule:file(Rule)),
 
     lists:flatmap(
         fun(OptRule) ->
             generate_space_check_results(
-                {Lines, Encoding}, TextNodes, OptRule, {should_not_have, AllSpaceUntilText}
+                Lines, TextNodes, OptRule, {should_not_have, AllSpaceUntilText}
             )
         end,
         OptRules
@@ -3600,7 +3609,7 @@ macro_as_atom(false, [Type | OtherTypes], MacroNodeValue) ->
     macro_as_atom(lists:keyfind(Type, _N = 1, MacroNodeValue), OtherTypes, MacroNodeValue).
 
 generate_space_check_results(
-    {Lines, Encoding},
+    Lines,
     UnfilteredNodes,
     {Position, Text},
     {How0, _} = How
@@ -3616,7 +3625,7 @@ generate_space_check_results(
     lists:filtermap(
         fun(Node) ->
             Location = ktn_code:attr(location, Node),
-            case character_at_location(Position, Lines, Text, Location, Encoding, How) of
+            case character_at_location(Position, Lines, Text, Location, How) of
                 Char when Char =:= $\s, How0 =:= should_have ->
                     false;
                 Char when Char =/= $\s, How0 =:= should_not_have ->
@@ -3647,10 +3656,9 @@ maybe_re_run(Line, Regex) ->
 
 -spec character_at_location(
     Position :: atom(),
-    Lines :: [binary()],
+    LinesIndex :: tuple(),
     Text :: string(),
     Location :: {integer(), integer()},
-    Encoding :: latin1 | utf8,
     How :: {should_have, []} | {should_not_have, [{string(), {ok, MP}}]}
 ) ->
     char()
@@ -3659,13 +3667,12 @@ when
     MP :: _.
 character_at_location(
     Position,
-    Lines,
+    LinesIndex,
     Text,
     {LineNo, Col},
-    Encoding,
     {How, TextRegexes}
 ) ->
-    Line = lists:nth(LineNo, Lines),
+    {Line, CharsTuple, LineLen} = element(LineNo, LinesIndex),
     TextRegex =
         case TextRegexes of
             [] ->
@@ -3673,7 +3680,6 @@ character_at_location(
             _ ->
                 maybe_re_run(Line, proplists:get_value(Text, TextRegexes))
         end,
-    TextLineStr = unicode:characters_to_list(Line, Encoding),
     ColToCheck =
         case Position of
             left ->
@@ -3681,14 +3687,14 @@ character_at_location(
             right ->
                 Col + length(Text)
         end,
-    % If ColToCheck is greater than the length of TextLineStr variable, it
+    % If ColToCheck is greater than the length of the line, it
     % means the end of line was reached so return " " (or "") to make the check pass,
     % otherwise return the character at the given column.
     % NOTE: text below only applies when the given Position is equal to `right`,
     %       or Position is equal to `left` and Col is 1.
     SpaceChar = $\s,
 
-    case {ColToCheck, Position, length(TextLineStr)} of
+    case {ColToCheck, Position, LineLen} of
         {0, _, _} when Text =/= ")" ->
             SpaceChar;
         {_, right, LenLine} when How =:= should_have andalso ColToCheck > LenLine ->
@@ -3696,13 +3702,13 @@ character_at_location(
         {_, right, LenLine} when How =:= should_not_have andalso ColToCheck > LenLine ->
             "";
         _ when How =:= should_have orelse TextRegex =:= nomatch andalso ColToCheck > 1 ->
-            lists:nth(ColToCheck, TextLineStr);
+            element(ColToCheck, CharsTuple);
         _ when
             How =:= should_not_have andalso
                 ColToCheck > 1 andalso
                 (Text =:= ":" orelse Text =:= "." orelse Text =:= ";")
         ->
-            lists:nth(ColToCheck - 1, TextLineStr);
+            element(ColToCheck - 1, CharsTuple);
         _ ->
             ""
     end.
