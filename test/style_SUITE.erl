@@ -128,7 +128,8 @@
 -if(?OTP_RELEASE >= 28).
 -export([
     verify_operator_spaces_otp28/1,
-    verify_state_record_and_type_otp28/1
+    verify_state_record_and_type_otp28/1,
+    verify_max_map_type_keys_otp28/1
 ]).
 -endif.
 %% Non-rule
@@ -2010,6 +2011,30 @@ verify_max_map_type_keys(Config) ->
         ),
 
     {comment, ""}.
+
+-if(?OTP_RELEASE >= 28).
+verify_max_map_type_keys_otp28(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PathFail = "fail_max_map_type_keys_nominal." ++ Ext,
+
+    [_, _] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_map_type_keys, #{max_keys => 1}, PathFail
+        ),
+
+    [_] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_map_type_keys, #{max_keys => 2}, PathFail
+        ),
+
+    [] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config, elvis_style, max_map_type_keys, #{max_keys => 5}, PathFail
+        ),
+
+    {comment, ""}.
+-endif.
 
 verify_max_function_clause_length(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),

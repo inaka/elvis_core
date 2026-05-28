@@ -1746,7 +1746,8 @@ max_record_fields(Rule, ElvisConfig) ->
 max_map_type_keys(Rule, ElvisConfig) ->
     Root = elvis_code:root(Rule, ElvisConfig),
     MaxFields = elvis_rule:option(max_keys, Rule),
-    max_map_type_keys_on_types(Root, MaxFields) ++ max_map_type_keys_on_opaques(Root, MaxFields).
+    max_map_type_keys_on_types(Root, MaxFields) ++
+        max_map_type_keys_on_opaques_and_nominals(Root, MaxFields).
 
 max_map_type_keys_on_types(Root, MaxFields) ->
     {nodes, MapTypeNodes} =
@@ -1786,40 +1787,40 @@ all_type_keys_are_atoms(TypeNodes) ->
         TypeNodes
     ).
 
-max_map_type_keys_on_opaques(Root, MaxFields) ->
-    {nodes, MapOpaqueNodes} =
+max_map_type_keys_on_opaques_and_nominals(Root, MaxFields) ->
+    {nodes, MapNodes} =
         elvis_code:find(#{
-            of_types => [opaque],
+            of_types => [opaque, nominal],
             inside => Root,
-            filtered_by => fun is_map_opaque_with_atom_keys/1
+            filtered_by => fun is_map_opaque_or_nominal_with_atom_keys/1
         }),
 
     [
         elvis_result:new_item(
             "map type ~p has ~p fields, which is higher than the configured limit",
-            [MapOpaqueName, FieldCount],
-            #{node => MapOpaqueNode, limit => MaxFields}
+            [MapName, FieldCount],
+            #{node => MapNode, limit => MaxFields}
         )
-     || MapOpaqueNode <- MapOpaqueNodes,
-        {MapOpaqueName, MapOpaqueTypeAST, _} <- [ktn_code:attr(value, MapOpaqueNode)],
-        FieldCount <- [length(erl_syntax:type_application_arguments(MapOpaqueTypeAST))],
+     || MapNode <- MapNodes,
+        {MapName, MapTypeAST, _} <- [ktn_code:attr(value, MapNode)],
+        FieldCount <- [length(erl_syntax:type_application_arguments(MapTypeAST))],
         FieldCount > MaxFields
     ].
 
-is_map_opaque_with_atom_keys(OpaqueNode) ->
-    {_Name, TypeAST, _Params} = ktn_code:attr(value, OpaqueNode),
+is_map_opaque_or_nominal_with_atom_keys(Node) ->
+    {_Name, TypeAST, _Params} = ktn_code:attr(value, Node),
     erl_syntax:type(TypeAST) =:= map_type andalso
-        all_opaque_keys_are_atoms(erl_syntax:type_application_arguments(TypeAST)).
+        all_opaque_or_nominal_keys_are_atoms(erl_syntax:type_application_arguments(TypeAST)).
 
-all_opaque_keys_are_atoms(OpaqueASTs) ->
-    %% for -opaque t() :: map()., OpaqueASTs =:= any.
-    is_list(OpaqueASTs) andalso
+all_opaque_or_nominal_keys_are_atoms(KeyASTs) ->
+    %% for -opaque/-nominal t() :: map()., KeyASTs =:= any.
+    is_list(KeyASTs) andalso
         lists:all(
-            fun(OpaqueAST) ->
-                [KeyType | _] = erl_syntax:type_application_arguments(OpaqueAST),
+            fun(KeyAST) ->
+                [KeyType | _] = erl_syntax:type_application_arguments(KeyAST),
                 erl_syntax:type(KeyType) =:= atom
             end,
-            OpaqueASTs
+            KeyASTs
         ).
 
 -spec no_call(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
