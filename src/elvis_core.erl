@@ -60,34 +60,37 @@ rock(FileOrConfig) ->
     FileOrConfig :: {config_file, default | string()} | {config, [elvis_config:t()]},
     Files :: {files, undefined | [string()]}.
 rock(FileOrConfig, {files, Files}) ->
-    maybe
-        {File, {ok, ElvisConfig0}} ?=
-            case FileOrConfig of
-                {config_file, default} ->
-                    {"elvis.config/rebar.config", config()};
-                {config_file, ConfigFilePath} ->
-                    {ConfigFilePath, from_file(ConfigFilePath)};
-                {config, Config} ->
-                    {undefined, {ok, Config}}
-            end,
-        {validate, ok} ?= {validate, elvis_config:validate(ElvisConfig0, File)},
-        ElvisConfig1 =
-            case Files of
-                undefined ->
-                    ElvisConfig0;
-                _ ->
-                    Paths = lists:map(fun file_to_path/1, Files),
-                    elvis_config:resolve_files(ElvisConfig0, Paths)
-            end,
-        _ = elvis_ruleset:drop_custom(),
-        Results = lists:map(fun do_parallel_rock/1, ElvisConfig1),
-        ok ?= lists:foldl(fun combine_results/2, ok, Results)
-    else
-        {_, {error, Message}} ->
-            _ = elvis_utils:error(Message, []),
-            {errors, [Message]};
-        {error, Term} ->
-            {errors_or_warnings(), Term}
+    try
+        maybe
+            {File, {ok, ElvisConfig0}} ?=
+                case FileOrConfig of
+                    {config_file, default} ->
+                        {"elvis.config/rebar.config", config()};
+                    {config_file, ConfigFilePath} ->
+                        {ConfigFilePath, from_file(ConfigFilePath)};
+                    {config, Config} ->
+                        {undefined, {ok, Config}}
+                end,
+            {validate, ok} ?= {validate, elvis_config:validate(ElvisConfig0, File)},
+            ElvisConfig1 =
+                case Files of
+                    undefined ->
+                        ElvisConfig0;
+                    _ ->
+                        Paths = lists:map(fun file_to_path/1, Files),
+                        elvis_config:resolve_files(ElvisConfig0, Paths)
+                end,
+            Results = lists:map(fun do_parallel_rock/1, ElvisConfig1),
+            ok ?= lists:foldl(fun combine_results/2, ok, Results)
+        else
+            {_, {error, Message}} ->
+                _ = elvis_utils:error(Message, []),
+                {errors, [Message]};
+            {error, Term} ->
+                {errors_or_warnings(), Term}
+        end
+    after
+        _ = elvis_ruleset:drop_custom()
     end.
 
 config() ->

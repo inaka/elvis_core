@@ -135,24 +135,65 @@ default(Key) ->
             Value
     end.
 
+for(config) ->
+    maybe
+        {ok, {Source, AppConfig}} ?= default_app_config(),
+        case Source of
+            {file, File} ->
+                fetch_elvis_config_from(AppConfig, File);
+            fallback ->
+                from_static(config, {app, AppConfig})
+        end
+    else
+        {error, _} = Error -> Error
+    end;
 for(Key) ->
     maybe
-        AppDefault = default_for(app),
-        {ok, ElvisConfig} ?= consult_elvis_config("elvis.config"),
-        {ok, AppConfig} ?=
-            case ElvisConfig of
-                AppDefault ->
-                    % This might happen whether we fail to parse the file or it actually is []
-                    _ = elvis_utils:debug(
-                        "elvis.config is unusable; falling back to rebar.config", []
-                    ),
-                    consult_rebar_config("rebar.config");
-                AppConfig0 ->
-                    {ok, AppConfig0}
-            end,
+        {ok, {_Source, AppConfig}} ?= default_app_config(),
         from_static(Key, {app, AppConfig})
     else
         {error, _} = Error -> Error
+    end.
+
+default_app_config() ->
+    maybe
+        AppDefault = default_for(app),
+        {ok, ElvisConfig} ?= consult_elvis_config("elvis.config"),
+        case ElvisConfig of
+            AppDefault ->
+                % This might happen whether we fail to parse the file or it actually is []
+                _ = elvis_utils:debug(
+                    "elvis.config is unusable; falling back to rebar.config", []
+                ),
+                default_app_config_from_rebar("rebar.config");
+            AppConfig ->
+                {ok, {{file, "elvis.config"}, AppConfig}}
+        end
+    else
+        {error, _} = Error -> Error
+    end.
+
+default_app_config_from_rebar(File) ->
+    % safe-ignore file:consult/1
+    case file:consult(File) of
+        {ok, RebarConfig} when is_list(RebarConfig) ->
+            _ = elvis_utils:debug("rebar.config is consultable; using it", []),
+            case proplists:get_value(elvis, RebarConfig, undefined) of
+                undefined ->
+                    {ok, {fallback, default(elvis)}};
+                [] ->
+                    {ok, {fallback, default_for(elvis)}};
+                AppConfig ->
+                    {ok, {{file, File}, AppConfig}}
+            end;
+        {error, {Line, Mod, Term}} ->
+            {error,
+                lists:flatten(
+                    io_lib:format("rebar.config is unconsultable: ~p, ~p, ~p", [Line, Mod, Term])
+                )};
+        _ ->
+            _ = elvis_utils:debug("rebar.config is unconsultable", []),
+            {ok, {fallback, default_for('rebar.config')}}
     end.
 
 consult_elvis_config(File) ->

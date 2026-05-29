@@ -19,6 +19,7 @@
     rock_with_glob_dirs_not_matching/1,
     rock_with_umbrella_apps/1,
     custom_ruleset/1,
+    rock_with_default_elvis_config_custom_ruleset/1,
     hrl_ruleset/1,
     find_file_and_check_src/1,
     find_file_with_ignore/1,
@@ -319,6 +320,47 @@ custom_ruleset(_Config) ->
         ConfigPathMissing
     ),
     ok.
+
+rock_with_default_elvis_config_custom_ruleset(_Config) ->
+    {ok, OriginalCwd} = file:get_cwd(),
+    TmpDir =
+        case os:getenv("TMPDIR") of
+            false -> "/tmp";
+            Dir -> Dir
+        end,
+    WorkDir = filename:join(
+        TmpDir,
+        "elvis_core_custom_ruleset_default_config_test_" ++
+            integer_to_list(erlang:unique_integer([positive]))
+    ),
+    ok = filelib:ensure_dir(filename:join(WorkDir, "dummy")),
+    ConfigFile = filename:join(WorkDir, "elvis.config"),
+    FileWithTabs = filename:absname(
+        "../../../../_build/test/lib/elvis_core/test/examples/fail_no_tabs.erl"
+    ),
+    Config =
+        io_lib:format(
+            "[~n"
+            "    {rulesets, #{custom_tabs => [{elvis_text_style, no_tabs}]}},~n"
+            "    {config, [#{files => [~p], ruleset => custom_tabs}]}~n"
+            "].~n",
+            [FileWithTabs]
+        ),
+    ok = file:write_file(ConfigFile, Config),
+    try
+        ok = file:set_cwd(WorkDir),
+        {errors, [
+            #{
+                file := FileWithTabs,
+                rules := [#{name := no_tabs}]
+            }
+        ]} = elvis_core:rock({config_file, default})
+    after
+        ok = file:set_cwd(OriginalCwd),
+        _ = file:delete(ConfigFile),
+        _ = file:del_dir(WorkDir),
+        _ = elvis_ruleset:drop_custom()
+    end.
 
 hrl_ruleset(_Config) ->
     ConfigPath = "../../../../config/elvis-test-hrl-files.config",
