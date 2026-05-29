@@ -567,10 +567,13 @@ is_one_of(What, Value, Possibilities, File) ->
                 ]}}
     end.
 
-is_boolean(_What, Value, _File) when is_boolean(Value) ->
-    ok;
-is_boolean(What, _Value, File) ->
-    {error, {"in file '~s', key '~s' is expected to be a boolean.", [File, What]}}.
+is_boolean(What, Value, File) ->
+    case is_boolean_opt(What, Value) of
+        ok ->
+            ok;
+        {error, _} ->
+            {error, {"in file '~s', key '~s' is expected to be a boolean.", [File, What]}}
+    end.
 
 is_pos_integer(_What, Value, _File) when is_integer(Value) andalso Value > 0 ->
     ok;
@@ -719,7 +722,7 @@ config_is_valid(CustomRulesetNames, Config) ->
         ok ?= map_keys_are_in(Config, [files, ignore, allow_no_files, ruleset, rules]),
         {ok, FileGlobs} ?= get_config_opt(files, Config, true),
         {ok, AllowNoFiles} ?= get_config_opt(allow_no_files, Config, false),
-        ok ?= is_config_boolean(allow_no_files, AllowNoFiles),
+        ok ?= is_boolean_opt(allow_no_files, AllowNoFiles),
         ok ?= all_files_globs_are_valid(FileGlobs, AllowNoFiles),
         {ok, Ignore} ?= get_config_opt(ignore, Config, false),
         ok ?= is_list_of_ignorables(ignore, Ignore),
@@ -771,9 +774,9 @@ all_files_globs_are_valid(FileGlobs, AllowNoFiles) ->
             {error, "'files' is expected to be a non-empty list of non-empty strings."}
     end.
 
-is_config_boolean(_What, Value) when is_boolean(Value) ->
+is_boolean_opt(_What, Value) when is_boolean(Value) ->
     ok;
-is_config_boolean(What, _Value) ->
+is_boolean_opt(What, _Value) ->
     {error, io_lib:format("'~s' is expected to be a boolean.", [What])}.
 
 is_list_of_ignorables(What, List) when not is_list(List) ->
