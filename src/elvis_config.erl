@@ -28,7 +28,8 @@
         ruleset := atom(),
         rules => [tuple()],
         resolved_files => dynamic(),
-        ignore => [string()]
+        ignore => [string()],
+        allow_no_files => boolean()
     }.
 -export_type([t/0]).
 
@@ -280,6 +281,8 @@ default_for([config, files]) ->
     [];
 default_for([config, ignore]) ->
     [];
+default_for([config, allow_no_files]) ->
+    false;
 default_for([config, ruleset]) ->
     undefined;
 default_for([config, rules]) ->
@@ -713,9 +716,11 @@ get_config_opt(OptName, Config, true = _Compulsory) ->
 
 config_is_valid(CustomRulesetNames, Config) ->
     maybe
-        ok ?= map_keys_are_in(Config, [files, ignore, ruleset, rules]),
+        ok ?= map_keys_are_in(Config, [files, ignore, allow_no_files, ruleset, rules]),
         {ok, FileGlobs} ?= get_config_opt(files, Config, true),
-        ok ?= all_files_globs_are_valid(FileGlobs),
+        {ok, AllowNoFiles} ?= get_config_opt(allow_no_files, Config, false),
+        ok ?= is_config_boolean(allow_no_files, AllowNoFiles),
+        ok ?= all_files_globs_are_valid(FileGlobs, AllowNoFiles),
         {ok, Ignore} ?= get_config_opt(ignore, Config, false),
         ok ?= is_list_of_ignorables(ignore, Ignore),
         {ok, Ruleset} ?= get_config_opt(ruleset, Config, false),
@@ -744,13 +749,17 @@ map_keys_are_in(Map, Keys) ->
                 ])}
     end.
 
-all_files_globs_are_valid(FileGlobs) when not is_list(FileGlobs) orelse FileGlobs =:= [] ->
+all_files_globs_are_valid(FileGlobs, _AllowNoFiles) when
+    not is_list(FileGlobs) orelse FileGlobs =:= []
+->
     {error, "'files' is expected to be a non-empty list."};
-all_files_globs_are_valid(FileGlobs) ->
+all_files_globs_are_valid(FileGlobs, AllowNoFiles) ->
     case lists:all(fun(G) -> is_list(G) andalso G =/= [] end, FileGlobs) of
         true ->
             case lists:any(fun(G) -> filelib:wildcard(G) =/= [] end, FileGlobs) of
                 true ->
+                    ok;
+                false when AllowNoFiles ->
                     ok;
                 false ->
                     {error,
@@ -761,6 +770,11 @@ all_files_globs_are_valid(FileGlobs) ->
         false ->
             {error, "'files' is expected to be a non-empty list of non-empty strings."}
     end.
+
+is_config_boolean(_What, Value) when is_boolean(Value) ->
+    ok;
+is_config_boolean(What, _Value) ->
+    {error, io_lib:format("'~s' is expected to be a boolean.", [What])}.
 
 is_list_of_ignorables(What, List) when not is_list(List) ->
     {error, io_lib:format("'~s' is expected to be a list.", [What])};

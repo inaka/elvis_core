@@ -11,6 +11,7 @@
 -export([rock_with_rebar_default_config/1]).
 -export([throw_configuration/1]).
 -export([validate_config_with_string_ignore/1]).
+-export([validate_config_with_allow_no_files/1]).
 -export([validate/1]).
 
 -include_lib("stdlib/include/assert.hrl").
@@ -97,6 +98,43 @@ validate_config_with_string_ignore(_Config) ->
         }
     ],
     ok = elvis_config:validate(Config, undefined).
+
+validate_config_with_allow_no_files(_Config) ->
+    FileGlobs = [
+        "../../../../_build/test/lib/elvis_core/test/dirs/src/**/*.hrl",
+        "../../../../_build/test/lib/elvis_core/test/dirs/test/**/*.hrl"
+    ],
+    ConfigWithoutAllowNoFiles = [
+        #{
+            files => FileGlobs,
+            ruleset => hrl_files
+        }
+    ],
+    ?assertMatch(
+        {error, "key 'config', at list position number 1, yielded no files to analyse in " ++ _},
+        elvis_config:validate(ConfigWithoutAllowNoFiles, undefined)
+    ),
+
+    ConfigWithAllowNoFiles = [
+        #{
+            files => FileGlobs,
+            ruleset => hrl_files,
+            allow_no_files => true
+        }
+    ],
+    ok = elvis_config:validate(ConfigWithAllowNoFiles, undefined),
+    ok = elvis_core:rock({config, ConfigWithAllowNoFiles}),
+
+    ConfigWithInvalidAllowNoFiles = [
+        #{
+            files => FileGlobs,
+            ruleset => hrl_files,
+            allow_no_files => not_a_boolean
+        }
+    ],
+    {error,
+        "key 'config', at list position number 1, 'allow_no_files' is expected to be a boolean."} =
+        elvis_config:validate(ConfigWithInvalidAllowNoFiles, undefined).
 
 validate(_Config) ->
     ConfigDir = filename:join(["test", "examples", "configs"]),
