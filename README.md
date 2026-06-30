@@ -151,7 +151,9 @@ documentation was updated.
 The `files` key is a list of glob patterns that tell `elvis_core` which files to analyse. Each
 pattern uses [`filelib:wildcard/1`](https://erlang.org/doc/man/filelib.html#wildcard-1), so you can
 use patterns like `"src/*.erl"` or `"apps/**/src/*.erl"`. Matching files are run through the
-pre-defined rules in the specified `ruleset`.
+pre-defined rules in the specified `ruleset`. By default, at least one glob must match a file.
+To allow a config section to match no files - which is useful for shared optional sections like
+header-file checks - set `allow_no_files => true`.
 
 If you want to override the [pre-defined rules](#pre-defined-rules), for a given ruleset, you need
 to specify them in a `rules` key which is a list of items with the following structure

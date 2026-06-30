@@ -143,8 +143,8 @@ subdirs).
 , #{ files => [".gitignore"], ruleset => gitignore }
 ```
 
-Allowed config keys per rule group are now: `files`, `ignore`, `ruleset`, `rules`. At least one glob
-in `files` must match at least one file.
+Allowed config keys per rule group are now: `files`, `ignore`, `allow_no_files`, `ruleset`, `rules`.
+At least one glob in `files` must match at least one file unless `allow_no_files => true` is set.
 
 ### Rule renames
 
@@ -187,9 +187,10 @@ Referenced removed rules are skipped with a warning.
 
 ### Stricter configuration validation
 
-Configuration is validated more strictly: only the keys `files`, `ignore`, `ruleset`, and `rules` are
-allowed per rule group; unknown keys cause validation to fail. Non‑existing rules or rulesets also
-fail validation (renamed/removed rules are handled as above and do not fail validation).
+Configuration is validated more strictly: only the keys `files`, `ignore`, `allow_no_files`,
+`ruleset`, and `rules` are allowed per rule group; unknown keys cause validation to fail.
+Non‑existing rules or rulesets also fail validation (renamed/removed rules are handled as above and
+do not fail validation).
 
 ### Parallelism default
 
