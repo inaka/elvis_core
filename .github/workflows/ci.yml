@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request_target:
+    branches:
+      - "*"
   pull_request:
     branches:
       - "*"
@@ -46,9 +49,7 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-24.04' }}
         run: rebar3 fmt --check
       - name: SAFE check
-        if: >-
-          ${{ matrix.os == 'ubuntu-24.04' &&
-          github.event.pull_request.head.repo.full_name == github.repository }}
+        if: ${{ matrix.os == 'ubuntu-24.04' }}
         env:
           SAFE_LICENSE: ${{ secrets.SAFE_LICENSE }}
         run: rebar3 safe analyse
