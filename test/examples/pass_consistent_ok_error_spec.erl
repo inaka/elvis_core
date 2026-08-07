@@ -3,6 +3,8 @@
 -behaviour(supervisor).
 -behaviour(pass_invalid_dynamic_call_callback).
 
+-define(A_MACRO, a_macro_value).
+
 -export([
          init/1,
          arity_two/0,
@@ -10,6 +12,7 @@
          disabled_by_dynamic_behaviour/0,
          call/0,
          macro_function_name_call/0,
+         macro_result/0,
          list/0,
          ok/0,
          map/0,
@@ -34,6 +37,9 @@ call() -> {ok, callback}.
 
 -spec macro_function_name_call() -> {ok, term()}.
 macro_function_name_call() -> {ok, callback}.
+
+-spec macro_result() -> ?A_MACRO.
+macro_result() -> ?A_MACRO.
 
 -spec list() -> [ok | number()].
 list() -> [ok].
