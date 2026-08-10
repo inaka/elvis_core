@@ -1207,6 +1207,13 @@ is_behaviour_callback_spec(SpecNode, BehaviourCallbacks) ->
     ).
 
 spec_has_just_ok_result(SpecNode) ->
+    do_all_have_ok_result(ktn_code:node_attr(types, SpecNode)).
+
+%% The `types` attr is undefined when the result type couldn't be parsed as a
+%% regular type, e.g. when it's a macro (like `-spec f() -> ?A_MACRO.`).
+do_all_have_ok_result(undefined) ->
+    false;
+do_all_have_ok_result(Types) ->
     lists:all(
         fun(SpecType) ->
             [Result | _] = lists:reverse(ktn_code:content(SpecType)),
@@ -1219,7 +1226,7 @@ spec_has_just_ok_result(SpecNode) ->
                     false
             end
         end,
-        ktn_code:node_attr(types, SpecNode)
+        Types
     ).
 
 -spec no_spec_with_records(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
