@@ -21,11 +21,11 @@ bad() ->
 ugly() ->
     case begin
              #{a := A} = do:something(),
-             B = do:something("else", with, A)
+             do:something("else", with, A)
          end
     of
         #{b := good} ->
-            A;
+            a;
         #{b := bad} ->
-            B
+            b
     end.

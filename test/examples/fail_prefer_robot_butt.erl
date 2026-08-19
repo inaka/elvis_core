@@ -1,7 +1,5 @@
 -module(fail_prefer_robot_butt).
 
--feature(maybe_expr, enable).
-
 -export([guard_eq_zero/1, guard_gt_zero/1, guard_gte_one/1, guard_neq_zero/1,
          guard_reversed/1, guard_reversed_lt/1, guard_reversed_neq_zero/1,
          guard_eq_one/1, guard_eq_two/1,

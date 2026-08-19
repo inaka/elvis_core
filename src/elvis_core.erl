@@ -1,7 +1,5 @@
 -module(elvis_core).
 
--feature(maybe_expr, enable).
-
 %% Public API
 
 -export([rock/0, rock/1, rock/2]).

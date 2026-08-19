@@ -1,6 +1,6 @@
 -module(pass_code_complexity).
 
--feature(maybe_expr, enable).
+-compile([nowarn_deprecated_catch]).
 
 -export([simple_function/1, another_simple/1,
          with_maybe/1, with_try_catch_after/1, with_old_catch/1,

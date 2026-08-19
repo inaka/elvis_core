@@ -1,6 +1,6 @@
 -module(fail_abc_size).
 
--feature(maybe_expr, enable).
+-compile([nowarn_deprecated_catch]).
 
 -export([big_function/1,
          with_maybe/1, with_old_catch/1, with_receive/0,

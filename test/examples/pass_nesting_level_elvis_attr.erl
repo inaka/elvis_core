@@ -1,5 +1,5 @@
 -module(pass_nesting_level_elvis_attr).
-
+-compile([nowarn_deprecated_catch]).
 -elvis([{elvis_style, no_deep_nesting, #{level => 5}}, {elvis_style, no_if_expression, disable}]).
 -elvis([{elvis_text_style, max_line_length, #{limit => 100}}]).
 -elvis([{elvis_style, no_catch_expressions, disable}]).

@@ -1,5 +1,5 @@
 -module(fail_no_catch_expressions).
-
+-compile([nowarn_deprecated_catch]).
 -export([catchf/0, try_catch/0, mixem/0, discarded/0]).
 
 -dialyzer({nowarn_function, [catchf/0, try_catch/0, mixem/0, discarded/0]}).

@@ -1,7 +1,5 @@
 -module(pass_no_single_match_maybe).
 
--feature(maybe_expr, enable).
-
 -export([simple/0, with_else/0]).
 
 simple() ->
