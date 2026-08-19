@@ -1,8 +1,8 @@
 {"1.2.0",
-[{<<"katana_code">>,{pkg,<<"katana_code">>,<<"2.4.3">>},0}]}.
+[{<<"katana_code">>,{pkg,<<"katana_code">>,<<"2.5.1">>},0}]}.
 [
 {pkg_hash,[
- {<<"katana_code">>, <<"ADAD01906A999148F97DB6D995B15E2E10986FEB7E1CBB46595D267DC533DC0C">>}]},
+ {<<"katana_code">>, <<"6C1105FF186FB98982AD53ABC9D8E6C6B9700B51287389E89B208E12F472C362">>}]},
 {pkg_hash_ext,[
- {<<"katana_code">>, <<"614C6343DBAA45CEDEF27D23EB0901A383C46BFEB577039A5E60CAD17186CCEE">>}]}
+ {<<"katana_code">>, <<"CC5E5CE267E4C5C434C39077A9C77D03341CAE442EF46703AC1D2010994BD185">>}]}
 ].

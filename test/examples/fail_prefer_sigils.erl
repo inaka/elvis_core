@@ -15,11 +15,8 @@ single() ->
         string => "1\n2"
     }.
 
--if(?OTP_RELEASE >= 27).
+
 multi() -> <<"""
 1
 2
 """>>.
--else.
-multi() -> "string_concats produce a warning in OTP26".
--endif.

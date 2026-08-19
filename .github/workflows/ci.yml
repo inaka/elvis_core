@@ -14,8 +14,8 @@ jobs:
     runs-on: ${{matrix.os}}
     strategy:
       matrix:
-        otp_vsn: ['26', '27', '28']
-        rebar3_vsn: ['3.25']
+        otp_vsn: ['27', '28', '29']
+        rebar3_vsn: ['3.27']
         os: [ubuntu-24.04, windows-2022]
     steps:
       - uses: actions/checkout@v4
@@ -56,10 +56,7 @@ jobs:
         run: rebar3 test
         env:
           SAFE_LICENSE: ${{ secrets.SAFE_LICENSE }}
-          ERL_FLAGS: "-enable-feature maybe_expr"
       - name: Run elvis on elvis
         run: |
           rebar3 escriptize
           _build/default/bin/elvis_core
-        env:
-          ERL_FLAGS: "-enable-feature maybe_expr"

@@ -1,7 +1,5 @@
 -module(pass_maybe).
 
--feature(maybe_expr, enable).
-
 -export([sum_numbers/2]).
 
 sum_numbers(Number1, Number2) ->

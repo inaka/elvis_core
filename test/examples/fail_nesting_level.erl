@@ -1,6 +1,6 @@
 -module(fail_nesting_level).
 
--feature(maybe_expr, enable).
+-compile([nowarn_deprecated_catch]).
 
 -dialyzer(no_match).
 

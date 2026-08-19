@@ -1,7 +1,5 @@
 -module(pass_prefer_sigils).
 
--if(?OTP_RELEASE >= 27).
-
 -export([f/0]).
 
 f() ->
@@ -21,5 +19,3 @@ f() ->
         string => "1\n2",
         s_sigil => ~s"1\n2"
     }.
-
--endif.

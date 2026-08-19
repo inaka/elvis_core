@@ -1,7 +1,5 @@
 -module(fail_used_ignored_variable).
 
--feature(maybe_expr, enable).
-
 -export([ use_ignored_var/2
         , use_ignored_var_in_fun/2
         , no_used_ignored_vars_here/2, handle_call/3

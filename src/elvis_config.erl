@@ -1,7 +1,5 @@
 -module(elvis_config).
 
--feature(maybe_expr, enable).
-
 -elvis([
     {elvis_style, abc_size, #{ignore => [{elvis_config, default_for, 1}]}},
     {elvis_style, code_complexity, #{ignore => [{elvis_config, default_for, 1}]}}

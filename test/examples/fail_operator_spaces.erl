@@ -2,8 +2,6 @@
 %% Another initial comment
 -module(fail_operator_spaces).
 
--feature(maybe_expr, enable).
-
 -dialyzer({nowarn_function, function7/0}).
 
 -export([ function1/2

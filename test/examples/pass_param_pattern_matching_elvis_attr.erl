@@ -1,5 +1,5 @@
 -module(pass_param_pattern_matching_elvis_attr).
-
+-compile([nowarn_match_alias_pats]).
 -elvis([{elvis_style, param_pattern_matching, #{side => right}}]).
 
 -export([my_fun/1, my_fun/3]).

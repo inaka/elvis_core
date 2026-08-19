@@ -46,7 +46,6 @@
     verify_no_common_caveats_call/1,
     verify_no_call/1,
     verify_no_nested_try_catch/1,
-    verify_no_successive_maps/1,
     verify_atom_naming_convention/1,
     verify_no_throw/1,
     verify_no_dollar_space/1,
@@ -106,7 +105,6 @@
     verify_elvis_attr_no_debug_call/1,
     verify_elvis_attr_no_if_expression/1,
     verify_elvis_attr_no_nested_try_catch/1,
-    verify_elvis_attr_no_successive_maps/1,
     verify_elvis_attr_no_spec_with_records/1,
     verify_elvis_attr_consistent_ok_error_spec/1,
     verify_elvis_attr_no_tabs/1,
@@ -134,14 +132,6 @@
 -endif.
 %% Non-rule
 -export([results_are_ordered_by_line/1, oddities/1]).
-
--if(?OTP_RELEASE < 27).
-
-%% The `verify_max_module_length_docs/3` test only runs on OTP >= 27 because
-%% the `-moduledoc` and `-doc` attributes were introduced in OTP-27.
--hank([{unnecessary_function_arguments, [{verify_max_module_length_docs, 3}]}]).
-
--endif.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Common test
@@ -175,7 +165,6 @@ groups() ->
             verify_no_common_caveats_call,
             verify_no_call,
             verify_no_nested_try_catch,
-            verify_no_successive_maps,
             verify_atom_naming_convention,
             verify_no_throw,
             verify_no_author,
@@ -743,14 +732,14 @@ verify_nesting_level(Config) ->
         case Group of
             beam_files ->
                 [
-                    #{line_num := 9},
-                    #{line_num := 12},
-                    #{line_num := 23},
-                    #{line_num := 39},
-                    #{line_num := 69},
-                    #{line_num := 108},
-                    #{line_num := 153},
-                    #{line_num := 170},
+                    #{line_num := 11},
+                    #{line_num := 14},
+                    #{line_num := 25},
+                    #{line_num := 41},
+                    #{line_num := 71},
+                    #{line_num := 110},
+                    #{line_num := 155},
+                    #{line_num := 172},
                     _
                 ] =
                     elvis_test_utils:elvis_core_apply_rule(
@@ -891,7 +880,7 @@ verify_used_ignored_variable(Config) ->
                         Config, elvis_style, no_used_ignored_variables, #{}, Path
                     );
             erl_files ->
-                [#{line_num := 23}, #{line_num := 26}, #{line_num := 30}, #{line_num := 30}] =
+                [#{line_num := 21}, #{line_num := 24}, #{line_num := 28}, #{line_num := 28}] =
                     elvis_test_utils:elvis_core_apply_rule(
                         Config, elvis_style, no_used_ignored_variables, #{}, Path
                     ),
@@ -1471,19 +1460,19 @@ verify_max_module_length(Config) ->
     ct:comment("Don't count whitespace lines"),
     WhitespaceRuleConfig = CountAllRuleConfig#{count_whitespace => false},
 
-    RuleConfig3 = WhitespaceRuleConfig#{max_length => 12},
+    RuleConfig3 = WhitespaceRuleConfig#{max_length => 8},
     [_] =
         elvis_test_utils:elvis_core_apply_rule(
             Config, elvis_style, max_module_length, RuleConfig3, PathFail
         ),
 
-    RuleConfig4 = WhitespaceRuleConfig#{max_length => 13},
+    RuleConfig4 = WhitespaceRuleConfig#{max_length => 9},
     [_] =
         elvis_test_utils:elvis_core_apply_rule(
             Config, elvis_style, max_module_length, RuleConfig4, PathFail
         ),
 
-    RuleConfig5 = WhitespaceRuleConfig#{max_length => 14},
+    RuleConfig5 = WhitespaceRuleConfig#{max_length => 10},
     [] = elvis_test_utils:elvis_core_apply_rule(
         Config, elvis_style, max_module_length, RuleConfig5, PathFail
     ),
@@ -1491,19 +1480,19 @@ verify_max_module_length(Config) ->
     ct:comment("Don't count comment or whitespace lines"),
     NoCountRuleConfig = WhitespaceRuleConfig#{count_comments => false},
 
-    RuleConfig6 = NoCountRuleConfig#{max_length => 10},
+    RuleConfig6 = NoCountRuleConfig#{max_length => 6},
     [_] =
         elvis_test_utils:elvis_core_apply_rule(
             Config, elvis_style, max_module_length, RuleConfig6, PathFail
         ),
 
-    RuleConfig7 = NoCountRuleConfig#{max_length => 11},
+    RuleConfig7 = NoCountRuleConfig#{max_length => 7},
     [_] =
         elvis_test_utils:elvis_core_apply_rule(
             Config, elvis_style, max_module_length, RuleConfig7, PathFail
         ),
 
-    RuleConfig8 = NoCountRuleConfig#{max_length => 12},
+    RuleConfig8 = NoCountRuleConfig#{max_length => 8},
     [] = elvis_test_utils:elvis_core_apply_rule(
         Config, elvis_style, max_module_length, RuleConfig8, PathFail
     ),
@@ -1511,10 +1500,6 @@ verify_max_module_length(Config) ->
     ok = verify_max_module_length_docs(PathFail, CountAllRuleConfig, Config),
 
     {comment, ""}.
-
-%% The `verify_max_module_length_docs/3` test only runs on OTP >= 27 because
-%% the `-moduledoc` and `-doc` attributes were introduced in OTP-27.
--if(?OTP_RELEASE >= 27).
 
 verify_max_module_length_docs(PathFail, CountAllRuleConfig, Config) ->
     ct:comment("Don't count -moduledoc and -doc attributes"),
@@ -1539,13 +1524,6 @@ verify_max_module_length_docs(PathFail, CountAllRuleConfig, Config) ->
         ),
 
     ok.
-
--else.
-
-verify_max_module_length_docs(_PathFail, _CountAllRuleConfig, _Config) ->
-    ok.
-
--endif.
 
 verify_max_function_arity(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
@@ -2423,54 +2401,6 @@ verify_no_nested_try_catch(Config) ->
         Config, elvis_style, no_nested_try_catch, #{}, Path2
     ).
 
--if(?OTP_RELEASE < 27).
-
-verify_no_successive_maps(Config) ->
-    Group = proplists:get_value(group, Config, erl_files),
-    Ext = proplists:get_value(test_file_ext, Config, "erl"),
-
-    Module = fail_no_successive_maps,
-    Path = atom_to_list(Module) ++ "." ++ Ext,
-
-    Path2 = "fail_no_successive_maps2." ++ Ext,
-    _ =
-        case Group of
-            beam_files ->
-                [_, _, _] =
-                    elvis_test_utils:elvis_core_apply_rule(
-                        Config, elvis_style, no_successive_maps, #{}, Path
-                    ),
-                [_, _, _] =
-                    elvis_test_utils:elvis_core_apply_rule(
-                        Config, elvis_style, no_successive_maps, #{}, Path2
-                    );
-            erl_files ->
-                [#{line_num := 7}, #{line_num := 8}, #{line_num := 9}] =
-                    elvis_test_utils:elvis_core_apply_rule(
-                        Config, elvis_style, no_successive_maps, #{}, Path
-                    ),
-                [#{line_num := 11}, #{line_num := 27}, #{line_num := 33}] =
-                    elvis_test_utils:elvis_core_apply_rule(
-                        Config, elvis_style, no_successive_maps, #{}, Path2
-                    )
-        end,
-
-    [] =
-        elvis_test_utils:elvis_core_apply_rule(
-            Config,
-            elvis_style,
-            no_successive_maps,
-            #{ignore => [Module]},
-            Path
-        ).
-
--else.
-
-verify_no_successive_maps(_Config) ->
-    [].
-
--endif.
-
 verify_ms_transform_included(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
@@ -3013,7 +2943,7 @@ verify_no_single_match_maybe(Config) ->
             beam_files ->
                 [_, _, _] = R;
             erl_files ->
-                [#{line_num := 8}, #{line_num := 16}, #{line_num := 17}] = R
+                [#{line_num := 6}, #{line_num := 14}, #{line_num := 15}] = R
         end.
 
 %% erlfmt:ignore Lists of 40 elements are just too large to put each one on its own row
@@ -3478,9 +3408,6 @@ verify_elvis_attr_no_if_expression(Config) ->
 
 verify_elvis_attr_no_nested_try_catch(Config) ->
     verify_elvis_attr(Config, "pass_no_nested_try_catch_elvis_attr").
-
-verify_elvis_attr_no_successive_maps(Config) ->
-    verify_elvis_attr(Config, "pass_no_successive_maps_elvis_attr").
 
 verify_elvis_attr_no_spec_with_records(Config) ->
     verify_elvis_attr(Config, "pass_no_spec_with_records_elvis_attr").
