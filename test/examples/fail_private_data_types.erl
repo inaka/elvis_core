@@ -1,12 +1,20 @@
 -module(fail_private_data_types).
 
+-if(?OTP_RELEASE >= 29).
+-record #my_nat_rec{a :: integer(), b :: integer(), c :: integer()}.
+-else.
+-record(my_nat_rec, {a :: integer(), b :: integer(), c :: integer()}).
+-endif.
+
 -record(my_rec, {a :: integer(), b :: integer(), c :: integer()}).
 
 -type my_rec() :: #my_rec{}.
+-type my_nat_rec() :: #my_nat_rec{}.
 -type my_tuple() :: {bitstring(), bitstring()}.
 -type my_map() :: map().
 
 -export_type([my_rec/0]).
+-export_type([my_nat_rec/0]).
 -export_type([my_tuple/0]).
 -export_type([my_map/0]).
 
@@ -14,7 +22,7 @@
 
 -spec hello() -> ok.
 hello() ->
-    my_fun(#my_rec{a = 1, b = 2, c = 3}, {<<"hello">>, <<"world">>}, #{a => 1}).
+    my_fun(#my_rec{a = 1, b = 2, c = 3}, #my_nat_rec{a = 1, b = 2, c = 3}, {<<"hello">>, <<"world">>}, #{a => 1}).
 
--spec my_fun(my_rec(), my_tuple(), my_map()) -> ok.
-my_fun(_Rec, _Tup, _Map) -> ok.
+-spec my_fun(my_rec(), my_nat_rec(), my_tuple(), my_map()) -> ok.
+my_fun(_Rec, _NatRec, _Tup, _Map) -> ok.
