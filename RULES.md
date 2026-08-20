@@ -71,7 +71,7 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [No Space](doc_rules/elvis_style/no_space.md)
 - [No Spec With Records](doc_rules/elvis_style/no_spec_with_records.md)
 - [No Specs](doc_rules/elvis_style/no_specs.md)
-- [No Successive Maps](doc_rules/elvis_style/no_successive_maps.md)
+- [No Successive Maps - *removed*](doc_rules/elvis_style/no_successive_maps.md)
 - [No Tabs](doc_rules/elvis_text_style/no_tabs.md)
 - [No Throw](doc_rules/elvis_style/no_throw.md)
 - [No Trailing Whitespace](doc_rules/elvis_text_style/no_trailing_whitespace.md)

@@ -1,6 +1,10 @@
-# No Successive Maps [![](https://img.shields.io/badge/since-2.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/2.0.0) ![](https://img.shields.io/badge/BEAM-yes-orange)
+# No Successive Maps [![](https://img.shields.io/badge/since-2.0.0-blue)](https://github.com/inaka/elvis_core/releases/tag/2.0.0) [![](https://img.shields.io/badge/until-5.0.4-red)](https://github.com/inaka/elvis_core/releases/tag/5.0.4) ![](https://img.shields.io/badge/BEAM-yes-orange)
 
 Successive map expressions should be avoided.
+
+> #### Warning {: .warning}
+>
+> This rule was removed in version [6.0.0](https://github.com/inaka/elvis_core/releases/tag/6.0.0).
 
 ## Avoid
 
