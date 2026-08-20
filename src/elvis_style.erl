@@ -45,7 +45,6 @@
     no_debug_call/2,
     no_common_caveats_call/2,
     no_nested_try_catch/2,
-    no_successive_maps/2,
     atom_naming_convention/2,
     no_throw/2,
     no_dollar_space/2,
@@ -1889,28 +1888,6 @@ inner_try_exprs(TryExprNodes) ->
         TryExprContentNode <- ktn_code:content(TryExprNode),
         ktn_code:type(TryExprContentNode) =:= 'try'
     ].
-
--spec no_successive_maps(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
-no_successive_maps(Rule, ElvisConfig) ->
-    {nodes, MapExprNodes} = elvis_code:find(#{
-        of_types => [map],
-        inside => elvis_code:root(Rule, ElvisConfig),
-        filtered_by => fun is_successive_map/1,
-        traverse => all
-    }),
-
-    [
-        elvis_result:new_item(
-            "an unexpected map update after map construction/update was found",
-            [],
-            #{node => MapExprNode}
-        )
-     || MapExprNode <- MapExprNodes
-    ].
-
-is_successive_map(MapExprNode) ->
-    InnerVar = ktn_code:node_attr(var, MapExprNode),
-    ktn_code:type(InnerVar) =:= map.
 
 -spec atom_naming_convention(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 atom_naming_convention(Rule, ElvisConfig) ->

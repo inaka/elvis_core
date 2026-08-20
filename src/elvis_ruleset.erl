@@ -141,7 +141,6 @@ elvis_style_rules() ->
         elvis_rule:new(elvis_style, no_space_after_pound),
         elvis_rule:new(elvis_style, no_space),
         elvis_rule:new(elvis_style, no_spec_with_records),
-        elvis_rule:new(elvis_style, no_successive_maps),
         elvis_rule:new(elvis_style, no_throw),
         elvis_rule:new(elvis_style, numeric_format),
         elvis_rule:new(elvis_style, operator_spaces),
