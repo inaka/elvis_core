@@ -1345,22 +1345,22 @@ verify_prefer_strict_generators(Config) ->
             [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _] = Warnings;
         {_, _} ->
             [
-                #{line_num := 7},
-                #{line_num := 8},
-                #{line_num := 9},
-                #{line_num := 9},
-                #{line_num := 14},
-                #{line_num := 15},
-                #{line_num := 16},
-                #{line_num := 16},
                 #{line_num := 21},
                 #{line_num := 22},
                 #{line_num := 23},
                 #{line_num := 23},
+                #{line_num := 28},
                 #{line_num := 29},
-                #{line_num := 32},
-                #{line_num := 32},
-                #{line_num := 33}
+                #{line_num := 30},
+                #{line_num := 30},
+                #{line_num := 35},
+                #{line_num := 36},
+                #{line_num := 37},
+                #{line_num := 37},
+                #{line_num := 43},
+                #{line_num := 46},
+                #{line_num := 46},
+                #{line_num := 47}
             ] = Warnings
     end,
 
@@ -1372,8 +1372,9 @@ verify_prefer_strict_generators(Config) ->
 verify_no_spec_with_records(Config) ->
     Ext = proplists:get_value(test_file_ext, Config, "erl"),
 
+    %% 3 warnings for .erl / 2 warnings for .beam
     PathFail = "fail_no_spec_with_records." ++ Ext,
-    [_, _, _] =
+    [_, _ | _] =
         elvis_test_utils:elvis_core_apply_rule(
             Config, elvis_style, no_spec_with_records, #{}, PathFail
         ),
@@ -3276,9 +3277,9 @@ verify_private_data_types(Config) ->
             #{apply_to => [record, map, tuple]},
             PathPass2
         ),
-    % Default applies only to records
+    % Default applies only to records (which includes native records)
     PathFail = "fail_private_data_types." ++ Ext,
-    [#{line_num := _}] =
+    [#{line_num := _}, #{line_num := _}] =
         elvis_test_utils:elvis_core_apply_rule(
             Config,
             elvis_style,
@@ -3302,7 +3303,7 @@ verify_private_data_types(Config) ->
             #{apply_to => [map]},
             PathFail
         ),
-    [#{line_num := _}] =
+    [#{line_num := _}, #{line_num := _}] =
         elvis_test_utils:elvis_core_apply_rule(
             Config, elvis_style, private_data_types, #{}, PathFail
         ).
