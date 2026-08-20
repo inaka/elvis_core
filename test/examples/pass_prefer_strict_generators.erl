@@ -1,8 +1,23 @@
 -module(pass_prefer_strict_generators).
 
+-if(?OTP_RELEASE >= 29).
+-feature(compr_assign, enable).
+-endif.
+
 -if(?OTP_RELEASE >= 28).
 
 -export([bitstrings/1, lists/1, maps/1, edge_cases/0]).
+
+-if(?OTP_RELEASE >= 29).
+-export([otp29/1]).
+
+otp29(Input) ->
+    #{
+        multi_value => [1, X, 3 || X <:- Input],
+        zipping => [X, Y || X <:- Input && Y <:- Input],
+        comp_asssign => [X, Y || X = 1, Y = 2]
+    }.
+-endif.
 
 bitstrings(Input) ->
     {
