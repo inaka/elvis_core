@@ -1341,26 +1341,51 @@ verify_prefer_strict_generators(Config) ->
     case {string:to_integer(erlang:system_info(otp_release)), Group} of
         {{R, _}, _} when R < 28 ->
             [] = Warnings;
-        {_, beam_files} ->
+        {{28, _}, beam_files} ->
             [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _] = Warnings;
-        {_, _} ->
+        {{28, _}, _} ->
             [
-                #{line_num := 21},
                 #{line_num := 22},
                 #{line_num := 23},
-                #{line_num := 23},
-                #{line_num := 28},
+                #{line_num := 24},
+                #{line_num := 24},
                 #{line_num := 29},
                 #{line_num := 30},
-                #{line_num := 30},
-                #{line_num := 35},
+                #{line_num := 31},
+                #{line_num := 31},
                 #{line_num := 36},
                 #{line_num := 37},
+                #{line_num := 38},
+                #{line_num := 38},
+                #{line_num := 44},
+                #{line_num := 47},
+                #{line_num := 47},
+                #{line_num := 48}
+            ] = Warnings;
+        {_, beam_files} ->
+            [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _] = Warnings;
+        {_, _} ->
+            [
+                #{line_num := 14},
+                #{line_num := 15},
+                #{line_num := 15},
+                #{line_num := 16},
+                #{line_num := 22},
+                #{line_num := 23},
+                #{line_num := 24},
+                #{line_num := 24},
+                #{line_num := 29},
+                #{line_num := 30},
+                #{line_num := 31},
+                #{line_num := 31},
+                #{line_num := 36},
                 #{line_num := 37},
-                #{line_num := 43},
-                #{line_num := 46},
-                #{line_num := 46},
-                #{line_num := 47}
+                #{line_num := 38},
+                #{line_num := 38},
+                #{line_num := 44},
+                #{line_num := 47},
+                #{line_num := 47},
+                #{line_num := 48}
             ] = Warnings
     end,
 
