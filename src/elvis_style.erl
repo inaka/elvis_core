@@ -1076,7 +1076,7 @@ state_record_and_type(Rule, ElvisConfig) ->
     Root = elvis_code:root(Rule, ElvisConfig),
 
     {nodes, AllNodes} = elvis_code:find(#{
-        of_types => [behaviour, behavior, record_attr, type_attr, opaque, nominal],
+        of_types => [behaviour, behavior, record_attr, native_record, type_attr, opaque, nominal],
         inside => Root
     }),
     #{behaviours := BehaviourNodes, records := RecordAttrNodes, types := TypeOrOpaqueNodes} =
@@ -1084,6 +1084,7 @@ state_record_and_type(Rule, ElvisConfig) ->
             behaviour => behaviours,
             behavior => behaviours,
             record_attr => records,
+            native_record => records,
             type_attr => types,
             opaque => types,
             nominal => types

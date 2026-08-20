@@ -130,6 +130,11 @@
     verify_max_map_type_keys_otp28/1
 ]).
 -endif.
+
+-if(?OTP_RELEASE >= 29).
+-export([verify_state_record_and_type_otp29/1]).
+-endif.
+
 %% Non-rule
 -export([results_are_ordered_by_line/1, oddities/1]).
 
@@ -1036,6 +1041,21 @@ verify_state_record_and_type_otp28(Config) ->
             state_record_and_type,
             #{},
             PathPassWithNominal
+        ).
+-endif.
+
+-if(?OTP_RELEASE >= 29).
+verify_state_record_and_type_otp29(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+
+    PathPassWithNative = "pass_state_record_and_type_native." ++ Ext,
+    [] =
+        elvis_test_utils:elvis_core_apply_rule(
+            Config,
+            elvis_style,
+            state_record_and_type,
+            #{},
+            PathPassWithNative
         ).
 -endif.
 

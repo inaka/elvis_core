@@ -14,6 +14,8 @@ private type (`opaque()`), and should be exported.
 
 `opaque()` was added in [4.0.0](https://github.com/inaka/elvis_core/releases/tag/4.0.0).
 
+**Note**: since OTP29 you use either native records or tuple records.
+
 ## Avoid
 
 No type declared, no type exported:
