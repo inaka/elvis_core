@@ -2344,7 +2344,13 @@ verify_prefer_idiomatic_calls(Config) ->
     Result = elvis_test_utils:elvis_core_apply_rule(
         Config, elvis_style, prefer_idiomatic_calls, #{}, PathFail
     ),
-    assert_length(32, Result, prefer_idiomatic_calls).
+    assert_length(14, Result, prefer_idiomatic_calls),
+    lists:foreach(
+        fun(#{message := Message, info := [_, _, _, [_ | _]] = Info}) ->
+            _ = io_lib:format(Message, Info)
+        end,
+        Result
+    ).
 
 verify_no_call_flavours(
     Config,

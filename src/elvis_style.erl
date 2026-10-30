@@ -296,35 +296,42 @@ default(prefer_idiomatic_calls) ->
     elvis_rule:defmap(#{
         idiomatic_functions =>
             [
-                {maps, put, 3},
-                {maps, update, 3},
-                {string, equal, 2},
-                {string, concat, 2},
-                {string, is_empty, 1},
-                {lists, append, 2},
-                {ets, lookup, 2},
-                {lists, map, 2},
-                {maps, find, 2},
-                {maps, merge, 2},
-                {maps, from_list, 1},
-                {maps, to_list, 1},
-                {lists, foldl, 3},
-                {erlang, length, 1},
-                {lists, flatten, 1},
-                {lists, reverse, 1},
-                {erlang, hd, 1},
-                {lists, nth, 2},
-                {lists, zip, 2},
-                {lists, seq, 2},
-                {lists, seq, 3},
-                {string, lowercase, 1},
-                {binary, encode_hex, 1},
-                {erlang, list_to_binary, 1},
-                {erlang, list_to_atom, 1},
-                {erlang, atom_to_list, 1},
-                {erlang, atom_to_binary, 1},
-                {sets, new, 0},
-                {sets, from_list, 1}
+                {{maps, put, 3}, ["Map#{Key => Value}"]},
+                {{maps, update, 3}, ["Map#{Key := Value}"]},
+                {
+                    {string, equal, 2},
+                    ["Left =:= Right when both strings have the same flat representation"]
+                },
+                {{string, concat, 2}, ["Left ++ Right for character lists"]},
+                {
+                    {string, is_empty, 1},
+                    ["String =:= [] for flat lists or String =:= <<>> for binaries"]
+                },
+                {{lists, append, 2}, ["Left ++ Right"]},
+                {
+                    {maps, find, 2},
+                    [
+                        "a map pattern such as #{Key := Value} = Map when the lookup result is immediately matched"
+                    ]
+                },
+                {
+                    {maps, merge, 2},
+                    ["Map#{Key => Value} when merging a map literal, or Map when merging with #{}"]
+                },
+                {
+                    {erlang, length, 1},
+                    [
+                        "List =:= [] or pattern matching on [] and [_ | _] when only checking emptiness"
+                    ]
+                },
+                {
+                    {erlang, list_to_binary, 1},
+                    ["a binary literal such as <<\"text\">> when converting a string literal"]
+                },
+                {
+                    {erlang, atom_to_list, 1},
+                    ["a string literal such as \"text\" when converting an atom literal"]
+                }
             ]
     });
 default(atom_naming_convention) ->
@@ -1879,9 +1886,10 @@ no_common_caveats_call(Rule, ElvisConfig) ->
 
 -spec prefer_idiomatic_calls(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
 prefer_idiomatic_calls(Rule, ElvisConfig) ->
-    DefaultFns = elvis_rule:option(idiomatic_functions, Rule),
-    Msg = "consider a more idiomatic alternative to '~p:~p/~p'",
-    no_call_common(Rule, ElvisConfig, DefaultFns, Msg).
+    Messages = elvis_rule:option(idiomatic_functions, Rule),
+    Functions = proplists:get_keys(Messages),
+    Msg = "for the call '~p:~p/~p', consider ~ts",
+    no_call_common(Rule, ElvisConfig, Functions, Msg, Messages).
 
 -spec node_line_limits(ktn_code:tree_node()) -> {Min :: integer(), Max :: integer()}.
 node_line_limits(FunctionNode) ->
@@ -3981,6 +3989,9 @@ is_children(Parent, Node) ->
     end.
 
 no_call_common(Rule, ElvisConfig, NoCallFuns, Msg) ->
+    no_call_common(Rule, ElvisConfig, NoCallFuns, Msg, []).
+
+no_call_common(Rule, ElvisConfig, NoCallFuns, Msg, ExtraInfo) ->
     {nodes, CallNodes} = elvis_code:find(#{
         of_types => [call],
         inside => elvis_code:root(Rule, ElvisConfig),
@@ -3995,11 +4006,8 @@ no_call_common(Rule, ElvisConfig, NoCallFuns, Msg) ->
         fun(CallNode) ->
             {M, F, A} = call_mfa(CallNode),
 
-            elvis_result:new_item(
-                Msg,
-                [M, F, A],
-                #{node => CallNode}
-            )
+            Info = proplists:get_value({M, F, A}, ExtraInfo, []),
+            elvis_result:new_item(Msg, [M, F, A] ++ Info, #{node => CallNode})
         end,
         CallNodes
     ).
