@@ -45,6 +45,7 @@
     verify_ignore_wildcard_patterns/1,
     verify_no_common_caveats_call/1,
     verify_no_call/1,
+    verify_prefer_idiomatic_calls/1,
     verify_no_nested_try_catch/1,
     verify_no_successive_maps/1,
     verify_atom_naming_convention/1,
@@ -194,7 +195,8 @@ groups() ->
             verify_simplify_anonymous_functions,
             verify_code_complexity,
             verify_abc_size,
-            verify_prefer_robot_butt
+            verify_prefer_robot_butt,
+            verify_prefer_idiomatic_calls
         ]}
     ].
 
@@ -2325,10 +2327,24 @@ verify_ignore_wildcard_patterns(Config) ->
 %% We test no_call and no_common_caveats_call by building the equivalent config and make sure that
 %% other than defaults, they behave the same
 verify_no_common_caveats_call(Config) ->
-    verify_no_call_flavours(Config, no_common_caveats_call, caveat_functions, 13).
+    verify_no_call_flavours(Config, no_common_caveats_call, caveat_functions, 17).
 
 verify_no_call(Config) ->
     verify_no_call_flavours(Config, no_call, no_call_functions, 0).
+
+verify_prefer_idiomatic_calls(Config) ->
+    Ext = proplists:get_value(test_file_ext, Config, "erl"),
+    PathFail = "fail_prefer_idiomatic_calls." ++ Ext,
+    PathPass = "pass_prefer_idiomatic_calls." ++ Ext,
+
+    [] = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, prefer_idiomatic_calls, #{}, PathPass
+    ),
+
+    Result = elvis_test_utils:elvis_core_apply_rule(
+        Config, elvis_style, prefer_idiomatic_calls, #{}, PathFail
+    ),
+    assert_length(32, Result, prefer_idiomatic_calls).
 
 verify_no_call_flavours(
     Config,
@@ -2359,7 +2375,7 @@ verify_no_call_flavours(
             {{timer, send_after, 3}, 1},
             {{timer, send_interval, 2}, 1},
             {{timer, send_interval, 3}, 1},
-            {{erlang, size, 1}, 2},
+            {{erlang, size, 1}, 6},
             {{timer, send_after}, 2},
             {{timer, '_', '_'}, 4},
             {{'_', tuple_size, 1}, 1},

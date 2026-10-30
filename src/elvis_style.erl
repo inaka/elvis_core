@@ -44,6 +44,7 @@
     no_call/2,
     no_debug_call/2,
     no_common_caveats_call/2,
+    prefer_idiomatic_calls/2,
     no_nested_try_catch/2,
     no_successive_maps/2,
     atom_naming_convention/2,
@@ -289,6 +290,41 @@ default(no_common_caveats_call) ->
                 {erlang, binary_to_atom, 1},
                 {erlang, binary_to_atom, 2},
                 {erlang, garbage_collect, 0}
+            ]
+    });
+default(prefer_idiomatic_calls) ->
+    elvis_rule:defmap(#{
+        idiomatic_functions =>
+            [
+                {maps, put, 3},
+                {maps, update, 3},
+                {string, equal, 2},
+                {string, concat, 2},
+                {string, is_empty, 1},
+                {lists, append, 2},
+                {ets, lookup, 2},
+                {lists, map, 2},
+                {maps, find, 2},
+                {maps, merge, 2},
+                {maps, from_list, 1},
+                {maps, to_list, 1},
+                {lists, foldl, 3},
+                {erlang, length, 1},
+                {lists, flatten, 1},
+                {lists, reverse, 1},
+                {erlang, hd, 1},
+                {lists, nth, 2},
+                {lists, zip, 2},
+                {lists, seq, 2},
+                {lists, seq, 3},
+                {string, lowercase, 1},
+                {binary, encode_hex, 1},
+                {erlang, list_to_binary, 1},
+                {erlang, list_to_atom, 1},
+                {erlang, atom_to_list, 1},
+                {erlang, atom_to_binary, 1},
+                {sets, new, 0},
+                {sets, from_list, 1}
             ]
     });
 default(atom_naming_convention) ->
@@ -1839,6 +1875,12 @@ no_debug_call(Rule, ElvisConfig) ->
 no_common_caveats_call(Rule, ElvisConfig) ->
     DefaultFns = elvis_rule:option(caveat_functions, Rule),
     Msg = "the call to '~p:~p/~p' might have performance drawbacks or implicit behavior",
+    no_call_common(Rule, ElvisConfig, DefaultFns, Msg).
+
+-spec prefer_idiomatic_calls(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
+prefer_idiomatic_calls(Rule, ElvisConfig) ->
+    DefaultFns = elvis_rule:option(idiomatic_functions, Rule),
+    Msg = "consider a more idiomatic alternative to '~p:~p/~p'",
     no_call_common(Rule, ElvisConfig, DefaultFns, Msg).
 
 -spec node_line_limits(ktn_code:tree_node()) -> {Min :: integer(), Max :: integer()}.
@@ -3945,7 +3987,8 @@ no_call_common(Rule, ElvisConfig, NoCallFuns, Msg) ->
         filtered_by =>
             fun(CallNode) ->
                 is_in_call_list(CallNode, NoCallFuns)
-            end
+            end,
+        traverse => all
     }),
 
     lists:map(
