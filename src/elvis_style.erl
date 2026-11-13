@@ -311,7 +311,8 @@ default(prefer_idiomatic_calls) ->
                 {
                     {maps, find, 2},
                     [
-                        "a map pattern such as #{Key := Value} = Map when the lookup result is immediately matched"
+                        "a map pattern such as #{Key := Value} = Map "
+                        "when the lookup result is immediately matched"
                     ]
                 },
                 {
@@ -321,7 +322,8 @@ default(prefer_idiomatic_calls) ->
                 {
                     {erlang, length, 1},
                     [
-                        "List =:= [] or pattern matching on [] and [_ | _] when only checking emptiness"
+                        "List =:= [] or pattern matching on [] and [_ | _] "
+                        "when only checking emptiness"
                     ]
                 },
                 {

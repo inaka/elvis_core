@@ -189,5 +189,17 @@
     }
   },
   "active": "27cc0908d6fc9a44",
-  "lastOpenFiles": []
+  "lastOpenFiles": [
+    "doc/elvis_core/OEBPS/title.xhtml",
+    "doc/elvis_core/OEBPS/security.xhtml",
+    "doc/elvis_core/OEBPS/rules.xhtml",
+    "doc/elvis_core/OEBPS/readme.xhtml",
+    "doc/elvis_core/OEBPS/no_includes.xhtml",
+    "doc/elvis_core/OEBPS/no_import.xhtml",
+    "doc/elvis_core/OEBPS/no_deep_nesting.xhtml",
+    "doc/elvis_core/OEBPS/no_if_expression.xhtml",
+    "doc/elvis_core/OEBPS/no_god_modules.xhtml",
+    "doc/elvis_core/OEBPS/no_dollar_space.xhtml",
+    "doc/elvis_core/OEBPS/no_debug_call.xhtml"
+  ]
 }
