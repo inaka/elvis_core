@@ -11,9 +11,11 @@ the following alternatives by default:
 | `string:concat/2` | `Left ++ Right` for character lists |
 | `string:is_empty/1` | `String =:= []` for flat lists or `String =:= <<>>` for binaries |
 | `lists:append/2` | `Left ++ Right` |
-| `maps:find/2` | A map pattern such as `#{Key := Value} = Map` when the result is immediately matched |
+| `maps:find/2` | A map pattern such as `#{Key := Value} = Map` when the result is
+immediately matched |
 | `maps:merge/2` | `Map#{Key => Value}` for a map literal, or remove a merge with `#{}` |
-| `erlang:length/1` | `List =:= []` or pattern matching on `[]` and `[_ \| _]` when only checking emptiness |
+| `erlang:length/1` | `List =:= []` or pattern matching on `[]` and `[_ \| _]` when only checking
+emptiness |
 | `erlang:list_to_binary/1` | A binary literal when converting a string literal |
 | `erlang:atom_to_list/1` | A string literal when converting an atom literal |
 
