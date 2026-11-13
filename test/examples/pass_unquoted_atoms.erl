@@ -2,6 +2,11 @@
 
 -export([test/1, test/2, test_unicode/0]).
 
+-export_type([type_with_macro/0]).
+
+-define(MACRO, 1).
+-type type_with_macro() :: ?MACRO.
+
 test(_Test) -> ok.
 
 test(_A, nice_atom_name) -> perfect_atomname;

@@ -2919,7 +2919,7 @@ doesnt_need_quotes_regex() ->
 
 doesnt_need_quotes(AtomNode, Regex) ->
     AtomName0 = ktn_code:attr(text, AtomNode),
-    case re:run(AtomName0, Regex, [{capture, none}]) of
+    case AtomName0 =/= undefined andalso re:run(AtomName0, Regex, [{capture, none}]) of
         match ->
             AtomName = string:trim(AtomName0, both, "'"),
             % safe-ignore list_to_atom/1
