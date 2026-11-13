@@ -80,6 +80,7 @@ Most, if not all, of the rules will present (opinionated) documentation sections
 - [Numeric Format](doc_rules/elvis_style/numeric_format.md)
 - [Operator Spaces](doc_rules/elvis_style/operator_spaces.md)
 - [Param Pattern-Matching](doc_rules/elvis_style/param_pattern_matching.md)
+- [Prefer Idiomatic Calls](doc_rules/elvis_style/prefer_idiomatic_calls.md)
 - [Prefer Include](doc_rules/elvis_style/prefer_include.md)
 - [Prefer Robot Butt](doc_rules/elvis_style/prefer_robot_butt.md)
 - [Prefer Sigils](doc_rules/elvis_style/prefer_sigils.md)
