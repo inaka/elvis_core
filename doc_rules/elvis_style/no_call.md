@@ -2,6 +2,8 @@
 
 Avoid calls to specific functions.
 
+Calls are checked throughout the syntax tree, including guards and binary segment values and sizes.
+
 ## Rationale
 
 Some functions may be discouraged due to deprecation, known performance issues, unsafe side

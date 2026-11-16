@@ -44,6 +44,7 @@
     no_call/2,
     no_debug_call/2,
     no_common_caveats_call/2,
+    prefer_idiomatic_calls/2,
     no_nested_try_catch/2,
     atom_naming_convention/2,
     no_throw/2,
@@ -288,6 +289,50 @@ default(no_common_caveats_call) ->
                 {erlang, binary_to_atom, 1},
                 {erlang, binary_to_atom, 2},
                 {erlang, garbage_collect, 0}
+            ]
+    });
+default(prefer_idiomatic_calls) ->
+    elvis_rule:defmap(#{
+        idiomatic_functions =>
+            [
+                {{maps, put, 3}, ["Map#{Key => Value}"]},
+                {{maps, update, 3}, ["Map#{Key := Value}"]},
+                {
+                    {string, equal, 2},
+                    ["Left =:= Right when both strings have the same flat representation"]
+                },
+                {{string, concat, 2}, ["Left ++ Right for character lists"]},
+                {
+                    {string, is_empty, 1},
+                    ["String =:= [] for flat lists or String =:= <<>> for binaries"]
+                },
+                {{lists, append, 2}, ["Left ++ Right"]},
+                {
+                    {maps, find, 2},
+                    [
+                        "a map pattern such as #{Key := Value} = Map "
+                        "when the lookup result is immediately matched"
+                    ]
+                },
+                {
+                    {maps, merge, 2},
+                    ["Map#{Key => Value} when merging a map literal, or Map when merging with #{}"]
+                },
+                {
+                    {erlang, length, 1},
+                    [
+                        "List =:= [] or pattern matching on [] and [_ | _] "
+                        "when only checking emptiness"
+                    ]
+                },
+                {
+                    {erlang, list_to_binary, 1},
+                    ["a binary literal such as <<\"text\">> when converting a string literal"]
+                },
+                {
+                    {erlang, atom_to_list, 1},
+                    ["a string literal such as \"text\" when converting an atom literal"]
+                }
             ]
     });
 default(atom_naming_convention) ->
@@ -1847,6 +1892,13 @@ no_common_caveats_call(Rule, ElvisConfig) ->
     DefaultFns = elvis_rule:option(caveat_functions, Rule),
     Msg = "the call to '~p:~p/~p' might have performance drawbacks or implicit behavior",
     no_call_common(Rule, ElvisConfig, DefaultFns, Msg).
+
+-spec prefer_idiomatic_calls(elvis_rule:t(), elvis_config:t()) -> [elvis_result:item()].
+prefer_idiomatic_calls(Rule, ElvisConfig) ->
+    Messages = elvis_rule:option(idiomatic_functions, Rule),
+    Functions = proplists:get_keys(Messages),
+    Msg = "for the call '~p:~p/~p', consider ~ts",
+    no_call_common(Rule, ElvisConfig, Functions, Msg, Messages).
 
 -spec node_line_limits(ktn_code:tree_node()) -> {Min :: integer(), Max :: integer()}.
 node_line_limits(FunctionNode) ->
@@ -3924,24 +3976,25 @@ is_children(Parent, Node) ->
     end.
 
 no_call_common(Rule, ElvisConfig, NoCallFuns, Msg) ->
+    no_call_common(Rule, ElvisConfig, NoCallFuns, Msg, []).
+
+no_call_common(Rule, ElvisConfig, NoCallFuns, Msg, ExtraInfo) ->
     {nodes, CallNodes} = elvis_code:find(#{
         of_types => [call],
         inside => elvis_code:root(Rule, ElvisConfig),
         filtered_by =>
             fun(CallNode) ->
                 is_in_call_list(CallNode, NoCallFuns)
-            end
+            end,
+        traverse => all
     }),
 
     lists:map(
         fun(CallNode) ->
             {M, F, A} = call_mfa(CallNode),
 
-            elvis_result:new_item(
-                Msg,
-                [M, F, A],
-                #{node => CallNode}
-            )
+            Info = proplists:get_value({M, F, A}, ExtraInfo, []),
+            elvis_result:new_item(Msg, [M, F, A] ++ Info, #{node => CallNode})
         end,
         CallNodes
     ).

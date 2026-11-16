@@ -1,5 +1,5 @@
 -module(fail_no_call_classes).
--export([fail/0]).
+-export([fail/0, nested_calls/1]).
 
 -spec fail() -> any().
 fail() ->
@@ -28,3 +28,13 @@ fail() ->
     _ = binary_to_atom(<<"heya">>),
     _ = binary_to_atom(<<"heya">>, utf8),
     _ = erlang:garbage_collect().
+
+%% Calls in guards and binary segments must be found; function references are allowed.
+nested_calls(Value) when size(Value) > 0 ->
+    _ = fun erlang:size/1,
+    _ = <<(size(Value)):8>>,
+    _ = <<0:(size(Value))>>,
+    %% The case expression is reachable through both content and node_attrs.
+    case size(Value) of
+        Size -> Size
+    end.
